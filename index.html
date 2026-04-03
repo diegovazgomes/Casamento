@@ -12,7 +12,18 @@
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="assets/css/animations.css">
 </head>
-<body>
+<body class="experience-locked">
+    <div class="intro-screen" id="introScreen" aria-labelledby="introScreenTitle">
+        <div class="intro-screen__backdrop" aria-hidden="true"></div>
+        <div class="intro-screen__content">
+            <p class="intro-screen__label">Convite</p>
+            <h1 class="intro-screen__names" id="introScreenTitle">Siannah <span>&</span> Diego</h1>
+            <p class="intro-screen__note">Uma noite para celebrar o início de tudo com leveza, presença e amor.</p>
+            <button class="intro-screen__open" id="openInviteButton" type="button">Abrir convite</button>
+        </div>
+    </div>
+
+    <div class="site-shell" id="siteShell" hidden aria-hidden="true">
     <main>
         <section class="hero" id="hero" aria-label="Convite principal">
             <img
@@ -106,12 +117,12 @@
                     <div class="detail-value">Cerimônia & Recepção</div>
                     <span class="detail-sub">Traje social</span>
                 </article>
-                <a class="detail-card detail-card-link detail-card-gift" href="presente.html" aria-label="Abrir página de presentes">
+                <button class="detail-card detail-card-link detail-card-gift" type="button" data-open-gift-overlay aria-label="Abrir área de presentes">
                     <span class="detail-icon" aria-hidden="true">🎁</span>
                     <span class="detail-title">Presente</span>
                     <div class="detail-value">Para nos presentear</div>
                     <span class="detail-sub">Abrir opções</span>
-                </a>
+                </button>
             </div>
         </section>
 
@@ -154,12 +165,84 @@
                 </div>
             </div>
         </section>
+
+        <div class="gift-overlay-shell" id="giftOverlay" hidden aria-hidden="true">
+            <div class="gift-overlay-backdrop" data-close-gift-overlay aria-hidden="true"></div>
+            <section class="gift-overlay-panel" role="dialog" aria-modal="true" aria-labelledby="giftOverlayTitle">
+                <button class="gift-overlay-close" type="button" data-close-gift-overlay aria-label="Fechar área de presentes">Fechar</button>
+
+                <section class="content-section gift-intro gift-overlay-intro">
+                    <span class="section-tag">Presente</span>
+                    <h2 class="section-title" id="giftOverlayTitle">Para nos presentear</h2>
+                    <p class="section-body">
+                        Sua presença já é o nosso maior presente. Mas, se desejar nos presentear de outra forma,
+                        deixamos abaixo algumas opções com carinho.
+                    </p>
+                </section>
+
+                <div class="divider gift-overlay-divider" aria-hidden="true">
+                    <div class="divider-line"></div>
+                    <div class="divider-diamond"></div>
+                    <div class="divider-line"></div>
+                </div>
+
+                <section class="content-section gift-shell gift-overlay-content">
+                    <div class="gift-grid">
+                        <article class="gift-panel gift-panel-pix">
+                            <span class="gift-panel-tag">Pix</span>
+                            <h3 class="gift-panel-title">Pix do casal</h3>
+                            <p class="gift-panel-body">
+                                Se preferir, você pode nos presentear por Pix usando o QR Code ou o código abaixo.
+                            </p>
+
+                            <div class="gift-qr-frame">
+                                <img src="assets/images/icons/pix-placeholder.svg" alt="Placeholder do QR Code para pagamento via Pix">
+                            </div>
+
+                            <p class="gift-copy-label">Pix copia e cola</p>
+                            <code class="gift-copy-code" id="pixCode">CHAVE_PIX_OU_CODIGO_COPIA_E_COLA_AQUI</code>
+
+                            <button
+                                class="gift-copy-button"
+                                type="button"
+                                data-copy-value="CHAVE_PIX_OU_CODIGO_COPIA_E_COLA_AQUI"
+                                data-copy-feedback-target="pixCopyFeedback"
+                            >
+                                Copiar código Pix
+                            </button>
+                            <p class="gift-feedback" id="pixCopyFeedback" aria-live="polite"></p>
+                        </article>
+
+                        <article class="gift-panel gift-panel-card">
+                            <span class="gift-panel-tag">Pagamento por cartão</span>
+                            <h3 class="gift-panel-title">Pagamento por cartão</h3>
+                            <p class="gift-panel-body">
+                                Em breve, esta opção estará disponível.
+                            </p>
+                            <div class="gift-card-placeholder">
+                                Espaço reservado para inserir o link ou a plataforma de pagamento por cartão.
+                            </div>
+                        </article>
+                    </div>
+
+                    <div class="gift-back-wrap">
+                        <button class="gift-back-link" type="button" data-close-gift-overlay data-scroll-target="#rsvp">Voltar para confirmação</button>
+                    </div>
+                </section>
+            </section>
+        </div>
     </main>
 
     <footer>
         <div class="footer-names">Siannah & Diego</div>
         <p class="footer-note">06 . 09 . 2026 | São Bernardo do Campo</p>
     </footer>
+    </div>
+
+    <button class="audio-toggle" id="audioToggle" type="button" hidden aria-label="Pausar som" aria-pressed="false">
+        <span class="audio-toggle__pulse" aria-hidden="true"></span>
+        <span class="audio-toggle__label">Som</span>
+    </button>
 
     <script type="module" src="assets/js/script.js"></script>
 </body>

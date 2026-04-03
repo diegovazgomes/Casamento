@@ -1,4 +1,4 @@
-class PresentPage {
+export class PresentPage {
     constructor() {
         this.copyButtons = Array.from(document.querySelectorAll('[data-copy-value]'));
     }
@@ -85,12 +85,4 @@ class PresentPage {
         document.execCommand('copy');
         document.body.removeChild(temporaryField);
     }
-}
-
-const presentPage = new PresentPage();
-
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => presentPage.init(), { once: true });
-} else {
-    presentPage.init();
 }

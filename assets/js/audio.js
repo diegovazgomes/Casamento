@@ -1,0 +1,225 @@
+const DEFAULT_AUDIO_TRACKS = {
+    main: {
+        src: 'assets/audio/main-theme.mp3',
+        volume: 0.14
+    },
+    gift: {
+        src: 'assets/audio/gift-theme.mp3',
+        volume: 0.12
+    }
+};
+
+export class AudioController extends EventTarget {
+    constructor(trackConfig = DEFAULT_AUDIO_TRACKS) {
+        super();
+        this.desiredTrackKey = null;
+        this.currentTrackKey = null;
+        this.readyForPlayback = false;
+        this.userPaused = false;
+        this.lastError = null;
+        this.fadeFrameId = null;
+        this.tracks = Object.fromEntries(
+            Object.entries(trackConfig).map(([key, definition]) => [
+                key,
+                {
+                    ...definition,
+                    element: this.createAudioElement(definition.src)
+                }
+            ])
+        );
+    }
+
+    createAudioElement(src) {
+        const audio = new Audio(src);
+        audio.loop = true;
+        audio.preload = 'none';
+        audio.volume = 0;
+
+        audio.addEventListener('error', () => {
+            this.lastError = 'audio-load-error';
+            this.emitState();
+        });
+
+        return audio;
+    }
+
+    emitState() {
+        const currentElement = this.getCurrentElement();
+
+        this.dispatchEvent(new CustomEvent('statechange', {
+            detail: {
+                currentTrackKey: this.currentTrackKey,
+                desiredTrackKey: this.desiredTrackKey,
+                readyForPlayback: this.readyForPlayback,
+                userPaused: this.userPaused,
+                isPlaying: Boolean(currentElement && !currentElement.paused),
+                hasError: Boolean(this.lastError)
+            }
+        }));
+    }
+
+    getCurrentElement() {
+        if (!this.currentTrackKey) {
+            return null;
+        }
+
+        return this.tracks[this.currentTrackKey]?.element ?? null;
+    }
+
+    async unlock() {
+        this.readyForPlayback = true;
+        this.emitState();
+    }
+
+    async setContext(trackKey) {
+        this.desiredTrackKey = trackKey;
+
+        if (!this.readyForPlayback || this.userPaused) {
+            this.emitState();
+            return false;
+        }
+
+        return this.playTrack(trackKey);
+    }
+
+    async playTrack(trackKey) {
+        const track = this.tracks[trackKey];
+
+        if (!track) {
+            return false;
+        }
+
+        const currentElement = this.getCurrentElement();
+
+        if (this.currentTrackKey === trackKey && currentElement && !currentElement.paused) {
+            this.emitState();
+            return true;
+        }
+
+        await this.fadeOutCurrent();
+
+        const nextElement = track.element;
+        nextElement.currentTime = 0;
+        nextElement.volume = 0;
+
+        const played = await this.safePlay(nextElement);
+
+        if (!played) {
+            this.emitState();
+            return false;
+        }
+
+        this.currentTrackKey = trackKey;
+        await this.fadeVolume(nextElement, track.volume ?? 0.12, 420);
+        this.emitState();
+        return true;
+    }
+
+    async fadeOutCurrent() {
+        const currentElement = this.getCurrentElement();
+
+        if (!currentElement) {
+            return;
+        }
+
+        await this.fadeVolume(currentElement, 0, 240);
+        currentElement.pause();
+        currentElement.currentTime = 0;
+    }
+
+    async fadeVolume(audio, targetVolume, duration) {
+        if (!audio) {
+            return;
+        }
+
+        window.cancelAnimationFrame(this.fadeFrameId);
+
+        await new Promise((resolve) => {
+            const startTime = performance.now();
+            const startVolume = audio.volume;
+
+            const step = (now) => {
+                const progress = Math.min((now - startTime) / duration, 1);
+                audio.volume = startVolume + (targetVolume - startVolume) * progress;
+
+                if (progress < 1) {
+                    this.fadeFrameId = window.requestAnimationFrame(step);
+                } else {
+                    resolve();
+                }
+            };
+
+            this.fadeFrameId = window.requestAnimationFrame(step);
+        });
+    }
+
+    async safePlay(audio) {
+        try {
+            const playPromise = audio.play();
+
+            if (playPromise) {
+                await playPromise;
+            }
+
+            this.lastError = null;
+            return true;
+        } catch (error) {
+            this.lastError = error;
+            return false;
+        }
+    }
+
+    pause() {
+        this.userPaused = true;
+        const currentElement = this.getCurrentElement();
+
+        if (currentElement) {
+            currentElement.pause();
+        }
+
+        this.emitState();
+    }
+
+    async resume() {
+        this.userPaused = false;
+
+        if (!this.readyForPlayback || !this.desiredTrackKey) {
+            this.emitState();
+            return false;
+        }
+
+        if (this.currentTrackKey !== this.desiredTrackKey) {
+            return this.playTrack(this.desiredTrackKey);
+        }
+
+        const currentElement = this.getCurrentElement();
+
+        if (!currentElement) {
+            this.emitState();
+            return false;
+        }
+
+        currentElement.volume = 0;
+        const played = await this.safePlay(currentElement);
+
+        if (!played) {
+            this.emitState();
+            return false;
+        }
+
+        await this.fadeVolume(currentElement, this.tracks[this.currentTrackKey].volume ?? 0.12, 320);
+        this.emitState();
+        return true;
+    }
+
+    toggle() {
+        const currentElement = this.getCurrentElement();
+
+        if (this.userPaused || !currentElement || currentElement.paused) {
+            return this.resume();
+        }
+
+        this.pause();
+        return Promise.resolve(false);
+    }
+}

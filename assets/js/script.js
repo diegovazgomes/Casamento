@@ -1,6 +1,8 @@
 import { WeddingApp } from './main.js';
 import { Countdown } from './countdown.js';
 import { RSVP } from './rsvp.js';
+import { PresentPage } from './presente.js';
+import { AudioController } from './audio.js';
 
 function isMobileViewport() {
     return window.matchMedia('(max-width: 767px)').matches;
@@ -115,24 +117,237 @@ async function loadConfig() {
     return module.CONFIG;
 }
 
-function initializeApp(config) {
-    applyConfig(config);
+class InvitationExperience {
+    constructor(config) {
+        this.config = config;
+        this.weddingApp = null;
+        this.countdown = null;
+        this.rsvp = null;
+        this.presentPage = new PresentPage();
+        this.audio = new AudioController();
+        this.hasStarted = false;
+        this.mainInitialized = false;
+        this.overlayHideTimeoutId = null;
 
-    const weddingApp = new WeddingApp(config);
-    const countdown = new Countdown('2026-09-06T17:00:00-03:00', config);
-    const rsvp = new RSVP(config);
+        this.introScreen = document.getElementById('introScreen');
+        this.openInviteButton = document.getElementById('openInviteButton');
+        this.siteShell = document.getElementById('siteShell');
+        this.giftOverlay = document.getElementById('giftOverlay');
+        this.audioToggle = document.getElementById('audioToggle');
+        this.audioToggleLabel = this.audioToggle?.querySelector('.audio-toggle__label') ?? null;
+        this.giftOpenTriggers = Array.from(document.querySelectorAll('[data-open-gift-overlay]'));
+        this.giftCloseTriggers = Array.from(document.querySelectorAll('[data-close-gift-overlay]'));
+    }
 
-    weddingApp.init();
-    countdown.start();
-    rsvp.init();
+    init() {
+        applyConfig(this.config);
+        this.presentPage.init();
+        this.bindIntro();
+        this.bindGiftOverlay();
+        this.bindAudioToggle();
+        this.bindKeyboardShortcuts();
+        this.audio.addEventListener('statechange', () => this.syncAudioButton());
+        this.syncAudioButton();
 
-    window.addEventListener('beforeunload', () => countdown.stop(), { once: true });
+        if (!this.siteShell) {
+            this.initializeMainSite();
+            return;
+        }
+
+        if (!this.introScreen || !this.openInviteButton) {
+            this.enterInvitation({ skipIntro: true });
+        }
+    }
+
+    bindIntro() {
+        if (!this.openInviteButton) {
+            return;
+        }
+
+        this.openInviteButton.addEventListener('click', () => this.enterInvitation());
+    }
+
+    bindGiftOverlay() {
+        this.giftOpenTriggers.forEach((trigger) => {
+            trigger.addEventListener('click', () => this.openGiftOverlay());
+        });
+
+        this.giftCloseTriggers.forEach((trigger) => {
+            trigger.addEventListener('click', () => {
+                const scrollTarget = trigger.dataset.scrollTarget;
+                this.closeGiftOverlay(scrollTarget);
+            });
+        });
+    }
+
+    bindAudioToggle() {
+        if (!this.audioToggle) {
+            return;
+        }
+
+        this.audioToggle.addEventListener('click', async () => {
+            await this.audio.toggle();
+            this.syncAudioButton();
+        });
+    }
+
+    bindKeyboardShortcuts() {
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && this.giftOverlay?.classList.contains('is-open')) {
+                this.closeGiftOverlay();
+            }
+        });
+    }
+
+    initializeMainSite() {
+        if (this.mainInitialized) {
+            return;
+        }
+
+        this.weddingApp = new WeddingApp(this.config);
+        this.countdown = new Countdown('2026-09-06T17:00:00-03:00', this.config);
+        this.rsvp = new RSVP(this.config);
+
+        this.weddingApp.init();
+        this.countdown.start();
+        this.rsvp.init();
+        this.mainInitialized = true;
+
+        window.addEventListener('beforeunload', () => this.countdown?.stop(), { once: true });
+    }
+
+    async enterInvitation({ skipIntro = false } = {}) {
+        if (this.hasStarted) {
+            return;
+        }
+
+        this.hasStarted = true;
+        document.body.classList.add('experience-started');
+        document.body.classList.remove('experience-locked');
+
+        if (this.siteShell) {
+            this.siteShell.hidden = false;
+            this.siteShell.setAttribute('aria-hidden', 'false');
+
+            window.requestAnimationFrame(() => {
+                this.siteShell.classList.add('is-visible');
+            });
+        }
+
+        if (this.introScreen && !skipIntro) {
+            this.introScreen.classList.add('is-exiting');
+            window.setTimeout(() => {
+                this.introScreen.hidden = true;
+            }, 700);
+        } else if (this.introScreen) {
+            this.introScreen.hidden = true;
+        }
+
+        this.initializeMainSite();
+        await this.audio.unlock();
+        await this.audio.setContext('main');
+        this.syncAudioButton();
+
+        if (window.location.hash === '#gift') {
+            window.setTimeout(() => this.openGiftOverlay(), 420);
+        }
+    }
+
+    openGiftOverlay() {
+        if (!this.giftOverlay) {
+            return;
+        }
+
+        if (!this.hasStarted) {
+            this.enterInvitation().then(() => this.openGiftOverlay());
+            return;
+        }
+
+        window.clearTimeout(this.overlayHideTimeoutId);
+        this.giftOverlay.hidden = false;
+        this.giftOverlay.setAttribute('aria-hidden', 'false');
+        document.body.classList.add('gift-overlay-open');
+
+        window.requestAnimationFrame(() => {
+            this.giftOverlay.classList.add('is-open');
+        });
+
+        this.revealGiftOverlayContent();
+        this.audio.setContext('gift');
+        this.giftOverlay.querySelector('.gift-overlay-close')?.focus();
+    }
+
+    closeGiftOverlay(scrollTarget) {
+        if (!this.giftOverlay) {
+            return;
+        }
+
+        this.giftOverlay.classList.remove('is-open');
+        this.giftOverlay.setAttribute('aria-hidden', 'true');
+        document.body.classList.remove('gift-overlay-open');
+        this.audio.setContext('main');
+
+        this.overlayHideTimeoutId = window.setTimeout(() => {
+            this.giftOverlay.hidden = true;
+        }, 380);
+
+        if (scrollTarget) {
+            const target = document.querySelector(scrollTarget);
+            target?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    }
+
+    revealGiftOverlayContent() {
+        if (!this.giftOverlay) {
+            return;
+        }
+
+        this.giftOverlay
+            .querySelectorAll('.section-tag, .section-title, .section-body, .divider')
+            .forEach((element) => element.classList.add('visible'));
+    }
+
+    syncAudioButton() {
+        if (!this.audioToggle) {
+            return;
+        }
+
+        const detail = {
+            currentTrackKey: this.audio.currentTrackKey,
+            desiredTrackKey: this.audio.desiredTrackKey,
+            userPaused: this.audio.userPaused,
+            readyForPlayback: this.audio.readyForPlayback,
+            isPlaying: Boolean(this.audio.getCurrentElement() && !this.audio.getCurrentElement().paused),
+            hasError: Boolean(this.audio.lastError)
+        };
+
+        this.audioToggle.hidden = !this.hasStarted;
+        this.audioToggle.classList.toggle('is-paused', detail.userPaused || !detail.isPlaying);
+        this.audioToggle.classList.toggle('is-disabled', detail.hasError && !detail.isPlaying);
+        this.audioToggle.setAttribute('aria-pressed', String(!detail.userPaused && detail.isPlaying));
+
+        if (detail.hasError && !detail.isPlaying) {
+            this.audioToggle.setAttribute('aria-label', 'Som indisponível');
+            if (this.audioToggleLabel) {
+                this.audioToggleLabel.textContent = 'Som';
+            }
+            return;
+        }
+
+        const nextAction = detail.userPaused || !detail.isPlaying ? 'Retomar som' : 'Pausar som';
+        this.audioToggle.setAttribute('aria-label', nextAction);
+
+        if (this.audioToggleLabel) {
+            this.audioToggleLabel.textContent = 'Som';
+        }
+    }
 }
 
 async function bootstrap() {
     try {
         const config = await loadConfig();
-        initializeApp(config);
+        const experience = new InvitationExperience(config);
+        experience.init();
     } catch (error) {
         console.error('Falha ao carregar a configuracao da pagina.', error);
     }
