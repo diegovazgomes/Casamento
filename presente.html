@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="description" content="Sua presença já é o nosso maior presente. Se desejar, aqui estão as opções para nos presentear com carinho.">
+    <meta name="theme-color" content="#1a1714">
+    <title>Para nos presentear - Siannah & Diego</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond&family=Jost&family=Great+Vibes&family=Allura&family=Parisienne&family=Pinyon+Script&family=Rouge+Script&family=Tangerine:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/animations.css">
+</head>
+<body class="gift-page">
+    <main class="gift-main">
+        <section class="content-section gift-intro">
+            <span class="section-tag reveal">Presente</span>
+            <h1 class="section-title reveal">Para nos presentear</h1>
+            <p class="section-body reveal">
+                Sua presença já é o nosso maior presente. Mas, se desejar nos presentear de outra forma,
+                deixamos abaixo algumas opções com carinho.
+            </p>
+        </section>
+
+        <div class="divider reveal" aria-hidden="true">
+            <div class="divider-line"></div>
+            <div class="divider-diamond"></div>
+            <div class="divider-line"></div>
+        </div>
+
+        <section class="content-section gift-shell">
+            <div class="gift-grid">
+                <article class="gift-panel gift-panel-pix">
+                    <span class="gift-panel-tag">Pix</span>
+                    <h2 class="gift-panel-title">Pix com carinho</h2>
+                    <p class="gift-panel-body">
+                        Se preferir, você pode nos presentear por Pix usando o QR Code ou o código abaixo.
+                    </p>
+
+                    <div class="gift-qr-frame">
+                        <img src="assets/images/icons/pix-placeholder.svg" alt="Placeholder do QR Code para pagamento via Pix">
+                    </div>
+
+                    <p class="gift-copy-label">Pix copia e cola</p>
+                    <code class="gift-copy-code" id="pixCode">CHAVE_PIX_OU_CODIGO_COPIA_E_COLA_AQUI</code>
+
+                    <button
+                        class="gift-copy-button"
+                        type="button"
+                        data-copy-value="CHAVE_PIX_OU_CODIGO_COPIA_E_COLA_AQUI"
+                        data-copy-feedback-target="pixCopyFeedback"
+                    >
+                        Copiar código Pix
+                    </button>
+                    <p class="gift-feedback" id="pixCopyFeedback" aria-live="polite"></p>
+                </article>
+
+                <article class="gift-panel gift-panel-card">
+                    <span class="gift-panel-tag">Pagamento por cartão</span>
+                    <h2 class="gift-panel-title">Pagamento por cartão</h2>
+                    <p class="gift-panel-body">
+                        Em breve, esta opção estará disponível.
+                    </p>
+                    <div class="gift-card-placeholder">
+                        Espaço reservado para inserir o link ou a plataforma de pagamento por cartão.
+                    </div>
+                </article>
+            </div>
+
+            <div class="gift-back-wrap">
+                <a class="gift-back-link" href="index.html#rsvp">Voltar para confirmação</a>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="footer-names">Siannah & Diego</div>
+        <p class="footer-note">Sua presença já nos alegra imensamente</p>
+    </footer>
+
+    <script type="module" src="assets/js/script.js"></script>
+    <script type="module" src="assets/js/presente.js"></script>
+</body>
+</html>
