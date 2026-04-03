@@ -1,0 +1,187 @@
+@keyframes fadeUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes scrollPulse {
+    0%,
+    100% {
+        opacity: 0.3;
+        transform: scaleY(0.8);
+    }
+
+    50% {
+        opacity: 1;
+        transform: scaleY(1);
+    }
+}
+.form-group select:focus,
+.form-group textarea:focus {
+    animation: scaleIn 0.3s ease-out;
+}
+
+/* Button animations */
+.btn-primary {
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-primary::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.2);
+    transition: left 0.3s ease;
+}
+
+.btn-primary:hover::before {
+    left: 100%;
+}
+
+.btn-primary:active {
+    transform: translateY(-2px) scale(0.98);
+}
+
+/* Hover effects */
+.nav-links a {
+    position: relative;
+}
+
+.nav-links a::after {
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background-color: #737373;
+    transition: width 0.3s ease;
+}
+
+.nav-links a:hover::after {
+    width: 100%;
+}
+
+/* Scroll animations */
+.scroll-in {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.scroll-in.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Footer animations */
+.footer {
+    animation: fadeInUp 1s ease-out;
+}
+
+.footer-content {
+    animation: slideIn 0.8s ease-out;
+}
+
+/* Responsive animations */
+@media (max-width: 768px) {
+    .hero-content,
+    .hero-image {
+        animation: fadeInUp 1s ease-out;
+    }
+
+    .schedule-timeline::before {
+        animation: none;
+    }
+
+    .schedule-item::before {
+        animation: none;
+        box-shadow: 0 0 0 0;
+    }
+}
+
+@media (max-width: 480px) {
+    .section-title {
+        font-size: 1.5rem;
+    }
+
+    .countdown-value {
+        animation: pulse 1.5s infinite;
+    }
+
+    .countdown-item {
+        animation: none;
+    }
+}
+
+/* Smooth transitions for all interactive elements */
+* {
+    transition-property: color, background-color, border-color, box-shadow;
+    transition-timing-function: ease;
+    transition-duration: 0.3s;
+}
+
+a, button, input, select, textarea {
+    transition-duration: 0.2s;
+}
+
+/* Loading animation for content */
+.loading {
+    animation: pulse 1.5s infinite;
+}
+
+/* Success animation */
+@keyframes checkmark {
+    0% {
+        width: 0;
+        height: 0;
+    }
+    45% {
+        width: 0;
+        height: 0;
+    }
+    55% {
+        width: 0.125rem;
+        height: 0;
+    }
+    100% {
+        width: 0.125rem;
+        height: 0.25rem;
+    }
+}
+
+.success-message {
+    animation: fadeInUp 0.5s ease-out;
+    color: #27ae60;
+}
+
+/* Error animation */
+@keyframes shake {
+    0%, 100% {
+        transform: translateX(0);
+    }
+    25% {
+        transform: translateX(-5px);
+    }
+    75% {
+        transform: translateX(5px);
+    }
+}
+
+.error-state {
+    animation: shake 0.3s ease-in-out;
+}
+
+.error-message.show {
+    animation: fadeInUp 0.3s ease-out;
+}

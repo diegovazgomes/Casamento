@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="description" content="Siannah e Diego convidam voce para celebrar o casamento em uma noite elegante e inesquecivel.">
+    <meta name="theme-color" content="#1a1714">
+    <title>Siannah & Diego - Casamento</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Jost:wght@200;300;400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/animations.css">
+</head>
+<body>
+    <main>
+        <section class="hero" id="hero" aria-label="Convite principal">
+            <img
+                id="couplePhoto"
+                class="hero-photo"
+                src="assets/images/couple/casal.png"
+                alt="Siannah e Diego em retrato do casal"
+            >
+            <div class="hero-overlay" aria-hidden="true"></div>
+
+            <div class="hero-content">
+                <p class="hero-label">Voce esta convidado para o casamento de</p>
+                <h1 class="hero-names">
+                    <em>Siannah</em>
+                    <span class="hero-ampersand">&</span>
+                    <em>Diego</em>
+                </h1>
+                <p class="hero-date">06 . 09 . 2026</p>
+            </div>
+
+            <button class="scroll-hint" type="button" data-scroll-target="#countdown" aria-label="Ir para a contagem regressiva">
+                <span>Role para baixo</span>
+                <span class="scroll-arrow" aria-hidden="true"></span>
+            </button>
+        </section>
+
+        <section id="countdown" class="content-section">
+            <span class="section-tag reveal">Contagem Regressiva</span>
+            <h2 class="section-title reveal">O grande dia se aproxima</h2>
+            <div class="countdown-wrap reveal" id="countdownWrap" aria-live="polite">
+                <div class="countdown-block">
+                    <span class="countdown-num" id="cd-days">--</span>
+                    <span class="countdown-lbl">Dias</span>
+                </div>
+                <div class="countdown-block">
+                    <span class="countdown-num" id="cd-hours">--</span>
+                    <span class="countdown-lbl">Horas</span>
+                </div>
+                <div class="countdown-block">
+                    <span class="countdown-num" id="cd-mins">--</span>
+                    <span class="countdown-lbl">Minutos</span>
+                </div>
+                <div class="countdown-block">
+                    <span class="countdown-num" id="cd-secs">--</span>
+                    <span class="countdown-lbl">Segundos</span>
+                </div>
+            </div>
+        </section>
+
+        <div class="divider reveal" aria-hidden="true">
+            <div class="divider-line"></div>
+            <div class="divider-diamond"></div>
+            <div class="divider-line"></div>
+        </div>
+
+        <section id="details" class="content-section">
+            <span class="section-tag reveal">Detalhes da Cerimonia</span>
+            <h2 class="section-title reveal">Uma noite para lembrar para sempre</h2>
+            <p class="section-body reveal">
+                Uma celebracao intimista, elegante e pensada para marcar o inicio de uma nova historia.
+            </p>
+            <div class="details-grid reveal" id="detailsGrid">
+                <article class="detail-card">
+                    <span class="detail-icon" aria-hidden="true">📅</span>
+                    <span class="detail-title">Data</span>
+                    <div class="detail-value">06 Set 2026</div>
+                    <span class="detail-sub">Domingo</span>
+                </article>
+                <article class="detail-card">
+                    <span class="detail-icon" aria-hidden="true">🕔</span>
+                    <span class="detail-title">Horario</span>
+                    <div class="detail-value">17:00</div>
+                    <span class="detail-sub">Horario de Brasilia</span>
+                </article>
+                <article class="detail-card">
+                    <span class="detail-icon" aria-hidden="true">🏛️</span>
+                    <span class="detail-title">Local</span>
+                    <div class="detail-value">Mansao Ilha de Capri</div>
+                    <span class="detail-sub">Sao Bernardo do Campo</span>
+                </article>
+                <article class="detail-card">
+                    <span class="detail-icon" aria-hidden="true">💍</span>
+                    <span class="detail-title">Ocasiao</span>
+                    <div class="detail-value">Cerimonia & Recepcao</div>
+                    <span class="detail-sub">Traje social</span>
+                </article>
+            </div>
+        </section>
+
+        <div class="divider reveal" aria-hidden="true">
+            <div class="divider-line"></div>
+            <div class="divider-diamond"></div>
+            <div class="divider-line"></div>
+        </div>
+
+        <section id="rsvp" class="content-section rsvp-shell">
+            <span class="section-tag reveal">Confirmacao de Presenca</span>
+            <h2 class="section-title reveal">Voce vai estar la?</h2>
+            <p class="section-body reveal">
+                Por favor confirme sua presenca ate <strong class="section-highlight">01 de Agosto de 2026</strong>.
+                Sua presenca tornara este momento ainda mais especial.
+            </p>
+
+            <div class="rsvp-section reveal" id="rsvpSection">
+                <p class="rsvp-title">Confirmar Presenca</p>
+                <p class="rsvp-subtitle">Preencha o formulario abaixo</p>
+
+                <form class="rsvp-form" id="rsvpForm">
+                    <input class="rsvp-input" type="text" placeholder="Seu nome completo" required id="rsvp-name" name="name">
+                    <input class="rsvp-input" type="tel" placeholder="WhatsApp (opcional)" id="rsvp-phone" name="phone">
+                    <input type="hidden" id="rsvp-attendance" name="attendance" value="yes">
+
+                    <div class="rsvp-btns" role="group" aria-label="Escolha de presenca">
+                        <button type="button" class="rsvp-btn-choice active" id="btn-yes" data-attend="yes">Confirmo presenca</button>
+                        <button type="button" class="rsvp-btn-choice" id="btn-no" data-attend="no">Nao poderei ir</button>
+                    </div>
+
+                    <input class="rsvp-input" type="number" placeholder="Numero de acompanhantes" min="0" max="10" id="rsvp-guests" name="guests">
+                    <button class="rsvp-submit" type="submit">Enviar Confirmacao</button>
+                </form>
+
+                <div class="rsvp-success" id="rsvpSuccess" aria-live="polite">
+                    <div class="rsvp-success-icon">&#10084;</div>
+                    <div class="rsvp-success-text" id="successMsg">Ate la!</div>
+                    <p class="rsvp-success-sub" id="successSub"></p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="footer-names">Siannah & Diego</div>
+        <p class="footer-note">06 . 09 . 2026 | Sao Bernardo do Campo</p>
+    </footer>
+
+    <script src="assets/js/countdown.js"></script>
+    <script src="assets/js/rsvp.js"></script>
+    <script src="assets/js/main.js"></script>
+</body>
+</html>
