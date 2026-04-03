@@ -451,9 +451,32 @@ img {
 }
 
 .detail-card {
+    display: block;
     padding: var(--detail-card-padding-block) var(--detail-card-padding-inline);
     background: rgba(17, 14, 12, 0.92);
     text-align: center;
+}
+
+.detail-card-link {
+    min-height: 100%;
+    color: inherit;
+    text-decoration: none;
+    border: 1px solid transparent;
+    transition: border-color 0.28s ease, transform 0.28s ease, box-shadow 0.28s ease;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.detail-card-link:visited,
+.detail-card-link:hover,
+.detail-card-link:active {
+    color: inherit;
+    text-decoration: none;
+}
+
+.detail-card-link:focus-visible {
+    outline: none;
+    border-color: rgba(201, 168, 76, 0.4);
+    box-shadow: 0 0 0 3px rgba(201, 168, 76, 0.12);
 }
 
 .detail-icon {
@@ -484,6 +507,14 @@ img {
     margin-top: 4px;
     color: rgba(250, 247, 242, 0.42);
     font-size: var(--detail-sub-size);
+}
+
+.detail-map-link {
+    display: block;
+    margin-top: 12px;
+    color: rgba(232, 208, 138, 0.88);
+    font-size: 9px;
+    letter-spacing: 0.18em;
 }
 
 .rsvp-shell {
@@ -730,6 +761,11 @@ footer {
 }
 
 @media (min-width: 768px) {
+    .detail-card-link:hover {
+        border-color: rgba(201, 168, 76, 0.3);
+        transform: translateY(-3px);
+        box-shadow: 0 12px 28px rgba(0, 0, 0, 0.18);
+    }
 }
 
 @media (prefers-reduced-motion: reduce) {
