@@ -911,6 +911,35 @@ footer {
 }
 
 @media (max-width: 640px) {
+    .gift-main {
+        padding-top: max(28px, env(safe-area-inset-top));
+    }
+
+    .gift-intro.content-section {
+        padding-top: 28px;
+    }
+
+    .gift-intro .section-tag {
+        margin-bottom: 18px;
+    }
+
+    .gift-intro .section-title {
+        margin-bottom: 14px;
+    }
+
+    .gift-intro .section-body {
+        line-height: 1.75;
+    }
+
+    .gift-intro + .divider {
+        margin-top: 32px;
+    }
+
+    .gift-shell.content-section {
+        padding-top: 32px;
+        padding-bottom: var(--space-3xl);
+    }
+
     .hero-overlay {
         background: linear-gradient(
             to bottom,
@@ -951,11 +980,38 @@ footer {
 
     .gift-grid {
         grid-template-columns: 1fr;
-        gap: var(--space-lg);
+        gap: var(--space-md);
+        margin-top: 0;
     }
 
     .gift-panel {
-        padding: var(--space-3xl) var(--space-lg);
+        padding: 34px var(--space-md) 30px;
+    }
+
+    .gift-panel-tag {
+        margin-bottom: 10px;
+    }
+
+    .gift-panel-title {
+        margin-bottom: 12px;
+        line-height: 1.02;
+    }
+
+    .gift-panel-body {
+        line-height: 1.75;
+    }
+
+    .gift-qr-frame {
+        margin-top: var(--space-lg);
+    }
+
+    .gift-copy-label {
+        margin-top: var(--space-lg);
+        margin-bottom: 10px;
+    }
+
+    .gift-back-wrap {
+        margin-top: var(--space-2xl);
     }
 }
 
