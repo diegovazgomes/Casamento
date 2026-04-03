@@ -42,7 +42,7 @@ export const CONFIG = {
     // Espacamentos reutilizados em secoes e blocos principais.
     spacing: {
         // Espaco superior padrao antes do conteudo das secoes internas.
-        sectionTop: '88px',
+        sectionTop: '40px',
         // Padding lateral principal da interface mobile.
         inline: '20px',
         // Espaco inferior do footer para respiro visual no fim da pagina.
