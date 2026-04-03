@@ -6,6 +6,23 @@
     --border-soft: rgba(201, 168, 76, 0.18);
     --surface-soft: rgba(255, 255, 255, 0.04);
     --shadow-soft: 0 20px 60px rgba(0, 0, 0, 0.28);
+    --base-font-size: 13px;
+    --hero-height: 100vh;
+    --hero-padding: 0 24px 64px;
+    --hero-content-width: 720px;
+    --hero-content-padding-bottom: 36px;
+    --hero-fade-duration: 1.35s;
+    --hero-fade-offset: 44px;
+    --hero-label-size: 10px;
+    --hero-date-size: 11px;
+    --hero-name-min: 54px;
+    --hero-name-fluid: 12vw;
+    --hero-name-max: 110px;
+    --section-padding-top: 88px;
+    --section-padding-inline: 24px;
+    --content-max-width: 760px;
+    --countdown-gap: 12px;
+    --footer-padding-bottom: 48px;
 }
 
 *,
@@ -26,6 +43,7 @@ body {
         radial-gradient(circle at top, rgba(201, 168, 76, 0.12), transparent 28%),
         linear-gradient(180deg, #120f0d 0%, var(--dark) 35%, #15110f 100%);
     color: var(--cream);
+    font-size: var(--base-font-size);
     font-family: 'Jost', sans-serif;
     font-weight: 300;
     overflow-x: hidden;
@@ -65,13 +83,12 @@ img {
 
 .hero {
     position: relative;
-    min-height: 100vh;
-    min-height: 100svh;
+    min-height: var(--hero-height);
     display: flex;
     align-items: flex-end;
     justify-content: center;
     overflow: hidden;
-    padding: 0 24px 64px;
+    padding: var(--hero-padding);
 }
 
 .hero-photo {
@@ -82,7 +99,7 @@ img {
     object-fit: cover;
     object-position: center top;
     opacity: 0;
-    transition: opacity 1.2s ease;
+    transition: opacity var(--hero-fade-duration) ease;
     filter: saturate(0.94) contrast(1.02);
 }
 
@@ -105,12 +122,12 @@ img {
 .hero-content {
     position: relative;
     z-index: 2;
-    width: min(100%, 720px);
+    width: min(100%, var(--hero-content-width));
     text-align: center;
-    padding-bottom: 20px;
+    padding-bottom: var(--hero-content-padding-bottom);
     opacity: 0;
-    transform: translateY(24px);
-    transition: opacity 1.95s cubic-bezier(0.22, 1, 0.36, 1), transform 1.95s cubic-bezier(0.22, 1, 0.36, 1);
+    transform: translateY(var(--hero-fade-offset));
+    transition: opacity var(--hero-fade-duration) cubic-bezier(0.22, 1, 0.36, 1), transform var(--hero-fade-duration) cubic-bezier(0.22, 1, 0.36, 1);
     will-change: opacity, transform;
 }
 
@@ -122,7 +139,7 @@ img {
 .hero-label {
     margin-bottom: 16px;
     color: var(--gold-light);
-    font-size: 10px;
+    font-size: var(--hero-label-size);
     font-weight: 300;
     letter-spacing: 0.35em;
     text-shadow: 0 2px 18px rgba(0, 0, 0, 0.36);
@@ -131,7 +148,7 @@ img {
 
 .hero-names {
     font-family: 'Cormorant Garamond', serif;
-    font-size: clamp(54px, 12vw, 110px);
+    font-size: clamp(var(--hero-name-min), var(--hero-name-fluid), var(--hero-name-max));
     font-weight: 300;
     line-height: 0.96;
     letter-spacing: -0.02em;
@@ -154,7 +171,7 @@ img {
 .hero-date {
     margin-top: 22px;
     color: rgba(250, 247, 242, 0.78);
-    font-size: 11px;
+    font-size: var(--hero-date-size);
     letter-spacing: 0.3em;
     text-shadow: 0 2px 18px rgba(0, 0, 0, 0.3);
     text-transform: uppercase;
@@ -192,9 +209,9 @@ img {
 }
 
 .content-section {
-    width: min(100%, 620px);
+    width: min(100%, var(--content-max-width));
     margin: 0 auto;
-    padding: 88px 24px 0;
+    padding: var(--section-padding-top) var(--section-padding-inline) 0;
     text-align: center;
 }
 
@@ -278,7 +295,7 @@ img {
 .countdown-wrap {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 12px;
+    gap: var(--countdown-gap);
     margin-top: 40px;
     transition: opacity 0.8s ease 0.3s, transform 0.8s ease 0.3s;
 }
@@ -543,7 +560,7 @@ img {
 }
 
 footer {
-    padding: 0 24px 48px;
+    padding: 0 var(--section-padding-inline) var(--footer-padding-bottom);
     text-align: center;
 }
 
@@ -574,11 +591,6 @@ footer {
 }
 
 @media (max-width: 640px) {
-    .hero {
-        min-height: 680px;
-        padding: 0 20px 72px;
-    }
-
     .hero-overlay {
         background: linear-gradient(
             to bottom,
@@ -589,28 +601,18 @@ footer {
         );
     }
 
-    .hero-content {
-        width: min(100%, 340px);
-        padding-bottom: 32px;
-        transform: translateY(20px);
-        transition-duration: 1s;
-    }
-
     .hero-label {
         margin-bottom: 12px;
-        font-size: 9px;
         letter-spacing: 0.24em;
         line-height: 1.6;
     }
 
     .hero-names {
-        font-size: clamp(42px, 15vw, 68px);
         line-height: 1;
     }
 
     .hero-date {
         margin-top: 16px;
-        font-size: 10px;
         letter-spacing: 0.22em;
     }
 
@@ -625,13 +627,6 @@ footer {
 }
 
 @media (min-width: 768px) {
-    .content-section {
-        width: min(100%, 760px);
-    }
-
-    .hero-content {
-        padding-bottom: 36px;
-    }
 }
 
 @media (prefers-reduced-motion: reduce) {

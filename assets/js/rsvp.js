@@ -1,5 +1,6 @@
-class RSVP {
-    constructor() {
+export class RSVP {
+    constructor(config = {}) {
+        this.config = config;
         this.form = document.getElementById('rsvpForm');
         this.successBox = document.getElementById('rsvpSuccess');
         this.successMsg = document.getElementById('successMsg');
@@ -83,8 +84,3 @@ class RSVP {
         this.successBox.classList.add('show');
     }
 }
-
-document.addEventListener('DOMContentLoaded', () => {
-    const rsvp = new RSVP();
-    rsvp.init();
-});

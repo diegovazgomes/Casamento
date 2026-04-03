@@ -1,4 +1,8 @@
-class WeddingApp {
+export class WeddingApp {
+    constructor(config = {}) {
+        this.config = config;
+    }
+
     init() {
         this.setupHeroContentReveal();
         this.setupHeroPhoto();
@@ -17,7 +21,7 @@ class WeddingApp {
             window.requestAnimationFrame(() => {
                 window.setTimeout(() => {
                     content.classList.add('is-visible');
-                }, 180);
+                }, Number(this.config.animation?.delay ?? 300));
             });
         };
 
@@ -76,8 +80,3 @@ class WeddingApp {
         revealTargets.forEach((element) => observer.observe(element));
     }
 }
-
-document.addEventListener('DOMContentLoaded', () => {
-    const app = new WeddingApp();
-    app.init();
-});

@@ -1,6 +1,7 @@
-class Countdown {
-    constructor(targetDate) {
+export class Countdown {
+    constructor(targetDate, config = {}) {
         this.targetDate = new Date(targetDate).getTime();
+        this.config = config;
         this.intervalId = null;
         this.container = document.getElementById('countdownWrap');
         this.elements = {
@@ -16,6 +17,10 @@ class Countdown {
     }
 
     formatNumber(value) {
+        if (this.config.countdown?.format !== 'two-digits') {
+            return String(value);
+        }
+
         return String(value).padStart(2, '0');
     }
 
@@ -58,7 +63,10 @@ class Countdown {
         }
 
         this.update();
-        this.intervalId = window.setInterval(() => this.update(), 1000);
+        this.intervalId = window.setInterval(
+            () => this.update(),
+            Number(this.config.countdown?.updateInterval ?? 1000)
+        );
     }
 
     stop() {
@@ -68,10 +76,3 @@ class Countdown {
         }
     }
 }
-
-document.addEventListener('DOMContentLoaded', () => {
-    const countdown = new Countdown('2026-09-06T17:00:00-03:00');
-    countdown.start();
-
-    window.addEventListener('beforeunload', () => countdown.stop());
-});
