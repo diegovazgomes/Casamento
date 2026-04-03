@@ -38,16 +38,85 @@ export const CONFIG = {
         }
     },
 
-    // Sistema de espacamento principal para desktop.
+    // Sistema de espacamento dividido em camadas.
+    // 1) scale: valores-base reutilizaveis.
+    // 2) semantic: espacamentos com significado de layout/componente.
     spacing: {
-        // Padding superior padrao antes das secoes internas.
-        sectionTop: '88px',
-        // Padding lateral principal em desktop.
-        inline: '24px',
-        // Espacamento inferior do footer.
-        footerBottom: '48px',
-        // Distancia entre os cards do countdown.
-        countdownGap: '12px'
+        // Escala enxuta para manter referencias consistentes no projeto.
+        scale: {
+            // Microespacos para detalhes pequenos, como gaps finos e offsets curtos.
+            xs: '8px',
+            // Espacos curtos usados em labels compactas e pequenos agrupamentos.
+            sm: '12px',
+            // Espaco medio curto para separacoes frequentes.
+            md: '16px',
+            // Espaco medio para respiro entre textos relacionados.
+            lg: '22px',
+            // Espaco mais aberto para separar blocos de uma mesma secao.
+            xl: '30px',
+            // Espaco estrutural entre grupos principais.
+            xxl: '40px',
+            // Respiro forte usado em cards e fechamento de blocos.
+            xxxl: '48px',
+            // Distancia maior para divisores e transicoes entre secoes.
+            xxxxl: '56px',
+            // Espaco de secao completa, usado quando o layout pede bastante respiro.
+            section: '88px'
+        },
+
+        // Tokens semanticos: cada valor governa uma responsabilidade especifica.
+        semantic: {
+            // Padding superior padrao das secoes principais.
+            sectionPaddingTop: '88px',
+            // Padding lateral padrao do conteudo interno.
+            sectionPaddingInline: '24px',
+            // Override dedicado para a secao de detalhes, caso precise subir ou descer so ela.
+            detailsSectionPaddingTop: '88px',
+            // Distancia entre a label da secao e o titulo principal.
+            sectionTagGap: '30px',
+            // Distancia entre o titulo da secao e o texto de apoio.
+            sectionTitleGap: '22px',
+            // Distancia entre o texto auxiliar do hero e os nomes do casal.
+            heroLabelGap: '16px',
+            // Distancia entre os nomes do casal e a data no hero.
+            heroDateGap: '22px',
+            // Distancia do hint de rolagem ate a base do hero.
+            scrollHintBottom: '20px',
+            // Gap interno entre o texto do hint e a seta.
+            scrollHintGap: '8px',
+            // Margem superior do divisor entre blocos principais.
+            dividerMarginTop: '56px',
+            // Distancia entre o texto introdutorio e a grade da contagem.
+            countdownMarginTop: '40px',
+            // Gap entre os cards do countdown.
+            countdownGap: '12px',
+            // Distancia entre o texto da secao de detalhes e a grade de cards.
+            detailsMarginTop: '40px',
+            // Espaco entre colunas/linhas da grade de detalhes.
+            detailsGridGap: '1px',
+            // Padding vertical de cada card de detalhes.
+            detailCardPaddingBlock: '28px',
+            // Padding horizontal de cada card de detalhes.
+            detailCardPaddingInline: '20px',
+            // Respiro inferior do bloco RSVP antes do footer.
+            rsvpShellPaddingBottom: '88px',
+            // Distancia entre o texto de abertura do RSVP e o card do formulario.
+            rsvpCardMarginTop: '40px',
+            // Padding vertical interno do card RSVP.
+            rsvpCardPaddingBlock: '48px',
+            // Padding horizontal interno do card RSVP.
+            rsvpCardPaddingInline: '32px',
+            // Distancia entre o subtitulo do RSVP e o formulario.
+            rsvpSubtitleGap: '32px',
+            // Gap vertical entre campos do formulario.
+            rsvpFormGap: '14px',
+            // Gap entre os botoes de escolha de presenca.
+            rsvpChoiceGap: '10px',
+            // Margem superior do botao de envio.
+            rsvpSubmitMarginTop: '8px',
+            // Espaco inferior do footer para respiro visual.
+            footerPaddingBottom: '48px'
+        }
     },
 
     // Regras estruturais do layout em desktop.
