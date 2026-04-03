@@ -11,6 +11,8 @@ function applyConfig(config) {
     const spacing = config.spacing ?? {};
     const scale = spacing.scale ?? {};
     const semantic = spacing.semantic ?? {};
+    const type = config.fontSizes?.semantic ?? {};
+    const componentSizes = config.componentSizes ?? {};
     const cssVars = {
         '--gold': config.colors.primary,
         '--gold-light': config.colors.secondary,
@@ -27,6 +29,28 @@ function applyConfig(config) {
         '--hero-name-min': config.fontSizes.heroNames.min,
         '--hero-name-fluid': config.fontSizes.heroNames.fluid,
         '--hero-name-max': config.fontSizes.heroNames.max,
+        '--scroll-hint-text-size': type.scrollHint ?? '9px',
+        '--section-tag-size': type.sectionTag ?? '9px',
+        '--section-title-min': type.sectionTitle?.min ?? '34px',
+        '--section-title-fluid': type.sectionTitle?.fluid ?? '7vw',
+        '--section-title-max': type.sectionTitle?.max ?? '56px',
+        '--section-body-size': type.sectionBody ?? '13px',
+        '--countdown-number-size': type.countdownNumber ?? '42px',
+        '--countdown-label-size': type.countdownLabel ?? '8px',
+        '--detail-icon-size': type.detailIcon ?? '18px',
+        '--detail-title-size': type.detailTitle ?? '8px',
+        '--detail-value-size': type.detailValue ?? '20px',
+        '--detail-sub-size': type.detailSub ?? '10px',
+        '--rsvp-title-size': type.rsvpTitle ?? '38px',
+        '--rsvp-subtitle-size': type.rsvpSubtitle ?? '11px',
+        '--rsvp-input-size': type.rsvpInput ?? '12px',
+        '--rsvp-choice-size': type.rsvpChoice ?? '10px',
+        '--rsvp-submit-size': type.rsvpSubmit ?? '10px',
+        '--rsvp-success-text-size': type.rsvpSuccessText ?? '26px',
+        '--rsvp-success-sub-size': type.rsvpSuccessSub ?? '11px',
+        '--footer-names-size': type.footerNames ?? '30px',
+        '--footer-note-size': type.footerNote ?? '10px',
+        '--countdown-finished-size': type.countdownFinished ?? '30px',
         '--space-xs': scale.xs ?? '8px',
         '--space-sm': scale.sm ?? '12px',
         '--space-md': scale.md ?? '16px',
@@ -61,7 +85,23 @@ function applyConfig(config) {
         '--rsvp-form-gap': semantic.rsvpFormGap ?? '14px',
         '--rsvp-choice-gap': semantic.rsvpChoiceGap ?? '10px',
         '--rsvp-submit-margin-top': semantic.rsvpSubmitMarginTop ?? '8px',
-        '--footer-padding-bottom': semantic.footerPaddingBottom ?? spacing.footerBottom ?? '48px'
+        '--footer-padding-bottom': semantic.footerPaddingBottom ?? spacing.footerBottom ?? '48px',
+        '--divider-width': componentSizes.dividerWidth ?? '320px',
+        '--divider-diamond-size': componentSizes.dividerDiamond ?? '6px',
+        '--scroll-arrow-width': componentSizes.scrollArrowWidth ?? '14px',
+        '--scroll-arrow-height': componentSizes.scrollArrowHeight ?? '48px',
+        '--scroll-arrow-stem-height': componentSizes.scrollArrowStemHeight ?? '36px',
+        '--scroll-arrow-head-size': componentSizes.scrollArrowHeadSize ?? '8px',
+        '--countdown-card-padding-top': componentSizes.countdownCardPaddingTop ?? '22px',
+        '--countdown-card-padding-inline': componentSizes.countdownCardPaddingInline ?? '8px',
+        '--countdown-card-padding-bottom': componentSizes.countdownCardPaddingBottom ?? '16px',
+        '--rsvp-input-padding-block': componentSizes.rsvpInputPaddingBlock ?? '14px',
+        '--rsvp-input-padding-inline': componentSizes.rsvpInputPaddingInline ?? '18px',
+        '--rsvp-choice-min-height': componentSizes.rsvpChoiceMinHeight ?? '48px',
+        '--rsvp-choice-padding': componentSizes.rsvpChoicePadding ?? '12px',
+        '--rsvp-submit-padding-block': componentSizes.rsvpSubmitPaddingBlock ?? '16px',
+        '--rsvp-submit-padding-inline': componentSizes.rsvpSubmitPaddingInline ?? '32px',
+        '--rsvp-success-icon-size': componentSizes.rsvpSuccessIcon ?? '32px'
     };
 
     Object.entries(cssVars).forEach(([key, value]) => {
