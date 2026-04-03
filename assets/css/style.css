@@ -109,8 +109,14 @@ img {
     text-align: center;
     padding-bottom: 20px;
     opacity: 0;
-    transform: translateY(30px);
-    animation: fadeUp 1.2s ease 0.7s forwards;
+    transform: translateY(24px);
+    transition: opacity 1.95s cubic-bezier(0.22, 1, 0.36, 1), transform 1.95s cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: opacity, transform;
+}
+
+.hero-content.is-visible {
+    opacity: 1;
+    transform: none;
 }
 
 .hero-label {
@@ -119,6 +125,7 @@ img {
     font-size: 10px;
     font-weight: 300;
     letter-spacing: 0.35em;
+    text-shadow: 0 2px 18px rgba(0, 0, 0, 0.36);
     text-transform: uppercase;
 }
 
@@ -128,6 +135,7 @@ img {
     font-weight: 300;
     line-height: 0.96;
     letter-spacing: -0.02em;
+    text-shadow: 0 8px 28px rgba(0, 0, 0, 0.32);
 }
 
 .hero-names em {
@@ -148,6 +156,7 @@ img {
     color: rgba(250, 247, 242, 0.78);
     font-size: 11px;
     letter-spacing: 0.3em;
+    text-shadow: 0 2px 18px rgba(0, 0, 0, 0.3);
     text-transform: uppercase;
 }
 
@@ -567,6 +576,42 @@ footer {
 @media (max-width: 640px) {
     .hero {
         min-height: 680px;
+        padding: 0 20px 72px;
+    }
+
+    .hero-overlay {
+        background: linear-gradient(
+            to bottom,
+            rgba(26, 23, 20, 0.2) 0%,
+            rgba(26, 23, 20, 0.34) 40%,
+            rgba(26, 23, 20, 0.84) 74%,
+            rgba(26, 23, 20, 1) 100%
+        );
+    }
+
+    .hero-content {
+        width: min(100%, 340px);
+        padding-bottom: 32px;
+        transform: translateY(20px);
+        transition-duration: 1s;
+    }
+
+    .hero-label {
+        margin-bottom: 12px;
+        font-size: 9px;
+        letter-spacing: 0.24em;
+        line-height: 1.6;
+    }
+
+    .hero-names {
+        font-size: clamp(42px, 15vw, 68px);
+        line-height: 1;
+    }
+
+    .hero-date {
+        margin-top: 16px;
+        font-size: 10px;
+        letter-spacing: 0.22em;
     }
 
     .countdown-wrap {
@@ -597,5 +642,12 @@ footer {
         animation-iteration-count: 1 !important;
         transition-duration: 0.01ms !important;
         scroll-behavior: auto !important;
+    }
+
+    .hero-content,
+    .hero-content.is-visible {
+        opacity: 1;
+        transform: none;
+        transition: none;
     }
 }

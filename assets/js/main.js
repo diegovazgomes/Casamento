@@ -1,8 +1,27 @@
 class WeddingApp {
     init() {
+        this.setupHeroContentReveal();
         this.setupHeroPhoto();
         this.setupScrollHint();
         this.setupRevealOnScroll();
+    }
+
+    setupHeroContentReveal() {
+        const content = document.querySelector('.hero-content');
+
+        if (!content) {
+            return;
+        }
+
+        const reveal = () => {
+            window.requestAnimationFrame(() => {
+                window.setTimeout(() => {
+                    content.classList.add('is-visible');
+                }, 180);
+            });
+        };
+
+        reveal();
     }
 
     setupHeroPhoto() {
