@@ -884,12 +884,22 @@ img {
     min-height: 48px;
     padding: 14px 24px;
     border: 1px solid rgba(201, 168, 76, 0.25);
-    color: var(--cream);
+    background: transparent;
+    color: var(--gold-light);
+    cursor: pointer;
+    font: inherit;
     text-decoration: none;
     font-size: 10px;
     letter-spacing: 0.24em;
     text-transform: uppercase;
     transition: border-color 0.28s ease, transform 0.28s ease, background-color 0.28s ease;
+}
+
+.gift-overlay-footer {
+    margin-top: var(--space-3xl);
+    padding-top: var(--space-xl);
+    border-top: 1px solid rgba(201, 168, 76, 0.12);
+    text-align: center;
 }
 
 .gift-overlay-shell {
