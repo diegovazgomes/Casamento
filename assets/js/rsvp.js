@@ -74,11 +74,11 @@ export class RSVP {
         this.form.classList.add('is-hidden');
 
         if (attending) {
-            this.successMsg.textContent = firstName ? `Ate la, ${firstName}.` : 'Ate la.';
-            this.successSub.textContent = 'Sua presenca foi registrada. Mal podemos esperar para celebrar com voce.';
+            this.successMsg.textContent = firstName ? `Até lá, ${firstName}.` : 'Até lá.';
+            this.successSub.textContent = 'Sua presença foi registrada. Mal podemos esperar para celebrar com você.';
         } else {
             this.successMsg.textContent = 'Que pena.';
-            this.successSub.textContent = 'Obrigado por nos avisar. Vamos sentir sua falta neste dia tao especial.';
+            this.successSub.textContent = 'Obrigado por nos avisar. Vamos sentir sua falta neste dia tão especial.';
         }
 
         this.successBox.classList.add('show');
