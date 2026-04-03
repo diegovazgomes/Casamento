@@ -1,16 +1,7 @@
-const DEFAULT_AUDIO_TRACKS = {
-    main: {
-        src: 'assets/audio/main-theme.mp3',
-        volume: 0.14
-    },
-    gift: {
-        src: 'assets/audio/gift-theme.mp3',
-        volume: 0.12
-    }
-};
+import { AUDIO_TRACKS } from '../config/audio.js';
 
 export class AudioController extends EventTarget {
-    constructor(trackConfig = DEFAULT_AUDIO_TRACKS) {
+    constructor(trackConfig = AUDIO_TRACKS) {
         super();
         this.desiredTrackKey = null;
         this.currentTrackKey = null;
@@ -66,6 +57,82 @@ export class AudioController extends EventTarget {
         return this.tracks[this.currentTrackKey]?.element ?? null;
     }
 
+    getTrackStartTime(trackKey) {
+        const startTime = Number(this.tracks[trackKey]?.startTime ?? 0);
+
+        if (!Number.isFinite(startTime) || startTime < 0) {
+            return 0;
+        }
+
+        return startTime;
+    }
+
+    hasMetadata(audio) {
+        return audio.readyState >= HTMLMediaElement.HAVE_METADATA || Number.isFinite(audio.duration);
+    }
+
+    clampTime(audio, time) {
+        const normalizedTime = Math.max(time, 0);
+
+        if (!this.hasMetadata(audio) || !Number.isFinite(audio.duration) || audio.duration <= 0) {
+            return normalizedTime;
+        }
+
+        return Math.min(normalizedTime, audio.duration);
+    }
+
+    async ensureMetadataAndSeek(audio, time) {
+        const applySeek = () => {
+            audio.currentTime = this.clampTime(audio, time);
+        };
+
+        if (this.hasMetadata(audio)) {
+            applySeek();
+            return;
+        }
+
+        await new Promise((resolve) => {
+            let settled = false;
+
+            const finish = () => {
+                if (settled) {
+                    return;
+                }
+
+                settled = true;
+                window.clearTimeout(timeoutId);
+                audio.removeEventListener('loadedmetadata', finish);
+                audio.removeEventListener('durationchange', finish);
+                audio.removeEventListener('error', finish);
+                resolve();
+            };
+
+            const timeoutId = window.setTimeout(finish, 1200);
+
+            audio.addEventListener('loadedmetadata', finish, { once: true });
+            audio.addEventListener('durationchange', finish, { once: true });
+            audio.addEventListener('error', finish, { once: true });
+            audio.load();
+        });
+
+        try {
+            applySeek();
+        } catch {
+            const retrySeek = () => {
+                audio.removeEventListener('loadedmetadata', retrySeek);
+                audio.removeEventListener('durationchange', retrySeek);
+
+                try {
+                    applySeek();
+                } catch {
+                }
+            };
+
+            audio.addEventListener('loadedmetadata', retrySeek, { once: true });
+            audio.addEventListener('durationchange', retrySeek, { once: true });
+        }
+    }
+
     async unlock() {
         this.readyForPlayback = true;
         this.emitState();
@@ -99,8 +166,8 @@ export class AudioController extends EventTarget {
         await this.fadeOutCurrent();
 
         const nextElement = track.element;
-        nextElement.currentTime = 0;
         nextElement.volume = 0;
+        await this.ensureMetadataAndSeek(nextElement, this.getTrackStartTime(trackKey));
 
         const played = await this.safePlay(nextElement);
 
