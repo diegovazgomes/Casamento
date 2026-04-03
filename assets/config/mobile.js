@@ -25,17 +25,17 @@ export const CONFIG = {
         // Tamanho de fonte padrao usado como referencia geral do layout.
         base: '12px',
         // Tamanho do texto pequeno acima dos nomes no hero.
-        heroLabel: '9px',
+        heroLabel: '10px',
         // Tamanho da data exibida no hero.
-        heroDate: '10px',
+        heroDate: '14px',
         // Escala responsiva dos nomes do casal no hero.
         heroNames: {
             // Tamanho minimo garantido em telas pequenas.
-            min: '42px',
+            min: '24px',
             // Fator responsivo baseado na largura da viewport.
-            fluid: '15vw',
+            fluid: '10vw',
             // Limite maximo para os nomes nao crescerem demais.
-            max: '68px'
+            max: '46px'
         }
     },
 
