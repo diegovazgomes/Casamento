@@ -353,7 +353,7 @@ img {
 .section-title {
     margin-bottom: var(--section-title-gap);
     color: var(--cream);
-    font-family: 'Cormorant Garamond', serif;
+    font-family: 'Georgia', serif; 
     font-size: clamp(var(--section-title-min), var(--section-title-fluid), var(--section-title-max));
     font-weight: 300;
     line-height: 1.1;
@@ -522,7 +522,7 @@ img {
 .rsvp-title {
     margin-bottom: 8px;
     color: var(--cream);
-    font-family: 'Cormorant Garamond', serif;
+    font-family: 'Georgia', serif;
     font-size: var(--rsvp-title-size);
     font-style: italic;
     font-weight: 300;
