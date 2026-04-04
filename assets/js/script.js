@@ -3,6 +3,7 @@ import { Countdown } from './countdown.js';
 import { RSVP } from './rsvp.js';
 import { PresentPage } from './presente.js';
 import { AudioController } from './audio.js';
+import { WHATSAPP_CONFIG } from '../config/whatsapp.js';
 
 function isMobileViewport() {
     return window.matchMedia('(max-width: 767px)').matches;
@@ -206,7 +207,9 @@ class InvitationExperience {
 
         this.weddingApp = new WeddingApp(this.config);
         this.countdown = new Countdown('2026-09-06T17:00:00-03:00', this.config);
-        this.rsvp = new RSVP(this.config);
+        this.rsvp = new RSVP({
+            whatsapp: WHATSAPP_CONFIG
+        });
 
         this.weddingApp.init();
         this.countdown.start();

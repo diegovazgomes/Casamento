@@ -1,6 +1,7 @@
 export class RSVP {
     constructor(config = {}) {
         this.config = config;
+        this.whatsapp = config.whatsapp ?? null;
         this.form = document.getElementById('rsvpForm');
         this.successBox = document.getElementById('rsvpSuccess');
         this.successMsg = document.getElementById('successMsg');
@@ -9,13 +10,12 @@ export class RSVP {
         this.buttons = Array.from(document.querySelectorAll('.rsvp-btn-choice'));
         this.fields = {
             name: document.getElementById('rsvp-name'),
-            phone: document.getElementById('rsvp-phone'),
-            guests: document.getElementById('rsvp-guests')
+            phone: document.getElementById('rsvp-phone')
         };
     }
 
     init() {
-        if (!this.form || !this.successBox || !this.attendanceInput) {
+        if (!this.form || !this.successBox || !this.attendanceInput || !this.whatsapp) {
             return;
         }
 
@@ -45,26 +45,65 @@ export class RSVP {
     handleSubmit(event) {
         event.preventDefault();
 
-        if (!this.fields.name.value.trim()) {
+        if (!this.validateRequiredField(this.fields.name)) {
             this.fields.name.focus();
             return;
         }
 
-        this.persistConfirmation();
+        if (!this.validateRequiredField(this.fields.phone)) {
+            this.fields.phone.focus();
+            return;
+        }
+
+        const whatsappUrl = this.buildWhatsAppUrl();
+
+        if (!whatsappUrl) {
+            this.renderError();
+            return;
+        }
+
         this.renderSuccess();
+        window.location.assign(whatsappUrl);
     }
 
-    persistConfirmation() {
-        const confirmations = JSON.parse(localStorage.getItem('weddingConfirmations') || '[]');
-        confirmations.push({
-            name: this.fields.name.value.trim(),
-            phone: this.fields.phone.value.trim(),
-            guests: this.fields.guests.value || '0',
-            attendance: this.attendanceInput.value,
-            timestamp: new Date().toISOString()
-        });
+    validateRequiredField(field) {
+        if (!field) {
+            return false;
+        }
 
-        localStorage.setItem('weddingConfirmations', JSON.stringify(confirmations));
+        const value = field.value.trim();
+        field.value = value;
+
+        return Boolean(value);
+    }
+
+    buildWhatsAppUrl() {
+        const template = this.getMessageTemplate();
+
+        if (!template || !this.whatsapp.destinationPhone) {
+            return '';
+        }
+
+        const text = this.interpolate(template, {
+            recipientName: this.whatsapp.recipientName ?? '',
+            name: this.fields.name.value.trim(),
+            phone: this.fields.phone.value.trim()
+        });
+        const params = new URLSearchParams({ text });
+
+        return `https://wa.me/${this.whatsapp.destinationPhone}?${params.toString()}`;
+    }
+
+    getMessageTemplate() {
+        const attending = this.attendanceInput.value === 'yes';
+
+        return attending
+            ? this.whatsapp.messages?.attending
+            : this.whatsapp.messages?.notAttending;
+    }
+
+    interpolate(template, values) {
+        return template.replace(/\{(\w+)\}/g, (match, key) => values[key] ?? match);
     }
 
     renderSuccess() {
@@ -74,13 +113,19 @@ export class RSVP {
         this.form.classList.add('is-hidden');
 
         if (attending) {
-            this.successMsg.textContent = firstName ? `Até lá, ${firstName}.` : 'Até lá.';
-            this.successSub.textContent = 'Sua presença foi registrada. Mal podemos esperar para celebrar com você.';
+            this.successMsg.textContent = firstName ? `Perfeito, ${firstName}.` : 'Perfeito.';
+            this.successSub.textContent = 'Estamos abrindo o WhatsApp com a sua confirmação pronta para envio.';
         } else {
-            this.successMsg.textContent = 'Que pena.';
-            this.successSub.textContent = 'Obrigado por nos avisar. Vamos sentir sua falta neste dia tão especial.';
+            this.successMsg.textContent = 'Mensagem pronta.';
+            this.successSub.textContent = 'Estamos abrindo o WhatsApp para você avisar com carinho que não poderá estar presente.';
         }
 
+        this.successBox.classList.add('show');
+    }
+
+    renderError() {
+        this.successMsg.textContent = 'Não foi possível continuar.';
+        this.successSub.textContent = 'Confira os dados informados e tente novamente em instantes.';
         this.successBox.classList.add('show');
     }
 }

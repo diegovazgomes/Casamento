@@ -142,11 +142,11 @@
 
             <div class="rsvp-section reveal" id="rsvpSection">
                 <p class="rsvp-title">Confirmar Presença</p>
-                <p class="rsvp-subtitle">Preencha o formulário abaixo</p>
+                <p class="rsvp-subtitle">Preencha os dados para continuar no WhatsApp</p>
 
                 <form class="rsvp-form" id="rsvpForm">
                     <input class="rsvp-input" type="text" placeholder="Seu nome completo" required id="rsvp-name" name="name">
-                    <input class="rsvp-input" type="tel" placeholder="WhatsApp (opcional)" id="rsvp-phone" name="phone">
+                    <input class="rsvp-input" type="tel" placeholder="Seu WhatsApp" required id="rsvp-phone" name="phone">
                     <input type="hidden" id="rsvp-attendance" name="attendance" value="yes">
 
                     <div class="rsvp-btns" role="group" aria-label="Escolha de presença">
@@ -154,8 +154,7 @@
                         <button type="button" class="rsvp-btn-choice" id="btn-no" data-attend="no">Não poderei ir</button>
                     </div>
 
-                    <input class="rsvp-input" type="number" placeholder="Número de acompanhantes" min="0" max="10" id="rsvp-guests" name="guests">
-                    <button class="rsvp-submit" type="submit">Enviar Confirmação</button>
+                    <button class="rsvp-submit" type="submit">Continuar no WhatsApp</button>
                 </form>
 
                 <div class="rsvp-success" id="rsvpSuccess" aria-live="polite">
