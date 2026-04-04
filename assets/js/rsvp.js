@@ -2,12 +2,19 @@ export class RSVP {
     constructor(config = {}) {
         this.config = config;
         this.whatsapp = config.whatsapp ?? null;
+        this.redirectDelayMs = this.whatsapp?.redirectDelayMs ?? 2000;
+        this.redirectTimeoutId = null;
+        this.isPending = false;
+        this.section = document.getElementById('rsvpSection');
+        this.flow = document.getElementById('rsvpFlow');
         this.form = document.getElementById('rsvpForm');
         this.successBox = document.getElementById('rsvpSuccess');
         this.successMsg = document.getElementById('successMsg');
         this.successSub = document.getElementById('successSub');
+        this.successNote = document.getElementById('successNote');
         this.attendanceInput = document.getElementById('rsvp-attendance');
         this.buttons = Array.from(document.querySelectorAll('.rsvp-btn-choice'));
+        this.submitButton = this.form?.querySelector('.rsvp-submit') ?? null;
         this.fields = {
             name: document.getElementById('rsvp-name'),
             phone: document.getElementById('rsvp-phone')
@@ -45,6 +52,10 @@ export class RSVP {
     handleSubmit(event) {
         event.preventDefault();
 
+        if (this.isPending) {
+            return;
+        }
+
         if (!this.validateRequiredField(this.fields.name)) {
             this.fields.name.focus();
             return;
@@ -63,7 +74,7 @@ export class RSVP {
         }
 
         this.renderSuccess();
-        window.location.assign(whatsappUrl);
+        this.scheduleRedirect(whatsappUrl);
     }
 
     validateRequiredField(field) {
@@ -109,23 +120,50 @@ export class RSVP {
     renderSuccess() {
         const firstName = this.fields.name.value.trim().split(/\s+/)[0];
         const attending = this.attendanceInput.value === 'yes';
+        const feedback = attending
+            ? this.whatsapp.feedback?.attending
+            : this.whatsapp.feedback?.notAttending;
+        const interpolationValues = {
+            firstName: firstName || 'querido convidado',
+            delaySeconds: String(Math.max(1, Math.round(this.redirectDelayMs / 1000)))
+        };
 
-        this.form.classList.add('is-hidden');
-
-        if (attending) {
-            this.successMsg.textContent = firstName ? `Perfeito, ${firstName}.` : 'Perfeito.';
-            this.successSub.textContent = 'Estamos abrindo o WhatsApp com a sua confirmação pronta para envio.';
-        } else {
-            this.successMsg.textContent = 'Mensagem pronta.';
-            this.successSub.textContent = 'Estamos abrindo o WhatsApp para você avisar com carinho que não poderá estar presente.';
+        this.isPending = true;
+        if (this.submitButton) {
+            this.submitButton.disabled = true;
         }
+
+        this.flow?.classList.add('is-hidden');
+        this.section?.classList.add('is-feedback-visible');
+        this.successMsg.textContent = this.interpolate(
+            feedback?.title ?? 'Sua mensagem está pronta.',
+            interpolationValues
+        );
+        this.successSub.textContent = this.interpolate(
+            feedback?.subtitle ?? 'Estamos preparando o redirecionamento para o WhatsApp.',
+            interpolationValues
+        );
+        this.successNote.textContent = this.interpolate(
+            feedback?.note ?? '',
+            interpolationValues
+        );
 
         this.successBox.classList.add('show');
     }
 
     renderError() {
-        this.successMsg.textContent = 'Não foi possível continuar.';
-        this.successSub.textContent = 'Confira os dados informados e tente novamente em instantes.';
+        const feedback = this.whatsapp?.feedback?.error ?? {};
+
+        this.successMsg.textContent = feedback.title ?? 'Não foi possível continuar.';
+        this.successSub.textContent = feedback.subtitle ?? 'Confira os dados informados e tente novamente em instantes.';
+        this.successNote.textContent = feedback.note ?? '';
         this.successBox.classList.add('show');
+    }
+
+    scheduleRedirect(whatsappUrl) {
+        window.clearTimeout(this.redirectTimeoutId);
+        this.redirectTimeoutId = window.setTimeout(() => {
+            window.location.assign(whatsappUrl);
+        }, this.redirectDelayMs);
     }
 }

@@ -141,26 +141,29 @@
             </p>
 
             <div class="rsvp-section reveal" id="rsvpSection">
-                <p class="rsvp-title">Confirmar Presença</p>
-                <p class="rsvp-subtitle">Preencha os dados para continuar no WhatsApp</p>
+                <div class="rsvp-flow" id="rsvpFlow">
+                    <p class="rsvp-title">Confirmar Presença</p>
+                    <p class="rsvp-subtitle">Preencha os dados para continuar no WhatsApp</p>
 
-                <form class="rsvp-form" id="rsvpForm">
-                    <input class="rsvp-input" type="text" placeholder="Seu nome completo" required id="rsvp-name" name="name">
-                    <input class="rsvp-input" type="tel" placeholder="Seu WhatsApp" required id="rsvp-phone" name="phone">
-                    <input type="hidden" id="rsvp-attendance" name="attendance" value="yes">
+                    <form class="rsvp-form" id="rsvpForm">
+                        <input class="rsvp-input" type="text" placeholder="Seu nome completo" required id="rsvp-name" name="name">
+                        <input class="rsvp-input" type="tel" placeholder="Seu WhatsApp" required id="rsvp-phone" name="phone">
+                        <input type="hidden" id="rsvp-attendance" name="attendance" value="yes">
 
-                    <div class="rsvp-btns" role="group" aria-label="Escolha de presença">
-                        <button type="button" class="rsvp-btn-choice active" id="btn-yes" data-attend="yes">Confirmo presença</button>
-                        <button type="button" class="rsvp-btn-choice" id="btn-no" data-attend="no">Não poderei ir</button>
-                    </div>
+                        <div class="rsvp-btns" role="group" aria-label="Escolha de presença">
+                            <button type="button" class="rsvp-btn-choice active" id="btn-yes" data-attend="yes">Confirmo presença</button>
+                            <button type="button" class="rsvp-btn-choice" id="btn-no" data-attend="no">Não poderei ir</button>
+                        </div>
 
-                    <button class="rsvp-submit" type="submit">Continuar no WhatsApp</button>
-                </form>
+                        <button class="rsvp-submit" type="submit">Continuar no WhatsApp</button>
+                    </form>
+                </div>
 
                 <div class="rsvp-success" id="rsvpSuccess" aria-live="polite">
                     <div class="rsvp-success-icon">&#10084;</div>
                     <div class="rsvp-success-text" id="successMsg">Até lá!</div>
                     <p class="rsvp-success-sub" id="successSub"></p>
+                    <p class="rsvp-success-note" id="successNote"></p>
                 </div>
             </div>
         </section>

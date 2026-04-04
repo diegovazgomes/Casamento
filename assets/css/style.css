@@ -1031,6 +1031,14 @@ img {
     gap: var(--rsvp-form-gap);
 }
 
+.rsvp-flow {
+    display: block;
+}
+
+.rsvp-section.is-feedback-visible .rsvp-flow {
+    display: none;
+}
+
 .rsvp-form.is-hidden {
     display: none;
 }
@@ -1119,9 +1127,22 @@ img {
     transform: translateX(0);
 }
 
+.rsvp-submit:disabled {
+    cursor: default;
+    opacity: 0.55;
+}
+
+.rsvp-submit:disabled::before {
+    transform: translateX(0);
+}
+
+.rsvp-submit:disabled:hover {
+    color: var(--gold);
+}
+
 .rsvp-success {
     display: none;
-    padding: 24px 12px 4px;
+    padding: 8px 12px 4px;
     text-align: center;
 }
 
@@ -1149,6 +1170,15 @@ img {
     font-size: var(--rsvp-success-sub-size);
     letter-spacing: 0.08em;
     line-height: 1.7;
+}
+
+.rsvp-success-note {
+    margin-top: 18px;
+    color: rgba(250, 247, 242, 0.34);
+    font-size: 10px;
+    letter-spacing: 0.24em;
+    line-height: 1.5;
+    text-transform: uppercase;
 }
 
 footer {
