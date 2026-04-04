@@ -16,9 +16,9 @@
     <div class="intro-screen" id="introScreen" aria-labelledby="introScreenTitle">
         <div class="intro-screen__backdrop" aria-hidden="true"></div>
         <div class="intro-screen__content">
-            <p class="intro-screen__label">Convite</p>
+            <p class="intro-screen__label" id="introLabel">Convite</p>
             <h1 class="intro-screen__names" id="introScreenTitle">Siannah <span>&</span> Diego</h1>
-            <p class="intro-screen__note">Seguimos escolhendo um ao outro, agora para todo sempre.</p>
+            <p class="intro-screen__note" id="introNote">Seguimos escolhendo um ao outro, agora para todo sempre.</p>
             <button class="intro-screen__open" id="openInviteButton" type="button">Abrir convite</button>
         </div>
     </div>
@@ -35,13 +35,13 @@
             <div class="hero-overlay" aria-hidden="true"></div>
 
             <div class="hero-content">
-                <p class="hero-label">Você foi convidado para o casamento de</p>
-                <h1 class="hero-names">
-                    <em>Siannah</em>
+                <p class="hero-label" id="heroLabel">Você foi convidado para o casamento de</p>
+                <h1 class="hero-names" id="heroNames">
+                    <em id="heroName1">Siannah</em>
                     <span class="hero-ampersand">&</span>
-                    <em>Diego</em>
+                    <em id="heroName2">Diego</em>
                 </h1>
-                <p class="hero-date">06 . 09 . 2026</p>
+                <p class="hero-date" id="heroDate">06 . 09 . 2026</p>
             </div>
 
             <button class="scroll-hint" type="button" data-scroll-target="#countdown" aria-label="Ir para a contagem regressiva">
@@ -51,8 +51,8 @@
         </section>
 
         <section id="countdown" class="content-section">
-            <span class="section-tag reveal">Contagem Regressiva</span>
-            <h2 class="section-title reveal">O grande dia se aproxima!</h2>
+            <span class="section-tag reveal" id="countdownTag">Contagem Regressiva</span>
+            <h2 class="section-title reveal" id="countdownTitle">O grande dia se aproxima!</h2>
             <div class="countdown-wrap reveal" id="countdownWrap" aria-live="polite">
                 <div class="countdown-block">
                     <span class="countdown-num" id="cd-days">--</span>
@@ -80,48 +80,49 @@
         </div>
 
         <section id="details" class="content-section">
-            <span class="section-tag reveal">Detalhes da Cerimônia</span>
-            <h2 class="section-title reveal">O início de tudo o que queremos viver juntos.</h2>
-            <p class="section-body reveal">
+            <span class="section-tag reveal" id="detailsTag">Detalhes da Cerimônia</span>
+            <h2 class="section-title reveal" id="detailsTitle">O início de tudo o que queremos viver juntos.</h2>
+            <p class="section-body reveal" id="detailsIntro">
                 Uma celebração íntima, pensada para compartilhar esse momento com quem faz parte da nossa história.
             </p>
             <div class="details-grid reveal" id="detailsGrid">
                 <article class="detail-card">
-                    <span class="detail-icon" aria-hidden="true">📅</span>
-                    <span class="detail-title">Data</span>
-                    <div class="detail-value">06 Set 2026</div>
-                    <span class="detail-sub">Domingo</span>
+                    <span class="detail-icon" aria-hidden="true" id="detailDateIcon">📅</span>
+                    <span class="detail-title" id="detailDateTitle">Data</span>
+                    <div class="detail-value" id="detailDateValue">06 Set 2026</div>
+                    <span class="detail-sub" id="detailDateSub">Domingo</span>
                 </article>
                 <article class="detail-card">
-                    <span class="detail-icon" aria-hidden="true">🕔</span>
-                    <span class="detail-title">Horário</span>
-                    <div class="detail-value">17:00</div>
-                    <span class="detail-sub">Horário de Brasília</span>
+                    <span class="detail-icon" aria-hidden="true" id="detailTimeIcon">🕔</span>
+                    <span class="detail-title" id="detailTimeTitle">Horário</span>
+                    <div class="detail-value" id="detailTimeValue">17:00</div>
+                    <span class="detail-sub" id="detailTimeSub">Horário de Brasília</span>
                 </article>
                 <a
+                    id="detailLocationLink"
                     class="detail-card detail-card-link"
                     href="https://share.google/7Qt15gWSb3IAGGofM"
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-label="Abrir localização da Mansão Ilha de Capri no mapa"
                 >
-                    <span class="detail-icon" aria-hidden="true">🏛️</span>
-                    <span class="detail-title">Local</span>
-                    <div class="detail-value">Mansão Ilha de Capri</div>
-                    <span class="detail-sub">São Bernardo do Campo</span>
-                    <span class="detail-link-hint">📍 Abrir no mapa</span>
+                    <span class="detail-icon" aria-hidden="true" id="detailLocationIcon">🏛️</span>
+                    <span class="detail-title" id="detailLocationTitle">Local</span>
+                    <div class="detail-value" id="detailLocationName">Mansão Ilha de Capri</div>
+                    <span class="detail-sub" id="detailLocationCity">São Bernardo do Campo</span>
+                    <span class="detail-link-hint" id="detailLocationHint">📍 Abrir no mapa</span>
                 </a>
                 <article class="detail-card">
-                    <span class="detail-icon" aria-hidden="true">💍</span>
-                    <span class="detail-title">Ocasião</span>
-                    <div class="detail-value">Cerimônia & Recepção</div>
-                    <span class="detail-sub">Traje esporte fino</span>
+                    <span class="detail-icon" aria-hidden="true" id="detailOccasionIcon">💍</span>
+                    <span class="detail-title" id="detailOccasionTitle">Ocasião</span>
+                    <div class="detail-value" id="detailOccasionValue">Cerimônia & Recepção</div>
+                    <span class="detail-sub" id="detailOccasionSub">Traje esporte fino</span>
                 </article>
                 <button class="detail-card detail-card-link detail-card-gift" type="button" data-open-gift-overlay aria-label="Abrir área de presentes">
-                    <span class="detail-icon" aria-hidden="true">🎁</span>
-                    <span class="detail-title">Presente</span>
-                    <div class="detail-value">Para nos presentear</div>
-                    <span class="detail-sub">Abrir opções</span>
+                    <span class="detail-icon" aria-hidden="true" id="detailGiftIcon">🎁</span>
+                    <span class="detail-title" id="detailGiftTitle">Presente</span>
+                    <div class="detail-value" id="detailGiftValue">Para nos presentear</div>
+                    <span class="detail-sub" id="detailGiftSub">Abrir opções</span>
                 </button>
             </div>
         </section>
@@ -133,17 +134,17 @@
         </div>
 
         <section id="rsvp" class="content-section rsvp-shell">
-            <span class="section-tag reveal">Confirmação de Presença</span>
-            <h2 class="section-title reveal">Esperamos você.</h2>
-            <p class="section-body reveal">
+            <span class="section-tag reveal" id="rsvpTag">Confirmação de Presença</span>
+            <h2 class="section-title reveal" id="rsvpSectionTitle">Esperamos você.</h2>
+            <p class="section-body reveal" id="rsvpSectionBody">
                 Pedimos, por gentileza, que confirme sua presença o quanto antes.
                 Sua presença tornará este momento ainda mais especial para nós.
             </p>
 
             <div class="rsvp-section reveal" id="rsvpSection">
                 <div class="rsvp-flow" id="rsvpFlow">
-                    <p class="rsvp-title">Confirmar Presença</p>
-                    <p class="rsvp-subtitle">Preencha os dados para continuar no WhatsApp</p>
+                    <p class="rsvp-title" id="rsvpFormTitle">Confirmar Presença</p>
+                    <p class="rsvp-subtitle" id="rsvpFormSubtitle">Preencha os dados para continuar no WhatsApp</p>
 
                     <form class="rsvp-form" id="rsvpForm">
                         <input class="rsvp-input" type="text" placeholder="Seu nome completo" required id="rsvp-name" name="name">
@@ -155,7 +156,7 @@
                             <button type="button" class="rsvp-btn-choice" id="btn-no" data-attend="no">Não poderei ir</button>
                         </div>
 
-                        <button class="rsvp-submit" type="submit">Continuar no WhatsApp</button>
+                        <button class="rsvp-submit" id="rsvpSubmit" type="submit">Continuar no WhatsApp</button>
                     </form>
                 </div>
 
@@ -174,9 +175,9 @@
                 <button class="gift-overlay-close" type="button" data-close-gift-overlay aria-label="Fechar área de presentes">Fechar</button>
 
                 <section class="content-section gift-intro gift-overlay-intro">
-                    <span class="section-tag">Presente</span>
+                    <span class="section-tag" id="giftTag">Presente</span>
                     <h2 class="section-title" id="giftOverlayTitle">Para nos presentear</h2>
-                    <p class="section-body">
+                    <p class="section-body" id="giftIntroText">
                         Sua presença já é o nosso maior presente. Mas, se desejar nos presentear de outra forma,
                         deixamos abaixo algumas opções com carinho.
                     </p>
@@ -191,21 +192,22 @@
                 <section class="content-section gift-shell gift-overlay-content">
                     <div class="gift-grid">
                         <article class="gift-panel gift-panel-pix">
-                            <span class="gift-panel-tag">Pix</span>
-                            <h3 class="gift-panel-title">Pix do casal</h3>
-                            <p class="gift-panel-body">
+                            <span class="gift-panel-tag" id="giftPixTag">Pix</span>
+                            <h3 class="gift-panel-title" id="giftPixTitle">Pix do casal</h3>
+                            <p class="gift-panel-body" id="giftPixDescription">
                                 Se preferir, você pode nos presentear por Pix usando o QR Code ou o código abaixo.
                             </p>
 
                             <div class="gift-qr-frame">
-                                <img src="assets/images/icons/pix-placeholder.svg" alt="Placeholder do QR Code para pagamento via Pix">
+                                <img id="giftPixQr" src="assets/images/icons/pix-placeholder.svg" alt="Placeholder do QR Code para pagamento via Pix">
                             </div>
 
-                            <p class="gift-copy-label">Pix copia e cola</p>
+                            <p class="gift-copy-label" id="giftPixCopyLabel">Pix copia e cola</p>
                             <code class="gift-copy-code" id="pixCode">CHAVE_PIX_OU_CODIGO_COPIA_E_COLA_AQUI</code>
 
                             <button
                                 class="gift-copy-button"
+                                id="giftPixCopyButton"
                                 type="button"
                                 data-copy-value="CHAVE_PIX_OU_CODIGO_COPIA_E_COLA_AQUI"
                                 data-copy-feedback-target="pixCopyFeedback"
@@ -216,12 +218,12 @@
                         </article>
 
                         <article class="gift-panel gift-panel-card">
-                            <span class="gift-panel-tag">Pagamento por cartão</span>
-                            <h3 class="gift-panel-title">Pagamento por cartão</h3>
-                            <p class="gift-panel-body">
+                            <span class="gift-panel-tag" id="giftCardTag">Pagamento por cartão</span>
+                            <h3 class="gift-panel-title" id="giftCardTitle">Pagamento por cartão</h3>
+                            <p class="gift-panel-body" id="giftCardBody">
                                 Em breve, esta opção estará disponível.
                             </p>
-                            <div class="gift-card-placeholder">
+                            <div class="gift-card-placeholder" id="giftCardPlaceholder">
                                 Espaço reservado para inserir o link ou a plataforma de pagamento por cartão.
                             </div>
                         </article>
@@ -232,8 +234,8 @@
                     </div>
 
                     <footer class="gift-overlay-footer">
-                        <div class="footer-names">Siannah & Diego</div>
-                        <p class="footer-note">06 . 09 . 2026 | São Bernardo do Campo</p>
+                        <div class="footer-names" id="overlayFooterNames">Siannah & Diego</div>
+                        <p class="footer-note" id="overlayFooterNote">06 . 09 . 2026 | São Bernardo do Campo</p>
                     </footer>
                 </section>
             </section>
@@ -241,8 +243,8 @@
     </main>
 
     <footer>
-        <div class="footer-names">Siannah & Diego</div>
-        <p class="footer-note">06 . 09 . 2026 | São Bernardo do Campo</p>
+        <div class="footer-names" id="mainFooterNames">Siannah & Diego</div>
+        <p class="footer-note" id="mainFooterNote">06 . 09 . 2026 | São Bernardo do Campo</p>
     </footer>
     </div>
 

@@ -53,7 +53,7 @@ export class Countdown {
 
         const message = document.createElement('p');
         message.className = 'countdown-finished';
-        message.textContent = 'O grande dia chegou.';
+        message.textContent = this.config.texts?.countdownFinished || 'O grande dia chegou.';
         this.container.appendChild(message);
     }
 

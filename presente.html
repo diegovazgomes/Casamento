@@ -15,9 +15,9 @@
 <body class="gift-page">
     <main class="gift-main">
         <section class="content-section gift-intro">
-            <span class="section-tag reveal">Presente</span>
-            <h1 class="section-title reveal">Para nos presentear</h1>
-            <p class="section-body reveal">
+            <span class="section-tag reveal" id="giftTag">Presente</span>
+            <h1 class="section-title reveal" id="giftOverlayTitle">Para nos presentear</h1>
+            <p class="section-body reveal" id="giftIntroText">
                 Sua presença já é o nosso maior presente. Mas, se desejar nos presentear de outra forma,
                 deixamos abaixo algumas opções com carinho.
             </p>
@@ -32,21 +32,22 @@
         <section class="content-section gift-shell">
             <div class="gift-grid">
                 <article class="gift-panel gift-panel-pix">
-                    <span class="gift-panel-tag">Pix</span>
-                    <h2 class="gift-panel-title">Pix do casal</h2>
-                    <p class="gift-panel-body">
+                    <span class="gift-panel-tag" id="giftPixTag">Pix</span>
+                    <h2 class="gift-panel-title" id="giftPixTitle">Pix do casal</h2>
+                    <p class="gift-panel-body" id="giftPixDescription">
                         Se preferir, você pode nos presentear por Pix usando o QR Code ou o código abaixo.
                     </p>
 
                     <div class="gift-qr-frame">
-                        <img src="assets/images/icons/pix-placeholder.svg" alt="Placeholder do QR Code para pagamento via Pix">
+                        <img id="giftPixQr" src="assets/images/icons/pix-placeholder.svg" alt="Placeholder do QR Code para pagamento via Pix">
                     </div>
 
-                    <p class="gift-copy-label">Pix copia e cola</p>
+                    <p class="gift-copy-label" id="giftPixCopyLabel">Pix copia e cola</p>
                     <code class="gift-copy-code" id="pixCode">CHAVE_PIX_OU_CODIGO_COPIA_E_COLA_AQUI</code>
 
                     <button
                         class="gift-copy-button"
+                        id="giftPixCopyButton"
                         type="button"
                         data-copy-value="CHAVE_PIX_OU_CODIGO_COPIA_E_COLA_AQUI"
                         data-copy-feedback-target="pixCopyFeedback"
@@ -57,12 +58,12 @@
                 </article>
 
                 <article class="gift-panel gift-panel-card">
-                    <span class="gift-panel-tag">Pagamento por cartão</span>
-                    <h2 class="gift-panel-title">Pagamento por cartão</h2>
-                    <p class="gift-panel-body">
+                    <span class="gift-panel-tag" id="giftCardTag">Pagamento por cartão</span>
+                    <h2 class="gift-panel-title" id="giftCardTitle">Pagamento por cartão</h2>
+                    <p class="gift-panel-body" id="giftCardBody">
                         Em breve, esta opção estará disponível.
                     </p>
-                    <div class="gift-card-placeholder">
+                    <div class="gift-card-placeholder" id="giftCardPlaceholder">
                         Espaço reservado para inserir o link ou a plataforma de pagamento por cartão.
                     </div>
                 </article>
@@ -75,8 +76,8 @@
     </main>
 
     <footer>
-        <div class="footer-names">Siannah & Diego</div>
-        <p class="footer-note">06 . 09 . 2026 | São Bernardo do Campo</p>
+        <div class="footer-names" id="mainFooterNames">Siannah & Diego</div>
+        <p class="footer-note" id="mainFooterNote">06 . 09 . 2026 | São Bernardo do Campo</p>
     </footer>
 
     <script type="module" src="assets/js/script.js"></script>
