@@ -13,7 +13,7 @@
     "timezone": "Horário de Brasília",
     "locationName": "Mansão Ilha de Capri",
     "locationCity": "São Bernardo do Campo",
-    "mapsLink": "https://share.google/7Qt15gWSb3IAGGofM"
+    "mapsLink": "https://www.google.com/maps/dir//Ilha+de+Capri+Buffet+Eventos,+Rodovia+Anchieta,+SP-150,+km+28+-+Vila+Balnearia,+S%C3%A3o+Bernardo+do+Campo+-+SP,+09822-250/@-23.6611535,-46.6029821,15z/data=!4m8!4m7!1m0!1m5!1m1!1s0x94ce41794f164f17:0x93eaef9188424c1b!2m2!1d-46.535788!2d-23.767335?entry=ttu&g_ep=EgoyMDI2MDQwMS4wIKXMDSoASAFQAw%3D%3D"
   },
   "texts": {
     "metaTitle": "Siannah & Diego - Casamento",
@@ -70,5 +70,31 @@
     "heroImage": "assets/images/couple/casal.png",
     "musicMain": "assets/audio/main-theme.mp3",
     "musicGift": "assets/audio/gift-theme.mp3"
+  },
+  "whatsapp": {
+    "destinationPhone": "5511949606377",
+    "recipientName": "Siannah",
+    "redirectDelayMs": 5000,
+    "messages": {
+      "attending": "Olá, {recipientName}!\n\nAqui é {name}.\nMeu WhatsApp para contato é {phone}.\nEstou passando para confirmar minha presença no casamento.\n\nNos vemos em breve.",
+      "notAttending": "Olá, {recipientName}!\n\nAqui é {name}.\nMeu WhatsApp para contato é {phone}.\nInfelizmente, não poderei estar presente no casamento.\n\nAgradeço muito pelo convite e desejo um dia lindo para vocês."
+    },
+    "feedback": {
+      "attending": {
+        "title": "Presença confirmada, {firstName}.",
+        "subtitle": "Sua mensagem está pronta e vamos te levar ao WhatsApp para finalizar o envio com carinho.",
+        "note": "Abrindo o WhatsApp em {delaySeconds} segundos"
+      },
+      "notAttending": {
+        "title": "Obrigada pelo aviso, {firstName}.",
+        "subtitle": "Sua mensagem de ausência está pronta para seguir ao WhatsApp com todo o carinho que este momento merece.",
+        "note": "Abrindo o WhatsApp em {delaySeconds} segundos"
+      },
+      "error": {
+        "title": "Não foi possível continuar.",
+        "subtitle": "Confira os dados informados e tente novamente em instantes.",
+        "note": ""
+      }
+    }
   }
 }

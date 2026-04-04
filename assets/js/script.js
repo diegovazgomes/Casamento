@@ -3,7 +3,6 @@ import { Countdown } from './countdown.js';
 import { RSVP } from './rsvp.js';
 import { PresentPage } from './presente.js';
 import { AudioController } from './audio.js';
-import { WHATSAPP_CONFIG } from '../config/whatsapp.js';
 import { AUDIO_TRACKS } from '../config/audio.js';
 
 const SITE_CONFIG_URL = 'assets/config/site.json';
@@ -79,6 +78,32 @@ const DEFAULT_SITE_CONTENT = {
         heroImage: 'assets/images/couple/casal.png',
         musicMain: 'assets/audio/main-theme.mp3',
         musicGift: 'assets/audio/gift-theme.mp3'
+    },
+    whatsapp: {
+        destinationPhone: '5511914772174',
+        recipientName: 'Siannah',
+        redirectDelayMs: 5000,
+        messages: {
+            attending: 'Olá, {recipientName}!\n\nAqui é {name}.\nMeu WhatsApp para contato é {phone}.\nEstou passando para confirmar minha presença no casamento.\n\nNos vemos em breve.',
+            notAttending: 'Olá, {recipientName}!\n\nAqui é {name}.\nMeu WhatsApp para contato é {phone}.\nInfelizmente, não poderei estar presente no casamento.\n\nAgradeço muito pelo convite e desejo um dia lindo para vocês.'
+        },
+        feedback: {
+            attending: {
+                title: 'Presença confirmada, {firstName}.',
+                subtitle: 'Sua mensagem está pronta e vamos te levar ao WhatsApp para finalizar o envio com carinho.',
+                note: 'Abrindo o WhatsApp em {delaySeconds} segundos'
+            },
+            notAttending: {
+                title: 'Obrigada pelo aviso, {firstName}.',
+                subtitle: 'Sua mensagem de ausência está pronta para seguir ao WhatsApp com todo o carinho que este momento merece.',
+                note: 'Abrindo o WhatsApp em {delaySeconds} segundos'
+            },
+            error: {
+                title: 'Não foi possível continuar.',
+                subtitle: 'Confira os dados informados e tente novamente em instantes.',
+                note: ''
+            }
+        }
     }
 };
 
@@ -354,7 +379,7 @@ class InvitationExperience {
         this.weddingApp = new WeddingApp(this.config);
         this.countdown = new Countdown(eventDate, this.config);
         this.rsvp = new RSVP({
-            whatsapp: WHATSAPP_CONFIG
+            whatsapp: this.config.whatsapp
         });
 
         this.weddingApp.init();
