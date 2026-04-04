@@ -3,9 +3,91 @@ import { Countdown } from './countdown.js';
 import { RSVP } from './rsvp.js';
 import { PresentPage } from './presente.js';
 import { AudioController } from './audio.js';
-import { AUDIO_TRACKS } from '../config/audio.js';
 
 const SITE_CONFIG_URL = 'assets/config/site.json';
+const THEME_CONFIG_URL = 'assets/config/theme.json';
+
+const DEFAULT_THEME = {
+    _comments: {
+        colors: {
+            background: 'Fundo base do site inteiro.',
+            surface: 'Fundo de cards e superficies internas.',
+            primary: 'Cor de destaque principal (dourado).',
+            primarySoft: 'Cor de destaque secundario (dourado claro).',
+            text: 'Texto principal claro.',
+            textMuted: 'Texto secundario padrao.',
+            border: 'Borda padrao suave em elementos com destaque.'
+        },
+        typography: {
+            fontPrimary: 'Fonte do corpo e textos comuns.',
+            fontSerif: 'Fonte de titulos e numeros elegantes.',
+            fontAccent: 'Fonte de assinatura para nomes do casal.'
+        }
+    },
+    colors: {
+        background: '#1a1714',
+        surface: '#201c18',
+        surfaceSoft: 'rgba(255, 255, 255, 0.04)',
+        primary: '#c9a84c',
+        primarySoft: '#e8d08a',
+        text: '#faf7f2',
+        textMuted: 'rgba(250, 247, 242, 0.6)',
+        textSoft: 'rgba(250, 247, 242, 0.62)',
+        textDim: 'rgba(250, 247, 242, 0.45)',
+        textFaint: 'rgba(250, 247, 242, 0.25)',
+        textPlaceholder: 'rgba(250, 247, 242, 0.25)',
+        border: 'rgba(201, 168, 76, 0.2)',
+        borderSoft: 'rgba(201, 168, 76, 0.16)',
+        borderStrong: 'rgba(201, 168, 76, 0.38)',
+        goldSurfaceSoft: 'rgba(201, 168, 76, 0.06)',
+        goldSurface: 'rgba(201, 168, 76, 0.08)',
+        goldSurfaceStrong: 'rgba(201, 168, 76, 0.15)',
+        primaryGlow: 'rgba(201, 168, 76, 0.12)',
+        pageGridLine: 'rgba(255, 255, 255, 0.015)',
+        overlayBackdrop: 'rgba(10, 8, 7, 0.78)',
+        audioPanelBg: 'rgba(17, 14, 12, 0.68)',
+        audioPanelHoverBg: 'rgba(17, 14, 12, 0.8)',
+        audioPanelBorder: 'rgba(201, 168, 76, 0.24)',
+        pulseRing: 'rgba(201, 168, 76, 0.45)',
+        pulseRingSpread: 'rgba(201, 168, 76, 0)',
+        inputFocusBg: 'rgba(255, 255, 255, 0.06)'
+    },
+    typography: {
+        fontPrimary: "'Jost', sans-serif",
+        fontSerif: "'Cormorant Garamond', serif",
+        fontAccent: "'Great Vibes', cursive"
+    },
+    spacing: {
+        sectionPadding: 88,
+        containerWidth: 760,
+        cardPadding: 28
+    },
+    radius: {
+        card: 0,
+        button: 0
+    },
+    effects: {
+        shadowSoft: '0 20px 60px rgba(0,0,0,0.28)',
+        shadowHover: '0 12px 28px rgba(0,0,0,0.18)',
+        textShadowStrong: '0 8px 28px rgba(0,0,0,0.32)',
+        textShadowSoft: '0 2px 18px rgba(0,0,0,0.3)',
+        focusRing: '0 0 0 3px rgba(201,168,76,0.12)',
+        transition: 'all 0.3s ease',
+        pageGradient: 'linear-gradient(180deg, #1a1714 0%, #1a1714 100%)',
+        introBackdropGradient: 'linear-gradient(180deg, rgba(10, 8, 7, 0.96) 0%, rgba(18, 15, 13, 0.96) 45%, rgba(26, 23, 20, 0.98) 100%)',
+        introCardGradient: 'linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(201, 168, 76, 0.03))',
+        buttonFillGradient: 'linear-gradient(135deg, rgba(201, 168, 76, 0.95), rgba(232, 208, 138, 0.95))',
+        heroOverlayGradient: 'linear-gradient(to bottom, rgba(26, 23, 20, 0.1) 0%, rgba(26, 23, 20, 0.18) 40%, rgba(26, 23, 20, 0.78) 76%, rgba(26, 23, 20, 1) 100%)',
+        overlayPanelGradient: 'linear-gradient(180deg, rgba(15, 12, 10, 0.98) 0%, rgba(24, 21, 18, 0.98) 100%)',
+        overlayCloseGradient: 'linear-gradient(180deg, rgba(15, 12, 10, 0.92), rgba(15, 12, 10, 0))',
+        rsvpPanelGradient: 'linear-gradient(135deg, rgba(201, 168, 76, 0.05), rgba(201, 168, 76, 0.015))',
+        giftPanelGradient: 'linear-gradient(135deg, rgba(201, 168, 76, 0.05), rgba(255, 255, 255, 0.02))'
+    },
+    animation: {
+        fadeDuration: 0.8,
+        staggerDelay: 0.1
+    }
+};
 
 const DEFAULT_SITE_CONTENT = {
     couple: {
@@ -76,8 +158,18 @@ const DEFAULT_SITE_CONTENT = {
     },
     media: {
         heroImage: 'assets/images/couple/casal.png',
-        musicMain: 'assets/audio/main-theme.mp3',
-        musicGift: 'assets/audio/gift-theme.mp3'
+        tracks: {
+            main: {
+                src: 'assets/audio/main-theme.mp3',
+                volume: 0.14,
+                startTime: 8
+            },
+            gift: {
+                src: 'assets/audio/gift-theme.mp3',
+                volume: 0.12,
+                startTime: 78
+            }
+        }
     },
     whatsapp: {
         destinationPhone: '5511914772174',
@@ -111,6 +203,80 @@ function isMobileViewport() {
     return window.matchMedia('(max-width: 767px)').matches;
 }
 
+function applyTheme(theme) {
+    const root = document.documentElement;
+    const colors = theme?.colors ?? {};
+    const typography = theme?.typography ?? {};
+    const spacing = theme?.spacing ?? {};
+    const radius = theme?.radius ?? {};
+    const effects = theme?.effects ?? {};
+    const animation = theme?.animation ?? {};
+
+    const cssVars = {
+        '--color-bg': colors.background ?? DEFAULT_THEME.colors.background,
+        '--color-surface': colors.surface ?? DEFAULT_THEME.colors.surface,
+        '--color-primary': colors.primary ?? DEFAULT_THEME.colors.primary,
+        '--color-primary-soft': colors.primarySoft ?? DEFAULT_THEME.colors.primarySoft,
+        '--color-text': colors.text ?? DEFAULT_THEME.colors.text,
+        '--color-text-muted': colors.textMuted ?? DEFAULT_THEME.colors.textMuted,
+        '--color-border': colors.border ?? DEFAULT_THEME.colors.border,
+        '--color-border-soft': colors.borderSoft ?? DEFAULT_THEME.colors.borderSoft,
+        '--color-border-strong': colors.borderStrong ?? DEFAULT_THEME.colors.borderStrong,
+        '--color-text-soft': colors.textSoft ?? DEFAULT_THEME.colors.textSoft,
+        '--color-text-dim': colors.textDim ?? DEFAULT_THEME.colors.textDim,
+        '--color-text-faint': colors.textFaint ?? DEFAULT_THEME.colors.textFaint,
+        '--color-text-placeholder': colors.textPlaceholder ?? DEFAULT_THEME.colors.textPlaceholder,
+        '--color-surface-soft': colors.surfaceSoft ?? DEFAULT_THEME.colors.surfaceSoft,
+        '--color-gold-surface-soft': colors.goldSurfaceSoft ?? DEFAULT_THEME.colors.goldSurfaceSoft,
+        '--color-gold-surface': colors.goldSurface ?? DEFAULT_THEME.colors.goldSurface,
+        '--color-gold-surface-strong': colors.goldSurfaceStrong ?? DEFAULT_THEME.colors.goldSurfaceStrong,
+        '--color-primary-glow': colors.primaryGlow ?? DEFAULT_THEME.colors.primaryGlow,
+        '--color-page-grid-line': colors.pageGridLine ?? DEFAULT_THEME.colors.pageGridLine,
+        '--color-overlay-backdrop': colors.overlayBackdrop ?? DEFAULT_THEME.colors.overlayBackdrop,
+        '--color-audio-bg': colors.audioPanelBg ?? DEFAULT_THEME.colors.audioPanelBg,
+        '--color-audio-hover-bg': colors.audioPanelHoverBg ?? DEFAULT_THEME.colors.audioPanelHoverBg,
+        '--color-audio-border': colors.audioPanelBorder ?? DEFAULT_THEME.colors.audioPanelBorder,
+        '--color-pulse-ring': colors.pulseRing ?? DEFAULT_THEME.colors.pulseRing,
+        '--color-pulse-ring-spread': colors.pulseRingSpread ?? DEFAULT_THEME.colors.pulseRingSpread,
+        '--color-input-focus-bg': colors.inputFocusBg ?? DEFAULT_THEME.colors.inputFocusBg,
+        '--font-primary': typography.fontPrimary ?? DEFAULT_THEME.typography.fontPrimary,
+        '--font-serif': typography.fontSerif ?? DEFAULT_THEME.typography.fontSerif,
+        '--font-accent': typography.fontAccent ?? DEFAULT_THEME.typography.fontAccent,
+        '--spacing-section': `${spacing.sectionPadding ?? DEFAULT_THEME.spacing.sectionPadding}px`,
+        '--container-width': `${spacing.containerWidth ?? DEFAULT_THEME.spacing.containerWidth}px`,
+        '--card-padding': `${spacing.cardPadding ?? DEFAULT_THEME.spacing.cardPadding}px`,
+        '--radius-card': `${radius.card ?? DEFAULT_THEME.radius.card}px`,
+        '--radius-button': `${radius.button ?? DEFAULT_THEME.radius.button}px`,
+        '--shadow-soft': effects.shadowSoft ?? DEFAULT_THEME.effects.shadowSoft,
+        '--shadow-hover': effects.shadowHover ?? DEFAULT_THEME.effects.shadowHover,
+        '--shadow-text-strong': effects.textShadowStrong ?? DEFAULT_THEME.effects.textShadowStrong,
+        '--shadow-text-soft': effects.textShadowSoft ?? DEFAULT_THEME.effects.textShadowSoft,
+        '--focus-ring': effects.focusRing ?? DEFAULT_THEME.effects.focusRing,
+        '--transition-standard': effects.transition ?? DEFAULT_THEME.effects.transition,
+        '--page-gradient': effects.pageGradient ?? DEFAULT_THEME.effects.pageGradient,
+        '--intro-backdrop-gradient': effects.introBackdropGradient ?? DEFAULT_THEME.effects.introBackdropGradient,
+        '--intro-card-gradient': effects.introCardGradient ?? DEFAULT_THEME.effects.introCardGradient,
+        '--button-fill-gradient': effects.buttonFillGradient ?? DEFAULT_THEME.effects.buttonFillGradient,
+        '--hero-overlay-gradient': effects.heroOverlayGradient ?? DEFAULT_THEME.effects.heroOverlayGradient,
+        '--overlay-panel-gradient': effects.overlayPanelGradient ?? DEFAULT_THEME.effects.overlayPanelGradient,
+        '--overlay-close-gradient': effects.overlayCloseGradient ?? DEFAULT_THEME.effects.overlayCloseGradient,
+        '--rsvp-panel-gradient': effects.rsvpPanelGradient ?? DEFAULT_THEME.effects.rsvpPanelGradient,
+        '--gift-panel-gradient': effects.giftPanelGradient ?? DEFAULT_THEME.effects.giftPanelGradient,
+        '--fade-duration': `${animation.fadeDuration ?? DEFAULT_THEME.animation.fadeDuration}s`,
+        '--stagger-delay': `${animation.staggerDelay ?? DEFAULT_THEME.animation.staggerDelay}s`,
+        '--cream': colors.text ?? DEFAULT_THEME.colors.text,
+        '--gold': colors.primary ?? DEFAULT_THEME.colors.primary,
+        '--gold-light': colors.primarySoft ?? DEFAULT_THEME.colors.primarySoft,
+        '--dark': colors.background ?? DEFAULT_THEME.colors.background,
+        '--border-soft': colors.border ?? DEFAULT_THEME.colors.border,
+        '--surface-soft': colors.surfaceSoft ?? DEFAULT_THEME.colors.surfaceSoft
+    };
+
+    Object.entries(cssVars).forEach(([key, value]) => {
+        root.style.setProperty(key, value);
+    });
+}
+
 function applyConfig(config) {
     const root = document.documentElement;
     const spacing = config.spacing ?? {};
@@ -119,9 +285,6 @@ function applyConfig(config) {
     const type = config.fontSizes?.semantic ?? {};
     const componentSizes = config.componentSizes ?? {};
     const cssVars = {
-        '--gold': config.colors.primary,
-        '--gold-light': config.colors.secondary,
-        '--dark': config.colors.background,
         '--base-font-size': config.fontSizes.base,
         '--hero-height': config.layout.heroHeight,
         '--hero-padding': config.layout.heroPadding,
@@ -279,6 +442,28 @@ async function loadConfig() {
     } catch (error) {
         console.warn('Falha ao carregar assets/config/site.json. Usando fallback local.', error);
         return baseConfig;
+    }
+}
+
+async function loadTheme() {
+    const baseTheme = cloneDeep(DEFAULT_THEME);
+
+    try {
+        const response = await fetch(THEME_CONFIG_URL, {
+            method: 'GET',
+            headers: { Accept: 'application/json' },
+            cache: 'no-store'
+        });
+
+        if (!response.ok) {
+            throw new Error(`theme.json returned HTTP ${response.status}`);
+        }
+
+        const themeConfig = await response.json();
+        return mergeDeep(baseTheme, themeConfig);
+    } catch (error) {
+        console.warn('Falha ao carregar assets/config/theme.json. Usando fallback local.', error);
+        return baseTheme;
     }
 }
 
@@ -517,18 +702,12 @@ class InvitationExperience {
     }
 
     getAudioTracks() {
-        const mainDefaults = AUDIO_TRACKS.main ?? {};
-        const giftDefaults = AUDIO_TRACKS.gift ?? {};
+        const mainTrack = this.config.media?.tracks?.main ?? {};
+        const giftTrack = this.config.media?.tracks?.gift ?? {};
 
         return {
-            main: {
-                ...mainDefaults,
-                src: this.config.media?.musicMain || mainDefaults.src
-            },
-            gift: {
-                ...giftDefaults,
-                src: this.config.media?.musicGift || giftDefaults.src
-            }
+            main: mainTrack,
+            gift: giftTrack
         };
     }
 
@@ -574,7 +753,7 @@ class InvitationExperience {
     setMeta() {
         const title = this.config.texts?.metaTitle;
         const description = this.config.texts?.metaDescription;
-        const themeColor = this.config.texts?.themeColor;
+        const themeColor = this.config.texts?.themeColor || window.THEME?.colors?.background;
 
         if (title) {
             document.title = title;
@@ -704,8 +883,10 @@ class InvitationExperience {
 
 async function bootstrap() {
     try {
-        const config = await loadConfig();
+        const [config, theme] = await Promise.all([loadConfig(), loadTheme()]);
         window.CONFIG = config;
+        window.THEME = theme;
+        applyTheme(theme);
         const experience = new InvitationExperience(config);
         experience.init();
     } catch (error) {

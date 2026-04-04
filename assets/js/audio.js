@@ -1,7 +1,5 @@
-import { AUDIO_TRACKS } from '../config/audio.js';
-
 export class AudioController extends EventTarget {
-    constructor(trackConfig = AUDIO_TRACKS) {
+    constructor(trackConfig = {}) {
         super();
         this.desiredTrackKey = null;
         this.currentTrackKey = null;
