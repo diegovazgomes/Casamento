@@ -5,51 +5,131 @@ import { PresentPage } from './presente.js';
 import { AudioController } from './audio.js';
 
 const SITE_CONFIG_URL = 'assets/config/site.json';
-const DEFAULT_THEME_PATH = 'assets/config/themes/classic-gold.json';
-const ACTIVE_THEME_PATH = DEFAULT_THEME_PATH;
+
+// Para trocar o tema, altere apenas esta constante.
+// Temas disponíveis: classic-gold.json, classic-silver.json
+const ACTIVE_THEME_PATH = 'assets/config/themes/classic-silver.json';
 
 const DEFAULT_THEME = {
     colors: {
         background: '#1a1714',
         surface: '#201c18',
-        surfaceSoft: 'rgba(255, 255, 255, 0.04)',
+        surfaceSoft: 'rgba(255,255,255,0.04)',
         primary: '#c9a84c',
         primarySoft: '#e8d08a',
         text: '#faf7f2',
-        textMuted: 'rgba(250, 247, 242, 0.6)',
-        textSoft: 'rgba(250, 247, 242, 0.62)',
-        textDim: 'rgba(250, 247, 242, 0.45)',
-        textFaint: 'rgba(250, 247, 242, 0.25)',
-        textPlaceholder: 'rgba(250, 247, 242, 0.25)',
-        border: 'rgba(201, 168, 76, 0.2)',
-        borderSoft: 'rgba(201, 168, 76, 0.16)',
-        borderStrong: 'rgba(201, 168, 76, 0.38)',
-        goldSurfaceSoft: 'rgba(201, 168, 76, 0.06)',
-        goldSurface: 'rgba(201, 168, 76, 0.08)',
-        goldSurfaceStrong: 'rgba(201, 168, 76, 0.15)',
-        primaryGlow: 'rgba(201, 168, 76, 0.12)',
-        pageGridLine: 'rgba(255, 255, 255, 0.015)',
-        overlayBackdrop: 'rgba(10, 8, 7, 0.78)',
-        audioPanelBg: 'rgba(17, 14, 12, 0.68)',
-        audioPanelHoverBg: 'rgba(17, 14, 12, 0.8)',
-        audioPanelBorder: 'rgba(201, 168, 76, 0.24)',
-        pulseRing: 'rgba(201, 168, 76, 0.45)',
-        pulseRingSpread: 'rgba(201, 168, 76, 0)',
-        inputFocusBg: 'rgba(255, 255, 255, 0.06)'
+        textMuted: 'rgba(250,247,242,0.6)',
+        textSoft: 'rgba(250,247,242,0.62)',
+        textDim: 'rgba(250,247,242,0.45)',
+        textFaint: 'rgba(250,247,242,0.25)',
+        textPlaceholder: 'rgba(250,247,242,0.25)',
+        border: 'rgba(201,168,76,0.2)',
+        borderSoft: 'rgba(201,168,76,0.16)',
+        borderStrong: 'rgba(201,168,76,0.38)',
+        goldSurfaceSoft: 'rgba(201,168,76,0.06)',
+        goldSurface: 'rgba(201,168,76,0.08)',
+        goldSurfaceStrong: 'rgba(201,168,76,0.15)',
+        primaryGlow: 'rgba(201,168,76,0.12)',
+        pageGridLine: 'rgba(255,255,255,0.015)',
+        overlayBackdrop: 'rgba(10,8,7,0.78)',
+        audioPanelBg: 'rgba(17,14,12,0.68)',
+        audioPanelHoverBg: 'rgba(17,14,12,0.8)',
+        audioPanelBorder: 'rgba(201,168,76,0.24)',
+        pulseRing: 'rgba(201,168,76,0.45)',
+        pulseRingSpread: 'rgba(201,168,76,0)',
+        inputFocusBg: 'rgba(255,255,255,0.06)'
     },
     typography: {
-        fontPrimary: "'Jost', sans-serif",
-        fontSerif: "'Cormorant Garamond', serif",
-        fontAccent: "'Great Vibes', cursive"
+        fonts: {
+            primary: "'Jost', sans-serif",
+            serif: "'Cormorant Garamond', serif",
+            accent: "'Great Vibes', cursive"
+        },
+        sizes: {
+            base: '13px',
+            heroLabel: '10px',
+            heroDate: '11px',
+            heroNames: { min: '54px', fluid: '12vw', max: '110px' },
+            scrollHint: '9px',
+            sectionTag: '9px',
+            sectionTitle: { min: '34px', fluid: '7vw', max: '56px' },
+            sectionBody: '13px',
+            countdownNumber: '42px',
+            countdownLabel: '8px',
+            countdownFinished: '30px',
+            detailIcon: '18px',
+            detailTitle: '8px',
+            detailValue: '20px',
+            detailSub: '10px',
+            rsvpTitle: '38px',
+            rsvpSubtitle: '11px',
+            rsvpInput: '12px',
+            rsvpChoice: '10px',
+            rsvpSubmit: '10px',
+            rsvpSuccessText: '26px',
+            rsvpSuccessSub: '11px',
+            footerNames: '30px',
+            footerNote: '10px'
+        }
     },
     spacing: {
-        sectionPadding: 88,
-        containerWidth: 760,
-        cardPadding: 28
+        containerWidth: '760px',
+        cardPadding: '28px',
+        sectionPaddingTop: '88px',
+        sectionPaddingInline: '24px',
+        detailsSectionPaddingTop: '88px',
+        sectionTagGap: '30px',
+        sectionTitleGap: '22px',
+        heroLabelGap: '16px',
+        heroDateGap: '22px',
+        scrollHintBottom: '20px',
+        scrollHintGap: '8px',
+        dividerMarginTop: '56px',
+        countdownMarginTop: '40px',
+        countdownGap: '12px',
+        detailsMarginTop: '40px',
+        detailsGridGap: '1px',
+        detailCardPaddingBlock: '28px',
+        detailCardPaddingInline: '20px',
+        rsvpShellPaddingBottom: '88px',
+        rsvpCardMarginTop: '40px',
+        rsvpCardPaddingBlock: '48px',
+        rsvpCardPaddingInline: '32px',
+        rsvpSubtitleGap: '32px',
+        rsvpFormGap: '14px',
+        rsvpChoiceGap: '10px',
+        rsvpSubmitMarginTop: '8px',
+        footerPaddingBottom: '48px'
+    },
+    layout: {
+        heroHeight: '100vh',
+        heroPadding: '0 24px 64px',
+        heroContentWidth: '720px',
+        heroContentPaddingBottom: '36px',
+        heroFadeOffset: '44px',
+        contentMaxWidth: '760px'
+    },
+    components: {
+        dividerWidth: '320px',
+        dividerDiamond: '6px',
+        scrollArrowWidth: '14px',
+        scrollArrowHeight: '48px',
+        scrollArrowStemHeight: '36px',
+        scrollArrowHeadSize: '8px',
+        countdownCardPaddingTop: '22px',
+        countdownCardPaddingInline: '8px',
+        countdownCardPaddingBottom: '16px',
+        rsvpInputPaddingBlock: '14px',
+        rsvpInputPaddingInline: '18px',
+        rsvpChoiceMinHeight: '48px',
+        rsvpChoicePadding: '12px',
+        rsvpSubmitPaddingBlock: '16px',
+        rsvpSubmitPaddingInline: '32px',
+        rsvpSuccessIcon: '32px'
     },
     radius: {
-        card: 0,
-        button: 0
+        card: '0px',
+        button: '0px'
     },
     effects: {
         shadowSoft: '0 20px 60px rgba(0,0,0,0.28)',
@@ -59,18 +139,52 @@ const DEFAULT_THEME = {
         focusRing: '0 0 0 3px rgba(201,168,76,0.12)',
         transition: 'all 0.3s ease',
         pageGradient: 'linear-gradient(180deg, #1a1714 0%, #1a1714 100%)',
-        introBackdropGradient: 'linear-gradient(180deg, rgba(10, 8, 7, 0.96) 0%, rgba(18, 15, 13, 0.96) 45%, rgba(26, 23, 20, 0.98) 100%)',
-        introCardGradient: 'linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(201, 168, 76, 0.03))',
-        buttonFillGradient: 'linear-gradient(135deg, rgba(201, 168, 76, 0.95), rgba(232, 208, 138, 0.95))',
-        heroOverlayGradient: 'linear-gradient(to bottom, rgba(26, 23, 20, 0.1) 0%, rgba(26, 23, 20, 0.18) 40%, rgba(26, 23, 20, 0.78) 76%, rgba(26, 23, 20, 1) 100%)',
-        overlayPanelGradient: 'linear-gradient(180deg, rgba(15, 12, 10, 0.98) 0%, rgba(24, 21, 18, 0.98) 100%)',
-        overlayCloseGradient: 'linear-gradient(180deg, rgba(15, 12, 10, 0.92), rgba(15, 12, 10, 0))',
-        rsvpPanelGradient: 'linear-gradient(135deg, rgba(201, 168, 76, 0.05), rgba(201, 168, 76, 0.015))',
-        giftPanelGradient: 'linear-gradient(135deg, rgba(201, 168, 76, 0.05), rgba(255, 255, 255, 0.02))'
+        introBackdropGradient: 'linear-gradient(180deg, rgba(10,8,7,0.96) 0%, rgba(18,15,13,0.96) 45%, rgba(26,23,20,0.98) 100%)',
+        introCardGradient: 'linear-gradient(180deg, rgba(255,255,255,0.03), rgba(201,168,76,0.03))',
+        buttonFillGradient: 'linear-gradient(135deg, rgba(201,168,76,0.95), rgba(232,208,138,0.95))',
+        heroOverlayGradient: 'linear-gradient(to bottom, rgba(26,23,20,0.1) 0%, rgba(26,23,20,0.18) 40%, rgba(26,23,20,0.78) 76%, rgba(26,23,20,1) 100%)',
+        overlayPanelGradient: 'linear-gradient(180deg, rgba(15,12,10,0.98) 0%, rgba(24,21,18,0.98) 100%)',
+        overlayCloseGradient: 'linear-gradient(180deg, rgba(15,12,10,0.92), rgba(15,12,10,0))',
+        rsvpPanelGradient: 'linear-gradient(135deg, rgba(201,168,76,0.05), rgba(201,168,76,0.015))',
+        giftPanelGradient: 'linear-gradient(135deg, rgba(201,168,76,0.05), rgba(255,255,255,0.02))'
     },
     animation: {
-        fadeDuration: 0.8,
-        staggerDelay: 0.1
+        fadeDuration: '0.8s',
+        staggerDelay: '0.1s',
+        heroFadeDuration: '1.35s',
+        heroRevealDelayMs: 320
+    },
+    countdown: {
+        format: 'two-digits',
+        updateInterval: 1000
+    },
+    responsive: {
+        mobile: {
+            typography: {
+                sizes: {
+                    base: '12px',
+                    heroDate: '14px',
+                    heroNames: { min: '24px', fluid: '10vw', max: '46px' }
+                }
+            },
+            spacing: {
+                sectionPaddingTop: '40px',
+                sectionPaddingInline: '20px',
+                detailsSectionPaddingTop: '40px'
+            },
+            layout: {
+                heroHeight: '680px',
+                heroPadding: '0 20px 72px',
+                heroContentWidth: '340px',
+                heroContentPaddingBottom: '32px',
+                heroFadeOffset: '20px',
+                contentMaxWidth: '620px'
+            },
+            animation: {
+                heroFadeDuration: '2.15s',
+                heroRevealDelayMs: 1260
+            }
+        }
     }
 };
 
@@ -188,177 +302,186 @@ function isMobileViewport() {
     return window.matchMedia('(max-width: 767px)').matches;
 }
 
-function applyTheme(theme) {
-    const root = document.documentElement;
-    const colors = theme?.colors ?? {};
-    const typography = theme?.typography ?? {};
-    const spacing = theme?.spacing ?? {};
-    const radius = theme?.radius ?? {};
-    const effects = theme?.effects ?? {};
-    const animation = theme?.animation ?? {};
+// Resolve o tema final aplicando overrides de mobile quando necessário.
+function resolveTheme(theme) {
+    if (!isMobileViewport() || !theme.responsive?.mobile) {
+        return theme;
+    }
 
-    const cssVars = {
-        '--color-bg': colors.background ?? DEFAULT_THEME.colors.background,
-        '--color-surface': colors.surface ?? DEFAULT_THEME.colors.surface,
-        '--color-primary': colors.primary ?? DEFAULT_THEME.colors.primary,
-        '--color-primary-soft': colors.primarySoft ?? DEFAULT_THEME.colors.primarySoft,
-        '--color-text': colors.text ?? DEFAULT_THEME.colors.text,
-        '--color-text-muted': colors.textMuted ?? DEFAULT_THEME.colors.textMuted,
-        '--color-border': colors.border ?? DEFAULT_THEME.colors.border,
-        '--color-border-soft': colors.borderSoft ?? DEFAULT_THEME.colors.borderSoft,
-        '--color-border-strong': colors.borderStrong ?? DEFAULT_THEME.colors.borderStrong,
-        '--color-text-soft': colors.textSoft ?? DEFAULT_THEME.colors.textSoft,
-        '--color-text-dim': colors.textDim ?? DEFAULT_THEME.colors.textDim,
-        '--color-text-faint': colors.textFaint ?? DEFAULT_THEME.colors.textFaint,
-        '--color-text-placeholder': colors.textPlaceholder ?? DEFAULT_THEME.colors.textPlaceholder,
-        '--color-surface-soft': colors.surfaceSoft ?? DEFAULT_THEME.colors.surfaceSoft,
-        '--color-gold-surface-soft': colors.goldSurfaceSoft ?? DEFAULT_THEME.colors.goldSurfaceSoft,
-        '--color-gold-surface': colors.goldSurface ?? DEFAULT_THEME.colors.goldSurface,
-        '--color-gold-surface-strong': colors.goldSurfaceStrong ?? DEFAULT_THEME.colors.goldSurfaceStrong,
-        '--color-primary-glow': colors.primaryGlow ?? DEFAULT_THEME.colors.primaryGlow,
-        '--color-page-grid-line': colors.pageGridLine ?? DEFAULT_THEME.colors.pageGridLine,
-        '--color-overlay-backdrop': colors.overlayBackdrop ?? DEFAULT_THEME.colors.overlayBackdrop,
-        '--color-audio-bg': colors.audioPanelBg ?? DEFAULT_THEME.colors.audioPanelBg,
-        '--color-audio-hover-bg': colors.audioPanelHoverBg ?? DEFAULT_THEME.colors.audioPanelHoverBg,
-        '--color-audio-border': colors.audioPanelBorder ?? DEFAULT_THEME.colors.audioPanelBorder,
-        '--color-pulse-ring': colors.pulseRing ?? DEFAULT_THEME.colors.pulseRing,
-        '--color-pulse-ring-spread': colors.pulseRingSpread ?? DEFAULT_THEME.colors.pulseRingSpread,
-        '--color-input-focus-bg': colors.inputFocusBg ?? DEFAULT_THEME.colors.inputFocusBg,
-        '--font-primary': typography.fontPrimary ?? DEFAULT_THEME.typography.fontPrimary,
-        '--font-serif': typography.fontSerif ?? DEFAULT_THEME.typography.fontSerif,
-        '--font-accent': typography.fontAccent ?? DEFAULT_THEME.typography.fontAccent,
-        '--spacing-section': `${spacing.sectionPadding ?? DEFAULT_THEME.spacing.sectionPadding}px`,
-        '--container-width': `${spacing.containerWidth ?? DEFAULT_THEME.spacing.containerWidth}px`,
-        '--card-padding': `${spacing.cardPadding ?? DEFAULT_THEME.spacing.cardPadding}px`,
-        '--radius-card': `${radius.card ?? DEFAULT_THEME.radius.card}px`,
-        '--radius-button': `${radius.button ?? DEFAULT_THEME.radius.button}px`,
-        '--shadow-soft': effects.shadowSoft ?? DEFAULT_THEME.effects.shadowSoft,
-        '--shadow-hover': effects.shadowHover ?? DEFAULT_THEME.effects.shadowHover,
-        '--shadow-text-strong': effects.textShadowStrong ?? DEFAULT_THEME.effects.textShadowStrong,
-        '--shadow-text-soft': effects.textShadowSoft ?? DEFAULT_THEME.effects.textShadowSoft,
-        '--focus-ring': effects.focusRing ?? DEFAULT_THEME.effects.focusRing,
-        '--transition-standard': effects.transition ?? DEFAULT_THEME.effects.transition,
-        '--page-gradient': effects.pageGradient ?? DEFAULT_THEME.effects.pageGradient,
-        '--intro-backdrop-gradient': effects.introBackdropGradient ?? DEFAULT_THEME.effects.introBackdropGradient,
-        '--intro-card-gradient': effects.introCardGradient ?? DEFAULT_THEME.effects.introCardGradient,
-        '--button-fill-gradient': effects.buttonFillGradient ?? DEFAULT_THEME.effects.buttonFillGradient,
-        '--hero-overlay-gradient': effects.heroOverlayGradient ?? DEFAULT_THEME.effects.heroOverlayGradient,
-        '--overlay-panel-gradient': effects.overlayPanelGradient ?? DEFAULT_THEME.effects.overlayPanelGradient,
-        '--overlay-close-gradient': effects.overlayCloseGradient ?? DEFAULT_THEME.effects.overlayCloseGradient,
-        '--rsvp-panel-gradient': effects.rsvpPanelGradient ?? DEFAULT_THEME.effects.rsvpPanelGradient,
-        '--gift-panel-gradient': effects.giftPanelGradient ?? DEFAULT_THEME.effects.giftPanelGradient,
-        '--fade-duration': `${animation.fadeDuration ?? DEFAULT_THEME.animation.fadeDuration}s`,
-        '--stagger-delay': `${animation.staggerDelay ?? DEFAULT_THEME.animation.staggerDelay}s`,
-        '--cream': colors.text ?? DEFAULT_THEME.colors.text,
-        '--gold': colors.primary ?? DEFAULT_THEME.colors.primary,
-        '--gold-light': colors.primarySoft ?? DEFAULT_THEME.colors.primarySoft,
-        '--dark': colors.background ?? DEFAULT_THEME.colors.background,
-        '--border-soft': colors.border ?? DEFAULT_THEME.colors.border,
-        '--surface-soft': colors.surfaceSoft ?? DEFAULT_THEME.colors.surfaceSoft
-    };
-
-    Object.entries(cssVars).forEach(([key, value]) => {
-        root.style.setProperty(key, value);
-    });
+    return mergeDeep(theme, theme.responsive.mobile);
 }
 
-function applyConfig(config) {
+// Aplica todas as CSS variables do tema no :root.
+// Recebe o tema já resolvido (após resolveTheme).
+function applyTheme(theme) {
     const root = document.documentElement;
-    const spacing = config.spacing ?? {};
-    const scale = spacing.scale ?? {};
-    const semantic = spacing.semantic ?? {};
-    const type = config.fontSizes?.semantic ?? {};
-    const componentSizes = config.componentSizes ?? {};
+    const colors = theme.colors ?? {};
+    const fonts = theme.typography?.fonts ?? {};
+    const sizes = theme.typography?.sizes ?? {};
+    const spacing = theme.spacing ?? {};
+    const layout = theme.layout ?? {};
+    const components = theme.components ?? {};
+    const radius = theme.radius ?? {};
+    const effects = theme.effects ?? {};
+    const animation = theme.animation ?? {};
+    const dt = DEFAULT_THEME;
+
     const cssVars = {
-        '--base-font-size': config.fontSizes.base,
-        '--hero-height': config.layout.heroHeight,
-        '--hero-padding': config.layout.heroPadding,
-        '--hero-content-width': config.layout.heroContentWidth,
-        '--hero-content-padding-bottom': config.layout.heroContentPaddingBottom,
-        '--hero-fade-duration': config.animation.fade,
-        '--hero-fade-offset': config.layout.heroFadeOffset,
-        '--hero-label-size': config.fontSizes.heroLabel,
-        '--hero-date-size': config.fontSizes.heroDate,
-        '--hero-name-min': config.fontSizes.heroNames.min,
-        '--hero-name-fluid': config.fontSizes.heroNames.fluid,
-        '--hero-name-max': config.fontSizes.heroNames.max,
-        '--scroll-hint-text-size': type.scrollHint ?? '9px',
-        '--section-tag-size': type.sectionTag ?? '9px',
-        '--section-title-min': type.sectionTitle?.min ?? '34px',
-        '--section-title-fluid': type.sectionTitle?.fluid ?? '7vw',
-        '--section-title-max': type.sectionTitle?.max ?? '56px',
-        '--section-body-size': type.sectionBody ?? '13px',
-        '--countdown-number-size': type.countdownNumber ?? '42px',
-        '--countdown-label-size': type.countdownLabel ?? '8px',
-        '--detail-icon-size': type.detailIcon ?? '18px',
-        '--detail-title-size': type.detailTitle ?? '8px',
-        '--detail-value-size': type.detailValue ?? '20px',
-        '--detail-sub-size': type.detailSub ?? '10px',
-        '--rsvp-title-size': type.rsvpTitle ?? '38px',
-        '--rsvp-subtitle-size': type.rsvpSubtitle ?? '11px',
-        '--rsvp-input-size': type.rsvpInput ?? '12px',
-        '--rsvp-choice-size': type.rsvpChoice ?? '10px',
-        '--rsvp-submit-size': type.rsvpSubmit ?? '10px',
-        '--rsvp-success-text-size': type.rsvpSuccessText ?? '26px',
-        '--rsvp-success-sub-size': type.rsvpSuccessSub ?? '11px',
-        '--footer-names-size': type.footerNames ?? '30px',
-        '--footer-note-size': type.footerNote ?? '10px',
-        '--countdown-finished-size': type.countdownFinished ?? '30px',
-        '--space-xs': scale.xs ?? '8px',
-        '--space-sm': scale.sm ?? '12px',
-        '--space-md': scale.md ?? '16px',
-        '--space-lg': scale.lg ?? '22px',
-        '--space-xl': scale.xl ?? '30px',
-        '--space-2xl': scale.xxl ?? '40px',
-        '--space-3xl': scale.xxxl ?? '48px',
-        '--space-4xl': scale.xxxxl ?? '56px',
-        '--space-section': scale.section ?? semantic.sectionPaddingTop ?? spacing.sectionTop ?? '88px',
-        '--section-padding-top': semantic.sectionPaddingTop ?? spacing.sectionTop ?? '88px',
-        '--details-section-padding-top': semantic.detailsSectionPaddingTop ?? semantic.sectionPaddingTop ?? spacing.sectionTop ?? '88px',
-        '--section-padding-inline': semantic.sectionPaddingInline ?? spacing.inline ?? '24px',
-        '--section-tag-gap': semantic.sectionTagGap ?? '30px',
-        '--section-title-gap': semantic.sectionTitleGap ?? '22px',
-        '--hero-label-gap': semantic.heroLabelGap ?? '16px',
-        '--hero-date-gap': semantic.heroDateGap ?? '22px',
-        '--scroll-hint-bottom': semantic.scrollHintBottom ?? '20px',
-        '--scroll-hint-gap': semantic.scrollHintGap ?? '8px',
-        '--divider-margin-top': semantic.dividerMarginTop ?? '56px',
-        '--countdown-margin-top': semantic.countdownMarginTop ?? '40px',
-        '--content-max-width': config.layout.contentMaxWidth,
-        '--countdown-gap': semantic.countdownGap ?? spacing.countdownGap ?? '12px',
-        '--details-margin-top': semantic.detailsMarginTop ?? '40px',
-        '--details-grid-gap': semantic.detailsGridGap ?? '1px',
-        '--detail-card-padding-block': semantic.detailCardPaddingBlock ?? '28px',
-        '--detail-card-padding-inline': semantic.detailCardPaddingInline ?? '20px',
-        '--rsvp-shell-padding-bottom': semantic.rsvpShellPaddingBottom ?? '88px',
-        '--rsvp-card-margin-top': semantic.rsvpCardMarginTop ?? '40px',
-        '--rsvp-card-padding-block': semantic.rsvpCardPaddingBlock ?? '48px',
-        '--rsvp-card-padding-inline': semantic.rsvpCardPaddingInline ?? '32px',
-        '--rsvp-subtitle-gap': semantic.rsvpSubtitleGap ?? '32px',
-        '--rsvp-form-gap': semantic.rsvpFormGap ?? '14px',
-        '--rsvp-choice-gap': semantic.rsvpChoiceGap ?? '10px',
-        '--rsvp-submit-margin-top': semantic.rsvpSubmitMarginTop ?? '8px',
-        '--footer-padding-bottom': semantic.footerPaddingBottom ?? spacing.footerBottom ?? '48px',
-        '--divider-width': componentSizes.dividerWidth ?? '320px',
-        '--divider-diamond-size': componentSizes.dividerDiamond ?? '6px',
-        '--scroll-arrow-width': componentSizes.scrollArrowWidth ?? '14px',
-        '--scroll-arrow-height': componentSizes.scrollArrowHeight ?? '48px',
-        '--scroll-arrow-stem-height': componentSizes.scrollArrowStemHeight ?? '36px',
-        '--scroll-arrow-head-size': componentSizes.scrollArrowHeadSize ?? '8px',
-        '--countdown-card-padding-top': componentSizes.countdownCardPaddingTop ?? '22px',
-        '--countdown-card-padding-inline': componentSizes.countdownCardPaddingInline ?? '8px',
-        '--countdown-card-padding-bottom': componentSizes.countdownCardPaddingBottom ?? '16px',
-        '--rsvp-input-padding-block': componentSizes.rsvpInputPaddingBlock ?? '14px',
-        '--rsvp-input-padding-inline': componentSizes.rsvpInputPaddingInline ?? '18px',
-        '--rsvp-choice-min-height': componentSizes.rsvpChoiceMinHeight ?? '48px',
-        '--rsvp-choice-padding': componentSizes.rsvpChoicePadding ?? '12px',
-        '--rsvp-submit-padding-block': componentSizes.rsvpSubmitPaddingBlock ?? '16px',
-        '--rsvp-submit-padding-inline': componentSizes.rsvpSubmitPaddingInline ?? '32px',
-        '--rsvp-success-icon-size': componentSizes.rsvpSuccessIcon ?? '32px'
+        // Cores
+        '--color-bg': colors.background ?? dt.colors.background,
+        '--color-surface': colors.surface ?? dt.colors.surface,
+        '--color-surface-soft': colors.surfaceSoft ?? dt.colors.surfaceSoft,
+        '--color-primary': colors.primary ?? dt.colors.primary,
+        '--color-primary-soft': colors.primarySoft ?? dt.colors.primarySoft,
+        '--color-primary-glow': colors.primaryGlow ?? dt.colors.primaryGlow,
+        '--color-text': colors.text ?? dt.colors.text,
+        '--color-text-muted': colors.textMuted ?? dt.colors.textMuted,
+        '--color-text-soft': colors.textSoft ?? dt.colors.textSoft,
+        '--color-text-dim': colors.textDim ?? dt.colors.textDim,
+        '--color-text-faint': colors.textFaint ?? dt.colors.textFaint,
+        '--color-text-placeholder': colors.textPlaceholder ?? dt.colors.textPlaceholder,
+        '--color-border': colors.border ?? dt.colors.border,
+        '--color-border-soft': colors.borderSoft ?? dt.colors.borderSoft,
+        '--color-border-strong': colors.borderStrong ?? dt.colors.borderStrong,
+        '--color-gold-surface-soft': colors.goldSurfaceSoft ?? dt.colors.goldSurfaceSoft,
+        '--color-gold-surface': colors.goldSurface ?? dt.colors.goldSurface,
+        '--color-gold-surface-strong': colors.goldSurfaceStrong ?? dt.colors.goldSurfaceStrong,
+        '--color-page-grid-line': colors.pageGridLine ?? dt.colors.pageGridLine,
+        '--color-overlay-backdrop': colors.overlayBackdrop ?? dt.colors.overlayBackdrop,
+        '--color-audio-bg': colors.audioPanelBg ?? dt.colors.audioPanelBg,
+        '--color-audio-hover-bg': colors.audioPanelHoverBg ?? dt.colors.audioPanelHoverBg,
+        '--color-audio-border': colors.audioPanelBorder ?? dt.colors.audioPanelBorder,
+        '--color-pulse-ring': colors.pulseRing ?? dt.colors.pulseRing,
+        '--color-pulse-ring-spread': colors.pulseRingSpread ?? dt.colors.pulseRingSpread,
+        '--color-input-focus-bg': colors.inputFocusBg ?? dt.colors.inputFocusBg,
+        // Aliases legados usados no CSS existente
+        '--cream': colors.text ?? dt.colors.text,
+        '--gold': colors.primary ?? dt.colors.primary,
+        '--gold-light': colors.primarySoft ?? dt.colors.primarySoft,
+        '--dark': colors.background ?? dt.colors.background,
+        '--border-soft': colors.border ?? dt.colors.border,
+        '--surface-soft': colors.surfaceSoft ?? dt.colors.surfaceSoft,
+
+        // Tipografia — famílias
+        '--font-primary': fonts.primary ?? dt.typography.fonts.primary,
+        '--font-serif': fonts.serif ?? dt.typography.fonts.serif,
+        '--font-accent': fonts.accent ?? dt.typography.fonts.accent,
+
+        // Tipografia — tamanhos
+        '--base-font-size': sizes.base ?? dt.typography.sizes.base,
+        '--hero-label-size': sizes.heroLabel ?? dt.typography.sizes.heroLabel,
+        '--hero-date-size': sizes.heroDate ?? dt.typography.sizes.heroDate,
+        '--hero-name-min': sizes.heroNames?.min ?? dt.typography.sizes.heroNames.min,
+        '--hero-name-fluid': sizes.heroNames?.fluid ?? dt.typography.sizes.heroNames.fluid,
+        '--hero-name-max': sizes.heroNames?.max ?? dt.typography.sizes.heroNames.max,
+        '--scroll-hint-text-size': sizes.scrollHint ?? dt.typography.sizes.scrollHint,
+        '--section-tag-size': sizes.sectionTag ?? dt.typography.sizes.sectionTag,
+        '--section-title-min': sizes.sectionTitle?.min ?? dt.typography.sizes.sectionTitle.min,
+        '--section-title-fluid': sizes.sectionTitle?.fluid ?? dt.typography.sizes.sectionTitle.fluid,
+        '--section-title-max': sizes.sectionTitle?.max ?? dt.typography.sizes.sectionTitle.max,
+        '--section-body-size': sizes.sectionBody ?? dt.typography.sizes.sectionBody,
+        '--countdown-number-size': sizes.countdownNumber ?? dt.typography.sizes.countdownNumber,
+        '--countdown-label-size': sizes.countdownLabel ?? dt.typography.sizes.countdownLabel,
+        '--countdown-finished-size': sizes.countdownFinished ?? dt.typography.sizes.countdownFinished,
+        '--detail-icon-size': sizes.detailIcon ?? dt.typography.sizes.detailIcon,
+        '--detail-title-size': sizes.detailTitle ?? dt.typography.sizes.detailTitle,
+        '--detail-value-size': sizes.detailValue ?? dt.typography.sizes.detailValue,
+        '--detail-sub-size': sizes.detailSub ?? dt.typography.sizes.detailSub,
+        '--rsvp-title-size': sizes.rsvpTitle ?? dt.typography.sizes.rsvpTitle,
+        '--rsvp-subtitle-size': sizes.rsvpSubtitle ?? dt.typography.sizes.rsvpSubtitle,
+        '--rsvp-input-size': sizes.rsvpInput ?? dt.typography.sizes.rsvpInput,
+        '--rsvp-choice-size': sizes.rsvpChoice ?? dt.typography.sizes.rsvpChoice,
+        '--rsvp-submit-size': sizes.rsvpSubmit ?? dt.typography.sizes.rsvpSubmit,
+        '--rsvp-success-text-size': sizes.rsvpSuccessText ?? dt.typography.sizes.rsvpSuccessText,
+        '--rsvp-success-sub-size': sizes.rsvpSuccessSub ?? dt.typography.sizes.rsvpSuccessSub,
+        '--footer-names-size': sizes.footerNames ?? dt.typography.sizes.footerNames,
+        '--footer-note-size': sizes.footerNote ?? dt.typography.sizes.footerNote,
+
+        // Espaçamentos
+        '--container-width': spacing.containerWidth ?? dt.spacing.containerWidth,
+        '--card-padding': spacing.cardPadding ?? dt.spacing.cardPadding,
+        '--spacing-section': spacing.sectionPaddingTop ?? dt.spacing.sectionPaddingTop,
+        '--section-padding-top': spacing.sectionPaddingTop ?? dt.spacing.sectionPaddingTop,
+        '--details-section-padding-top': spacing.detailsSectionPaddingTop ?? dt.spacing.detailsSectionPaddingTop,
+        '--section-padding-inline': spacing.sectionPaddingInline ?? dt.spacing.sectionPaddingInline,
+        '--section-tag-gap': spacing.sectionTagGap ?? dt.spacing.sectionTagGap,
+        '--section-title-gap': spacing.sectionTitleGap ?? dt.spacing.sectionTitleGap,
+        '--hero-label-gap': spacing.heroLabelGap ?? dt.spacing.heroLabelGap,
+        '--hero-date-gap': spacing.heroDateGap ?? dt.spacing.heroDateGap,
+        '--scroll-hint-bottom': spacing.scrollHintBottom ?? dt.spacing.scrollHintBottom,
+        '--scroll-hint-gap': spacing.scrollHintGap ?? dt.spacing.scrollHintGap,
+        '--divider-margin-top': spacing.dividerMarginTop ?? dt.spacing.dividerMarginTop,
+        '--countdown-margin-top': spacing.countdownMarginTop ?? dt.spacing.countdownMarginTop,
+        '--countdown-gap': spacing.countdownGap ?? dt.spacing.countdownGap,
+        '--details-margin-top': spacing.detailsMarginTop ?? dt.spacing.detailsMarginTop,
+        '--details-grid-gap': spacing.detailsGridGap ?? dt.spacing.detailsGridGap,
+        '--detail-card-padding-block': spacing.detailCardPaddingBlock ?? dt.spacing.detailCardPaddingBlock,
+        '--detail-card-padding-inline': spacing.detailCardPaddingInline ?? dt.spacing.detailCardPaddingInline,
+        '--rsvp-shell-padding-bottom': spacing.rsvpShellPaddingBottom ?? dt.spacing.rsvpShellPaddingBottom,
+        '--rsvp-card-margin-top': spacing.rsvpCardMarginTop ?? dt.spacing.rsvpCardMarginTop,
+        '--rsvp-card-padding-block': spacing.rsvpCardPaddingBlock ?? dt.spacing.rsvpCardPaddingBlock,
+        '--rsvp-card-padding-inline': spacing.rsvpCardPaddingInline ?? dt.spacing.rsvpCardPaddingInline,
+        '--rsvp-subtitle-gap': spacing.rsvpSubtitleGap ?? dt.spacing.rsvpSubtitleGap,
+        '--rsvp-form-gap': spacing.rsvpFormGap ?? dt.spacing.rsvpFormGap,
+        '--rsvp-choice-gap': spacing.rsvpChoiceGap ?? dt.spacing.rsvpChoiceGap,
+        '--rsvp-submit-margin-top': spacing.rsvpSubmitMarginTop ?? dt.spacing.rsvpSubmitMarginTop,
+        '--footer-padding-bottom': spacing.footerPaddingBottom ?? dt.spacing.footerPaddingBottom,
+
+        // Layout
+        '--hero-height': layout.heroHeight ?? dt.layout.heroHeight,
+        '--hero-padding': layout.heroPadding ?? dt.layout.heroPadding,
+        '--hero-content-width': layout.heroContentWidth ?? dt.layout.heroContentWidth,
+        '--hero-content-padding-bottom': layout.heroContentPaddingBottom ?? dt.layout.heroContentPaddingBottom,
+        '--hero-fade-offset': layout.heroFadeOffset ?? dt.layout.heroFadeOffset,
+        '--content-max-width': layout.contentMaxWidth ?? dt.layout.contentMaxWidth,
+
+        // Componentes
+        '--divider-width': components.dividerWidth ?? dt.components.dividerWidth,
+        '--divider-diamond-size': components.dividerDiamond ?? dt.components.dividerDiamond,
+        '--scroll-arrow-width': components.scrollArrowWidth ?? dt.components.scrollArrowWidth,
+        '--scroll-arrow-height': components.scrollArrowHeight ?? dt.components.scrollArrowHeight,
+        '--scroll-arrow-stem-height': components.scrollArrowStemHeight ?? dt.components.scrollArrowStemHeight,
+        '--scroll-arrow-head-size': components.scrollArrowHeadSize ?? dt.components.scrollArrowHeadSize,
+        '--countdown-card-padding-top': components.countdownCardPaddingTop ?? dt.components.countdownCardPaddingTop,
+        '--countdown-card-padding-inline': components.countdownCardPaddingInline ?? dt.components.countdownCardPaddingInline,
+        '--countdown-card-padding-bottom': components.countdownCardPaddingBottom ?? dt.components.countdownCardPaddingBottom,
+        '--rsvp-input-padding-block': components.rsvpInputPaddingBlock ?? dt.components.rsvpInputPaddingBlock,
+        '--rsvp-input-padding-inline': components.rsvpInputPaddingInline ?? dt.components.rsvpInputPaddingInline,
+        '--rsvp-choice-min-height': components.rsvpChoiceMinHeight ?? dt.components.rsvpChoiceMinHeight,
+        '--rsvp-choice-padding': components.rsvpChoicePadding ?? dt.components.rsvpChoicePadding,
+        '--rsvp-submit-padding-block': components.rsvpSubmitPaddingBlock ?? dt.components.rsvpSubmitPaddingBlock,
+        '--rsvp-submit-padding-inline': components.rsvpSubmitPaddingInline ?? dt.components.rsvpSubmitPaddingInline,
+        '--rsvp-success-icon-size': components.rsvpSuccessIcon ?? dt.components.rsvpSuccessIcon,
+
+        // Bordas
+        '--radius-card': radius.card ?? dt.radius.card,
+        '--radius-button': radius.button ?? dt.radius.button,
+
+        // Efeitos
+        '--shadow-soft': effects.shadowSoft ?? dt.effects.shadowSoft,
+        '--shadow-hover': effects.shadowHover ?? dt.effects.shadowHover,
+        '--shadow-text-strong': effects.textShadowStrong ?? dt.effects.textShadowStrong,
+        '--shadow-text-soft': effects.textShadowSoft ?? dt.effects.textShadowSoft,
+        '--focus-ring': effects.focusRing ?? dt.effects.focusRing,
+        '--transition-standard': effects.transition ?? dt.effects.transition,
+        '--page-gradient': effects.pageGradient ?? dt.effects.pageGradient,
+        '--intro-backdrop-gradient': effects.introBackdropGradient ?? dt.effects.introBackdropGradient,
+        '--intro-card-gradient': effects.introCardGradient ?? dt.effects.introCardGradient,
+        '--button-fill-gradient': effects.buttonFillGradient ?? dt.effects.buttonFillGradient,
+        '--hero-overlay-gradient': effects.heroOverlayGradient ?? dt.effects.heroOverlayGradient,
+        '--overlay-panel-gradient': effects.overlayPanelGradient ?? dt.effects.overlayPanelGradient,
+        '--overlay-close-gradient': effects.overlayCloseGradient ?? dt.effects.overlayCloseGradient,
+        '--rsvp-panel-gradient': effects.rsvpPanelGradient ?? dt.effects.rsvpPanelGradient,
+        '--gift-panel-gradient': effects.giftPanelGradient ?? dt.effects.giftPanelGradient,
+
+        // Animações
+        '--fade-duration': animation.fadeDuration ?? dt.animation.fadeDuration,
+        '--stagger-delay': animation.staggerDelay ?? dt.animation.staggerDelay,
+        '--hero-fade-duration': animation.heroFadeDuration ?? dt.animation.heroFadeDuration
     };
 
     Object.entries(cssVars).forEach(([key, value]) => {
-        root.style.setProperty(key, value);
+        root.style.setProperty(key, String(value));
     });
 }
 
@@ -407,10 +530,6 @@ function mergeDeep(base, override) {
 }
 
 async function loadConfig() {
-    const configPath = isMobileViewport() ? '../config/mobile.js' : '../config/desktop.js';
-    const module = await import(configPath);
-    const baseConfig = mergeDeep(module.CONFIG, DEFAULT_SITE_CONTENT);
-
     try {
         const response = await fetch(SITE_CONFIG_URL, {
             method: 'GET',
@@ -423,14 +542,14 @@ async function loadConfig() {
         }
 
         const siteConfig = await response.json();
-        return mergeDeep(baseConfig, siteConfig);
+        return mergeDeep(DEFAULT_SITE_CONTENT, siteConfig);
     } catch (error) {
         console.warn('Falha ao carregar assets/config/site.json. Usando fallback local.', error);
-        return baseConfig;
+        return cloneDeep(DEFAULT_SITE_CONTENT);
     }
 }
 
-async function loadTheme(themePath = DEFAULT_THEME_PATH) {
+async function loadTheme(themePath) {
     const baseTheme = cloneDeep(DEFAULT_THEME);
 
     try {
@@ -453,8 +572,9 @@ async function loadTheme(themePath = DEFAULT_THEME_PATH) {
 }
 
 class InvitationExperience {
-    constructor(config) {
+    constructor(config, theme) {
         this.config = config;
+        this.theme = theme;
         this.weddingApp = null;
         this.countdown = null;
         this.rsvp = null;
@@ -475,7 +595,6 @@ class InvitationExperience {
     }
 
     init() {
-        applyConfig(this.config);
         this.setMeta();
         this.setHero();
         this.setEventDetails();
@@ -545,9 +664,11 @@ class InvitationExperience {
         }
 
         const eventDate = this.config.event?.date || DEFAULT_SITE_CONTENT.event.date;
+        const themeAnimation = this.theme?.animation ?? DEFAULT_THEME.animation;
+        const themeCountdown = this.theme?.countdown ?? DEFAULT_THEME.countdown;
 
-        this.weddingApp = new WeddingApp(this.config);
-        this.countdown = new Countdown(eventDate, this.config);
+        this.weddingApp = new WeddingApp({ animation: { delay: themeAnimation.heroRevealDelayMs ?? 300 } });
+        this.countdown = new Countdown(eventDate, { countdown: themeCountdown });
         this.rsvp = new RSVP({
             whatsapp: this.config.whatsapp
         });
@@ -869,10 +990,11 @@ class InvitationExperience {
 async function bootstrap() {
     try {
         const [config, theme] = await Promise.all([loadConfig(), loadTheme(ACTIVE_THEME_PATH)]);
+        const effectiveTheme = resolveTheme(theme);
         window.CONFIG = config;
-        window.THEME = theme;
-        applyTheme(theme);
-        const experience = new InvitationExperience(config);
+        window.THEME = effectiveTheme;
+        applyTheme(effectiveTheme);
+        const experience = new InvitationExperience(config, effectiveTheme);
         experience.init();
     } catch (error) {
         console.error('Falha ao carregar a configuracao da pagina.', error);

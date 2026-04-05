@@ -2,296 +2,155 @@
 
 ## Visão geral
 
-O projeto usa um tema em JSON para controlar a identidade visual principal do convite.
+Cada tema é um arquivo JSON autossuficiente em `assets/config/themes/`. Para trocar o visual do site basta alterar `ACTIVE_THEME_PATH` em `assets/js/script.js` — nenhum outro arquivo precisa ser tocado.
 
-O fluxo é este:
+O fluxo em runtime:
 
-1. O arquivo de tema é carregado em [assets/js/script.js](../assets/js/script.js).
-2. O tema é mesclado com `DEFAULT_THEME`, que funciona como fallback local.
-3. A função `applyTheme(theme)` transforma os valores do JSON em CSS variables no `:root`.
-4. O CSS usa essas variáveis com `var(...)`.
-
-Isso permite trocar o visual do site alterando apenas o arquivo de tema, sem mudar a estrutura do HTML.
-
-## Onde ficam os temas
-
-- Tema padrão: [assets/config/themes/classic-gold.json](../assets/config/themes/classic-gold.json)
-- Tema de exemplo claro: [assets/config/themes/modern-light.json](../assets/config/themes/modern-light.json)
+1. `loadTheme()` carrega o JSON e faz merge com `DEFAULT_THEME` (fallback embutido no `script.js`)
+2. `resolveTheme()` verifica o viewport. Se for mobile (≤ 767px), aplica o bloco `responsive.mobile` sobre o tema base
+3. `applyTheme()` escreve todos os valores como CSS custom properties no `:root`
+4. O CSS usa apenas `var(--...)` — nenhum valor hardcoded
 
 ## Como trocar de tema
 
-O carregamento padrão fica em [assets/js/script.js](../assets/js/script.js).
-
-Hoje o arquivo usa a constante `ACTIVE_THEME_PATH`.
-
-Exemplo:
+Em `assets/js/script.js`, altere apenas esta linha:
 
 ```js
 const ACTIVE_THEME_PATH = 'assets/config/themes/classic-gold.json';
 ```
 
-Para testar outro tema, troque para:
+Temas disponíveis: `classic-gold.json`, `classic-silver.json`.
 
-```js
-const ACTIVE_THEME_PATH = 'assets/config/themes/modern-light.json';
+## Como criar um novo tema
+
+1. Duplique `classic-gold.json` e renomeie
+2. Altere os valores desejados
+3. Aponte `ACTIVE_THEME_PATH` para o novo arquivo
+
+O bloco `responsive.mobile` só precisa conter as propriedades que diferem do desktop — o resto é herdado.
+
+## Estrutura do arquivo de tema
+
+```json
+{
+  "meta": { "name": "...", "description": "..." },
+  "colors": { ... },
+  "typography": {
+    "fonts": { "primary", "serif", "accent" },
+    "sizes": { ... }
+  },
+  "spacing": { ... },
+  "layout": { ... },
+  "components": { ... },
+  "radius": { "card", "button" },
+  "effects": { ... },
+  "animation": { ... },
+  "countdown": { "format", "updateInterval" },
+  "responsive": {
+    "mobile": { ... sobreposições para viewport ≤ 767px ... }
+  }
+}
 ```
 
-Também é possível chamar:
+---
 
-```js
-loadTheme('assets/config/themes/classic-gold.json')
-```
-
-## Limite de responsabilidade do tema
-
-O tema controla a identidade visual e os espaçamentos principais.
-
-Ficam no tema:
-
-- cores
-- tipografia
-- largura máxima principal
-- padding vertical principal de seção
-- padding interno principal de cards
-- sombras, gradientes, transições e duração base de animação
-
-Podem continuar no CSS:
-
-- gaps menores
-- offsets locais
-- pequenos ajustes por breakpoint
-- detalhes estruturais de layout
-
-Isso evita excesso de `calc()` e mantém o código mais claro.
-
-## Grupos do tema
+## Referência de propriedades
 
 ### `colors`
 
-Controla as cores base do site, superfícies, textos, bordas e estados visuais.
+| Propriedade | CSS var | Onde é usada |
+|---|---|---|
+| `background` | `--color-bg` | Fundo geral da página |
+| `surface` | `--color-surface` | Cards de detalhes, blocos com fundo sólido |
+| `surfaceSoft` | `--color-surface-soft` | Campos, QR frame, brilhos leves |
+| `primary` | `--color-primary` | Botões, títulos auxiliares, linhas decorativas |
+| `primarySoft` | `--color-primary-soft` | Acentos suaves, textos de apoio |
+| `primaryGlow` | `--color-primary-glow` | Fundos radiais no body e na intro |
+| `text` | `--color-text` | Texto principal |
+| `textMuted` | `--color-text-muted` | Labels auxiliares, descrições curtas |
+| `textSoft` | `--color-text-soft` | Parágrafos de introdução, gift text |
+| `textDim` | `--color-text-dim` | Subtítulos pequenos, detalhes complementares |
+| `textFaint` | `--color-text-faint` | Notas de rodapé |
+| `textPlaceholder` | `--color-text-placeholder` | Placeholder dos inputs do RSVP |
+| `border` | `--color-border` | Cards, painéis, countdown, overlay |
+| `borderSoft` | `--color-border-soft` | Superfícies delicadas, intro card, QR frame |
+| `borderStrong` | `--color-border-strong` | Foco, links, botões com mais definição |
+| `goldSurfaceSoft` | `--color-gold-surface-soft` | Cards do countdown, brilho discreto |
+| `goldSurface` | `--color-gold-surface` | Camadas de gradiente, efeitos internos |
+| `goldSurfaceStrong` | `--color-gold-surface-strong` | Grade de detalhes |
+| `overlayBackdrop` | `--color-overlay-backdrop` | Fundo do modal de presentes |
+| `audioPanelBg` | `--color-audio-bg` | Botão flutuante de áudio (normal) |
+| `audioPanelHoverBg` | `--color-audio-hover-bg` | Botão de áudio no hover |
+| `audioPanelBorder` | `--color-audio-border` | Borda do controle de áudio |
+| `pulseRing` | `--color-pulse-ring` | Anel animado quando o áudio está ativo |
+| `inputFocusBg` | `--color-input-focus-bg` | Fundo do input em foco no RSVP |
 
-### `typography`
+### `typography.fonts`
 
-Controla as famílias tipográficas principais do projeto.
+| Propriedade | CSS var | Onde é usada |
+|---|---|---|
+| `primary` | `--font-primary` | Body, textos corridos, interface geral |
+| `serif` | `--font-serif` | Títulos, números elegantes, destaques |
+| `accent` | `--font-accent` | Nomes dos noivos, elementos caligráficos |
+
+### `typography.sizes`
+
+Todos os tamanhos usam strings com unidade (`"13px"`, `"7vw"`). Os valores fluidos (`heroNames`, `sectionTitle`) aceitam `{ "min", "fluid", "max" }` para `clamp()`.
 
 ### `spacing`
 
-Controla os espaçamentos principais do layout.
+Padding de seção, gaps entre componentes, margens internas de cards RSVP, etc. Todos os valores são strings com unidade (`"88px"`).
+
+### `layout`
+
+| Propriedade | CSS var | Onde é usada |
+|---|---|---|
+| `heroHeight` | `--hero-height` | Altura do hero |
+| `heroPadding` | `--hero-padding` | Padding completo do hero |
+| `heroContentWidth` | `--hero-content-width` | Largura máxima do bloco textual do hero |
+| `heroContentPaddingBottom` | `--hero-content-padding-bottom` | Espaço inferior do conteúdo do hero |
+| `heroFadeOffset` | `--hero-fade-offset` | Deslocamento inicial antes do fade de entrada |
+| `contentMaxWidth` | `--content-max-width` | Largura máxima do conteúdo interno das seções |
+
+### `components`
+
+Tamanhos específicos de componentes: seta de scroll, cards do countdown, inputs e botões do RSVP.
 
 ### `radius`
 
-Controla o arredondamento de cards e botões.
+| Propriedade | CSS var | Onde é usada |
+|---|---|---|
+| `card` | `--radius-card` | Cards, painéis, countdown, overlays |
+| `button` | `--radius-button` | Botões principais e ações do overlay |
+
+Use `"0px"` para estilo reto (padrão dos temas atuais) ou valores como `"8px"` para arredondado.
 
 ### `effects`
 
-Controla sombras, gradientes, transições e efeitos de profundidade.
+Sombras (`shadowSoft`, `shadowHover`), sombras de texto, anel de foco, transição padrão, e todos os gradientes de fundo, hero, intro, botão, overlay, RSVP e presente.
 
 ### `animation`
 
-Controla a duração base de fades e o atraso base de revelação.
+| Propriedade | CSS var / JS | Descrição |
+|---|---|---|
+| `fadeDuration` | `--fade-duration` | Duração base de fades gerais da UI |
+| `staggerDelay` | `--stagger-delay` | Atraso entre elementos revelados em sequência |
+| `heroFadeDuration` | `--hero-fade-duration` | Duração do fade de entrada do hero |
+| `heroRevealDelayMs` | JS (`WeddingApp`) | Delay em ms antes da revelação do texto do hero |
 
-## Propriedades
+### `countdown`
 
-## colors.background
-Cor de fundo principal da página.
-Usada no fundo geral do site e como base do tema no carregamento inicial.
+| Propriedade | Descrição |
+|---|---|
+| `format` | `"two-digits"` exibe sempre 2 dígitos (ex: `04`, `09`) |
+| `updateInterval` | Intervalo de atualização em milissegundos |
 
-## colors.surface
-Cor base das superfícies internas.
-Usada em cards de detalhes e blocos com fundo sólido.
+### `responsive.mobile`
 
-## colors.surfaceSoft
-Superfície translúcida leve.
-Usada em campos, QR frame e brilhos leves sobre o layout.
+Bloco de overrides aplicados quando `window.matchMedia('(max-width: 767px)')` for verdadeiro. Aceita qualquer subconjunto das seções acima. Os valores ausentes são herdados do tema base.
 
-## colors.primary
-Cor principal de destaque.
-Usada em botões, títulos auxiliares, linhas decorativas e elementos interativos.
-
-## colors.primarySoft
-Cor de destaque secundária.
-Usada em acentos suaves, textos de apoio e estados visuais mais delicados.
-
-## colors.text
-Cor principal do texto.
-Usada no texto base claro ou escuro, dependendo do tema.
-
-## colors.textMuted
-Texto secundário padrão.
-Usada em descrições curtas, labels auxiliares e informações menos prioritárias.
-
-## colors.textSoft
-Texto de apoio com contraste intermediário.
-Usada em parágrafos de introdução, gift text e blocos explicativos.
-
-## colors.textDim
-Texto mais discreto.
-Usada em subtítulos pequenos e detalhes complementares.
-
-## colors.textFaint
-Texto bem suave.
-Usada em notas de rodapé e informações de menor peso visual.
-
-## colors.textPlaceholder
-Cor dos placeholders dos inputs.
-Usada no formulário de RSVP.
-
-## colors.border
-Borda principal suave.
-Usada em cards, painéis, blocos do countdown e overlay.
-
-## colors.borderSoft
-Borda ainda mais leve.
-Usada em superfícies delicadas, como intro card e QR frame.
-
-## colors.borderStrong
-Borda com mais contraste.
-Usada em foco, links e botões que precisam mais definição.
-
-## colors.goldSurfaceSoft
-Fundo de destaque muito suave.
-Usada nos cards do countdown e em superfícies com brilho discreto.
-
-## colors.goldSurface
-Fundo de destaque suave.
-Usada em camadas de gradiente e efeitos internos de painéis.
-
-## colors.goldSurfaceStrong
-Fundo de destaque mais evidente.
-Usada na grade de detalhes e em áreas que precisam separação maior.
-
-## colors.primaryGlow
-Brilho principal do tema.
-Usada em fundos radiais no body e na intro.
-
-## colors.pageGridLine
-Cor do grid decorativo de fundo.
-Usada no padrão de linhas do fundo da página.
-
-## colors.overlayBackdrop
-Escurecimento atrás de overlays.
-Usada no fundo do modal de presentes.
-
-## colors.audioPanelBg
-Fundo do botão flutuante de áudio.
-Usada no estado normal do controle de áudio.
-
-## colors.audioPanelHoverBg
-Fundo do botão de áudio no hover.
-Usada quando o usuário interage com o controle de áudio.
-
-## colors.audioPanelBorder
-Borda do botão de áudio.
-Usada para destacar o controle no canto da tela.
-
-## colors.pulseRing
-Cor do anel animado do áudio.
-Usada no efeito de pulso quando o áudio está ativo.
-
-## colors.pulseRingSpread
-Fim transparente do anel do áudio.
-Usada no frame expandido da animação de pulso.
-
-## colors.inputFocusBg
-Fundo do input em foco.
-Usada no RSVP para dar destaque ao campo ativo.
-
-## typography.fontPrimary
-Fonte base do projeto.
-Usada no body, nos textos corridos e na maior parte da interface.
-
-## typography.fontSerif
-Fonte serifada principal.
-Usada em títulos, números elegantes e blocos de destaque.
-
-## typography.fontAccent
-Fonte de assinatura.
-Usada principalmente nos nomes dos noivos e elementos caligráficos.
-
-## spacing.sectionPadding
-Padding vertical principal das seções.
-Usada em `.content-section` e nas áreas principais do fluxo da página.
-
-## spacing.containerWidth
-Largura máxima central do conteúdo.
-Usada no container principal das seções para limitar a largura do layout.
-
-## spacing.cardPadding
-Padding interno principal de cards.
-Usada hoje nos cards de detalhes e como referência para blocos compartilhados.
-
-## radius.card
-Arredondamento dos cards e painéis.
-Usada em cards, countdown, overlays e blocos visuais equivalentes.
-
-## radius.button
-Arredondamento dos botões.
-Usada nos botões principais, links com aparência de botão e ações do overlay.
-
-## effects.shadowSoft
-Sombra base de profundidade.
-Usada em painéis como intro, presentes e overlay.
-
-## effects.shadowHover
-Sombra de hover.
-Usada em cartões e elementos que sobem levemente na interação.
-
-## effects.textShadowStrong
-Sombra forte para texto.
-Usada em títulos sobre imagem e elementos de grande destaque.
-
-## effects.textShadowSoft
-Sombra suave para texto.
-Usada em textos sobre áreas com contraste mais delicado.
-
-## effects.focusRing
-Anel de foco de acessibilidade.
-Usada em estados `:focus-visible`.
-
-## effects.transition
-Transição padrão global.
-Usada em botões, links e estados interativos compartilhados.
-
-## effects.pageGradient
-Gradiente principal do fundo da página.
-Usada no body como base do visual geral.
-
-## effects.introBackdropGradient
-Gradiente da tela de abertura.
-Usada no fundo da intro antes da entrada no convite.
-
-## effects.introCardGradient
-Gradiente do card da intro.
-Usada no painel central da tela inicial.
-
-## effects.buttonFillGradient
-Gradiente interno dos botões em hover.
-Usada no preenchimento animado dos botões principais.
-
-## effects.heroOverlayGradient
-Overlay do hero.
-Usada sobre a imagem principal para garantir legibilidade do texto.
-
-## effects.overlayPanelGradient
-Gradiente do painel de overlay.
-Usada no modal de presentes.
-
-## effects.overlayCloseGradient
-Gradiente da faixa de fechamento do overlay.
-Usada na área superior do botão de fechar.
-
-## effects.rsvpPanelGradient
-Gradiente do bloco RSVP.
-Usada no card principal do formulário.
-
-## effects.giftPanelGradient
-Gradiente dos painéis de presente.
-Usada nos blocos principais da área de presentes.
-
-## animation.fadeDuration
-Duração base de fade e transição.
-Usada em entradas visuais, overlays e transições compartilhadas do tema.
-
-## animation.staggerDelay
-Atraso base entre elementos revelados em sequência.
-Usada nas entradas escalonadas de seções como countdown e detalhes.
+Diferenças típicas entre desktop e mobile:
+- `typography.sizes`: `base`, `heroDate`, `heroNames`
+- `spacing`: `sectionPaddingTop`, `sectionPaddingInline`, `detailsSectionPaddingTop`
+- `layout`: `heroHeight`, `heroPadding`, `heroContentWidth`, `heroFadeOffset`, `contentMaxWidth`
+- `animation`: `heroFadeDuration`, `heroRevealDelayMs`
