@@ -5,25 +5,10 @@ import { PresentPage } from './presente.js';
 import { AudioController } from './audio.js';
 
 const SITE_CONFIG_URL = 'assets/config/site.json';
-const THEME_CONFIG_URL = 'assets/config/theme.json';
+const DEFAULT_THEME_PATH = 'assets/config/themes/classic-gold.json';
+const ACTIVE_THEME_PATH = DEFAULT_THEME_PATH;
 
 const DEFAULT_THEME = {
-    _comments: {
-        colors: {
-            background: 'Fundo base do site inteiro.',
-            surface: 'Fundo de cards e superficies internas.',
-            primary: 'Cor de destaque principal (dourado).',
-            primarySoft: 'Cor de destaque secundario (dourado claro).',
-            text: 'Texto principal claro.',
-            textMuted: 'Texto secundario padrao.',
-            border: 'Borda padrao suave em elementos com destaque.'
-        },
-        typography: {
-            fontPrimary: 'Fonte do corpo e textos comuns.',
-            fontSerif: 'Fonte de titulos e numeros elegantes.',
-            fontAccent: 'Fonte de assinatura para nomes do casal.'
-        }
-    },
     colors: {
         background: '#1a1714',
         surface: '#201c18',
@@ -445,24 +430,24 @@ async function loadConfig() {
     }
 }
 
-async function loadTheme() {
+async function loadTheme(themePath = DEFAULT_THEME_PATH) {
     const baseTheme = cloneDeep(DEFAULT_THEME);
 
     try {
-        const response = await fetch(THEME_CONFIG_URL, {
+        const response = await fetch(themePath, {
             method: 'GET',
             headers: { Accept: 'application/json' },
             cache: 'no-store'
         });
 
         if (!response.ok) {
-            throw new Error(`theme.json returned HTTP ${response.status}`);
+            throw new Error(`Theme file returned HTTP ${response.status}`);
         }
 
         const themeConfig = await response.json();
         return mergeDeep(baseTheme, themeConfig);
     } catch (error) {
-        console.warn('Falha ao carregar assets/config/theme.json. Usando fallback local.', error);
+        console.warn(`Falha ao carregar ${themePath}. Usando fallback local.`, error);
         return baseTheme;
     }
 }
@@ -883,7 +868,7 @@ class InvitationExperience {
 
 async function bootstrap() {
     try {
-        const [config, theme] = await Promise.all([loadConfig(), loadTheme()]);
+        const [config, theme] = await Promise.all([loadConfig(), loadTheme(ACTIVE_THEME_PATH)]);
         window.CONFIG = config;
         window.THEME = theme;
         applyTheme(theme);

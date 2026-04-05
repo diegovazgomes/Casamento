@@ -193,7 +193,7 @@ footer {
 .site-shell {
     opacity: 0;
     transform: translateY(18px);
-    transition: opacity 0.85s cubic-bezier(0.22, 1, 0.36, 1), transform 0.85s cubic-bezier(0.22, 1, 0.36, 1);
+    transition: opacity var(--fade-duration) cubic-bezier(0.22, 1, 0.36, 1), transform var(--fade-duration) cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .site-shell.is-visible {
@@ -208,7 +208,7 @@ footer {
     display: grid;
     place-items: center;
     padding: 24px;
-    transition: opacity 0.7s ease, visibility 0.7s ease;
+    transition: opacity var(--fade-duration) ease, visibility var(--fade-duration) ease;
 }
 
 .intro-screen.is-exiting {
@@ -312,7 +312,7 @@ footer {
     z-index: -1;
     background: var(--button-fill-gradient);
     transform: translateX(-100%);
-    transition: transform 0.35s ease;
+    transition: transform var(--fade-duration) ease;
 }
 
 @keyframes audioPulse {
@@ -583,7 +583,7 @@ img {
     font-size: var(--section-tag-size);
     letter-spacing: 0.4em;
     text-transform: uppercase;
-    transition: opacity 0.7s ease, transform 0.7s ease;
+    transition: opacity var(--fade-duration) ease, transform var(--fade-duration) ease;
 }
 
 .section-title {
@@ -593,7 +593,7 @@ img {
     font-size: clamp(var(--section-title-min), var(--section-title-fluid), var(--section-title-max));
     font-weight: 300;
     line-height: 1.1;
-    transition: opacity 0.8s ease 0.1s, transform 0.8s ease 0.1s;
+    transition: opacity var(--fade-duration) ease 0.1s, transform var(--fade-duration) ease 0.1s;
 }
 
 .section-body {
@@ -601,7 +601,7 @@ img {
     font-size: var(--section-body-size);
     line-height: 1.9;
     letter-spacing: 0.05em;
-    transition: opacity 0.8s ease 0.2s, transform 0.8s ease 0.2s;
+    transition: opacity var(--fade-duration) ease 0.2s, transform var(--fade-duration) ease 0.2s;
 }
 
 .section-highlight {
@@ -615,7 +615,7 @@ img {
     gap: 16px;
     width: min(100%, var(--divider-width));
     margin: var(--divider-margin-top) auto 0;
-    transition: opacity 0.8s ease, transform 0.8s ease;
+    transition: opacity var(--fade-duration) ease, transform var(--fade-duration) ease;
 }
 
 .divider-line {
@@ -636,7 +636,7 @@ img {
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: var(--countdown-gap);
     margin-top: var(--countdown-margin-top);
-    transition: opacity 0.8s ease calc(var(--stagger-delay) * 3), transform 0.8s ease calc(var(--stagger-delay) * 3);
+    transition: opacity var(--fade-duration) ease calc(var(--stagger-delay) * 3), transform var(--fade-duration) ease calc(var(--stagger-delay) * 3);
 }
 
 .countdown-block {
@@ -684,7 +684,7 @@ img {
     margin-top: var(--details-margin-top);
     border: 1px solid var(--color-border);
     background: var(--color-gold-surface-strong);
-    transition: opacity 0.8s ease 0.25s, transform 0.8s ease 0.25s;
+    transition: opacity var(--fade-duration) ease 0.25s, transform var(--fade-duration) ease 0.25s;
 }
 
 .detail-card {
@@ -889,7 +889,7 @@ img {
     z-index: -1;
     background: var(--gold);
     transform: translateX(-100%);
-    transition: transform 0.35s ease;
+    transition: transform var(--fade-duration) ease;
 }
 
 .gift-copy-button.is-success {
@@ -962,7 +962,7 @@ img {
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
-    transition: opacity 0.38s ease, visibility 0.38s ease;
+    transition: opacity var(--fade-duration) ease, visibility var(--fade-duration) ease;
 }
 
 .gift-overlay-shell.is-open {
@@ -991,7 +991,7 @@ img {
         var(--overlay-panel-gradient);
     box-shadow: var(--shadow-soft);
     transform: translateY(24px) scale(0.98);
-    transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+    transition: transform var(--fade-duration) cubic-bezier(0.22, 1, 0.36, 1);
     border-radius: var(--radius-card);
 }
 
@@ -1040,7 +1040,7 @@ img {
     border: 1px solid var(--color-border);
     background: var(--rsvp-panel-gradient);
     box-shadow: var(--shadow-soft);
-    transition: opacity 0.8s ease 0.2s, transform 0.8s ease 0.2s;
+    transition: opacity var(--fade-duration) ease 0.2s, transform var(--fade-duration) ease 0.2s;
     border-radius: var(--radius-card);
 }
 
@@ -1173,7 +1173,7 @@ img {
     z-index: -1;
     background: var(--gold);
     transform: translateX(-100%);
-    transition: transform 0.4s ease;
+    transition: transform var(--fade-duration) ease;
 }
 
 .rsvp-submit:hover {

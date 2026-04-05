@@ -1,0 +1,65 @@
+{
+  "colors": {
+    "background": "#1a1714",
+    "surface": "#201c18",
+    "surfaceSoft": "rgba(255,255,255,0.04)",
+    "primary": "#c9a84c",
+    "primarySoft": "#e8d08a",
+    "text": "#faf7f2",
+    "textMuted": "rgba(250,247,242,0.6)",
+    "textSoft": "rgba(250,247,242,0.62)",
+    "textDim": "rgba(250,247,242,0.45)",
+    "textFaint": "rgba(250,247,242,0.25)",
+    "textPlaceholder": "rgba(250,247,242,0.25)",
+    "border": "rgba(201,168,76,0.2)",
+    "borderSoft": "rgba(201,168,76,0.16)",
+    "borderStrong": "rgba(201,168,76,0.38)",
+    "goldSurfaceSoft": "rgba(201,168,76,0.06)",
+    "goldSurface": "rgba(201,168,76,0.08)",
+    "goldSurfaceStrong": "rgba(201,168,76,0.15)",
+    "primaryGlow": "rgba(201,168,76,0.12)",
+    "pageGridLine": "rgba(255,255,255,0.015)",
+    "overlayBackdrop": "rgba(10,8,7,0.78)",
+    "audioPanelBg": "rgba(17,14,12,0.68)",
+    "audioPanelHoverBg": "rgba(17,14,12,0.8)",
+    "audioPanelBorder": "rgba(201,168,76,0.24)",
+    "pulseRing": "rgba(201,168,76,0.45)",
+    "pulseRingSpread": "rgba(201,168,76,0)",
+    "inputFocusBg": "rgba(255,255,255,0.06)"
+  },
+  "typography": {
+    "fontPrimary": "'Jost', sans-serif",
+    "fontSerif": "'Cormorant Garamond', serif",
+    "fontAccent": "'Great Vibes', cursive"
+  },
+  "spacing": {
+    "sectionPadding": 88,
+    "containerWidth": 760,
+    "cardPadding": 28
+  },
+  "radius": {
+    "card": 0,
+    "button": 0
+  },
+  "effects": {
+    "shadowSoft": "0 20px 60px rgba(0,0,0,0.28)",
+    "shadowHover": "0 12px 28px rgba(0,0,0,0.18)",
+    "textShadowStrong": "0 8px 28px rgba(0,0,0,0.32)",
+    "textShadowSoft": "0 2px 18px rgba(0,0,0,0.3)",
+    "focusRing": "0 0 0 3px rgba(201,168,76,0.12)",
+    "transition": "all 0.3s ease",
+    "pageGradient": "linear-gradient(180deg, #1a1714 0%, #1a1714 100%)",
+    "introBackdropGradient": "linear-gradient(180deg, rgba(10, 8, 7, 0.96) 0%, rgba(18, 15, 13, 0.96) 45%, rgba(26, 23, 20, 0.98) 100%)",
+    "introCardGradient": "linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(201, 168, 76, 0.03))",
+    "buttonFillGradient": "linear-gradient(135deg, rgba(201, 168, 76, 0.95), rgba(232, 208, 138, 0.95))",
+    "heroOverlayGradient": "linear-gradient(to bottom, rgba(26, 23, 20, 0.1) 0%, rgba(26, 23, 20, 0.18) 40%, rgba(26, 23, 20, 0.78) 76%, rgba(26, 23, 20, 1) 100%)",
+    "overlayPanelGradient": "linear-gradient(180deg, rgba(15, 12, 10, 0.98) 0%, rgba(24, 21, 18, 0.98) 100%)",
+    "overlayCloseGradient": "linear-gradient(180deg, rgba(15, 12, 10, 0.92), rgba(15, 12, 10, 0))",
+    "rsvpPanelGradient": "linear-gradient(135deg, rgba(201, 168, 76, 0.05), rgba(201, 168, 76, 0.015))",
+    "giftPanelGradient": "linear-gradient(135deg, rgba(201, 168, 76, 0.05), rgba(255, 255, 255, 0.02))"
+  },
+  "animation": {
+    "fadeDuration": 0.8,
+    "staggerDelay": 0.1
+  }
+}
