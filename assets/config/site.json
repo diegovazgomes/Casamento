@@ -81,6 +81,108 @@
       }
     }
   },
+  "pages": {
+    "historia": {
+      "enabled": true,
+      "cardLabel": "Nossa História",
+      "cardHint": "Ler nossa história",
+      "content": {
+        "tag": "Nossa História",
+        "title": "Como tudo começou",
+        "intro": "Uma história que é nossa, e que a partir de setembro passa a ser de vocês também.",
+        "chapters": [
+          {
+            "year": "2020",
+            "title": "O primeiro encontro",
+            "text": "Descreva aqui como foi o primeiro encontro do casal."
+          },
+          {
+            "year": "2022",
+            "title": "O pedido",
+            "text": "Descreva aqui como foi o pedido de namoro ou noivado."
+          },
+          {
+            "year": "2026",
+            "title": "O grande dia",
+            "text": "E agora, queremos compartilhar este momento com você."
+          }
+        ]
+      }
+    },
+    "faq": {
+      "enabled": true,
+      "cardLabel": "Dúvidas Frequentes",
+      "cardHint": "Ver perguntas",
+      "content": {
+        "tag": "FAQ",
+        "title": "Tudo que você precisa saber",
+        "intro": "Reunimos as perguntas mais frequentes para facilitar o seu preparo.",
+        "items": [
+          {
+            "question": "Qual é o dress code?",
+            "answer": "Esporte fino. Pedimos gentilmente que evitem roupas brancas."
+          },
+          {
+            "question": "Tem estacionamento no local?",
+            "answer": "Sim, o estacionamento é gratuito e tem capacidade para todos os convidados."
+          },
+          {
+            "question": "Crianças são bem-vindas?",
+            "answer": "A celebração é voltada para adultos, mas crianças são bem-vindas mediante confirmação."
+          },
+          {
+            "question": "Até quando posso confirmar presença?",
+            "answer": "Pedimos que a confirmação seja feita até 30 dias antes do evento."
+          }
+        ]
+      }
+    },
+    "hospedagem": {
+      "enabled": true,
+      "cardLabel": "Para Quem Vem de Fora",
+      "cardHint": "Ver opções",
+      "content": {
+        "tag": "Para Quem Vem de Fora",
+        "title": "Fique à vontade para explorar",
+        "intro": "Selecionamos algumas opções próximas ao local da festa para tornar sua estadia mais fácil.",
+        "hotelsTitle": "Hospedagem",
+        "hotels": [
+          {
+            "name": "Hotel Exemplo 1",
+            "description": "A 5 minutos do local. Café da manhã incluído.",
+            "link": "",
+            "linkLabel": "Ver hotel"
+          },
+          {
+            "name": "Hotel Exemplo 2",
+            "description": "A 10 minutos do local. Estacionamento gratuito.",
+            "link": "",
+            "linkLabel": "Ver hotel"
+          }
+        ],
+        "restaurantsTitle": "Restaurantes",
+        "restaurants": [
+          {
+            "name": "Restaurante Exemplo 1",
+            "description": "Ótima opção para o almoço do dia anterior.",
+            "link": "",
+            "linkLabel": "Ver no Maps"
+          },
+          {
+            "name": "Restaurante Exemplo 2",
+            "description": "A 5 minutos do local. Culinária variada.",
+            "link": "",
+            "linkLabel": "Ver no Maps"
+          }
+        ]
+      }
+    },
+    "presente": {
+      "enabled": true,
+      "cardLabel": "Lista de Presentes",
+      "cardHint": "Ver opções"
+    }
+  },
   "whatsapp": {
     "destinationPhone": "5511949606377",
     "recipientName": "Siannah",

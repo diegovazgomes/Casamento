@@ -5,6 +5,7 @@ import { PresentPage } from './presente.js';
 import { AudioController } from './audio.js';
 
 const SITE_CONFIG_URL = 'assets/config/site.json';
+const INVITATION_STARTED_STORAGE_KEY = 'wedding-invitation-started';
 
 // Para trocar o tema, altere apenas esta constante.
 // Temas disponíveis: classic-gold.json, classic-silver.json
@@ -600,20 +601,22 @@ class InvitationExperience {
         this.setEventDetails();
         this.setTexts();
         this.setGift();
+        this.setPages();
         this.presentPage.init();
         this.bindIntro();
         this.bindGiftOverlay();
         this.bindAudioToggle();
         this.bindKeyboardShortcuts();
+        this.bindPageLifecycle();
         this.audio.addEventListener('statechange', () => this.syncAudioButton());
         this.syncAudioButton();
 
         if (!this.siteShell) {
-            this.initializeMainSite();
+            this.enterInvitation({ skipIntro: true });
             return;
         }
 
-        if (!this.introScreen || !this.openInviteButton) {
+        if (!this.introScreen || !this.openInviteButton || window.location.hash || this.wasInvitationStarted()) {
             this.enterInvitation({ skipIntro: true });
         }
     }
@@ -658,6 +661,14 @@ class InvitationExperience {
         });
     }
 
+    bindPageLifecycle() {
+        window.addEventListener('pageshow', () => {
+            if (window.location.hash || this.wasInvitationStarted()) {
+                this.enterInvitation({ skipIntro: true });
+            }
+        });
+    }
+
     initializeMainSite() {
         if (this.mainInitialized) {
             return;
@@ -683,10 +694,31 @@ class InvitationExperience {
 
     async enterInvitation({ skipIntro = false } = {}) {
         if (this.hasStarted) {
+            this.applyStartedState({ skipIntro: true });
             return;
         }
 
         this.hasStarted = true;
+        this.markInvitationStarted();
+        this.applyStartedState({ skipIntro });
+
+        this.initializeMainSite();
+        const isGiftOrExtraPage = document.body.classList.contains('gift-page') || document.body.classList.contains('extra-page');
+        await this.audio.unlock();
+        await this.audio.setContext(isGiftOrExtraPage ? 'gift' : 'main');
+        this.syncAudioButton();
+
+        const hash = window.location.hash;
+        if (hash === '#gift') {
+            window.setTimeout(() => this.openGiftOverlay(), 420);
+        } else if (hash) {
+            window.setTimeout(() => {
+                document.querySelector(hash)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 420);
+        }
+    }
+
+    applyStartedState({ skipIntro = false } = {}) {
         document.body.classList.add('experience-started');
         document.body.classList.remove('experience-locked');
 
@@ -699,22 +731,36 @@ class InvitationExperience {
             });
         }
 
-        if (this.introScreen && !skipIntro) {
-            this.introScreen.classList.add('is-exiting');
-            window.setTimeout(() => {
-                this.introScreen.hidden = true;
-            }, 700);
-        } else if (this.introScreen) {
-            this.introScreen.hidden = true;
+        if (!this.introScreen) {
+            return;
         }
 
-        this.initializeMainSite();
-        await this.audio.unlock();
-        await this.audio.setContext('main');
-        this.syncAudioButton();
+        if (skipIntro) {
+            this.introScreen.classList.remove('is-exiting');
+            this.introScreen.hidden = true;
+            this.introScreen.setAttribute('aria-hidden', 'true');
+            return;
+        }
 
-        if (window.location.hash === '#gift') {
-            window.setTimeout(() => this.openGiftOverlay(), 420);
+        this.introScreen.classList.add('is-exiting');
+        this.introScreen.setAttribute('aria-hidden', 'true');
+        window.setTimeout(() => {
+            this.introScreen.hidden = true;
+        }, 700);
+    }
+
+    wasInvitationStarted() {
+        try {
+            return window.sessionStorage.getItem(INVITATION_STARTED_STORAGE_KEY) === 'true';
+        } catch {
+            return false;
+        }
+    }
+
+    markInvitationStarted() {
+        try {
+            window.sessionStorage.setItem(INVITATION_STARTED_STORAGE_KEY, 'true');
+        } catch {
         }
     }
 
@@ -985,6 +1031,45 @@ class InvitationExperience {
             });
         }
     }
+
+    setPages() {
+        const extrasSection = document.getElementById('extras');
+        const extrasDivider = document.querySelector('.extras-divider');
+        const grid = document.getElementById('extrasGrid');
+
+        if (!extrasSection || !grid) {
+            return;
+        }
+
+        const pages = this.config.pages ?? {};
+        const PAGE_ORDER = ['historia', 'faq', 'hospedagem', 'presente'];
+        const PAGE_URLS = {
+            historia: 'historia.html',
+            faq: 'faq.html',
+            hospedagem: 'hospedagem.html',
+            presente: 'presente.html'
+        };
+
+        const enabledPages = PAGE_ORDER.filter((key) => pages[key]?.enabled === true);
+
+        if (enabledPages.length === 0) {
+            return;
+        }
+
+        extrasSection.hidden = false;
+        if (extrasDivider) {
+            extrasDivider.hidden = false;
+        }
+
+        grid.innerHTML = enabledPages.map((key) => {
+            const page = pages[key];
+            const url = PAGE_URLS[key];
+            return `<a class="extras-card" href="${url}">
+                <span class="extras-card-label">${page.cardLabel ?? ''}</span>
+                <span class="extras-card-hint">${page.cardHint ?? ''}</span>
+            </a>`;
+        }).join('');
+    }
 }
 
 async function bootstrap() {
@@ -996,6 +1081,7 @@ async function bootstrap() {
         applyTheme(effectiveTheme);
         const experience = new InvitationExperience(config, effectiveTheme);
         experience.init();
+        window.dispatchEvent(new CustomEvent('app:ready', { detail: { config, theme: effectiveTheme } }));
     } catch (error) {
         console.error('Falha ao carregar a configuracao da pagina.', error);
     }
