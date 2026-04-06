@@ -622,7 +622,7 @@ class InvitationExperience {
         this.syncAudioButton();
 
         if (!this.siteShell) {
-            this.enterInvitation({ skipIntro: true });
+            this.enterInvitation({ skipIntro: true, shouldNavigate: false });
             return;
         }
 
@@ -707,10 +707,12 @@ class InvitationExperience {
         return isGiftOrExtraPage ? 'gift' : 'main';
     }
 
-    async enterInvitation({ skipIntro = false, targetSection = null, forceTop = false, audioPromise = null } = {}) {
+    async enterInvitation({ skipIntro = false, targetSection = null, forceTop = false, audioPromise = null, shouldNavigate = true } = {}) {
         if (this.hasStarted) {
             this.applyStartedState({ skipIntro: true });
-            this.navigateWithinInvitation({ targetSection, forceTop });
+            if (shouldNavigate) {
+                this.navigateWithinInvitation({ targetSection, forceTop });
+            }
             return;
         }
 
@@ -728,7 +730,9 @@ class InvitationExperience {
 
         this.syncAudioButton();
 
-        this.navigateWithinInvitation({ targetSection, forceTop });
+        if (shouldNavigate) {
+            this.navigateWithinInvitation({ targetSection, forceTop });
+        }
     }
 
     navigateWithinInvitation({ targetSection = null, forceTop = false } = {}) {
