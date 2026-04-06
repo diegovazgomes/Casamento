@@ -136,6 +136,61 @@ export class AudioController extends EventTarget {
         this.emitState();
     }
 
+    async startFromGesture(trackKey) {
+        const track = this.tracks[trackKey];
+
+        this.readyForPlayback = true;
+        this.userPaused = false;
+        this.desiredTrackKey = trackKey;
+
+        if (!track) {
+            this.emitState();
+            return false;
+        }
+
+        if (this.currentTrackKey && this.currentTrackKey !== trackKey) {
+            await this.fadeOutCurrent();
+        }
+
+        const audio = track.element;
+        const targetTime = this.getTrackStartTime(trackKey);
+        const seekToStart = () => {
+            try {
+                audio.currentTime = this.clampTime(audio, targetTime);
+            } catch {
+            }
+        };
+
+        audio.volume = 0;
+        audio.load();
+
+        if (this.hasMetadata(audio)) {
+            seekToStart();
+        } else {
+            audio.addEventListener('loadedmetadata', seekToStart, { once: true });
+            audio.addEventListener('durationchange', seekToStart, { once: true });
+        }
+
+        this.currentTrackKey = trackKey;
+
+        try {
+            const playPromise = audio.play();
+
+            if (playPromise) {
+                await playPromise;
+            }
+
+            await this.fadeVolume(audio, track.volume ?? 0.12, 420);
+            this.lastError = null;
+            this.emitState();
+            return true;
+        } catch (error) {
+            this.lastError = error;
+            this.emitState();
+            return false;
+        }
+    }
+
     async setContext(trackKey) {
         this.desiredTrackKey = trackKey;
 

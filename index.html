@@ -6,6 +6,37 @@
     <meta name="description" content="Siannah e Diego convidam você para celebrar o casamento em uma noite elegante e inesquecível.">
     <meta name="theme-color" content="#1a1714">
     <title>Siannah & Diego - Casamento</title>
+    <script>
+        (function () {
+            var invitationStarted = false;
+            var navigationTarget = null;
+
+            try {
+                invitationStarted = window.sessionStorage.getItem('wedding-invitation-started') === 'true';
+            } catch (error) {
+                invitationStarted = false;
+            }
+
+            try {
+                navigationTarget = new URL(window.location.href).searchParams.get('section');
+            } catch (error) {
+                navigationTarget = null;
+            }
+
+            if ('scrollRestoration' in window.history) {
+                window.history.scrollRestoration = 'manual';
+            }
+
+            window.__INVITATION_BOOTSTRAP__ = {
+                navigationTarget: navigationTarget,
+                shouldSkipIntro: invitationStarted || Boolean(navigationTarget) || window.location.hash === '#gift'
+            };
+
+            if (window.__INVITATION_BOOTSTRAP__.shouldSkipIntro) {
+                document.documentElement.classList.add('skip-intro');
+            }
+        })();
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond&family=Jost&family=Great+Vibes&family=Allura&family=Parisienne&family=Pinyon+Script&family=Rouge+Script&family=Tangerine:wght@400;700&display=swap" rel="stylesheet">

@@ -6,6 +6,7 @@ import { AudioController } from './audio.js';
 
 const SITE_CONFIG_URL = 'assets/config/site.json';
 const INVITATION_STARTED_STORAGE_KEY = 'wedding-invitation-started';
+const NAVIGATION_SECTION_PARAM = 'section';
 
 // Para trocar o tema, altere apenas esta constante.
 // Temas disponíveis: classic-gold.json, classic-silver.json
@@ -303,6 +304,15 @@ function isMobileViewport() {
     return window.matchMedia('(max-width: 767px)').matches;
 }
 
+function getBootstrapNavigationState() {
+    const bootstrapState = window.__INVITATION_BOOTSTRAP__ ?? {};
+
+    return {
+        shouldSkipIntro: Boolean(bootstrapState.shouldSkipIntro),
+        navigationTarget: bootstrapState.navigationTarget || null
+    };
+}
+
 // Resolve o tema final aplicando overrides de mobile quando necessário.
 function resolveTheme(theme) {
     if (!isMobileViewport() || !theme.responsive?.mobile) {
@@ -573,9 +583,10 @@ async function loadTheme(themePath) {
 }
 
 class InvitationExperience {
-    constructor(config, theme) {
+    constructor(config, theme, navigationState = {}) {
         this.config = config;
         this.theme = theme;
+        this.navigationState = navigationState;
         this.weddingApp = null;
         this.countdown = null;
         this.rsvp = null;
@@ -607,7 +618,6 @@ class InvitationExperience {
         this.bindGiftOverlay();
         this.bindAudioToggle();
         this.bindKeyboardShortcuts();
-        this.bindPageLifecycle();
         this.audio.addEventListener('statechange', () => this.syncAudioButton());
         this.syncAudioButton();
 
@@ -616,8 +626,12 @@ class InvitationExperience {
             return;
         }
 
-        if (!this.introScreen || !this.openInviteButton || window.location.hash || this.wasInvitationStarted()) {
-            this.enterInvitation({ skipIntro: true });
+        if (!this.introScreen || !this.openInviteButton || this.navigationState.shouldSkipIntro || this.wasInvitationStarted()) {
+            this.enterInvitation({
+                skipIntro: true,
+                targetSection: this.navigationState.navigationTarget,
+                forceTop: !this.navigationState.navigationTarget && window.location.hash !== '#gift'
+            });
         }
     }
 
@@ -626,7 +640,11 @@ class InvitationExperience {
             return;
         }
 
-        this.openInviteButton.addEventListener('click', () => this.enterInvitation());
+        this.openInviteButton.addEventListener('click', () => {
+            const initialContext = this.getInitialAudioContext();
+            const audioPromise = this.audio.startFromGesture(initialContext);
+            this.enterInvitation({ audioPromise });
+        });
     }
 
     bindGiftOverlay() {
@@ -661,14 +679,6 @@ class InvitationExperience {
         });
     }
 
-    bindPageLifecycle() {
-        window.addEventListener('pageshow', () => {
-            if (window.location.hash || this.wasInvitationStarted()) {
-                this.enterInvitation({ skipIntro: true });
-            }
-        });
-    }
-
     initializeMainSite() {
         if (this.mainInitialized) {
             return;
@@ -692,9 +702,15 @@ class InvitationExperience {
         window.addEventListener('beforeunload', () => this.countdown?.stop(), { once: true });
     }
 
-    async enterInvitation({ skipIntro = false } = {}) {
+    getInitialAudioContext() {
+        const isGiftOrExtraPage = document.body.classList.contains('gift-page') || document.body.classList.contains('extra-page');
+        return isGiftOrExtraPage ? 'gift' : 'main';
+    }
+
+    async enterInvitation({ skipIntro = false, targetSection = null, forceTop = false, audioPromise = null } = {}) {
         if (this.hasStarted) {
             this.applyStartedState({ skipIntro: true });
+            this.navigateWithinInvitation({ targetSection, forceTop });
             return;
         }
 
@@ -703,19 +719,62 @@ class InvitationExperience {
         this.applyStartedState({ skipIntro });
 
         this.initializeMainSite();
-        const isGiftOrExtraPage = document.body.classList.contains('gift-page') || document.body.classList.contains('extra-page');
-        await this.audio.unlock();
-        await this.audio.setContext(isGiftOrExtraPage ? 'gift' : 'main');
+        if (audioPromise) {
+            await audioPromise;
+        } else {
+            await this.audio.unlock();
+            await this.audio.setContext(this.getInitialAudioContext());
+        }
+
         this.syncAudioButton();
 
+        this.navigateWithinInvitation({ targetSection, forceTop });
+    }
+
+    navigateWithinInvitation({ targetSection = null, forceTop = false } = {}) {
         const hash = window.location.hash;
+
         if (hash === '#gift') {
             window.setTimeout(() => this.openGiftOverlay(), 420);
-        } else if (hash) {
+            return;
+        }
+
+        if (targetSection) {
+            this.scrollToSection(targetSection);
+            return;
+        }
+
+        if (forceTop || !hash) {
+            window.requestAnimationFrame(() => {
+                window.scrollTo({ top: 0, left: 0 });
+            });
+            return;
+        }
+
+        if (hash) {
             window.setTimeout(() => {
                 document.querySelector(hash)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }, 420);
         }
+    }
+
+    scrollToSection(sectionId) {
+        window.setTimeout(() => {
+            document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            this.clearNavigationTarget();
+        }, 420);
+    }
+
+    clearNavigationTarget() {
+        const url = new URL(window.location.href);
+
+        if (!url.searchParams.has(NAVIGATION_SECTION_PARAM)) {
+            return;
+        }
+
+        url.searchParams.delete(NAVIGATION_SECTION_PARAM);
+        window.history.replaceState({}, '', `${url.pathname}${url.search}${url.hash}`);
+        this.navigationState.navigationTarget = null;
     }
 
     applyStartedState({ skipIntro = false } = {}) {
@@ -1076,10 +1135,11 @@ async function bootstrap() {
     try {
         const [config, theme] = await Promise.all([loadConfig(), loadTheme(ACTIVE_THEME_PATH)]);
         const effectiveTheme = resolveTheme(theme);
+        const navigationState = getBootstrapNavigationState();
         window.CONFIG = config;
         window.THEME = effectiveTheme;
         applyTheme(effectiveTheme);
-        const experience = new InvitationExperience(config, effectiveTheme);
+        const experience = new InvitationExperience(config, effectiveTheme, navigationState);
         experience.init();
         window.dispatchEvent(new CustomEvent('app:ready', { detail: { config, theme: effectiveTheme } }));
     } catch (error) {
