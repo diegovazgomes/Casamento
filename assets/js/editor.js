@@ -180,7 +180,44 @@ function normalizeListCollections(root) {
   ensureArrayPath(root, 'pages.hospedagem.content.restaurants');
 }
 
+function isValidHttpUrl(value) {
+  try {
+    const parsed = new URL(value);
+    return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+  } catch {
+    return false;
+  }
+}
+
+function collectInvalidAccommodationLinks() {
+  const invalid = [];
+  const hotels = config?.pages?.hospedagem?.content?.hotels ?? [];
+  const restaurants = config?.pages?.hospedagem?.content?.restaurants ?? [];
+
+  hotels.forEach((item, i) => {
+    const link = String(item?.link ?? '').trim();
+    if (link && !isValidHttpUrl(link)) {
+      invalid.push(`Hotel ${i + 1}: ${link}`);
+    }
+  });
+
+  restaurants.forEach((item, i) => {
+    const link = String(item?.link ?? '').trim();
+    if (link && !isValidHttpUrl(link)) {
+      invalid.push(`Restaurante ${i + 1}: ${link}`);
+    }
+  });
+
+  return invalid;
+}
+
 function exportJson() {
+  const invalidLinks = collectInvalidAccommodationLinks();
+  if (invalidLinks.length > 0) {
+    alert(`Existem links inválidos em Hospedagem. Use URLs completas com http:// ou https://.\n\n${invalidLinks.join('\n')}`);
+    return;
+  }
+
   const json = JSON.stringify(config, null, 2);
   const blob = new Blob([json], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
@@ -196,7 +233,7 @@ function exportJson() {
 
 // ── Field templates (return HTML strings) ─────────────────────────────────────
 
-function fieldInput({ label, path, placeholder = '', hint = '' }) {
+function fieldInput({ label, path, placeholder = '', hint = '', inputType = 'text' }) {
   const val = esc(getPath(config, path));
   return `
     <div class="ed-field">
@@ -204,7 +241,7 @@ function fieldInput({ label, path, placeholder = '', hint = '' }) {
         ${esc(label)}
         ${hint ? `<span class="ed-hint">${esc(hint)}</span>` : ''}
       </label>
-      <input class="ed-input" type="text" data-path="${path}"
+      <input class="ed-input" type="${esc(inputType)}" data-path="${path}"
         value="${val}" placeholder="${esc(placeholder)}">
     </div>`;
 }
@@ -237,16 +274,18 @@ function typographyLinkedCard({
   textLabel = 'Texto',
   textPlaceholder = '',
   textMultiline = false,
+  textInputType = 'text',
   sizePath,
   sizePlaceholder,
   sizeHint = 'Ex: 13px, 2rem, clamp(...)',
   fontPath,
   fontPlaceholder,
   fontHint = "Fonte compartilhada por outros textos deste mesmo grupo.",
+  showTypographyControls = true,
 }) {
   const sampleText = getPath(config, samplePath) || sampleFallback;
-  const currentSize = getPath(config, sizePath);
-  const currentFont = getPath(config, fontPath);
+  const currentSize = showTypographyControls ? getPath(config, sizePath) : '';
+  const currentFont = showTypographyControls ? getPath(config, fontPath) : '';
 
   return `
     <div class="ed-typo-card">
@@ -257,16 +296,17 @@ function typographyLinkedCard({
       <p class="ed-typo-card-hint">${esc(sampleHint)}</p>
       ${textMultiline
         ? fieldTextarea({ label: textLabel, path: samplePath, placeholder: textPlaceholder })
-        : fieldInput({ label: textLabel, path: samplePath, placeholder: textPlaceholder })}
+        : fieldInput({ label: textLabel, path: samplePath, placeholder: textPlaceholder, inputType: textInputType })}
       <div
         class="ed-typo-preview"
         data-sample-path="${esc(samplePath)}"
         data-sample-fallback="${esc(sampleFallback)}"
-        data-size-path="${esc(sizePath)}"
-        data-font-path="${esc(fontPath)}"
+        data-size-path="${esc(showTypographyControls ? sizePath : '')}"
+        data-font-path="${esc(showTypographyControls ? fontPath : '')}"
         style="${currentSize ? `font-size:${esc(currentSize)};` : ''}${currentFont ? `font-family:${esc(currentFont)};` : ''}">
         ${esc(sampleText)}
       </div>
+      ${showTypographyControls ? `
       <div class="ed-fields-grid">
         ${fieldInput({
           label: 'Tamanho',
@@ -280,7 +320,7 @@ function typographyLinkedCard({
           placeholder: fontPlaceholder,
           hint: fontHint,
         })}
-      </div>
+      </div>` : ''}
     </div>`;
 }
 
@@ -823,6 +863,33 @@ function buildHospedagemMappings(hotels, restaurants) {
       fontPath: 'themeOverrides.typography.fonts.primary',
       fontPlaceholder: "'Jost', sans-serif",
     },
+    {
+      title: `Hospedagem - Hotel ${i + 1} (link)` ,
+      samplePath: `pages.hospedagem.content.hotels.${i}.link`,
+      sampleFallback: item.link || '',
+      sampleHint: 'URL de destino do botão. Deixe vazio para ocultar o botão no site.',
+      textLabel: 'Link do hotel',
+      textPlaceholder: 'https://exemplo.com',
+      textInputType: 'url',
+      showTypographyControls: false,
+      sizePath: '',
+      sizePlaceholder: '',
+      fontPath: '',
+      fontPlaceholder: '',
+    },
+    {
+      title: `Hospedagem - Hotel ${i + 1} (texto do botão)` ,
+      samplePath: `pages.hospedagem.content.hotels.${i}.linkLabel`,
+      sampleFallback: item.linkLabel || 'Ver hotel',
+      sampleHint: 'Texto exibido no botão de redirecionamento.',
+      textLabel: 'Texto do botão',
+      textPlaceholder: 'Ver hotel',
+      showTypographyControls: false,
+      sizePath: '',
+      sizePlaceholder: '',
+      fontPath: '',
+      fontPlaceholder: '',
+    },
   ]));
 
   const restaurantMappings = restaurants.flatMap((item, i) => ([
@@ -850,6 +917,33 @@ function buildHospedagemMappings(hotels, restaurants) {
       sizePlaceholder: '13px',
       fontPath: 'themeOverrides.typography.fonts.primary',
       fontPlaceholder: "'Jost', sans-serif",
+    },
+    {
+      title: `Hospedagem - Restaurante ${i + 1} (link)` ,
+      samplePath: `pages.hospedagem.content.restaurants.${i}.link`,
+      sampleFallback: item.link || '',
+      sampleHint: 'URL de destino do botão. Deixe vazio para ocultar o botão no site.',
+      textLabel: 'Link do restaurante',
+      textPlaceholder: 'https://maps.google.com/...',
+      textInputType: 'url',
+      showTypographyControls: false,
+      sizePath: '',
+      sizePlaceholder: '',
+      fontPath: '',
+      fontPlaceholder: '',
+    },
+    {
+      title: `Hospedagem - Restaurante ${i + 1} (texto do botão)` ,
+      samplePath: `pages.hospedagem.content.restaurants.${i}.linkLabel`,
+      sampleFallback: item.linkLabel || 'Ver no Maps',
+      sampleHint: 'Texto exibido no botão de redirecionamento.',
+      textLabel: 'Texto do botão',
+      textPlaceholder: 'Ver no Maps',
+      showTypographyControls: false,
+      sizePath: '',
+      sizePlaceholder: '',
+      fontPath: '',
+      fontPlaceholder: '',
     },
   ]));
 

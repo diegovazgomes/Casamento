@@ -1,5 +1,5 @@
 {
-  "activeTheme": "assets/config/themes/classic-silver-light.json",
+  "activeTheme": "assets/config/themes/classic-purple.json",
   "themeFiles": [
     "assets/config/themes/classic-gold.json",
     "assets/config/themes/classic-gold-light.json",
@@ -151,9 +151,9 @@
         "hotelsTitle": "Hospedagem",
         "hotels": [
           {
-            "name": "Hotel Exemplo 1",
-            "description": "A 5 minutos do local. Café da manhã incluído.",
-            "link": "",
+            "name": "Pampas Palace Hotel",
+            "description": "A 10 minutos do local. Café da manhã incluído.",
+            "link": "https://www.pampaspalacehotel.com.br/",
             "linkLabel": "Ver hotel"
           },
           {
@@ -166,10 +166,10 @@
         "restaurantsTitle": "Restaurantes",
         "restaurants": [
           {
-            "name": "Restaurante Exemplo 1",
-            "description": "Ótima opção para o almoço do dia anterior.",
-            "link": "",
-            "linkLabel": "Ver no Maps"
+            "name": "Raphaela Bolos",
+            "description": "Melhor ovo de Páscoa da América Latina",
+            "link": "https://raphaconfeitaria.menudino.com/",
+            "linkLabel": "Ver na web"
           },
           {
             "name": "",
