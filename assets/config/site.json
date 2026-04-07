@@ -60,6 +60,9 @@
     "giftCardTitle": "Pagamento por cartão",
     "giftCardBody": "Em breve, esta opção estará disponível.",
     "giftCardPlaceholder": "Espaço reservado para inserir o link ou a plataforma de pagamento por cartão.",
+    "backToExtrasButton": "Voltar para \"Tem + para você\"",
+    "giftOverlayCloseButton": "Fechar",
+    "giftOverlayBackButton": "Voltar para confirmação",
     "footerNote": "06 . 09 . 2026 | São Bernardo do Campo"
   },
   "gift": {

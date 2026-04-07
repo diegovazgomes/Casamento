@@ -251,6 +251,9 @@ const DEFAULT_SITE_CONTENT = {
         giftCardTitle: 'Pagamento por cartão',
         giftCardBody: 'Em breve, esta opção estará disponível.',
         giftCardPlaceholder: 'Espaço reservado para inserir o link ou a plataforma de pagamento por cartão.',
+        backToExtrasButton: 'Voltar para "Tem mais para você"',
+        giftOverlayCloseButton: 'Fechar',
+        giftOverlayBackButton: 'Voltar para confirmação',
         footerNote: '06 . 09 . 2026 | São Bernardo do Campo'
     },
     gift: {
@@ -1051,6 +1054,9 @@ class InvitationExperience {
         this.setText('btn-yes', this.config.texts?.rsvpYesLabel);
         this.setText('btn-no', this.config.texts?.rsvpNoLabel);
         this.setText('rsvpSubmit', this.config.texts?.rsvpSubmit);
+        this.setText('backToExtrasButton', this.config.texts?.backToExtrasButton);
+        this.setText('giftOverlayCloseButton', this.config.texts?.giftOverlayCloseButton);
+        this.setText('giftOverlayBackButton', this.config.texts?.giftOverlayBackButton);
 
         this.setText('detailGiftValue', this.config.texts?.detailsGiftValue);
         this.setText('detailGiftSub', this.config.texts?.detailsGiftSub);
