@@ -319,6 +319,60 @@
       margin-bottom: 10px;
     }
 
+    .ed-typo-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+    }
+
+    .ed-typo-card {
+      border: 1px solid #e5ddd4;
+      border-radius: 10px;
+      background: #faf6f1;
+      padding: 14px;
+    }
+
+    .ed-typo-card-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 4px;
+    }
+
+    .ed-typo-card-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #3a302c;
+    }
+
+    .ed-typo-card-path {
+      font-size: 11px;
+      color: #9a8e88;
+    }
+
+    .ed-typo-card-hint {
+      font-size: 12px;
+      color: #7a6e68;
+      margin-bottom: 10px;
+    }
+
+    .ed-typo-preview {
+      border: 1px dashed #d9d0c8;
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 12px;
+      color: #2a2420;
+      background: #fffdf9;
+      line-height: 1.5;
+      min-height: 54px;
+    }
+
+    .ed-typo-card .ed-fields-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      margin-bottom: 0;
+    }
+
     .ed-label {
       display: flex;
       flex-direction: column;
@@ -591,6 +645,7 @@
       .ed-group { padding: 18px; }
       .ed-fields-row { grid-template-columns: 80px 1fr; }
       .ed-fields-grid { grid-template-columns: 1fr; }
+      .ed-typo-card-head { flex-direction: column; align-items: flex-start; }
       .import-card { padding: 36px 24px; }
       .ed-theme-grid { grid-template-columns: 1fr; }
     }

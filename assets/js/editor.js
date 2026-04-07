@@ -136,6 +136,458 @@ function fieldTextarea({ label, path, placeholder = '', hint = '', tall = false 
     </div>`;
 }
 
+function typographyLinkedCard({
+  title,
+  samplePath,
+  sampleFallback,
+  sampleHint,
+  sizePath,
+  sizePlaceholder,
+  fontPath,
+  fontPlaceholder,
+}) {
+  const sampleText = getPath(config, samplePath) || sampleFallback;
+  const currentSize = getPath(config, sizePath);
+  const currentFont = getPath(config, fontPath);
+
+  return `
+    <div class="ed-typo-card">
+      <div class="ed-typo-card-head">
+        <h4 class="ed-typo-card-title">${esc(title)}</h4>
+        <span class="ed-typo-card-path">Texto de: ${esc(samplePath)}</span>
+      </div>
+      <p class="ed-typo-card-hint">${esc(sampleHint)}</p>
+      <div class="ed-typo-preview" style="${currentSize ? `font-size:${esc(currentSize)};` : ''}${currentFont ? `font-family:${esc(currentFont)};` : ''}">
+        ${esc(sampleText)}
+      </div>
+      <div class="ed-fields-grid">
+        ${fieldInput({
+          label: 'Tamanho',
+          path: sizePath,
+          placeholder: sizePlaceholder,
+          hint: 'Ex: 13px, 2rem, clamp(...)',
+        })}
+        ${fieldInput({
+          label: 'Fonte',
+          path: fontPath,
+          placeholder: fontPlaceholder,
+          hint: "Ex: 'Jost', sans-serif",
+        })}
+      </div>
+    </div>`;
+}
+
+function renderLinkedTypographyEditor({ title, hint, mappings }) {
+  return group(title, `
+    <p class="ed-theme-hint">${esc(hint)}</p>
+    <div class="ed-typo-grid">
+      ${mappings.map((item) => typographyLinkedCard(item)).join('')}
+    </div>
+  `);
+}
+
+const TYPOGRAPHY_LINKED_TEXTOS = [
+  {
+    title: 'Label de entrada',
+    samplePath: 'texts.introLabel',
+    sampleFallback: 'Convite',
+    sampleHint: 'Pequena tag da tela inicial.',
+    sizePath: 'themeOverrides.typography.sizes.sectionTag',
+    sizePlaceholder: '9px',
+    fontPath: 'themeOverrides.typography.fonts.primary',
+    fontPlaceholder: "'Jost', sans-serif",
+  },
+  {
+    title: 'Texto de introdução',
+    samplePath: 'texts.intro',
+    sampleFallback: 'Um momento pensado para viver ao lado de quem faz parte da nossa vida.',
+    sampleHint: 'Texto principal antes de abrir o convite.',
+    sizePath: 'themeOverrides.typography.sizes.sectionBody',
+    sizePlaceholder: '13px',
+    fontPath: 'themeOverrides.typography.fonts.primary',
+    fontPlaceholder: "'Jost', sans-serif",
+  },
+  {
+    title: 'Chamada do Hero',
+    samplePath: 'texts.heroLabel',
+    sampleFallback: 'Você foi convidado para o casamento de',
+    sampleHint: 'Linha acima do nome do casal na capa.',
+    sizePath: 'themeOverrides.typography.sizes.heroLabel',
+    sizePlaceholder: '10px',
+    fontPath: 'themeOverrides.typography.fonts.primary',
+    fontPlaceholder: "'Jost', sans-serif",
+  },
+  {
+    title: 'Tag da contagem',
+    samplePath: 'texts.countdownTag',
+    sampleFallback: 'Contagem Regressiva',
+    sampleHint: 'Etiqueta acima da seção de contagem.',
+    sizePath: 'themeOverrides.typography.sizes.sectionTag',
+    sizePlaceholder: '9px',
+    fontPath: 'themeOverrides.typography.fonts.primary',
+    fontPlaceholder: "'Jost', sans-serif",
+  },
+  {
+    title: 'Título da contagem',
+    samplePath: 'texts.countdownTitle',
+    sampleFallback: 'O grande dia se aproxima!',
+    sampleHint: 'Título principal da seção de contagem.',
+    sizePath: 'themeOverrides.typography.sizes.sectionTitle.max',
+    sizePlaceholder: '56px',
+    fontPath: 'themeOverrides.typography.fonts.serif',
+    fontPlaceholder: "'Cormorant Garamond', serif",
+  },
+  {
+    title: 'Mensagem final da contagem',
+    samplePath: 'texts.countdownFinished',
+    sampleFallback: 'O grande dia chegou.',
+    sampleHint: 'Texto exibido quando a contagem termina.',
+    sizePath: 'themeOverrides.typography.sizes.countdownFinished',
+    sizePlaceholder: '30px',
+    fontPath: 'themeOverrides.typography.fonts.serif',
+    fontPlaceholder: "'Cormorant Garamond', serif",
+  },
+  {
+    title: 'Tag de detalhes',
+    samplePath: 'texts.detailsTag',
+    sampleFallback: 'Detalhes da Cerimônia',
+    sampleHint: 'Etiqueta da seção de detalhes.',
+    sizePath: 'themeOverrides.typography.sizes.sectionTag',
+    sizePlaceholder: '9px',
+    fontPath: 'themeOverrides.typography.fonts.primary',
+    fontPlaceholder: "'Jost', sans-serif",
+  },
+  {
+    title: 'Título de detalhes',
+    samplePath: 'texts.detailsTitle',
+    sampleFallback: 'O início de tudo o que queremos viver juntos.',
+    sampleHint: 'Título grande da seção de detalhes.',
+    sizePath: 'themeOverrides.typography.sizes.sectionTitle.max',
+    sizePlaceholder: '56px',
+    fontPath: 'themeOverrides.typography.fonts.serif',
+    fontPlaceholder: "'Cormorant Garamond', serif",
+  },
+  {
+    title: 'Introdução de detalhes',
+    samplePath: 'texts.detailsIntro',
+    sampleFallback: 'Uma celebração íntima, pensada para compartilhar esse momento com quem faz parte da nossa história.',
+    sampleHint: 'Parágrafo explicativo da cerimônia.',
+    sizePath: 'themeOverrides.typography.sizes.sectionBody',
+    sizePlaceholder: '13px',
+    fontPath: 'themeOverrides.typography.fonts.primary',
+    fontPlaceholder: "'Jost', sans-serif",
+  },
+  {
+    title: 'Valor da ocasião',
+    samplePath: 'texts.detailsOccasionValue',
+    sampleFallback: 'Cerimônia & Recepção',
+    sampleHint: 'Texto de destaque no card de ocasião.',
+    sizePath: 'themeOverrides.typography.sizes.detailValue',
+    sizePlaceholder: '20px',
+    fontPath: 'themeOverrides.typography.fonts.serif',
+    fontPlaceholder: "'Cormorant Garamond', serif",
+  },
+  {
+    title: 'Subtexto da ocasião',
+    samplePath: 'texts.detailsOccasionSub',
+    sampleFallback: 'Traje esporte fino',
+    sampleHint: 'Texto complementar no card de ocasião.',
+    sizePath: 'themeOverrides.typography.sizes.detailSub',
+    sizePlaceholder: '10px',
+    fontPath: 'themeOverrides.typography.fonts.primary',
+    fontPlaceholder: "'Jost', sans-serif",
+  },
+  {
+    title: 'Tag do RSVP',
+    samplePath: 'texts.rsvpTag',
+    sampleFallback: 'Confirmação de Presença',
+    sampleHint: 'Etiqueta da seção de confirmação.',
+    sizePath: 'themeOverrides.typography.sizes.sectionTag',
+    sizePlaceholder: '9px',
+    fontPath: 'themeOverrides.typography.fonts.primary',
+    fontPlaceholder: "'Jost', sans-serif",
+  },
+  {
+    title: 'Título RSVP',
+    samplePath: 'texts.rsvpTitle',
+    sampleFallback: 'Esperamos você.',
+    sampleHint: 'Título principal da confirmação de presença.',
+    sizePath: 'themeOverrides.typography.sizes.rsvpTitle',
+    sizePlaceholder: '38px',
+    fontPath: 'themeOverrides.typography.fonts.serif',
+    fontPlaceholder: "'Cormorant Garamond', serif",
+  },
+  {
+    title: 'Subtítulo RSVP',
+    samplePath: 'texts.rsvpSubtitle',
+    sampleFallback: 'Pedimos, por gentileza, que confirme sua presença o quanto antes.',
+    sampleHint: 'Texto explicativo do RSVP.',
+    sizePath: 'themeOverrides.typography.sizes.rsvpSubtitle',
+    sizePlaceholder: '11px',
+    fontPath: 'themeOverrides.typography.fonts.primary',
+    fontPlaceholder: "'Jost', sans-serif",
+  },
+  {
+    title: 'Título do formulário RSVP',
+    samplePath: 'texts.rsvpFormTitle',
+    sampleFallback: 'Confirmar Presença',
+    sampleHint: 'Título no card do formulário.',
+    sizePath: 'themeOverrides.typography.sizes.detailValue',
+    sizePlaceholder: '20px',
+    fontPath: 'themeOverrides.typography.fonts.serif',
+    fontPlaceholder: "'Cormorant Garamond', serif",
+  },
+  {
+    title: 'Subtítulo do formulário RSVP',
+    samplePath: 'texts.rsvpFormSubtitle',
+    sampleFallback: 'Preencha os dados para continuar no WhatsApp',
+    sampleHint: 'Linha de apoio acima dos inputs.',
+    sizePath: 'themeOverrides.typography.sizes.rsvpSubtitle',
+    sizePlaceholder: '11px',
+    fontPath: 'themeOverrides.typography.fonts.primary',
+    fontPlaceholder: "'Jost', sans-serif",
+  },
+  {
+    title: 'Placeholder nome (RSVP)',
+    samplePath: 'texts.rsvpPlaceholderName',
+    sampleFallback: 'Seu nome completo',
+    sampleHint: 'Texto de placeholder do campo nome.',
+    sizePath: 'themeOverrides.typography.sizes.rsvpInput',
+    sizePlaceholder: '12px',
+    fontPath: 'themeOverrides.typography.fonts.primary',
+    fontPlaceholder: "'Jost', sans-serif",
+  },
+  {
+    title: 'Placeholder telefone (RSVP)',
+    samplePath: 'texts.rsvpPlaceholderPhone',
+    sampleFallback: 'Seu WhatsApp',
+    sampleHint: 'Texto de placeholder do campo telefone.',
+    sizePath: 'themeOverrides.typography.sizes.rsvpInput',
+    sizePlaceholder: '12px',
+    fontPath: 'themeOverrides.typography.fonts.primary',
+    fontPlaceholder: "'Jost', sans-serif",
+  },
+  {
+    title: 'Botão confirmar presença',
+    samplePath: 'texts.rsvpYesLabel',
+    sampleFallback: 'Confirmo presença',
+    sampleHint: 'Rótulo da opção positiva.',
+    sizePath: 'themeOverrides.typography.sizes.rsvpChoice',
+    sizePlaceholder: '10px',
+    fontPath: 'themeOverrides.typography.fonts.primary',
+    fontPlaceholder: "'Jost', sans-serif",
+  },
+  {
+    title: 'Botão não poderei ir',
+    samplePath: 'texts.rsvpNoLabel',
+    sampleFallback: 'Não poderei ir',
+    sampleHint: 'Rótulo da opção negativa.',
+    sizePath: 'themeOverrides.typography.sizes.rsvpChoice',
+    sizePlaceholder: '10px',
+    fontPath: 'themeOverrides.typography.fonts.primary',
+    fontPlaceholder: "'Jost', sans-serif",
+  },
+  {
+    title: 'Botão enviar RSVP',
+    samplePath: 'texts.rsvpSubmit',
+    sampleFallback: 'Continuar no WhatsApp',
+    sampleHint: 'Texto do botão de envio do formulário.',
+    sizePath: 'themeOverrides.typography.sizes.rsvpSubmit',
+    sizePlaceholder: '10px',
+    fontPath: 'themeOverrides.typography.fonts.primary',
+    fontPlaceholder: "'Jost', sans-serif",
+  },
+  {
+    title: 'Nota do rodapé',
+    samplePath: 'texts.footerNote',
+    sampleFallback: '06 . 09 . 2026 | São Bernardo do Campo',
+    sampleHint: 'Linha final abaixo dos nomes no rodapé.',
+    sizePath: 'themeOverrides.typography.sizes.footerNote',
+    sizePlaceholder: '10px',
+    fontPath: 'themeOverrides.typography.fonts.primary',
+    fontPlaceholder: "'Jost', sans-serif",
+  },
+];
+
+const TYPOGRAPHY_LINKED_FAQ = [
+  {
+    title: 'FAQ - Tag',
+    samplePath: 'pages.faq.content.tag',
+    sampleFallback: 'FAQ',
+    sampleHint: 'Etiqueta superior da página de FAQ.',
+    sizePath: 'themeOverrides.typography.sizes.sectionTag',
+    sizePlaceholder: '9px',
+    fontPath: 'themeOverrides.typography.fonts.primary',
+    fontPlaceholder: "'Jost', sans-serif",
+  },
+  {
+    title: 'FAQ - Título da página',
+    samplePath: 'pages.faq.content.title',
+    sampleFallback: 'Tudo que você precisa saber',
+    sampleHint: 'Título principal da página FAQ.',
+    sizePath: 'themeOverrides.typography.sizes.sectionTitle.max',
+    sizePlaceholder: '56px',
+    fontPath: 'themeOverrides.typography.fonts.serif',
+    fontPlaceholder: "'Cormorant Garamond', serif",
+  },
+  {
+    title: 'FAQ - Introdução',
+    samplePath: 'pages.faq.content.intro',
+    sampleFallback: 'Reunimos as perguntas mais frequentes para facilitar o seu preparo.',
+    sampleHint: 'Parágrafo de abertura da FAQ.',
+    sizePath: 'themeOverrides.typography.sizes.sectionBody',
+    sizePlaceholder: '13px',
+    fontPath: 'themeOverrides.typography.fonts.primary',
+    fontPlaceholder: "'Jost', sans-serif",
+  },
+  {
+    title: 'FAQ - Primeira pergunta',
+    samplePath: 'pages.faq.content.items.0.question',
+    sampleFallback: 'Qual é o dress code?',
+    sampleHint: 'Exemplo de pergunta dentro dos cards.',
+    sizePath: 'themeOverrides.typography.sizes.detailValue',
+    sizePlaceholder: '20px',
+    fontPath: 'themeOverrides.typography.fonts.serif',
+    fontPlaceholder: "'Cormorant Garamond', serif",
+  },
+  {
+    title: 'FAQ - Primeira resposta',
+    samplePath: 'pages.faq.content.items.0.answer',
+    sampleFallback: 'Esporte fino. Pedimos gentilmente que evitem roupas brancas.',
+    sampleHint: 'Exemplo de resposta dentro dos cards.',
+    sizePath: 'themeOverrides.typography.sizes.sectionBody',
+    sizePlaceholder: '13px',
+    fontPath: 'themeOverrides.typography.fonts.primary',
+    fontPlaceholder: "'Jost', sans-serif",
+  },
+];
+
+const TYPOGRAPHY_LINKED_HISTORIA = [
+  {
+    title: 'História - Tag',
+    samplePath: 'pages.historia.content.tag',
+    sampleFallback: 'Nossa História',
+    sampleHint: 'Etiqueta superior da página.',
+    sizePath: 'themeOverrides.typography.sizes.sectionTag',
+    sizePlaceholder: '9px',
+    fontPath: 'themeOverrides.typography.fonts.primary',
+    fontPlaceholder: "'Jost', sans-serif",
+  },
+  {
+    title: 'História - Título da página',
+    samplePath: 'pages.historia.content.title',
+    sampleFallback: 'Como tudo começou',
+    sampleHint: 'Título principal da página.',
+    sizePath: 'themeOverrides.typography.sizes.sectionTitle.max',
+    sizePlaceholder: '56px',
+    fontPath: 'themeOverrides.typography.fonts.serif',
+    fontPlaceholder: "'Cormorant Garamond', serif",
+  },
+  {
+    title: 'História - Introdução',
+    samplePath: 'pages.historia.content.intro',
+    sampleFallback: 'Uma história que é nossa, e que a partir de setembro passa a ser de vocês também.',
+    sampleHint: 'Parágrafo de abertura da página.',
+    sizePath: 'themeOverrides.typography.sizes.sectionBody',
+    sizePlaceholder: '13px',
+    fontPath: 'themeOverrides.typography.fonts.primary',
+    fontPlaceholder: "'Jost', sans-serif",
+  },
+  {
+    title: 'História - Primeiro capítulo (título)',
+    samplePath: 'pages.historia.content.chapters.0.title',
+    sampleFallback: 'O primeiro encontro',
+    sampleHint: 'Título de um capítulo da linha do tempo.',
+    sizePath: 'themeOverrides.typography.sizes.detailValue',
+    sizePlaceholder: '20px',
+    fontPath: 'themeOverrides.typography.fonts.serif',
+    fontPlaceholder: "'Cormorant Garamond', serif",
+  },
+  {
+    title: 'História - Primeiro capítulo (texto)',
+    samplePath: 'pages.historia.content.chapters.0.text',
+    sampleFallback: 'Essa história começou em junho de 2013...',
+    sampleHint: 'Texto corrido dos capítulos.',
+    sizePath: 'themeOverrides.typography.sizes.sectionBody',
+    sizePlaceholder: '13px',
+    fontPath: 'themeOverrides.typography.fonts.primary',
+    fontPlaceholder: "'Jost', sans-serif",
+  },
+];
+
+const TYPOGRAPHY_LINKED_HOSPEDAGEM = [
+  {
+    title: 'Hospedagem - Tag',
+    samplePath: 'pages.hospedagem.content.tag',
+    sampleFallback: 'Para Quem Vem de Fora',
+    sampleHint: 'Etiqueta superior da página.',
+    sizePath: 'themeOverrides.typography.sizes.sectionTag',
+    sizePlaceholder: '9px',
+    fontPath: 'themeOverrides.typography.fonts.primary',
+    fontPlaceholder: "'Jost', sans-serif",
+  },
+  {
+    title: 'Hospedagem - Título da página',
+    samplePath: 'pages.hospedagem.content.title',
+    sampleFallback: 'Fique à vontade para explorar',
+    sampleHint: 'Título principal da página.',
+    sizePath: 'themeOverrides.typography.sizes.sectionTitle.max',
+    sizePlaceholder: '56px',
+    fontPath: 'themeOverrides.typography.fonts.serif',
+    fontPlaceholder: "'Cormorant Garamond', serif",
+  },
+  {
+    title: 'Hospedagem - Introdução',
+    samplePath: 'pages.hospedagem.content.intro',
+    sampleFallback: 'Selecionamos algumas opções próximas ao local da festa para tornar sua estadia mais fácil.',
+    sampleHint: 'Parágrafo de abertura da página.',
+    sizePath: 'themeOverrides.typography.sizes.sectionBody',
+    sizePlaceholder: '13px',
+    fontPath: 'themeOverrides.typography.fonts.primary',
+    fontPlaceholder: "'Jost', sans-serif",
+  },
+  {
+    title: 'Hospedagem - Primeiro hotel (nome)',
+    samplePath: 'pages.hospedagem.content.hotels.0.name',
+    sampleFallback: 'Hotel Exemplo 1',
+    sampleHint: 'Nome dos cards de hotel.',
+    sizePath: 'themeOverrides.typography.sizes.detailValue',
+    sizePlaceholder: '20px',
+    fontPath: 'themeOverrides.typography.fonts.serif',
+    fontPlaceholder: "'Cormorant Garamond', serif",
+  },
+  {
+    title: 'Hospedagem - Primeiro hotel (descrição)',
+    samplePath: 'pages.hospedagem.content.hotels.0.description',
+    sampleFallback: 'A 5 minutos do local. Café da manhã incluído.',
+    sampleHint: 'Descrição dos cards de hotel.',
+    sizePath: 'themeOverrides.typography.sizes.sectionBody',
+    sizePlaceholder: '13px',
+    fontPath: 'themeOverrides.typography.fonts.primary',
+    fontPlaceholder: "'Jost', sans-serif",
+  },
+  {
+    title: 'Hospedagem - Primeiro restaurante (nome)',
+    samplePath: 'pages.hospedagem.content.restaurants.0.name',
+    sampleFallback: 'Restaurante Exemplo 1',
+    sampleHint: 'Nome dos cards de restaurante.',
+    sizePath: 'themeOverrides.typography.sizes.detailValue',
+    sizePlaceholder: '20px',
+    fontPath: 'themeOverrides.typography.fonts.serif',
+    fontPlaceholder: "'Cormorant Garamond', serif",
+  },
+  {
+    title: 'Hospedagem - Primeiro restaurante (descrição)',
+    samplePath: 'pages.hospedagem.content.restaurants.0.description',
+    sampleFallback: 'Ótima opção para o almoço do dia anterior.',
+    sampleHint: 'Descrição dos cards de restaurante.',
+    sizePath: 'themeOverrides.typography.sizes.sectionBody',
+    sizePlaceholder: '13px',
+    fontPath: 'themeOverrides.typography.fonts.primary',
+    fontPlaceholder: "'Jost', sans-serif",
+  },
+];
+
 function group(title, content) {
   return `
     <div class="ed-group">
@@ -283,7 +735,11 @@ function renderTextos() {
     ${fieldInput({ label: 'Botão — enviar', path: 'texts.rsvpSubmit' })}
   `) + group('Rodapé', `
     ${fieldInput({ label: 'Nota do rodapé', path: 'texts.footerNote', placeholder: '06 . 09 . 2026 | São Bernardo do Campo' })}
-  `);
+  `) + renderLinkedTypographyEditor({
+    title: 'Fontes e Tamanhos por Texto',
+    hint: 'Aqui você vê o texto real que será afetado. Edite o texto acima na mesma aba e ajuste a tipografia abaixo.',
+    mappings: TYPOGRAPHY_LINKED_TEXTOS,
+  });
 }
 
 function renderFaq() {
@@ -299,7 +755,12 @@ function renderFaq() {
     itemsHtml: items.map((item, i) => faqItemHtml(item, i)).join(''),
     emptyText: 'Nenhuma pergunta ainda. Clique em "+ Adicionar" para começar.',
   });
-  return intro + list;
+  const typography = renderLinkedTypographyEditor({
+    title: 'Tipografia da FAQ',
+    hint: 'Mapeamento de fontes e tamanhos para os textos da página de FAQ.',
+    mappings: TYPOGRAPHY_LINKED_FAQ,
+  });
+  return intro + list + typography;
 }
 
 function renderHistoria() {
@@ -315,7 +776,12 @@ function renderHistoria() {
     itemsHtml: chapters.map((ch, i) => chapterHtml(ch, i)).join(''),
     emptyText: 'Nenhum capítulo. Clique em "+ Adicionar" para começar.',
   });
-  return intro + list;
+  const typography = renderLinkedTypographyEditor({
+    title: 'Tipografia da Nossa História',
+    hint: 'Mapeamento de fontes e tamanhos para os textos da página de história.',
+    mappings: TYPOGRAPHY_LINKED_HISTORIA,
+  });
+  return intro + list + typography;
 }
 
 function renderHospedagem() {
@@ -340,7 +806,12 @@ function renderHospedagem() {
     itemsHtml: restaurants.map((r, i) => hospItemHtml(r, i, 'restaurants')).join(''),
     emptyText: 'Nenhum restaurante cadastrado.',
   });
-  return intro + hotelList + restList;
+  const typography = renderLinkedTypographyEditor({
+    title: 'Tipografia da Hospedagem',
+    hint: 'Mapeamento de fontes e tamanhos para os textos da página de hospedagem.',
+    mappings: TYPOGRAPHY_LINKED_HOSPEDAGEM,
+  });
+  return intro + hotelList + restList + typography;
 }
 
 // ── Theme tab ─────────────────────────────────────────────────────────────────
