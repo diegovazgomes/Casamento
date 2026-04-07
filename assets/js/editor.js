@@ -29,6 +29,48 @@ function setPath(obj, path, value) {
   target[last] = value;
 }
 
+function removePath(obj, path) {
+  const keys = path.split('.');
+  const stack = [obj];
+  let current = obj;
+
+  for (const key of keys) {
+    if (!current || typeof current !== 'object' || !(key in current)) {
+      return;
+    }
+    current = current[key];
+    stack.push(current);
+  }
+
+  const leafParent = stack[stack.length - 2];
+  const leafKey = keys[keys.length - 1];
+  delete leafParent[leafKey];
+
+  for (let i = keys.length - 1; i > 0; i -= 1) {
+    const parent = stack[i - 1];
+    const key = keys[i - 1];
+    const value = parent[key];
+
+    if (value && typeof value === 'object' && !Array.isArray(value) && Object.keys(value).length === 0) {
+      delete parent[key];
+      continue;
+    }
+    break;
+  }
+}
+
+function isThemeOverridePath(path) {
+  return path.startsWith('themeOverrides.');
+}
+
+function setConfigValue(path, value) {
+  if (isThemeOverridePath(path) && String(value).trim() === '') {
+    removePath(config, path);
+    return;
+  }
+  setPath(config, path, value);
+}
+
 function esc(str) {
   return String(str ?? '')
     .replace(/&/g, '&amp;')
@@ -143,8 +185,10 @@ function typographyLinkedCard({
   sampleHint,
   sizePath,
   sizePlaceholder,
+  sizeHint = 'Ex: 13px, 2rem, clamp(...)',
   fontPath,
   fontPlaceholder,
+  fontHint = "Fonte compartilhada por outros textos deste mesmo grupo.",
 }) {
   const sampleText = getPath(config, samplePath) || sampleFallback;
   const currentSize = getPath(config, sizePath);
@@ -157,7 +201,13 @@ function typographyLinkedCard({
         <span class="ed-typo-card-path">Texto de: ${esc(samplePath)}</span>
       </div>
       <p class="ed-typo-card-hint">${esc(sampleHint)}</p>
-      <div class="ed-typo-preview" style="${currentSize ? `font-size:${esc(currentSize)};` : ''}${currentFont ? `font-family:${esc(currentFont)};` : ''}">
+      <div
+        class="ed-typo-preview"
+        data-sample-path="${esc(samplePath)}"
+        data-sample-fallback="${esc(sampleFallback)}"
+        data-size-path="${esc(sizePath)}"
+        data-font-path="${esc(fontPath)}"
+        style="${currentSize ? `font-size:${esc(currentSize)};` : ''}${currentFont ? `font-family:${esc(currentFont)};` : ''}">
         ${esc(sampleText)}
       </div>
       <div class="ed-fields-grid">
@@ -165,16 +215,68 @@ function typographyLinkedCard({
           label: 'Tamanho',
           path: sizePath,
           placeholder: sizePlaceholder,
-          hint: 'Ex: 13px, 2rem, clamp(...)',
+          hint: sizeHint,
         })}
         ${fieldInput({
-          label: 'Fonte',
+          label: 'Fonte (compartilhada)',
           path: fontPath,
           placeholder: fontPlaceholder,
-          hint: "Ex: 'Jost', sans-serif",
+          hint: fontHint,
         })}
       </div>
     </div>`;
+}
+
+function renderCoupleNamesTypography() {
+  const sampleText = getPath(config, 'couple.names') || 'Siannah & Diego';
+  const heroMax = getPath(config, 'themeOverrides.typography.sizes.heroNames.max');
+  const accentFont = getPath(config, 'themeOverrides.typography.fonts.accent');
+
+  return group('Nomes do Casal (Hero + Rodapé)', `
+    <p class="ed-theme-hint">Controle dedicado do texto ${esc('"Siannah & Diego"')} no hero e no rodapé.</p>
+    <div class="ed-typo-card">
+      <div class="ed-typo-card-head">
+        <h4 class="ed-typo-card-title">Nome do casal</h4>
+        <span class="ed-typo-card-path">Texto de: couple.names</span>
+      </div>
+      <p class="ed-typo-card-hint">Ajuste os 3 valores do hero (clamp) e o tamanho do rodapé.</p>
+      <div
+        class="ed-typo-preview"
+        data-sample-path="couple.names"
+        data-sample-fallback="Siannah & Diego"
+        data-size-path="themeOverrides.typography.sizes.heroNames.max"
+        data-font-path="themeOverrides.typography.fonts.accent"
+        style="${heroMax ? `font-size:${esc(heroMax)};` : ''}${accentFont ? `font-family:${esc(accentFont)};` : ''}">
+        ${esc(sampleText)}
+      </div>
+      ${fieldInputRow([
+        { label: 'Hero min', path: 'themeOverrides.typography.sizes.heroNames.min', placeholder: '54px', hint: 'Primeiro valor do clamp()' },
+        { label: 'Hero fluid', path: 'themeOverrides.typography.sizes.heroNames.fluid', placeholder: '12vw', hint: 'Segundo valor do clamp()' },
+        { label: 'Hero max', path: 'themeOverrides.typography.sizes.heroNames.max', placeholder: '110px', hint: 'Terceiro valor do clamp()' },
+      ])}
+      ${fieldInputRow([
+        { label: 'Rodapé nomes', path: 'themeOverrides.typography.sizes.footerNames', placeholder: '30px', hint: 'Tamanho dos nomes no rodapé' },
+        { label: 'Fonte de destaque', path: 'themeOverrides.typography.fonts.accent', placeholder: "'Great Vibes', cursive", hint: 'Fonte compartilhada entre hero e rodapé' },
+      ])}
+    </div>
+  `);
+}
+
+function refreshTypographyPreviews(root) {
+  root.querySelectorAll('.ed-typo-preview').forEach((preview) => {
+    const samplePath = preview.dataset.samplePath;
+    const sampleFallback = preview.dataset.sampleFallback ?? '';
+    const sizePath = preview.dataset.sizePath;
+    const fontPath = preview.dataset.fontPath;
+
+    const text = getPath(config, samplePath) || sampleFallback;
+    const size = sizePath ? getPath(config, sizePath) : '';
+    const font = fontPath ? getPath(config, fontPath) : '';
+
+    preview.textContent = text;
+    preview.style.fontSize = size || '';
+    preview.style.fontFamily = font || '';
+  });
 }
 
 function renderLinkedTypographyEditor({ title, hint, mappings }) {
@@ -440,27 +542,32 @@ const TYPOGRAPHY_LINKED_FAQ = [
     fontPath: 'themeOverrides.typography.fonts.primary',
     fontPlaceholder: "'Jost', sans-serif",
   },
-  {
-    title: 'FAQ - Primeira pergunta',
-    samplePath: 'pages.faq.content.items.0.question',
-    sampleFallback: 'Qual é o dress code?',
-    sampleHint: 'Exemplo de pergunta dentro dos cards.',
-    sizePath: 'themeOverrides.typography.sizes.detailValue',
-    sizePlaceholder: '20px',
-    fontPath: 'themeOverrides.typography.fonts.serif',
-    fontPlaceholder: "'Cormorant Garamond', serif",
-  },
-  {
-    title: 'FAQ - Primeira resposta',
-    samplePath: 'pages.faq.content.items.0.answer',
-    sampleFallback: 'Esporte fino. Pedimos gentilmente que evitem roupas brancas.',
-    sampleHint: 'Exemplo de resposta dentro dos cards.',
-    sizePath: 'themeOverrides.typography.sizes.sectionBody',
-    sizePlaceholder: '13px',
-    fontPath: 'themeOverrides.typography.fonts.primary',
-    fontPlaceholder: "'Jost', sans-serif",
-  },
 ];
+
+function buildFaqItemMappings(items) {
+  return items.flatMap((item, i) => ([
+    {
+      title: `FAQ - Pergunta ${i + 1}`,
+      samplePath: `pages.faq.content.items.${i}.question`,
+      sampleFallback: item.question || `Pergunta ${i + 1}`,
+      sampleHint: 'Texto da pergunta neste item da lista.',
+      sizePath: 'themeOverrides.typography.sizes.detailValue',
+      sizePlaceholder: '20px',
+      fontPath: 'themeOverrides.typography.fonts.serif',
+      fontPlaceholder: "'Cormorant Garamond', serif",
+    },
+    {
+      title: `FAQ - Resposta ${i + 1}`,
+      samplePath: `pages.faq.content.items.${i}.answer`,
+      sampleFallback: item.answer || `Resposta ${i + 1}`,
+      sampleHint: 'Texto da resposta neste item da lista.',
+      sizePath: 'themeOverrides.typography.sizes.sectionBody',
+      sizePlaceholder: '13px',
+      fontPath: 'themeOverrides.typography.fonts.primary',
+      fontPlaceholder: "'Jost', sans-serif",
+    },
+  ]));
+}
 
 const TYPOGRAPHY_LINKED_HISTORIA = [
   {
@@ -493,27 +600,32 @@ const TYPOGRAPHY_LINKED_HISTORIA = [
     fontPath: 'themeOverrides.typography.fonts.primary',
     fontPlaceholder: "'Jost', sans-serif",
   },
-  {
-    title: 'História - Primeiro capítulo (título)',
-    samplePath: 'pages.historia.content.chapters.0.title',
-    sampleFallback: 'O primeiro encontro',
-    sampleHint: 'Título de um capítulo da linha do tempo.',
-    sizePath: 'themeOverrides.typography.sizes.detailValue',
-    sizePlaceholder: '20px',
-    fontPath: 'themeOverrides.typography.fonts.serif',
-    fontPlaceholder: "'Cormorant Garamond', serif",
-  },
-  {
-    title: 'História - Primeiro capítulo (texto)',
-    samplePath: 'pages.historia.content.chapters.0.text',
-    sampleFallback: 'Essa história começou em junho de 2013...',
-    sampleHint: 'Texto corrido dos capítulos.',
-    sizePath: 'themeOverrides.typography.sizes.sectionBody',
-    sizePlaceholder: '13px',
-    fontPath: 'themeOverrides.typography.fonts.primary',
-    fontPlaceholder: "'Jost', sans-serif",
-  },
 ];
+
+function buildHistoriaMappings(chapters) {
+  return chapters.flatMap((ch, i) => ([
+    {
+      title: `História - Capítulo ${i + 1} (título)`,
+      samplePath: `pages.historia.content.chapters.${i}.title`,
+      sampleFallback: ch.title || `Capítulo ${i + 1}`,
+      sampleHint: 'Título deste capítulo da linha do tempo.',
+      sizePath: 'themeOverrides.typography.sizes.detailValue',
+      sizePlaceholder: '20px',
+      fontPath: 'themeOverrides.typography.fonts.serif',
+      fontPlaceholder: "'Cormorant Garamond', serif",
+    },
+    {
+      title: `História - Capítulo ${i + 1} (texto)`,
+      samplePath: `pages.historia.content.chapters.${i}.text`,
+      sampleFallback: ch.text || `Texto do capítulo ${i + 1}`,
+      sampleHint: 'Texto corrido deste capítulo.',
+      sizePath: 'themeOverrides.typography.sizes.sectionBody',
+      sizePlaceholder: '13px',
+      fontPath: 'themeOverrides.typography.fonts.primary',
+      fontPlaceholder: "'Jost', sans-serif",
+    },
+  ]));
+}
 
 const TYPOGRAPHY_LINKED_HOSPEDAGEM = [
   {
@@ -546,47 +658,57 @@ const TYPOGRAPHY_LINKED_HOSPEDAGEM = [
     fontPath: 'themeOverrides.typography.fonts.primary',
     fontPlaceholder: "'Jost', sans-serif",
   },
-  {
-    title: 'Hospedagem - Primeiro hotel (nome)',
-    samplePath: 'pages.hospedagem.content.hotels.0.name',
-    sampleFallback: 'Hotel Exemplo 1',
-    sampleHint: 'Nome dos cards de hotel.',
-    sizePath: 'themeOverrides.typography.sizes.detailValue',
-    sizePlaceholder: '20px',
-    fontPath: 'themeOverrides.typography.fonts.serif',
-    fontPlaceholder: "'Cormorant Garamond', serif",
-  },
-  {
-    title: 'Hospedagem - Primeiro hotel (descrição)',
-    samplePath: 'pages.hospedagem.content.hotels.0.description',
-    sampleFallback: 'A 5 minutos do local. Café da manhã incluído.',
-    sampleHint: 'Descrição dos cards de hotel.',
-    sizePath: 'themeOverrides.typography.sizes.sectionBody',
-    sizePlaceholder: '13px',
-    fontPath: 'themeOverrides.typography.fonts.primary',
-    fontPlaceholder: "'Jost', sans-serif",
-  },
-  {
-    title: 'Hospedagem - Primeiro restaurante (nome)',
-    samplePath: 'pages.hospedagem.content.restaurants.0.name',
-    sampleFallback: 'Restaurante Exemplo 1',
-    sampleHint: 'Nome dos cards de restaurante.',
-    sizePath: 'themeOverrides.typography.sizes.detailValue',
-    sizePlaceholder: '20px',
-    fontPath: 'themeOverrides.typography.fonts.serif',
-    fontPlaceholder: "'Cormorant Garamond', serif",
-  },
-  {
-    title: 'Hospedagem - Primeiro restaurante (descrição)',
-    samplePath: 'pages.hospedagem.content.restaurants.0.description',
-    sampleFallback: 'Ótima opção para o almoço do dia anterior.',
-    sampleHint: 'Descrição dos cards de restaurante.',
-    sizePath: 'themeOverrides.typography.sizes.sectionBody',
-    sizePlaceholder: '13px',
-    fontPath: 'themeOverrides.typography.fonts.primary',
-    fontPlaceholder: "'Jost', sans-serif",
-  },
 ];
+
+function buildHospedagemMappings(hotels, restaurants) {
+  const hotelMappings = hotels.flatMap((item, i) => ([
+    {
+      title: `Hospedagem - Hotel ${i + 1} (nome)`,
+      samplePath: `pages.hospedagem.content.hotels.${i}.name`,
+      sampleFallback: item.name || `Hotel ${i + 1}`,
+      sampleHint: 'Nome deste card de hotel.',
+      sizePath: 'themeOverrides.typography.sizes.detailValue',
+      sizePlaceholder: '20px',
+      fontPath: 'themeOverrides.typography.fonts.serif',
+      fontPlaceholder: "'Cormorant Garamond', serif",
+    },
+    {
+      title: `Hospedagem - Hotel ${i + 1} (descrição)`,
+      samplePath: `pages.hospedagem.content.hotels.${i}.description`,
+      sampleFallback: item.description || `Descrição do hotel ${i + 1}`,
+      sampleHint: 'Descrição deste card de hotel.',
+      sizePath: 'themeOverrides.typography.sizes.sectionBody',
+      sizePlaceholder: '13px',
+      fontPath: 'themeOverrides.typography.fonts.primary',
+      fontPlaceholder: "'Jost', sans-serif",
+    },
+  ]));
+
+  const restaurantMappings = restaurants.flatMap((item, i) => ([
+    {
+      title: `Hospedagem - Restaurante ${i + 1} (nome)`,
+      samplePath: `pages.hospedagem.content.restaurants.${i}.name`,
+      sampleFallback: item.name || `Restaurante ${i + 1}`,
+      sampleHint: 'Nome deste card de restaurante.',
+      sizePath: 'themeOverrides.typography.sizes.detailValue',
+      sizePlaceholder: '20px',
+      fontPath: 'themeOverrides.typography.fonts.serif',
+      fontPlaceholder: "'Cormorant Garamond', serif",
+    },
+    {
+      title: `Hospedagem - Restaurante ${i + 1} (descrição)`,
+      samplePath: `pages.hospedagem.content.restaurants.${i}.description`,
+      sampleFallback: item.description || `Descrição do restaurante ${i + 1}`,
+      sampleHint: 'Descrição deste card de restaurante.',
+      sizePath: 'themeOverrides.typography.sizes.sectionBody',
+      sizePlaceholder: '13px',
+      fontPath: 'themeOverrides.typography.fonts.primary',
+      fontPlaceholder: "'Jost', sans-serif",
+    },
+  ]));
+
+  return [...hotelMappings, ...restaurantMappings];
+}
 
 function group(title, content) {
   return `
@@ -735,7 +857,7 @@ function renderTextos() {
     ${fieldInput({ label: 'Botão — enviar', path: 'texts.rsvpSubmit' })}
   `) + group('Rodapé', `
     ${fieldInput({ label: 'Nota do rodapé', path: 'texts.footerNote', placeholder: '06 . 09 . 2026 | São Bernardo do Campo' })}
-  `) + renderLinkedTypographyEditor({
+  `) + renderCoupleNamesTypography() + renderLinkedTypographyEditor({
     title: 'Fontes e Tamanhos por Texto',
     hint: 'Aqui você vê o texto real que será afetado. Edite o texto acima na mesma aba e ajuste a tipografia abaixo.',
     mappings: TYPOGRAPHY_LINKED_TEXTOS,
@@ -758,7 +880,7 @@ function renderFaq() {
   const typography = renderLinkedTypographyEditor({
     title: 'Tipografia da FAQ',
     hint: 'Mapeamento de fontes e tamanhos para os textos da página de FAQ.',
-    mappings: TYPOGRAPHY_LINKED_FAQ,
+    mappings: [...TYPOGRAPHY_LINKED_FAQ, ...buildFaqItemMappings(items)],
   });
   return intro + list + typography;
 }
@@ -779,7 +901,7 @@ function renderHistoria() {
   const typography = renderLinkedTypographyEditor({
     title: 'Tipografia da Nossa História',
     hint: 'Mapeamento de fontes e tamanhos para os textos da página de história.',
-    mappings: TYPOGRAPHY_LINKED_HISTORIA,
+    mappings: [...TYPOGRAPHY_LINKED_HISTORIA, ...buildHistoriaMappings(chapters)],
   });
   return intro + list + typography;
 }
@@ -809,7 +931,7 @@ function renderHospedagem() {
   const typography = renderLinkedTypographyEditor({
     title: 'Tipografia da Hospedagem',
     hint: 'Mapeamento de fontes e tamanhos para os textos da página de hospedagem.',
-    mappings: TYPOGRAPHY_LINKED_HOSPEDAGEM,
+    mappings: [...TYPOGRAPHY_LINKED_HOSPEDAGEM, ...buildHospedagemMappings(hotels, restaurants)],
   });
   return intro + hotelList + restList + typography;
 }
@@ -1010,11 +1132,13 @@ function bindContentEvents(root) {
   root.addEventListener('input', (e) => {
     const { path, list, idx, key } = e.target.dataset;
     if (path) {
-      setPath(config, path, e.target.value);
+      setConfigValue(path, e.target.value);
+      refreshTypographyPreviews(root);
       markDirty();
     }
     if (list !== undefined && idx !== undefined && key !== undefined) {
       listArray(list)[parseInt(idx)][key] = e.target.value;
+      refreshTypographyPreviews(root);
       markDirty();
     }
   });
