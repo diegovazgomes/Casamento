@@ -34,25 +34,6 @@
   },
 
   "typography": {
-    "families": {
-      "jost": "'Jost', sans-serif",
-      "cormorant_garamond": "'Cormorant Garamond', serif",
-      "great_vibes": "'Great Vibes', cursive",
-      "allura": "'Allura', cursive",
-      "parisienne": "'Parisienne', cursive",
-      "pinyon_script": "'Pinyon Script', cursive",
-      "rouge_script": "'Rouge Script', cursive",
-      "tangerine": "'Tangerine', cursive",
-      "bj_cree": "'BJ Cree', cursive",
-      "playfair_display": "'Playfair Display', serif",
-      "imperial_script": "'Imperial Script', cursive",
-      "cookie": "'Cookie', cursive",
-      "charm": "'Charm', cursive",
-      "display": "'Jost', sans-serif",
-      "body": "'Jost', sans-serif",
-      "serif": "'Cormorant Garamond', serif",
-      "accent": "'Great Vibes', cursive"
-    },
     "roles": {
       "heroTitle": {
         "family": "great_vibes",

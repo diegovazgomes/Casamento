@@ -5,6 +5,7 @@ import { PresentPage } from './presente.js';
 import { AudioController } from './audio.js';
 
 const SITE_CONFIG_URL = 'assets/config/site.json';
+const TYPOGRAPHY_CONFIG_URL = 'assets/config/typography.json';
 const INVITATION_STARTED_STORAGE_KEY = 'wedding-invitation-started';
 const NAVIGATION_SECTION_PARAM = 'section';
 
@@ -619,6 +620,41 @@ async function loadTheme(themePath) {
     }
 }
 
+async function loadTypographyConfig() {
+    try {
+        const response = await fetch(TYPOGRAPHY_CONFIG_URL, {
+            method: 'GET',
+            headers: { Accept: 'application/json' },
+            cache: 'no-store'
+        });
+
+        if (!response.ok) {
+            throw new Error(`typography.json returned HTTP ${response.status}`);
+        }
+
+        return await response.json();
+    } catch (error) {
+        console.warn('Falha ao carregar assets/config/typography.json. Usando familias do tema.', error);
+        return { typography: { families: {} } };
+    }
+}
+
+function mergeThemeWithGlobalTypography(theme, typographyConfig) {
+    const mergedTheme = cloneDeep(theme);
+    const globalFamilies = typographyConfig?.typography?.families ?? {};
+    const themeFamilies = mergedTheme.typography?.families ?? {};
+
+    mergedTheme.typography = mergedTheme.typography ?? {};
+
+    // Theme takes precedence to preserve current visual output.
+    mergedTheme.typography.families = {
+        ...globalFamilies,
+        ...themeFamilies
+    };
+
+    return mergedTheme;
+}
+
 class InvitationExperience {
     constructor(config, theme, navigationState = {}) {
         this.config = config;
@@ -1177,8 +1213,13 @@ class InvitationExperience {
 
 async function bootstrap() {
     try {
-        const [config, theme] = await Promise.all([loadConfig(), loadTheme(ACTIVE_THEME_PATH)]);
-        const effectiveTheme = resolveTheme(theme);
+        const [config, theme, typographyConfig] = await Promise.all([
+            loadConfig(),
+            loadTheme(ACTIVE_THEME_PATH),
+            loadTypographyConfig()
+        ]);
+        const themeWithGlobalTypography = mergeThemeWithGlobalTypography(theme, typographyConfig);
+        const effectiveTheme = resolveTheme(themeWithGlobalTypography);
         const navigationState = getBootstrapNavigationState();
         window.CONFIG = config;
         window.THEME = effectiveTheme;
