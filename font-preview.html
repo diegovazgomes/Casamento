@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Prévia Tipográfica — Casamento</title>
+
+  <!-- All font @imports are centralised here -->
+  <link rel="stylesheet" href="assets/css/fonts.css" />
+
+  <style>
+    /* ── Reset ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* ── Page ── */
+    body {
+      background: #f7f2ec;
+      color: #2f2a26;
+      font-family: 'Jost', sans-serif;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .fp-wrap {
+      max-width: 1500px;
+      margin: 0 auto;
+      padding: 28px 20px 56px;
+    }
+
+    /* ── Header ── */
+    .fp-header {
+      margin-bottom: 20px;
+      padding: 22px 24px;
+      background: #fffdfa;
+      border: 1px solid #eadfd3;
+      border-radius: 20px;
+    }
+
+    .fp-header h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 36px;
+      font-weight: 600;
+      line-height: 1.15;
+      margin-bottom: 8px;
+    }
+
+    .fp-header p {
+      color: #6d625a;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    /* ── Grid ── */
+    .fp-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    /* ── Card ── */
+    .fp-card {
+      background: #fffdfa;
+      border: 1px solid #eadfd3;
+      border-radius: 20px;
+      padding: 20px 22px 18px;
+      box-shadow: 0 10px 26px rgba(47, 42, 38, 0.05);
+    }
+
+    .fp-name {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #8e6f52;
+      margin-bottom: 4px;
+      text-transform: capitalize;
+    }
+
+    .fp-meta {
+      font-size: 11px;
+      color: #7a7068;
+      margin-bottom: 16px;
+      font-family: monospace;
+    }
+
+    /* ── Samples ── */
+    .fp-sample--main {
+      font-size: 48px;
+      line-height: 1.05;
+      margin-bottom: 8px;
+    }
+
+    .fp-sample--upper {
+      font-size: 24px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    .fp-sample--lower {
+      font-size: 28px;
+      line-height: 1.1;
+    }
+
+    /* ── Fallback ── */
+    .fp-fallback {
+      grid-column: 1 / -1;
+      text-align: center;
+      color: #8e6f52;
+      padding: 48px 0;
+      font-size: 14px;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 980px) {
+      .fp-grid { grid-template-columns: 1fr; }
+      .fp-sample--main { font-size: 40px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="fp-wrap">
+    <header class="fp-header">
+      <h1>Prévia Tipográfica</h1>
+      <p>
+        Comparação automática de todas as famílias tipográficas registradas em
+        <code>assets/config/typography.json</code>. Adicionar uma nova fonte ao arquivo
+        é suficiente para ela aparecer aqui.
+      </p>
+    </header>
+
+    <div class="fp-grid" id="font-grid">
+      <!-- Cards are injected by font-preview.js -->
+    </div>
+  </div>
+
+  <script type="module" src="assets/js/font-preview.js"></script>
+</body>
+</html>
