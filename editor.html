@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Editor de Conteúdo — Casamento</title>
+  <link rel="stylesheet" href="assets/css/fonts.css" />
+  <style>
+    /* ── Reset ──────────────────────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* ── Page ────────────────────────────────────────────────────────────────── */
+    body {
+      font-family: 'Jost', system-ui, sans-serif;
+      font-size: 13px;
+      background: #f5f0ea;
+      color: #2a2420;
+      line-height: 1.5;
+      min-height: 100vh;
+    }
+
+    /* ── Utility ─────────────────────────────────────────────────────────────── */
+    .hidden { display: none !important; }
+
+    /* ════════════════════════════════════════════════════════════════════════════
+       IMPORT SCREEN
+    ═══════════════════════════════════════════════════════════════════════════ */
+    #import-screen {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 24px;
+    }
+
+    .import-card {
+      background: #fffdf9;
+      border: 1px solid #e5ddd4;
+      border-radius: 20px;
+      padding: 48px 40px;
+      max-width: 480px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 16px 48px rgba(42, 36, 32, 0.07);
+    }
+
+    .import-card h1 {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 32px;
+      font-weight: 400;
+      line-height: 1.2;
+      margin-bottom: 10px;
+      color: #2a2420;
+    }
+
+    .import-card p {
+      color: #7a6e68;
+      font-size: 13px;
+      line-height: 1.65;
+      margin-bottom: 32px;
+    }
+
+    .import-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 14px 28px;
+      background: #2a2420;
+      color: #fffdf9;
+      border: none;
+      border-radius: 10px;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn-primary:hover { background: #3d3530; }
+
+    .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 13px 28px;
+      background: transparent;
+      color: #7a6e68;
+      border: 1px solid #d5ccc4;
+      border-radius: 10px;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 400;
+      cursor: pointer;
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .btn-secondary:hover { border-color: #a09088; color: #2a2420; }
+
+    .import-divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: #b0a79e;
+      font-size: 11px;
+      letter-spacing: 0.06em;
+    }
+    .import-divider::before,
+    .import-divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: #e5ddd4;
+    }
+
+    /* Hidden file input trigger */
+    #import-file { display: none; }
+    label[for="import-file"] { cursor: pointer; }
+
+    /* ════════════════════════════════════════════════════════════════════════════
+       EDITOR SCREEN
+    ═══════════════════════════════════════════════════════════════════════════ */
+    #editor-screen {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    /* ── Sticky header ──────────────────────────────────────────────────────── */
+    .ed-header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 14px 24px;
+      background: #fffdf9;
+      border-bottom: 1px solid #e5ddd4;
+      box-shadow: 0 2px 12px rgba(42, 36, 32, 0.05);
+    }
+
+    .ed-header-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      min-width: 0;
+    }
+
+    .ed-header h1 {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 22px;
+      font-weight: 400;
+      white-space: nowrap;
+      color: #2a2420;
+    }
+
+    #dirty-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 10px;
+      background: #fff3e0;
+      color: #9c6b00;
+      border: 1px solid #f5d98e;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+    #dirty-badge::before {
+      content: '●';
+      font-size: 8px;
+    }
+
+    .ed-header-right { display: flex; gap: 10px; flex-shrink: 0; }
+
+    #export-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 10px 20px;
+      background: #2a2420;
+      color: #fffdf9;
+      border: none;
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    #export-btn:hover { background: #3d3530; }
+
+    /* ── Tab navigation ──────────────────────────────────────────────────────── */
+    .ed-tab-bar-wrap {
+      background: #fffdf9;
+      border-bottom: 1px solid #e5ddd4;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    #tab-bar {
+      display: flex;
+      gap: 0;
+      padding: 0 20px;
+    }
+
+    .ed-tab {
+      flex-shrink: 0;
+      padding: 14px 18px 13px;
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      color: #9a8e88;
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 400;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      transition: color 0.15s, border-color 0.15s;
+      white-space: nowrap;
+    }
+    .ed-tab:hover { color: #2a2420; }
+    .ed-tab.is-active {
+      color: #2a2420;
+      border-bottom-color: #2a2420;
+      font-weight: 500;
+    }
+
+    /* ── Tab content ─────────────────────────────────────────────────────────── */
+    #tab-content {
+      flex: 1;
+      padding: 28px 24px 56px;
+    }
+
+    .ed-section {
+      max-width: 720px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    /* ── Groups ──────────────────────────────────────────────────────────────── */
+    .ed-group {
+      background: #fffdf9;
+      border: 1px solid #e5ddd4;
+      border-radius: 16px;
+      padding: 24px;
+    }
+
+    .ed-group-title {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 18px;
+      font-weight: 400;
+      color: #2a2420;
+      margin-bottom: 20px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid #ede7e0;
+    }
+
+    .ed-group-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 20px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid #ede7e0;
+    }
+    .ed-group-header .ed-group-title { margin: 0; padding: 0; border: none; }
+
+    /* ── Fields ──────────────────────────────────────────────────────────────── */
+    .ed-field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 16px;
+    }
+    .ed-field:last-child { margin-bottom: 0; }
+
+    .ed-fields-row {
+      display: grid;
+      grid-template-columns: 100px 1fr;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .ed-fields-row .ed-field { margin-bottom: 0; }
+
+    .ed-label {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      font-size: 12px;
+      font-weight: 500;
+      color: #4a3f3a;
+      letter-spacing: 0.02em;
+    }
+
+    .ed-hint {
+      font-size: 11px;
+      font-weight: 400;
+      color: #9a8e88;
+      letter-spacing: 0;
+    }
+
+    .ed-input {
+      padding: 10px 14px;
+      background: #faf6f1;
+      border: 1px solid #ddd6ce;
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 13px;
+      color: #2a2420;
+      transition: border-color 0.15s, box-shadow 0.15s;
+      width: 100%;
+    }
+    .ed-input::placeholder { color: #b8afa8; }
+    .ed-input:focus {
+      outline: none;
+      border-color: #9a8e88;
+      box-shadow: 0 0 0 3px rgba(42, 36, 32, 0.06);
+    }
+
+    .ed-textarea {
+      padding: 10px 14px;
+      background: #faf6f1;
+      border: 1px solid #ddd6ce;
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 13px;
+      color: #2a2420;
+      resize: vertical;
+      min-height: 72px;
+      line-height: 1.6;
+      transition: border-color 0.15s, box-shadow 0.15s;
+      width: 100%;
+    }
+    .ed-textarea::placeholder { color: #b8afa8; }
+    .ed-textarea:focus {
+      outline: none;
+      border-color: #9a8e88;
+      box-shadow: 0 0 0 3px rgba(42, 36, 32, 0.06);
+    }
+    .ed-textarea--tall { min-height: 110px; }
+
+    /* ── Dynamic lists ───────────────────────────────────────────────────────── */
+    .ed-list {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .ed-list-item {
+      background: #f7f1ea;
+      border: 1px solid #e5ddd4;
+      border-radius: 12px;
+      padding: 18px;
+    }
+
+    .ed-list-item-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+
+    .ed-list-num {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #9a8e88;
+    }
+
+    .ed-empty {
+      text-align: center;
+      color: #b8afa8;
+      font-size: 13px;
+      padding: 24px 0 8px;
+    }
+
+    /* ── Buttons ─────────────────────────────────────────────────────────────── */
+    .ed-btn-add {
+      display: inline-flex;
+      align-items: center;
+      padding: 8px 16px;
+      background: #2a2420;
+      color: #fffdf9;
+      border: none;
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.15s;
+      white-space: nowrap;
+    }
+    .ed-btn-add:hover { background: #3d3530; }
+
+    .ed-btn-remove {
+      padding: 5px 12px;
+      background: transparent;
+      color: #c0776a;
+      border: 1px solid #e5cdc8;
+      border-radius: 6px;
+      font-family: inherit;
+      font-size: 11px;
+      font-weight: 400;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+    .ed-btn-remove:hover { background: #fdf0ee; color: #9e3d2e; }
+
+    /* ── Responsive ──────────────────────────────────────────────────────────── */
+    @media (max-width: 600px) {
+      .ed-header { padding: 12px 16px; }
+      .ed-header h1 { font-size: 18px; }
+      #tab-content { padding: 20px 16px 48px; }
+      .ed-group { padding: 18px; }
+      .ed-fields-row { grid-template-columns: 80px 1fr; }
+      .import-card { padding: 36px 24px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ── Import screen ─────────────────────────────────────────────────────── -->
+  <div id="import-screen">
+    <div class="import-card">
+      <h1>Editor de Conteúdo</h1>
+      <p>
+        Carregue o arquivo <strong>site.json</strong> atual para editar os textos
+        do convite de forma simples. Quando terminar, exporte o arquivo atualizado.
+      </p>
+
+      <div class="import-actions">
+        <button id="btn-load-default" class="btn-primary">
+          Carregar site.json atual
+        </button>
+
+        <div class="import-divider">ou</div>
+
+        <label for="import-file" class="btn-secondary">
+          Selecionar arquivo manualmente
+        </label>
+        <input type="file" id="import-file" accept=".json,application/json">
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Editor screen ─────────────────────────────────────────────────────── -->
+  <div id="editor-screen" class="hidden">
+
+    <!-- Sticky header -->
+    <header class="ed-header">
+      <div class="ed-header-left">
+        <h1>Editor de Conteúdo</h1>
+        <span id="dirty-badge" class="hidden">Alterações não exportadas</span>
+      </div>
+      <div class="ed-header-right">
+        <button id="export-btn">Exportar site.json</button>
+      </div>
+    </header>
+
+    <!-- Tab navigation -->
+    <div class="ed-tab-bar-wrap">
+      <div id="tab-bar">
+        <!-- Injected by editor.js -->
+      </div>
+    </div>
+
+    <!-- Tab content -->
+    <main id="tab-content">
+      <!-- Injected by editor.js -->
+    </main>
+
+  </div>
+
+  <script type="module" src="assets/js/editor.js"></script>
+</body>
+</html>
