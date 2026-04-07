@@ -20,7 +20,12 @@ function getPath(obj, path) {
 function setPath(obj, path, value) {
   const keys = path.split('.');
   const last = keys.pop();
-  const target = keys.reduce((o, k) => o[k], obj);
+  const target = keys.reduce((o, k) => {
+    if (o[k] === undefined || o[k] === null || typeof o[k] !== 'object' || Array.isArray(o[k])) {
+      o[k] = {};
+    }
+    return o[k];
+  }, obj);
   target[last] = value;
 }
 
@@ -108,6 +113,13 @@ function fieldInput({ label, path, placeholder = '', hint = '' }) {
       </label>
       <input class="ed-input" type="text" data-path="${path}"
         value="${val}" placeholder="${esc(placeholder)}">
+    </div>`;
+}
+
+function fieldInputRow(items) {
+  return `
+    <div class="ed-fields-grid">
+      ${items.map(fieldInput).join('')}
     </div>`;
 }
 
@@ -428,12 +440,59 @@ function themeCardHtml(theme) {
 async function renderTema() {
   await loadThemeCatalog();
   const cards = themeCatalog.map(t => themeCardHtml(t)).join('');
+
+  const typographySection = group('Tipografia (override no site.json)', `
+    <p class="ed-theme-hint">Esses campos ajustam fontes e tamanhos sem alterar o arquivo do tema. Deixe em branco para usar o valor padrão do tema selecionado.</p>
+    <div class="ed-subsection">
+      <h4 class="ed-subtitle">Famílias de fonte</h4>
+      ${fieldInputRow([
+        { label: 'Fonte principal', path: 'themeOverrides.typography.fonts.primary', placeholder: "'Jost', sans-serif" },
+        { label: 'Fonte serifada', path: 'themeOverrides.typography.fonts.serif', placeholder: "'Cormorant Garamond', serif" },
+        { label: 'Fonte de destaque', path: 'themeOverrides.typography.fonts.accent', placeholder: "'Great Vibes', cursive" },
+      ])}
+    </div>
+    <div class="ed-subsection">
+      <h4 class="ed-subtitle">Tamanhos</h4>
+      ${fieldInputRow([
+        { label: 'Base', path: 'themeOverrides.typography.sizes.base', placeholder: '13px' },
+        { label: 'Label Hero', path: 'themeOverrides.typography.sizes.heroLabel', placeholder: '10px' },
+        { label: 'Data Hero', path: 'themeOverrides.typography.sizes.heroDate', placeholder: '11px' },
+      ])}
+      ${fieldInputRow([
+        { label: 'Nome Hero min', path: 'themeOverrides.typography.sizes.heroNames.min', placeholder: '54px' },
+        { label: 'Nome Hero fluid', path: 'themeOverrides.typography.sizes.heroNames.fluid', placeholder: '12vw' },
+        { label: 'Nome Hero max', path: 'themeOverrides.typography.sizes.heroNames.max', placeholder: '110px' },
+      ])}
+      ${fieldInputRow([
+        { label: 'Tag de seção', path: 'themeOverrides.typography.sizes.sectionTag', placeholder: '9px' },
+        { label: 'Título seção min', path: 'themeOverrides.typography.sizes.sectionTitle.min', placeholder: '34px' },
+        { label: 'Título seção fluid', path: 'themeOverrides.typography.sizes.sectionTitle.fluid', placeholder: '7vw' },
+      ])}
+      ${fieldInputRow([
+        { label: 'Título seção max', path: 'themeOverrides.typography.sizes.sectionTitle.max', placeholder: '56px' },
+        { label: 'Texto seção', path: 'themeOverrides.typography.sizes.sectionBody', placeholder: '13px' },
+        { label: 'Número contagem', path: 'themeOverrides.typography.sizes.countdownNumber', placeholder: '42px' },
+      ])}
+      ${fieldInputRow([
+        { label: 'Título RSVP', path: 'themeOverrides.typography.sizes.rsvpTitle', placeholder: '38px' },
+        { label: 'Subtítulo RSVP', path: 'themeOverrides.typography.sizes.rsvpSubtitle', placeholder: '11px' },
+        { label: 'Input RSVP', path: 'themeOverrides.typography.sizes.rsvpInput', placeholder: '12px' },
+      ])}
+      ${fieldInputRow([
+        { label: 'Botão RSVP', path: 'themeOverrides.typography.sizes.rsvpSubmit', placeholder: '10px' },
+        { label: 'Nomes rodapé', path: 'themeOverrides.typography.sizes.footerNames', placeholder: '30px' },
+        { label: 'Nota rodapé', path: 'themeOverrides.typography.sizes.footerNote', placeholder: '10px' },
+      ])}
+    </div>
+  `);
+
   return `
     <div class="ed-group">
       <h3 class="ed-group-title">Tema Visual</h3>
       <p class="ed-theme-hint">Escolha o tema do convite. A seleção é salva ao exportar o site.json.</p>
       <div class="ed-theme-grid">${cards}</div>
-    </div>`;
+    </div>
+    ${typographySection}`;
 }
 
 // ── Tab config ────────────────────────────────────────────────────────────────

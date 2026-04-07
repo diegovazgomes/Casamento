@@ -655,6 +655,15 @@ function mergeThemeWithGlobalTypography(theme, typographyConfig) {
     return mergedTheme;
 }
 
+function applySiteThemeOverrides(theme, siteConfig) {
+    const overrides = siteConfig?.themeOverrides;
+    if (!overrides || typeof overrides !== 'object') {
+        return theme;
+    }
+
+    return mergeDeep(theme, overrides);
+}
+
 class InvitationExperience {
     constructor(config, theme, navigationState = {}) {
         this.config = config;
@@ -1220,7 +1229,8 @@ async function bootstrap() {
             loadTypographyConfig()
         ]);
         const themeWithGlobalTypography = mergeThemeWithGlobalTypography(theme, typographyConfig);
-        const effectiveTheme = resolveTheme(themeWithGlobalTypography);
+        const themeWithSiteOverrides = applySiteThemeOverrides(themeWithGlobalTypography, config);
+        const effectiveTheme = resolveTheme(themeWithSiteOverrides);
         const navigationState = getBootstrapNavigationState();
         window.CONFIG = config;
         window.THEME = effectiveTheme;

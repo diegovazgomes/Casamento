@@ -296,6 +296,29 @@
     }
     .ed-fields-row .ed-field { margin-bottom: 0; }
 
+    .ed-fields-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    .ed-fields-grid .ed-field { margin-bottom: 0; }
+
+    .ed-subsection {
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px dashed #e5ddd4;
+    }
+
+    .ed-subtitle {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: #7a6e68;
+      margin-bottom: 10px;
+    }
+
     .ed-label {
       display: flex;
       flex-direction: column;
@@ -567,6 +590,7 @@
       #tab-content { padding: 20px 16px 48px; }
       .ed-group { padding: 18px; }
       .ed-fields-row { grid-template-columns: 80px 1fr; }
+      .ed-fields-grid { grid-template-columns: 1fr; }
       .import-card { padding: 36px 24px; }
       .ed-theme-grid { grid-template-columns: 1fr; }
     }
