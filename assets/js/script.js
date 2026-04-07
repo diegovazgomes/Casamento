@@ -325,6 +325,36 @@ function resolveTheme(theme) {
     return mergeDeep(theme, theme.responsive.mobile);
 }
 
+// Resolve typography roles to individual CSS variables
+// Each role is expanded into family, size, weight, lineHeight, letterSpacing, textTransform, style
+function resolveTypographyRoles(theme) {
+    const families = theme.typography?.families ?? {};
+    const roles = theme.typography?.roles ?? {};
+    const vars = {};
+
+    Object.entries(roles).forEach(([roleName, roleDef]) => {
+        const familyKey = roleDef.family ?? 'body';
+        const familyValue = families[familyKey] ?? families.body ?? "'Jost', sans-serif";
+        
+        // Resolve size (handle clamp() objects)
+        let sizeValue = roleDef.size ?? '13px';
+        if (typeof sizeValue === 'object') {
+            sizeValue = `clamp(${sizeValue.min}, ${sizeValue.fluid}, ${sizeValue.max})`;
+        }
+
+        // Generate individual property variables for each role
+        vars[`--typo-${roleName}-family`] = familyValue;
+        vars[`--typo-${roleName}-size`] = sizeValue;
+        vars[`--typo-${roleName}-weight`] = roleDef.weight ?? 300;
+        vars[`--typo-${roleName}-lineHeight`] = roleDef.lineHeight ?? 1;
+        vars[`--typo-${roleName}-letterSpacing`] = roleDef.letterSpacing ?? 'normal';
+        vars[`--typo-${roleName}-textTransform`] = roleDef.textTransform ?? 'none';
+        vars[`--typo-${roleName}-style`] = roleDef.style ?? 'normal';
+    });
+
+    return vars;
+}
+
 // Aplica todas as CSS variables do tema no :root.
 // Recebe o tema já resolvido (após resolveTheme).
 function applyTheme(theme) {
@@ -493,6 +523,10 @@ function applyTheme(theme) {
         '--stagger-delay': animation.staggerDelay ?? dt.animation.staggerDelay,
         '--hero-fade-duration': animation.heroFadeDuration ?? dt.animation.heroFadeDuration
     };
+
+    // Resolve and merge typography roles
+    const typoVars = resolveTypographyRoles(theme);
+    Object.assign(cssVars, typoVars);
 
     Object.entries(cssVars).forEach(([key, value]) => {
         root.style.setProperty(key, String(value));

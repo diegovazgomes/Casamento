@@ -34,6 +34,87 @@
   },
 
   "typography": {
+    "families": {
+      "display": "'Jost', sans-serif",
+      "body": "'Jost', sans-serif",
+      "serif": "'Cormorant Garamond', serif",
+      "accent": "'Great Vibes', cursive"
+    },
+    "roles": {
+      "heroTitle": {
+        "family": "accent",
+        "size": { "min": "54px", "fluid": "12vw", "max": "110px" },
+        "weight": 400,
+        "lineHeight": 1.1,
+        "style": "normal"
+      },
+      "heroSubtitle": {
+        "family": "body",
+        "size": "11px",
+        "weight": 300,
+        "lineHeight": 1.4,
+        "style": "normal"
+      },
+      "eyebrow": {
+        "family": "body",
+        "size": "9px",
+        "weight": 300,
+        "textTransform": "uppercase",
+        "letterSpacing": "0.05em",
+        "lineHeight": 1.2,
+        "style": "normal"
+      },
+      "sectionTitle": {
+        "family": "serif",
+        "size": { "min": "34px", "fluid": "7vw", "max": "56px" },
+        "weight": 300,
+        "lineHeight": 1.2,
+        "style": "normal"
+      },
+      "sectionSubtitle": {
+        "family": "body",
+        "size": "13px",
+        "weight": 300,
+        "lineHeight": 1.5,
+        "style": "normal"
+      },
+      "body": {
+        "family": "body",
+        "size": "13px",
+        "weight": 300,
+        "lineHeight": 1.6,
+        "style": "normal"
+      },
+      "formLabel": {
+        "family": "body",
+        "size": "12px",
+        "weight": 300,
+        "lineHeight": 1.4,
+        "style": "normal"
+      },
+      "button": {
+        "family": "body",
+        "size": "10px",
+        "weight": 400,
+        "letterSpacing": "0.02em",
+        "lineHeight": 1.2,
+        "style": "normal"
+      },
+      "countdownNumber": {
+        "family": "serif",
+        "size": "42px",
+        "weight": 300,
+        "lineHeight": 1,
+        "style": "normal"
+      },
+      "footer": {
+        "family": "serif",
+        "size": "10px",
+        "weight": 300,
+        "lineHeight": 1.4,
+        "style": "italic"
+      }
+    },
     "fonts": {
       "primary": "'Jost', sans-serif",
       "serif": "'Cormorant Garamond', serif",
