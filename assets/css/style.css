@@ -1626,8 +1626,12 @@ footer {
 .extra-content {
     width: min(100%, var(--container-width));
     margin: 0 auto;
-    padding-top: var(--spacing-section);
+    padding-top: var(--divider-margin-top);
     text-align: center;
+}
+
+.extra-intro + .divider + .content-section {
+    padding-top: var(--divider-margin-top);
 }
 
 /* ─── História ───────────────────────────────────────────────────────────── */
