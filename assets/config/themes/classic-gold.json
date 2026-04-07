@@ -35,6 +35,19 @@
 
   "typography": {
     "families": {
+      "jost": "'Jost', sans-serif",
+      "cormorant_garamond": "'Cormorant Garamond', serif",
+      "great_vibes": "'Great Vibes', cursive",
+      "allura": "'Allura', cursive",
+      "parisienne": "'Parisienne', cursive",
+      "pinyon_script": "'Pinyon Script', cursive",
+      "rouge_script": "'Rouge Script', cursive",
+      "tangerine": "'Tangerine', cursive",
+      "bj_cree": "'BJ Cree', cursive",
+      "playfair_display": "'Playfair Display', serif",
+      "imperial_script": "'Imperial Script', cursive",
+      "cookie": "'Cookie', cursive",
+      "charm": "'Charm', cursive",
       "display": "'Jost', sans-serif",
       "body": "'Jost', sans-serif",
       "serif": "'Cormorant Garamond', serif",
@@ -42,21 +55,21 @@
     },
     "roles": {
       "heroTitle": {
-        "family": "accent",
+        "family": "great_vibes",
         "size": { "min": "54px", "fluid": "12vw", "max": "110px" },
         "weight": 400,
         "lineHeight": 1.1,
         "style": "normal"
       },
       "heroSubtitle": {
-        "family": "body",
+        "family": "jost",
         "size": "11px",
         "weight": 300,
         "lineHeight": 1.4,
         "style": "normal"
       },
       "eyebrow": {
-        "family": "body",
+        "family": "jost",
         "size": "12px",
         "weight": 300,
         "textTransform": "uppercase",
@@ -65,35 +78,35 @@
         "style": "normal"
       },
       "sectionTitle": {
-        "family": "serif",
+        "family": "cormorant_garamond",
         "size": { "min": "34px", "fluid": "7vw", "max": "56px" },
         "weight": 300,
         "lineHeight": 1.2,
         "style": "normal"
       },
       "sectionSubtitle": {
-        "family": "body",
+        "family": "jost",
         "size": "13px",
         "weight": 300,
         "lineHeight": 1.5,
         "style": "normal"
       },
       "body": {
-        "family": "body",
+        "family": "jost",
         "size": "13px",
         "weight": 300,
         "lineHeight": 1.6,
         "style": "normal"
       },
       "formLabel": {
-        "family": "body",
+        "family": "jost",
         "size": "12px",
         "weight": 300,
         "lineHeight": 1.4,
         "style": "normal"
       },
       "button": {
-        "family": "body",
+        "family": "jost",
         "size": "10px",
         "weight": 400,
         "letterSpacing": "0.02em",
@@ -101,14 +114,14 @@
         "style": "normal"
       },
       "countdownNumber": {
-        "family": "serif",
+        "family": "cormorant_garamond",
         "size": "42px",
         "weight": 300,
         "lineHeight": 1,
         "style": "normal"
       },
       "footer": {
-        "family": "accent",
+        "family": "great_vibes",
         "size": "25px",
         "weight": 300,
         "lineHeight": 1.4,
