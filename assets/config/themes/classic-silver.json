@@ -8,7 +8,7 @@
     "background": "#121212",
     "surface": "#1a1a1a",
     "surfaceSoft": "rgba(255,255,255,0.04)",
-    "primary": "#bfc3c7",
+    "primary": "#737373",
     "primarySoft": "#e2e5e8",
     "text": "#f5f5f5",
     "textMuted": "rgba(245,245,245,0.6)",
@@ -108,7 +108,7 @@
         "style": "normal"
       },
       "footer": {
-        "family": "serif",
+        "family": "accent",
         "size": "25px",
         "weight": 300,
         "lineHeight": 1.4,

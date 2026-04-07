@@ -108,7 +108,7 @@
         "style": "normal"
       },
       "footer": {
-        "family": "serif",
+        "family": "accent",
         "size": "25px",
         "weight": 300,
         "lineHeight": 1.4,
