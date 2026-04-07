@@ -1245,17 +1245,20 @@ function renderActiveTab() {
     content.innerHTML = '<div class="ed-section"><p class="ed-loading">Carregando...</p></div>';
     tab.render().then(html => {
       content.innerHTML = `<div class="ed-section">${html}</div>`;
-      bindContentEvents(content);
     });
   } else {
     content.innerHTML = `<div class="ed-section">${tab.render()}</div>`;
-    bindContentEvents(content);
   }
 }
 
 // ── Event binding ─────────────────────────────────────────────────────────────
 
 function bindContentEvents(root) {
+  if (root.dataset.eventsBound === 'true') {
+    return;
+  }
+  root.dataset.eventsBound = 'true';
+
   // Flat field changes
   root.addEventListener('input', (e) => {
     const { path, list, idx, key } = e.target.dataset;
@@ -1322,6 +1325,9 @@ function handleAction(action, index) {
 // ── Init ──────────────────────────────────────────────────────────────────────
 
 function init() {
+  const tabContent = document.getElementById('tab-content');
+  bindContentEvents(tabContent);
+
   // Tab navigation
   document.getElementById('tab-bar').addEventListener('click', (e) => {
     const btn = e.target.closest('[data-tab]');
