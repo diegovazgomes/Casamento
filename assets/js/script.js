@@ -11,7 +11,7 @@ const NAVIGATION_SECTION_PARAM = 'section';
 
 // Para trocar o tema, altere apenas esta constante.
 // Temas disponíveis: classic-gold.json, classic-silver.json
-const ACTIVE_THEME_PATH = 'assets/config/themes/moonlit-editorial.json';
+const ACTIVE_THEME_PATH = 'assets/config/themes/classic-silver-light.json';
 
 const DEFAULT_THEME = {
     colors: {
