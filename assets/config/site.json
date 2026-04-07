@@ -136,6 +136,14 @@
           {
             "question": "Até quando posso confirmar presença?",
             "answer": "Pedimos que a confirmação seja feita até 30 dias antes do evento."
+          },
+          {
+            "question": "Eu estou convidado?",
+            "answer": "Infelizmente não, é apenas para os mais intimos."
+          },
+          {
+            "question": "Posso levar bebida?",
+            "answer": "Infelizmente não é permitido levar bebidas de fora."
           }
         ]
       }

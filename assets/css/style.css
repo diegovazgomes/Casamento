@@ -1714,37 +1714,28 @@ footer {
 /* ─── FAQ ────────────────────────────────────────────────────────────────── */
 
 .faq-list {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-md);
+    display: block;
     padding-inline: var(--section-padding-inline);
 }
 
 .faq-item {
-    padding: var(--card-padding);
-    background: var(--color-gold-surface-soft);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-card);
-    position: relative;
-    overflow: hidden;
+    margin-bottom: var(--section-title-gap);
+    padding-bottom: var(--section-title-gap);
+    border-bottom: 1px solid var(--color-border-soft);
 }
 
-.faq-item::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 1px;
-    background: linear-gradient(to right, transparent, var(--gold), transparent);
+.faq-item:last-child {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
 }
 
 .faq-question {
-    margin-bottom: var(--space-sm);
+    margin-bottom: var(--space-md);
     color: var(--cream);
     font-family: var(--font-serif);
     font-size: clamp(18px, 3.5vw, 24px);
-    font-weight: 300;
+    font-weight: 400;
     line-height: 1.3;
 }
 
