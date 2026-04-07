@@ -333,18 +333,27 @@ function renderHospedagem() {
 
 // ── Theme tab ─────────────────────────────────────────────────────────────────
 
-const THEME_FILES = [
+const DEFAULT_THEME_FILES = [
   'assets/config/themes/classic-gold.json',
   'assets/config/themes/classic-gold-light.json',
   'assets/config/themes/classic-silver.json',
   'assets/config/themes/classic-silver-light.json',
+'assets/config/themes/classic-purple.json',
 ];
 
 let themeCatalog = [];  // [{ path, meta, colors, fonts }]
 
+function getThemeFiles() {
+  if (Array.isArray(config?.themeFiles) && config.themeFiles.length > 0) {
+    return config.themeFiles;
+  }
+  return DEFAULT_THEME_FILES;
+}
+
 async function loadThemeCatalog() {
   if (themeCatalog.length) return;
-  const results = await Promise.allSettled(THEME_FILES.map(async (path) => {
+  const themeFiles = getThemeFiles();
+  const results = await Promise.allSettled(themeFiles.map(async (path) => {
     const res = await fetch(path);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
