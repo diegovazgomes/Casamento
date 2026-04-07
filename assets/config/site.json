@@ -39,8 +39,8 @@
     "detailsGiftValue": "Para nos presentear",
     "detailsGiftSub": "Abrir opções",
     "rsvpTag": "Confirmação de Presença",
-    "rsvpTitle": "Contaremos com você?",
-    "rsvpSubtitle": "Sua confirmação, o quanto antes, nos ajudará nos preparativos.",
+    "rsvpTitle": "Esperamos você.",
+    "rsvpSubtitle": "Pedimos, por gentileza, que confirme sua presença o quanto antes. Sua presença tornará este momento ainda mais especial para nós.",
     "rsvpFormTitle": "Confirmar Presença",
     "rsvpFormSubtitle": "Preencha os dados para continuar no WhatsApp",
     "rsvpPlaceholderName": "Seu nome completo",
@@ -74,12 +74,12 @@
     "tracks": {
       "main": {
         "src": "assets/audio/main-theme.mp3",
-        "volume": 0.14,
+        "volume": 0,
         "startTime": 8
       },
       "gift": {
         "src": "assets/audio/gift-theme.mp3",
-        "volume": 0.12,
+        "volume": 0,
         "startTime": 78
       }
     }
@@ -95,12 +95,12 @@
         "intro": "Uma história que é nossa, e que a partir de setembro passa a ser de vocês também.",
         "chapters": [
           {
-            "year": "2020",
+            "year": "2013",
             "title": "O primeiro encontro",
-            "text": "Descreva aqui como foi o primeiro encontro do casal."
+            "text": "Essa história começou em junho de 2013, quando passaram a trabalhar juntos em uma empresa de telemarketing. Para Diego, foi paixão à primeira vista. Para Siannah, nem tanto… rs. Mas, aos poucos, ele foi conquistando o coração dela, e assim começou essa linda história de amor."
           },
           {
-            "year": "2022",
+            "year": "2023",
             "title": "O pedido",
             "text": "Descreva aqui como foi o pedido de namoro ou noivado."
           },

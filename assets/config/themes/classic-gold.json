@@ -57,7 +57,7 @@
       },
       "eyebrow": {
         "family": "body",
-        "size": "9px",
+        "size": "12px",
         "weight": 300,
         "textTransform": "uppercase",
         "letterSpacing": "0.05em",
@@ -109,7 +109,7 @@
       },
       "footer": {
         "family": "serif",
-        "size": "10px",
+        "size": "25px",
         "weight": 300,
         "lineHeight": 1.4,
         "style": "italic"
