@@ -1,0 +1,266 @@
+{
+  "meta": {
+    "name": "Ivory Blush",
+    "description": "Tema claro com fundo marfim aquecido e acentos em rosa-envelhecido"
+  },
+
+  "colors": {
+    "background": "#F5EFE8",
+    "surface": "#FFFFFF",
+    "surfaceSoft": "rgba(0,0,0,0.025)",
+    "primary": "#A87070",
+    "primarySoft": "#C9A0A0",
+    "text": "#2C1F1C",
+    "textMuted": "rgba(44,31,28,0.60)",
+    "textSoft": "rgba(44,31,28,0.65)",
+    "textDim": "rgba(44,31,28,0.45)",
+    "textFaint": "rgba(44,31,28,0.25)",
+    "textPlaceholder": "rgba(44,31,28,0.30)",
+    "border": "rgba(168,112,112,0.22)",
+    "borderSoft": "rgba(168,112,112,0.14)",
+    "borderStrong": "rgba(168,112,112,0.38)",
+    "goldSurfaceSoft": "rgba(168,112,112,0.05)",
+    "goldSurface": "rgba(168,112,112,0.08)",
+    "goldSurfaceStrong": "rgba(168,112,112,0.14)",
+    "primaryGlow": "rgba(168,112,112,0.10)",
+    "pageGridLine": "rgba(44,31,28,0.03)",
+    "overlayBackdrop": "rgba(44,31,28,0.70)",
+    "audioPanelBg": "rgba(245,239,232,0.92)",
+    "audioPanelHoverBg": "rgba(245,239,232,0.98)",
+    "audioPanelBorder": "rgba(168,112,112,0.28)",
+    "pulseRing": "rgba(168,112,112,0.40)",
+    "pulseRingSpread": "rgba(168,112,112,0)",
+    "inputFocusBg": "rgba(168,112,112,0.05)"
+  },
+
+  "typography": {
+    "roles": {
+      "heroTitle": {
+        "family": "allura",
+        "size": { "min": "54px", "fluid": "12vw", "max": "110px" },
+        "weight": 400,
+        "lineHeight": 1.1,
+        "style": "normal"
+      },
+      "heroSubtitle": {
+        "family": "jost",
+        "size": "11px",
+        "weight": 300,
+        "lineHeight": 1.4,
+        "style": "normal"
+      },
+      "eyebrow": {
+        "family": "jost",
+        "size": "11px",
+        "weight": 400,
+        "textTransform": "uppercase",
+        "letterSpacing": "0.08em",
+        "lineHeight": 1.2,
+        "style": "normal"
+      },
+      "sectionTitle": {
+        "family": "playfair_display",
+        "size": { "min": "34px", "fluid": "7vw", "max": "56px" },
+        "weight": 400,
+        "lineHeight": 1.2,
+        "style": "normal"
+      },
+      "sectionSubtitle": {
+        "family": "jost",
+        "size": "13px",
+        "weight": 300,
+        "lineHeight": 1.5,
+        "style": "normal"
+      },
+      "body": {
+        "family": "jost",
+        "size": "13px",
+        "weight": 300,
+        "lineHeight": 1.6,
+        "style": "normal"
+      },
+      "formLabel": {
+        "family": "jost",
+        "size": "12px",
+        "weight": 300,
+        "lineHeight": 1.4,
+        "style": "normal"
+      },
+      "button": {
+        "family": "jost",
+        "size": "10px",
+        "weight": 500,
+        "letterSpacing": "0.04em",
+        "lineHeight": 1.2,
+        "style": "normal"
+      },
+      "countdownNumber": {
+        "family": "playfair_display",
+        "size": "42px",
+        "weight": 400,
+        "lineHeight": 1,
+        "style": "normal"
+      },
+      "footer": {
+        "family": "allura",
+        "size": "36px",
+        "weight": 400,
+        "lineHeight": 1.3,
+        "style": "normal"
+      }
+    },
+    "fonts": {
+      "primary": "'Jost', sans-serif",
+      "serif": "'Playfair Display', serif",
+      "accent": "'Allura', cursive"
+    },
+    "sizes": {
+      "base": "13px",
+      "heroLabel": "10px",
+      "heroDate": "11px",
+      "heroNames": { "min": "54px", "fluid": "12vw", "max": "110px" },
+      "scrollHint": "9px",
+      "sectionTag": "9px",
+      "sectionTitle": { "min": "34px", "fluid": "7vw", "max": "56px" },
+      "sectionBody": "13px",
+      "countdownNumber": "42px",
+      "countdownLabel": "8px",
+      "countdownFinished": "30px",
+      "detailIcon": "18px",
+      "detailTitle": "8px",
+      "detailValue": "20px",
+      "detailSub": "10px",
+      "rsvpTitle": "38px",
+      "rsvpSubtitle": "11px",
+      "rsvpInput": "12px",
+      "rsvpChoice": "10px",
+      "rsvpSubmit": "10px",
+      "rsvpSuccessText": "26px",
+      "rsvpSuccessSub": "11px",
+      "footerNames": "36px",
+      "footerNote": "10px"
+    }
+  },
+
+  "spacing": {
+    "containerWidth": "760px",
+    "cardPadding": "28px",
+    "sectionPaddingTop": "88px",
+    "sectionPaddingInline": "24px",
+    "detailsSectionPaddingTop": "88px",
+    "sectionTagGap": "30px",
+    "sectionTitleGap": "22px",
+    "heroLabelGap": "16px",
+    "heroDateGap": "22px",
+    "scrollHintBottom": "20px",
+    "scrollHintGap": "8px",
+    "dividerMarginTop": "56px",
+    "countdownMarginTop": "40px",
+    "countdownGap": "12px",
+    "detailsMarginTop": "40px",
+    "detailsGridGap": "1px",
+    "detailCardPaddingBlock": "28px",
+    "detailCardPaddingInline": "20px",
+    "rsvpShellPaddingBottom": "88px",
+    "rsvpCardMarginTop": "40px",
+    "rsvpCardPaddingBlock": "48px",
+    "rsvpCardPaddingInline": "32px",
+    "rsvpSubtitleGap": "32px",
+    "rsvpFormGap": "14px",
+    "rsvpChoiceGap": "10px",
+    "rsvpSubmitMarginTop": "8px",
+    "footerPaddingBottom": "48px"
+  },
+
+  "layout": {
+    "heroHeight": "100vh",
+    "heroPadding": "0 24px 64px",
+    "heroContentWidth": "720px",
+    "heroContentPaddingBottom": "36px",
+    "heroFadeOffset": "44px",
+    "contentMaxWidth": "760px"
+  },
+
+  "components": {
+    "dividerWidth": "320px",
+    "dividerDiamond": "6px",
+    "scrollArrowWidth": "14px",
+    "scrollArrowHeight": "48px",
+    "scrollArrowStemHeight": "36px",
+    "scrollArrowHeadSize": "8px",
+    "countdownCardPaddingTop": "22px",
+    "countdownCardPaddingInline": "8px",
+    "countdownCardPaddingBottom": "16px",
+    "rsvpInputPaddingBlock": "14px",
+    "rsvpInputPaddingInline": "18px",
+    "rsvpChoiceMinHeight": "48px",
+    "rsvpChoicePadding": "12px",
+    "rsvpSubmitPaddingBlock": "16px",
+    "rsvpSubmitPaddingInline": "32px",
+    "rsvpSuccessIcon": "32px"
+  },
+
+  "radius": {
+    "card": "3px",
+    "button": "2px"
+  },
+
+  "effects": {
+    "shadowSoft": "0 16px 48px rgba(44,31,28,0.10)",
+    "shadowHover": "0 8px 24px rgba(44,31,28,0.08)",
+    "textShadowStrong": "0 6px 20px rgba(245,239,232,0.60)",
+    "textShadowSoft": "0 2px 12px rgba(245,239,232,0.45)",
+    "focusRing": "0 0 0 3px rgba(168,112,112,0.15)",
+    "transition": "all 0.3s ease",
+    "pageGradient": "linear-gradient(180deg, #F5EFE8 0%, #F5EFE8 100%)",
+    "introBackdropGradient": "linear-gradient(180deg, rgba(245,239,232,0.97) 0%, rgba(255,252,249,0.97) 45%, rgba(245,239,232,0.99) 100%)",
+    "introCardGradient": "linear-gradient(180deg, rgba(255,255,255,0.60), rgba(168,112,112,0.04))",
+    "buttonFillGradient": "linear-gradient(135deg, rgba(168,112,112,0.92), rgba(201,160,160,0.92))",
+    "heroOverlayGradient": "linear-gradient(to bottom, rgba(245,239,232,0.05) 0%, rgba(245,239,232,0.15) 40%, rgba(245,239,232,0.82) 76%, rgba(245,239,232,1) 100%)",
+    "overlayPanelGradient": "linear-gradient(180deg, rgba(255,252,249,0.98) 0%, rgba(245,239,232,0.98) 100%)",
+    "overlayCloseGradient": "linear-gradient(180deg, rgba(255,252,249,0.94), rgba(255,252,249,0))",
+    "rsvpPanelGradient": "linear-gradient(135deg, rgba(168,112,112,0.05), rgba(168,112,112,0.015))",
+    "giftPanelGradient": "linear-gradient(135deg, rgba(168,112,112,0.05), rgba(255,255,255,0.04))"
+  },
+
+  "animation": {
+    "fadeDuration": "0.9s",
+    "staggerDelay": "0.12s",
+    "heroFadeDuration": "1.5s",
+    "heroRevealDelayMs": 350
+  },
+
+  "countdown": {
+    "format": "two-digits",
+    "updateInterval": 1000
+  },
+
+  "responsive": {
+    "mobile": {
+      "typography": {
+        "sizes": {
+          "base": "12px",
+          "heroDate": "14px",
+          "heroNames": { "min": "24px", "fluid": "10vw", "max": "46px" }
+        }
+      },
+      "spacing": {
+        "sectionPaddingTop": "40px",
+        "sectionPaddingInline": "20px",
+        "detailsSectionPaddingTop": "40px"
+      },
+      "layout": {
+        "heroHeight": "680px",
+        "heroPadding": "0 20px 72px",
+        "heroContentWidth": "340px",
+        "heroContentPaddingBottom": "32px",
+        "heroFadeOffset": "20px",
+        "contentMaxWidth": "620px"
+      },
+      "animation": {
+        "heroFadeDuration": "2.3s",
+        "heroRevealDelayMs": 1400
+      }
+    }
+  }
+}
