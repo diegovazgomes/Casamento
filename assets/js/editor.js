@@ -331,6 +331,102 @@ function renderHospedagem() {
   return intro + hotelList + restList;
 }
 
+// ── Theme tab ─────────────────────────────────────────────────────────────────
+
+const THEME_FILES = [
+  'assets/config/themes/classic-gold.json',
+  'assets/config/themes/classic-gold-light.json',
+  'assets/config/themes/classic-silver.json',
+  'assets/config/themes/classic-silver-light.json',
+];
+
+let themeCatalog = [];  // [{ path, meta, colors, fonts }]
+
+async function loadThemeCatalog() {
+  if (themeCatalog.length) return;
+  const results = await Promise.allSettled(THEME_FILES.map(async (path) => {
+    const res = await fetch(path);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    return {
+      path,
+      name: data.meta?.name ?? path,
+      description: data.meta?.description ?? '',
+      colors: {
+        background: data.colors?.background ?? '#1a1714',
+        primary:    data.colors?.primary    ?? '#c9a84c',
+        primarySoft:data.colors?.primarySoft?? '#e8d08a',
+        text:       data.colors?.text       ?? '#faf7f2',
+        surface:    data.colors?.surface    ?? '#222',
+        border:     data.colors?.border     ?? 'rgba(201,168,76,0.2)',
+      },
+      fonts: {
+        accent:  data.typography?.fonts?.accent  ?? "'Great Vibes', cursive",
+        serif:   data.typography?.fonts?.serif   ?? "'Cormorant Garamond', serif",
+        primary: data.typography?.fonts?.primary ?? "'Jost', sans-serif",
+      },
+    };
+  }));
+  themeCatalog = results
+    .filter(r => r.status === 'fulfilled')
+    .map(r => r.value);
+}
+
+function colorSwatch(color) {
+  return `<span class="ed-swatch" style="background:${esc(color)}" title="${esc(color)}"></span>`;
+}
+
+function themeCardHtml(theme) {
+  const isActive = config.activeTheme === theme.path;
+  const bg   = theme.colors.background;
+  const fg   = theme.colors.text;
+  const pri  = theme.colors.primary;
+  const surf = theme.colors.surface;
+  const bdr  = theme.colors.border;
+
+  return `
+    <div class="ed-theme-card${isActive ? ' is-active' : ''}" data-theme-path="${esc(theme.path)}">
+      <div class="ed-theme-preview" style="background:${esc(bg)};border-color:${esc(bdr)}">
+        <span class="ed-theme-preview-accent" style="font-family:${esc(theme.fonts.accent)};color:${esc(pri)}">
+          Diego &amp; Siannah
+        </span>
+        <span class="ed-theme-preview-serif" style="font-family:${esc(theme.fonts.serif)};color:${esc(fg)}">
+          CASAMENTO
+        </span>
+        <span class="ed-theme-preview-body" style="font-family:${esc(theme.fonts.primary)};color:${esc(fg)}">
+          06 de setembro de 2026
+        </span>
+      </div>
+      <div class="ed-theme-info" style="background:${esc(surf)}">
+        <div class="ed-theme-meta">
+          <span class="ed-theme-name" style="color:${esc(fg)}">${esc(theme.name)}</span>
+          <span class="ed-theme-desc" style="color:${esc(fg)}">${esc(theme.description)}</span>
+        </div>
+        <div class="ed-theme-swatches">
+          ${colorSwatch(bg)}
+          ${colorSwatch(surf)}
+          ${colorSwatch(pri)}
+          ${colorSwatch(fg)}
+          ${colorSwatch(bdr)}
+        </div>
+        <button class="ed-theme-btn${isActive ? ' is-active' : ''}" data-select-theme="${esc(theme.path)}">
+          ${isActive ? 'Tema atual' : 'Usar este tema'}
+        </button>
+      </div>
+    </div>`;
+}
+
+async function renderTema() {
+  await loadThemeCatalog();
+  const cards = themeCatalog.map(t => themeCardHtml(t)).join('');
+  return `
+    <div class="ed-group">
+      <h3 class="ed-group-title">Tema Visual</h3>
+      <p class="ed-theme-hint">Escolha o tema do convite. A seleção é salva ao exportar o site.json.</p>
+      <div class="ed-theme-grid">${cards}</div>
+    </div>`;
+}
+
 // ── Tab config ────────────────────────────────────────────────────────────────
 
 const TABS = [
@@ -339,6 +435,7 @@ const TABS = [
   { id: 'faq',        label: 'FAQ',               render: renderFaq },
   { id: 'historia',   label: 'Nossa História',    render: renderHistoria },
   { id: 'hospedagem', label: 'Hospedagem',        render: renderHospedagem },
+  { id: 'tema',       label: 'Tema',              render: renderTema, async: true },
 ];
 
 // ── Rendering ─────────────────────────────────────────────────────────────────
@@ -354,8 +451,17 @@ function renderActiveTab() {
   // Content
   const tab = TABS.find(t => t.id === activeTab);
   const content = document.getElementById('tab-content');
-  content.innerHTML = `<div class="ed-section">${tab.render()}</div>`;
-  bindContentEvents(content);
+
+  if (tab.async) {
+    content.innerHTML = '<div class="ed-section"><p class="ed-loading">Carregando...</p></div>';
+    tab.render().then(html => {
+      content.innerHTML = `<div class="ed-section">${html}</div>`;
+      bindContentEvents(content);
+    });
+  } else {
+    content.innerHTML = `<div class="ed-section">${tab.render()}</div>`;
+    bindContentEvents(content);
+  }
 }
 
 // ── Event binding ─────────────────────────────────────────────────────────────
@@ -378,6 +484,14 @@ function bindContentEvents(root) {
   root.addEventListener('click', (e) => {
     const btn = e.target.closest('[data-action]');
     if (btn) handleAction(btn.dataset.action, btn.dataset.index !== undefined ? parseInt(btn.dataset.index) : null);
+
+    // Theme selection
+    const themeBtn = e.target.closest('[data-select-theme]');
+    if (themeBtn) {
+      config.activeTheme = themeBtn.dataset.selectTheme;
+      markDirty();
+      renderActiveTab();  // re-render to update active state
+    }
   });
 }
 

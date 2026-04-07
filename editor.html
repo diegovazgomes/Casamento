@@ -421,6 +421,145 @@
     }
     .ed-btn-remove:hover { background: #fdf0ee; color: #9e3d2e; }
 
+    /* ── Theme tab ───────────────────────────────────────────────────────────── */
+    .ed-theme-hint {
+      font-size: 12px;
+      color: #9a8e88;
+      margin-bottom: 20px;
+      line-height: 1.6;
+    }
+
+    .ed-theme-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+    }
+
+    .ed-theme-card {
+      border-radius: 14px;
+      overflow: hidden;
+      border: 2px solid #e5ddd4;
+      cursor: pointer;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .ed-theme-card:hover {
+      border-color: #a09088;
+      box-shadow: 0 8px 24px rgba(42, 36, 32, 0.1);
+    }
+    .ed-theme-card.is-active {
+      border-color: #2a2420;
+      box-shadow: 0 8px 28px rgba(42, 36, 32, 0.15);
+    }
+
+    /* Preview area — rendered with the theme's own colors */
+    .ed-theme-preview {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 24px 16px 20px;
+      border-bottom: 1px solid rgba(128,128,128,0.15);
+      min-height: 110px;
+      text-align: center;
+    }
+
+    .ed-theme-preview-accent {
+      display: block;
+      font-size: 28px;
+      line-height: 1.1;
+    }
+
+    .ed-theme-preview-serif {
+      display: block;
+      font-size: 11px;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      opacity: 0.75;
+    }
+
+    .ed-theme-preview-body {
+      display: block;
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      opacity: 0.5;
+      margin-top: 2px;
+    }
+
+    /* Info area below preview */
+    .ed-theme-info {
+      padding: 14px 16px;
+    }
+
+    .ed-theme-meta {
+      margin-bottom: 10px;
+    }
+
+    .ed-theme-name {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      opacity: 0.9;
+    }
+
+    .ed-theme-desc {
+      display: block;
+      font-size: 11px;
+      opacity: 0.55;
+      margin-top: 2px;
+    }
+
+    /* Color swatches row */
+    .ed-theme-swatches {
+      display: flex;
+      gap: 5px;
+      margin-bottom: 12px;
+    }
+
+    .ed-swatch {
+      display: inline-block;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      border: 1px solid rgba(128,128,128,0.2);
+      flex-shrink: 0;
+    }
+
+    /* Select button */
+    .ed-theme-btn {
+      display: block;
+      width: 100%;
+      padding: 8px 12px;
+      background: rgba(255,255,255,0.12);
+      color: inherit;
+      border: 1px solid rgba(128,128,128,0.25);
+      border-radius: 7px;
+      font-family: inherit;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      transition: background 0.15s, opacity 0.15s;
+      opacity: 0.8;
+      text-align: center;
+    }
+    .ed-theme-btn:hover { opacity: 1; background: rgba(255,255,255,0.22); }
+    .ed-theme-btn.is-active {
+      opacity: 1;
+      background: rgba(255,255,255,0.08);
+      border-color: rgba(128,128,128,0.45);
+      cursor: default;
+    }
+
+    /* Loading placeholder */
+    .ed-loading {
+      text-align: center;
+      color: #b8afa8;
+      padding: 48px 0;
+      font-size: 13px;
+    }
+
     /* ── Responsive ──────────────────────────────────────────────────────────── */
     @media (max-width: 600px) {
       .ed-header { padding: 12px 16px; }
@@ -429,6 +568,7 @@
       .ed-group { padding: 18px; }
       .ed-fields-row { grid-template-columns: 80px 1fr; }
       .import-card { padding: 36px 24px; }
+      .ed-theme-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>

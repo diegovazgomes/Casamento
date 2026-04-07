@@ -1213,9 +1213,10 @@ class InvitationExperience {
 
 async function bootstrap() {
     try {
-        const [config, theme, typographyConfig] = await Promise.all([
-            loadConfig(),
-            loadTheme(ACTIVE_THEME_PATH),
+        const config = await loadConfig();
+        const themePath = config.activeTheme ?? ACTIVE_THEME_PATH;
+        const [theme, typographyConfig] = await Promise.all([
+            loadTheme(themePath),
             loadTypographyConfig()
         ]);
         const themeWithGlobalTypography = mergeThemeWithGlobalTypography(theme, typographyConfig);
