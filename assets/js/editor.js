@@ -17,15 +17,39 @@ function getPath(obj, path) {
   return path.split('.').reduce((o, k) => o?.[k], obj);
 }
 
+function isIndexKey(key) {
+  return /^\d+$/.test(key);
+}
+
 function setPath(obj, path, value) {
   const keys = path.split('.');
-  const last = keys.pop();
-  const target = keys.reduce((o, k) => {
-    if (o[k] === undefined || o[k] === null || typeof o[k] !== 'object' || Array.isArray(o[k])) {
-      o[k] = {};
+  const last = keys[keys.length - 1];
+  let target = obj;
+
+  for (let i = 0; i < keys.length - 1; i += 1) {
+    const key = keys[i];
+    const nextKey = keys[i + 1];
+
+    if (Array.isArray(target) && isIndexKey(key)) {
+      const idx = Number(key);
+      if (target[idx] === undefined || target[idx] === null || typeof target[idx] !== 'object') {
+        target[idx] = isIndexKey(nextKey) ? [] : {};
+      }
+      target = target[idx];
+      continue;
     }
-    return o[k];
-  }, obj);
+
+    if (target[key] === undefined || target[key] === null || typeof target[key] !== 'object') {
+      target[key] = isIndexKey(nextKey) ? [] : {};
+    }
+    target = target[key];
+  }
+
+  if (Array.isArray(target) && isIndexKey(last)) {
+    target[Number(last)] = value;
+    return;
+  }
+
   target[last] = value;
 }
 
@@ -123,10 +147,37 @@ function handleFileImport(e) {
 
 function startEditor(parsed) {
   config = parsed;
+  normalizeListCollections(config);
   document.getElementById('import-screen').classList.add('hidden');
   document.getElementById('editor-screen').classList.remove('hidden');
   renderActiveTab();
   markClean();
+}
+
+function ensureArrayPath(root, path) {
+  const current = getPath(root, path);
+
+  if (Array.isArray(current)) {
+    return;
+  }
+
+  if (current && typeof current === 'object') {
+    const ordered = Object.keys(current)
+      .filter(isIndexKey)
+      .sort((a, b) => Number(a) - Number(b))
+      .map((k) => current[k]);
+    setPath(root, path, ordered);
+    return;
+  }
+
+  setPath(root, path, []);
+}
+
+function normalizeListCollections(root) {
+  ensureArrayPath(root, 'pages.faq.content.items');
+  ensureArrayPath(root, 'pages.historia.content.chapters');
+  ensureArrayPath(root, 'pages.hospedagem.content.hotels');
+  ensureArrayPath(root, 'pages.hospedagem.content.restaurants');
 }
 
 function exportJson() {
@@ -183,6 +234,9 @@ function typographyLinkedCard({
   samplePath,
   sampleFallback,
   sampleHint,
+  textLabel = 'Texto',
+  textPlaceholder = '',
+  textMultiline = false,
   sizePath,
   sizePlaceholder,
   sizeHint = 'Ex: 13px, 2rem, clamp(...)',
@@ -201,6 +255,9 @@ function typographyLinkedCard({
         <span class="ed-typo-card-path">Texto de: ${esc(samplePath)}</span>
       </div>
       <p class="ed-typo-card-hint">${esc(sampleHint)}</p>
+      ${textMultiline
+        ? fieldTextarea({ label: textLabel, path: samplePath, placeholder: textPlaceholder })
+        : fieldInput({ label: textLabel, path: samplePath, placeholder: textPlaceholder })}
       <div
         class="ed-typo-preview"
         data-sample-path="${esc(samplePath)}"
@@ -294,6 +351,8 @@ const TYPOGRAPHY_LINKED_TEXTOS = [
     samplePath: 'texts.introLabel',
     sampleFallback: 'Convite',
     sampleHint: 'Pequena tag da tela inicial.',
+    textLabel: 'Texto',
+    textPlaceholder: 'Convite',
     sizePath: 'themeOverrides.typography.sizes.sectionTag',
     sizePlaceholder: '9px',
     fontPath: 'themeOverrides.typography.fonts.primary',
@@ -304,6 +363,9 @@ const TYPOGRAPHY_LINKED_TEXTOS = [
     samplePath: 'texts.intro',
     sampleFallback: 'Um momento pensado para viver ao lado de quem faz parte da nossa vida.',
     sampleHint: 'Texto principal antes de abrir o convite.',
+    textLabel: 'Texto',
+    textPlaceholder: 'Texto da introdução',
+    textMultiline: true,
     sizePath: 'themeOverrides.typography.sizes.sectionBody',
     sizePlaceholder: '13px',
     fontPath: 'themeOverrides.typography.fonts.primary',
@@ -314,6 +376,8 @@ const TYPOGRAPHY_LINKED_TEXTOS = [
     samplePath: 'texts.heroLabel',
     sampleFallback: 'Você foi convidado para o casamento de',
     sampleHint: 'Linha acima do nome do casal na capa.',
+    textLabel: 'Texto',
+    textPlaceholder: 'Você foi convidado para o casamento de',
     sizePath: 'themeOverrides.typography.sizes.heroLabel',
     sizePlaceholder: '10px',
     fontPath: 'themeOverrides.typography.fonts.primary',
@@ -324,6 +388,8 @@ const TYPOGRAPHY_LINKED_TEXTOS = [
     samplePath: 'texts.countdownTag',
     sampleFallback: 'Contagem Regressiva',
     sampleHint: 'Etiqueta acima da seção de contagem.',
+    textLabel: 'Texto',
+    textPlaceholder: 'Contagem Regressiva',
     sizePath: 'themeOverrides.typography.sizes.sectionTag',
     sizePlaceholder: '9px',
     fontPath: 'themeOverrides.typography.fonts.primary',
@@ -334,6 +400,8 @@ const TYPOGRAPHY_LINKED_TEXTOS = [
     samplePath: 'texts.countdownTitle',
     sampleFallback: 'O grande dia se aproxima!',
     sampleHint: 'Título principal da seção de contagem.',
+    textLabel: 'Texto',
+    textPlaceholder: 'O grande dia se aproxima!',
     sizePath: 'themeOverrides.typography.sizes.sectionTitle.max',
     sizePlaceholder: '56px',
     fontPath: 'themeOverrides.typography.fonts.serif',
@@ -344,6 +412,8 @@ const TYPOGRAPHY_LINKED_TEXTOS = [
     samplePath: 'texts.countdownFinished',
     sampleFallback: 'O grande dia chegou.',
     sampleHint: 'Texto exibido quando a contagem termina.',
+    textLabel: 'Texto',
+    textPlaceholder: 'O grande dia chegou.',
     sizePath: 'themeOverrides.typography.sizes.countdownFinished',
     sizePlaceholder: '30px',
     fontPath: 'themeOverrides.typography.fonts.serif',
@@ -354,6 +424,8 @@ const TYPOGRAPHY_LINKED_TEXTOS = [
     samplePath: 'texts.detailsTag',
     sampleFallback: 'Detalhes da Cerimônia',
     sampleHint: 'Etiqueta da seção de detalhes.',
+    textLabel: 'Texto',
+    textPlaceholder: 'Detalhes da Cerimônia',
     sizePath: 'themeOverrides.typography.sizes.sectionTag',
     sizePlaceholder: '9px',
     fontPath: 'themeOverrides.typography.fonts.primary',
@@ -364,6 +436,8 @@ const TYPOGRAPHY_LINKED_TEXTOS = [
     samplePath: 'texts.detailsTitle',
     sampleFallback: 'O início de tudo o que queremos viver juntos.',
     sampleHint: 'Título grande da seção de detalhes.',
+    textLabel: 'Texto',
+    textPlaceholder: 'O início de tudo o que queremos viver juntos.',
     sizePath: 'themeOverrides.typography.sizes.sectionTitle.max',
     sizePlaceholder: '56px',
     fontPath: 'themeOverrides.typography.fonts.serif',
@@ -374,6 +448,9 @@ const TYPOGRAPHY_LINKED_TEXTOS = [
     samplePath: 'texts.detailsIntro',
     sampleFallback: 'Uma celebração íntima, pensada para compartilhar esse momento com quem faz parte da nossa história.',
     sampleHint: 'Parágrafo explicativo da cerimônia.',
+    textLabel: 'Texto',
+    textPlaceholder: 'Texto de introdução da cerimônia',
+    textMultiline: true,
     sizePath: 'themeOverrides.typography.sizes.sectionBody',
     sizePlaceholder: '13px',
     fontPath: 'themeOverrides.typography.fonts.primary',
@@ -384,6 +461,8 @@ const TYPOGRAPHY_LINKED_TEXTOS = [
     samplePath: 'texts.detailsOccasionValue',
     sampleFallback: 'Cerimônia & Recepção',
     sampleHint: 'Texto de destaque no card de ocasião.',
+    textLabel: 'Texto',
+    textPlaceholder: 'Cerimônia & Recepção',
     sizePath: 'themeOverrides.typography.sizes.detailValue',
     sizePlaceholder: '20px',
     fontPath: 'themeOverrides.typography.fonts.serif',
@@ -394,6 +473,8 @@ const TYPOGRAPHY_LINKED_TEXTOS = [
     samplePath: 'texts.detailsOccasionSub',
     sampleFallback: 'Traje esporte fino',
     sampleHint: 'Texto complementar no card de ocasião.',
+    textLabel: 'Texto',
+    textPlaceholder: 'Traje esporte fino',
     sizePath: 'themeOverrides.typography.sizes.detailSub',
     sizePlaceholder: '10px',
     fontPath: 'themeOverrides.typography.fonts.primary',
@@ -404,6 +485,8 @@ const TYPOGRAPHY_LINKED_TEXTOS = [
     samplePath: 'texts.rsvpTag',
     sampleFallback: 'Confirmação de Presença',
     sampleHint: 'Etiqueta da seção de confirmação.',
+    textLabel: 'Texto',
+    textPlaceholder: 'Confirmação de Presença',
     sizePath: 'themeOverrides.typography.sizes.sectionTag',
     sizePlaceholder: '9px',
     fontPath: 'themeOverrides.typography.fonts.primary',
@@ -414,6 +497,8 @@ const TYPOGRAPHY_LINKED_TEXTOS = [
     samplePath: 'texts.rsvpTitle',
     sampleFallback: 'Esperamos você.',
     sampleHint: 'Título principal da confirmação de presença.',
+    textLabel: 'Texto',
+    textPlaceholder: 'Esperamos você.',
     sizePath: 'themeOverrides.typography.sizes.rsvpTitle',
     sizePlaceholder: '38px',
     fontPath: 'themeOverrides.typography.fonts.serif',
@@ -424,6 +509,9 @@ const TYPOGRAPHY_LINKED_TEXTOS = [
     samplePath: 'texts.rsvpSubtitle',
     sampleFallback: 'Pedimos, por gentileza, que confirme sua presença o quanto antes.',
     sampleHint: 'Texto explicativo do RSVP.',
+    textLabel: 'Texto',
+    textPlaceholder: 'Texto explicativo do RSVP',
+    textMultiline: true,
     sizePath: 'themeOverrides.typography.sizes.rsvpSubtitle',
     sizePlaceholder: '11px',
     fontPath: 'themeOverrides.typography.fonts.primary',
@@ -434,6 +522,8 @@ const TYPOGRAPHY_LINKED_TEXTOS = [
     samplePath: 'texts.rsvpFormTitle',
     sampleFallback: 'Confirmar Presença',
     sampleHint: 'Título no card do formulário.',
+    textLabel: 'Texto',
+    textPlaceholder: 'Confirmar Presença',
     sizePath: 'themeOverrides.typography.sizes.detailValue',
     sizePlaceholder: '20px',
     fontPath: 'themeOverrides.typography.fonts.serif',
@@ -444,6 +534,9 @@ const TYPOGRAPHY_LINKED_TEXTOS = [
     samplePath: 'texts.rsvpFormSubtitle',
     sampleFallback: 'Preencha os dados para continuar no WhatsApp',
     sampleHint: 'Linha de apoio acima dos inputs.',
+    textLabel: 'Texto',
+    textPlaceholder: 'Preencha os dados para continuar no WhatsApp',
+    textMultiline: true,
     sizePath: 'themeOverrides.typography.sizes.rsvpSubtitle',
     sizePlaceholder: '11px',
     fontPath: 'themeOverrides.typography.fonts.primary',
@@ -454,6 +547,8 @@ const TYPOGRAPHY_LINKED_TEXTOS = [
     samplePath: 'texts.rsvpPlaceholderName',
     sampleFallback: 'Seu nome completo',
     sampleHint: 'Texto de placeholder do campo nome.',
+    textLabel: 'Texto',
+    textPlaceholder: 'Seu nome completo',
     sizePath: 'themeOverrides.typography.sizes.rsvpInput',
     sizePlaceholder: '12px',
     fontPath: 'themeOverrides.typography.fonts.primary',
@@ -464,6 +559,8 @@ const TYPOGRAPHY_LINKED_TEXTOS = [
     samplePath: 'texts.rsvpPlaceholderPhone',
     sampleFallback: 'Seu WhatsApp',
     sampleHint: 'Texto de placeholder do campo telefone.',
+    textLabel: 'Texto',
+    textPlaceholder: 'Seu WhatsApp',
     sizePath: 'themeOverrides.typography.sizes.rsvpInput',
     sizePlaceholder: '12px',
     fontPath: 'themeOverrides.typography.fonts.primary',
@@ -474,6 +571,8 @@ const TYPOGRAPHY_LINKED_TEXTOS = [
     samplePath: 'texts.rsvpYesLabel',
     sampleFallback: 'Confirmo presença',
     sampleHint: 'Rótulo da opção positiva.',
+    textLabel: 'Texto',
+    textPlaceholder: 'Confirmo presença',
     sizePath: 'themeOverrides.typography.sizes.rsvpChoice',
     sizePlaceholder: '10px',
     fontPath: 'themeOverrides.typography.fonts.primary',
@@ -484,6 +583,8 @@ const TYPOGRAPHY_LINKED_TEXTOS = [
     samplePath: 'texts.rsvpNoLabel',
     sampleFallback: 'Não poderei ir',
     sampleHint: 'Rótulo da opção negativa.',
+    textLabel: 'Texto',
+    textPlaceholder: 'Não poderei ir',
     sizePath: 'themeOverrides.typography.sizes.rsvpChoice',
     sizePlaceholder: '10px',
     fontPath: 'themeOverrides.typography.fonts.primary',
@@ -494,6 +595,8 @@ const TYPOGRAPHY_LINKED_TEXTOS = [
     samplePath: 'texts.rsvpSubmit',
     sampleFallback: 'Continuar no WhatsApp',
     sampleHint: 'Texto do botão de envio do formulário.',
+    textLabel: 'Texto',
+    textPlaceholder: 'Continuar no WhatsApp',
     sizePath: 'themeOverrides.typography.sizes.rsvpSubmit',
     sizePlaceholder: '10px',
     fontPath: 'themeOverrides.typography.fonts.primary',
@@ -504,6 +607,8 @@ const TYPOGRAPHY_LINKED_TEXTOS = [
     samplePath: 'texts.footerNote',
     sampleFallback: '06 . 09 . 2026 | São Bernardo do Campo',
     sampleHint: 'Linha final abaixo dos nomes no rodapé.',
+    textLabel: 'Texto',
+    textPlaceholder: '06 . 09 . 2026 | São Bernardo do Campo',
     sizePath: 'themeOverrides.typography.sizes.footerNote',
     sizePlaceholder: '10px',
     fontPath: 'themeOverrides.typography.fonts.primary',
@@ -517,6 +622,8 @@ const TYPOGRAPHY_LINKED_FAQ = [
     samplePath: 'pages.faq.content.tag',
     sampleFallback: 'FAQ',
     sampleHint: 'Etiqueta superior da página de FAQ.',
+    textLabel: 'Texto',
+    textPlaceholder: 'FAQ',
     sizePath: 'themeOverrides.typography.sizes.sectionTag',
     sizePlaceholder: '9px',
     fontPath: 'themeOverrides.typography.fonts.primary',
@@ -527,6 +634,8 @@ const TYPOGRAPHY_LINKED_FAQ = [
     samplePath: 'pages.faq.content.title',
     sampleFallback: 'Tudo que você precisa saber',
     sampleHint: 'Título principal da página FAQ.',
+    textLabel: 'Texto',
+    textPlaceholder: 'Tudo que você precisa saber',
     sizePath: 'themeOverrides.typography.sizes.sectionTitle.max',
     sizePlaceholder: '56px',
     fontPath: 'themeOverrides.typography.fonts.serif',
@@ -537,6 +646,9 @@ const TYPOGRAPHY_LINKED_FAQ = [
     samplePath: 'pages.faq.content.intro',
     sampleFallback: 'Reunimos as perguntas mais frequentes para facilitar o seu preparo.',
     sampleHint: 'Parágrafo de abertura da FAQ.',
+    textLabel: 'Texto',
+    textPlaceholder: 'Introdução da FAQ',
+    textMultiline: true,
     sizePath: 'themeOverrides.typography.sizes.sectionBody',
     sizePlaceholder: '13px',
     fontPath: 'themeOverrides.typography.fonts.primary',
@@ -551,6 +663,8 @@ function buildFaqItemMappings(items) {
       samplePath: `pages.faq.content.items.${i}.question`,
       sampleFallback: item.question || `Pergunta ${i + 1}`,
       sampleHint: 'Texto da pergunta neste item da lista.',
+      textLabel: 'Pergunta',
+      textPlaceholder: 'Digite a pergunta',
       sizePath: 'themeOverrides.typography.sizes.detailValue',
       sizePlaceholder: '20px',
       fontPath: 'themeOverrides.typography.fonts.serif',
@@ -561,6 +675,9 @@ function buildFaqItemMappings(items) {
       samplePath: `pages.faq.content.items.${i}.answer`,
       sampleFallback: item.answer || `Resposta ${i + 1}`,
       sampleHint: 'Texto da resposta neste item da lista.',
+      textLabel: 'Resposta',
+      textPlaceholder: 'Digite a resposta',
+      textMultiline: true,
       sizePath: 'themeOverrides.typography.sizes.sectionBody',
       sizePlaceholder: '13px',
       fontPath: 'themeOverrides.typography.fonts.primary',
@@ -575,6 +692,8 @@ const TYPOGRAPHY_LINKED_HISTORIA = [
     samplePath: 'pages.historia.content.tag',
     sampleFallback: 'Nossa História',
     sampleHint: 'Etiqueta superior da página.',
+    textLabel: 'Texto',
+    textPlaceholder: 'Nossa História',
     sizePath: 'themeOverrides.typography.sizes.sectionTag',
     sizePlaceholder: '9px',
     fontPath: 'themeOverrides.typography.fonts.primary',
@@ -585,6 +704,8 @@ const TYPOGRAPHY_LINKED_HISTORIA = [
     samplePath: 'pages.historia.content.title',
     sampleFallback: 'Como tudo começou',
     sampleHint: 'Título principal da página.',
+    textLabel: 'Texto',
+    textPlaceholder: 'Como tudo começou',
     sizePath: 'themeOverrides.typography.sizes.sectionTitle.max',
     sizePlaceholder: '56px',
     fontPath: 'themeOverrides.typography.fonts.serif',
@@ -595,6 +716,9 @@ const TYPOGRAPHY_LINKED_HISTORIA = [
     samplePath: 'pages.historia.content.intro',
     sampleFallback: 'Uma história que é nossa, e que a partir de setembro passa a ser de vocês também.',
     sampleHint: 'Parágrafo de abertura da página.',
+    textLabel: 'Texto',
+    textPlaceholder: 'Introdução da história',
+    textMultiline: true,
     sizePath: 'themeOverrides.typography.sizes.sectionBody',
     sizePlaceholder: '13px',
     fontPath: 'themeOverrides.typography.fonts.primary',
@@ -609,6 +733,8 @@ function buildHistoriaMappings(chapters) {
       samplePath: `pages.historia.content.chapters.${i}.title`,
       sampleFallback: ch.title || `Capítulo ${i + 1}`,
       sampleHint: 'Título deste capítulo da linha do tempo.',
+      textLabel: 'Título do capítulo',
+      textPlaceholder: 'Digite o título',
       sizePath: 'themeOverrides.typography.sizes.detailValue',
       sizePlaceholder: '20px',
       fontPath: 'themeOverrides.typography.fonts.serif',
@@ -619,6 +745,9 @@ function buildHistoriaMappings(chapters) {
       samplePath: `pages.historia.content.chapters.${i}.text`,
       sampleFallback: ch.text || `Texto do capítulo ${i + 1}`,
       sampleHint: 'Texto corrido deste capítulo.',
+      textLabel: 'Texto do capítulo',
+      textPlaceholder: 'Digite o texto do capítulo',
+      textMultiline: true,
       sizePath: 'themeOverrides.typography.sizes.sectionBody',
       sizePlaceholder: '13px',
       fontPath: 'themeOverrides.typography.fonts.primary',
@@ -633,6 +762,8 @@ const TYPOGRAPHY_LINKED_HOSPEDAGEM = [
     samplePath: 'pages.hospedagem.content.tag',
     sampleFallback: 'Para Quem Vem de Fora',
     sampleHint: 'Etiqueta superior da página.',
+    textLabel: 'Texto',
+    textPlaceholder: 'Para Quem Vem de Fora',
     sizePath: 'themeOverrides.typography.sizes.sectionTag',
     sizePlaceholder: '9px',
     fontPath: 'themeOverrides.typography.fonts.primary',
@@ -643,6 +774,8 @@ const TYPOGRAPHY_LINKED_HOSPEDAGEM = [
     samplePath: 'pages.hospedagem.content.title',
     sampleFallback: 'Fique à vontade para explorar',
     sampleHint: 'Título principal da página.',
+    textLabel: 'Texto',
+    textPlaceholder: 'Fique à vontade para explorar',
     sizePath: 'themeOverrides.typography.sizes.sectionTitle.max',
     sizePlaceholder: '56px',
     fontPath: 'themeOverrides.typography.fonts.serif',
@@ -653,6 +786,9 @@ const TYPOGRAPHY_LINKED_HOSPEDAGEM = [
     samplePath: 'pages.hospedagem.content.intro',
     sampleFallback: 'Selecionamos algumas opções próximas ao local da festa para tornar sua estadia mais fácil.',
     sampleHint: 'Parágrafo de abertura da página.',
+    textLabel: 'Texto',
+    textPlaceholder: 'Introdução da hospedagem',
+    textMultiline: true,
     sizePath: 'themeOverrides.typography.sizes.sectionBody',
     sizePlaceholder: '13px',
     fontPath: 'themeOverrides.typography.fonts.primary',
@@ -667,6 +803,8 @@ function buildHospedagemMappings(hotels, restaurants) {
       samplePath: `pages.hospedagem.content.hotels.${i}.name`,
       sampleFallback: item.name || `Hotel ${i + 1}`,
       sampleHint: 'Nome deste card de hotel.',
+      textLabel: 'Nome do hotel',
+      textPlaceholder: 'Digite o nome do hotel',
       sizePath: 'themeOverrides.typography.sizes.detailValue',
       sizePlaceholder: '20px',
       fontPath: 'themeOverrides.typography.fonts.serif',
@@ -677,6 +815,9 @@ function buildHospedagemMappings(hotels, restaurants) {
       samplePath: `pages.hospedagem.content.hotels.${i}.description`,
       sampleFallback: item.description || `Descrição do hotel ${i + 1}`,
       sampleHint: 'Descrição deste card de hotel.',
+      textLabel: 'Descrição do hotel',
+      textPlaceholder: 'Digite a descrição do hotel',
+      textMultiline: true,
       sizePath: 'themeOverrides.typography.sizes.sectionBody',
       sizePlaceholder: '13px',
       fontPath: 'themeOverrides.typography.fonts.primary',
@@ -690,6 +831,8 @@ function buildHospedagemMappings(hotels, restaurants) {
       samplePath: `pages.hospedagem.content.restaurants.${i}.name`,
       sampleFallback: item.name || `Restaurante ${i + 1}`,
       sampleHint: 'Nome deste card de restaurante.',
+      textLabel: 'Nome do restaurante',
+      textPlaceholder: 'Digite o nome do restaurante',
       sizePath: 'themeOverrides.typography.sizes.detailValue',
       sizePlaceholder: '20px',
       fontPath: 'themeOverrides.typography.fonts.serif',
@@ -700,6 +843,9 @@ function buildHospedagemMappings(hotels, restaurants) {
       samplePath: `pages.hospedagem.content.restaurants.${i}.description`,
       sampleFallback: item.description || `Descrição do restaurante ${i + 1}`,
       sampleHint: 'Descrição deste card de restaurante.',
+      textLabel: 'Descrição do restaurante',
+      textPlaceholder: 'Digite a descrição do restaurante',
+      textMultiline: true,
       sizePath: 'themeOverrides.typography.sizes.sectionBody',
       sizePlaceholder: '13px',
       fontPath: 'themeOverrides.typography.fonts.primary',
@@ -830,110 +976,92 @@ function renderCasal() {
 }
 
 function renderTextos() {
-  return group('Introdução & Hero', `
-    ${fieldInput({ label: 'Label do convite', path: 'texts.introLabel', placeholder: 'Convite', hint: 'Pequena tag acima da intro' })}
-    ${fieldTextarea({ label: 'Texto de introdução', path: 'texts.intro', hint: 'Aparece na tela de entrada antes do convite' })}
-    ${fieldInput({ label: 'Chamada no hero', path: 'texts.heroLabel', hint: 'Linha acima dos nomes dos noivos' })}
-  `) + group('Contagem Regressiva', `
-    ${fieldInput({ label: 'Tag da seção', path: 'texts.countdownTag', placeholder: 'Contagem Regressiva' })}
-    ${fieldInput({ label: 'Título', path: 'texts.countdownTitle' })}
-    ${fieldInput({ label: 'Mensagem quando o dia chegar', path: 'texts.countdownFinished', hint: 'Substitui a contagem no dia do evento' })}
-  `) + group('Detalhes da Cerimônia', `
-    ${fieldInput({ label: 'Tag da seção', path: 'texts.detailsTag', placeholder: 'Detalhes da Cerimônia' })}
-    ${fieldInput({ label: 'Título', path: 'texts.detailsTitle' })}
-    ${fieldTextarea({ label: 'Introdução', path: 'texts.detailsIntro' })}
-    ${fieldInput({ label: 'Tipo de ocasião', path: 'texts.detailsOccasionValue', placeholder: 'Cerimônia & Recepção' })}
-    ${fieldInput({ label: 'Subtexto da ocasião', path: 'texts.detailsOccasionSub', placeholder: 'Traje esporte fino' })}
-  `) + group('RSVP — Confirmação de Presença', `
-    ${fieldInput({ label: 'Tag da seção', path: 'texts.rsvpTag', placeholder: 'Confirmação de Presença' })}
-    ${fieldInput({ label: 'Título', path: 'texts.rsvpTitle' })}
-    ${fieldTextarea({ label: 'Subtítulo', path: 'texts.rsvpSubtitle' })}
-    ${fieldInput({ label: 'Título do formulário', path: 'texts.rsvpFormTitle' })}
-    ${fieldInput({ label: 'Subtítulo do formulário', path: 'texts.rsvpFormSubtitle' })}
-    ${fieldInput({ label: 'Placeholder — nome', path: 'texts.rsvpPlaceholderName', placeholder: 'Seu nome completo' })}
-    ${fieldInput({ label: 'Placeholder — telefone', path: 'texts.rsvpPlaceholderPhone', placeholder: 'Seu WhatsApp' })}
-    ${fieldInput({ label: 'Botão — confirmar', path: 'texts.rsvpYesLabel' })}
-    ${fieldInput({ label: 'Botão — não ir', path: 'texts.rsvpNoLabel' })}
-    ${fieldInput({ label: 'Botão — enviar', path: 'texts.rsvpSubmit' })}
-  `) + group('Rodapé', `
-    ${fieldInput({ label: 'Nota do rodapé', path: 'texts.footerNote', placeholder: '06 . 09 . 2026 | São Bernardo do Campo' })}
-  `) + renderCoupleNamesTypography() + renderLinkedTypographyEditor({
+  return renderCoupleNamesTypography() + renderLinkedTypographyEditor({
     title: 'Fontes e Tamanhos por Texto',
-    hint: 'Aqui você vê o texto real que será afetado. Edite o texto acima na mesma aba e ajuste a tipografia abaixo.',
+    hint: 'Fluxo completo: edite o texto e, no mesmo bloco, ajuste tamanho e fonte.',
     mappings: TYPOGRAPHY_LINKED_TEXTOS,
+  });
+}
+
+function renderListManager({ title, addAction, removeAction, items, labelFromItem }) {
+  const content = items.length
+    ? items.map((item, i) => `
+        <div class="ed-list-item">
+          <div class="ed-list-item-header">
+            <span class="ed-list-num">${esc(labelFromItem(item, i))}</span>
+            <button class="ed-btn-remove" data-action="${removeAction}" data-index="${i}" title="Remover">Remover</button>
+          </div>
+        </div>
+      `).join('')
+    : `<p class="ed-empty">Nenhum item ainda. Clique em "+ Adicionar" para começar.</p>`;
+
+  return listGroup({
+    title,
+    addAction,
+    listId: `${addAction}-manager`,
+    itemsHtml: content,
+    emptyText: 'Nenhum item.',
   });
 }
 
 function renderFaq() {
   const items = config.pages.faq.content.items ?? [];
-  const intro = group('Introdução da Página', `
-    ${fieldInput({ label: 'Título da página', path: 'pages.faq.content.title' })}
-    ${fieldTextarea({ label: 'Introdução', path: 'pages.faq.content.intro' })}
-  `);
-  const list = listGroup({
-    title: 'Perguntas e Respostas',
+  const manager = renderListManager({
+    title: 'Gerenciar Perguntas',
     addAction: 'add-faq',
-    listId: 'faq-list',
-    itemsHtml: items.map((item, i) => faqItemHtml(item, i)).join(''),
-    emptyText: 'Nenhuma pergunta ainda. Clique em "+ Adicionar" para começar.',
+    removeAction: 'remove-faq',
+    items,
+    labelFromItem: (item, i) => item.question?.trim() ? `Pergunta ${i + 1}: ${item.question}` : `Pergunta ${i + 1}`,
   });
   const typography = renderLinkedTypographyEditor({
     title: 'Tipografia da FAQ',
-    hint: 'Mapeamento de fontes e tamanhos para os textos da página de FAQ.',
+    hint: 'Fluxo completo: edite perguntas/respostas e tipografia no mesmo bloco.',
     mappings: [...TYPOGRAPHY_LINKED_FAQ, ...buildFaqItemMappings(items)],
   });
-  return intro + list + typography;
+  return manager + typography;
 }
 
 function renderHistoria() {
   const chapters = config.pages.historia.content.chapters ?? [];
-  const intro = group('Introdução da Página', `
-    ${fieldInput({ label: 'Título da página', path: 'pages.historia.content.title' })}
-    ${fieldTextarea({ label: 'Introdução', path: 'pages.historia.content.intro' })}
-  `);
-  const list = listGroup({
-    title: 'Capítulos',
+  const manager = renderListManager({
+    title: 'Gerenciar Capítulos',
     addAction: 'add-historia',
-    listId: 'historia-list',
-    itemsHtml: chapters.map((ch, i) => chapterHtml(ch, i)).join(''),
-    emptyText: 'Nenhum capítulo. Clique em "+ Adicionar" para começar.',
+    removeAction: 'remove-historia',
+    items: chapters,
+    labelFromItem: (item, i) => item.title?.trim() ? `Capítulo ${i + 1}: ${item.title}` : `Capítulo ${i + 1}`,
   });
   const typography = renderLinkedTypographyEditor({
     title: 'Tipografia da Nossa História',
-    hint: 'Mapeamento de fontes e tamanhos para os textos da página de história.',
+    hint: 'Fluxo completo: edite capítulos e tipografia no mesmo bloco.',
     mappings: [...TYPOGRAPHY_LINKED_HISTORIA, ...buildHistoriaMappings(chapters)],
   });
-  return intro + list + typography;
+  return manager + typography;
 }
 
 function renderHospedagem() {
   const hotels = config.pages.hospedagem.content.hotels ?? [];
   const restaurants = config.pages.hospedagem.content.restaurants ?? [];
 
-  const intro = group('Introdução da Página', `
-    ${fieldInput({ label: 'Título da página', path: 'pages.hospedagem.content.title' })}
-    ${fieldTextarea({ label: 'Introdução', path: 'pages.hospedagem.content.intro' })}
-  `);
-  const hotelList = listGroup({
-    title: 'Hotéis',
+  const hotelManager = renderListManager({
+    title: 'Gerenciar Hotéis',
     addAction: 'add-hotels',
-    listId: 'hotels-list',
-    itemsHtml: hotels.map((h, i) => hospItemHtml(h, i, 'hotels')).join(''),
-    emptyText: 'Nenhum hotel cadastrado.',
+    removeAction: 'remove-hotels',
+    items: hotels,
+    labelFromItem: (item, i) => item.name?.trim() ? `Hotel ${i + 1}: ${item.name}` : `Hotel ${i + 1}`,
   });
-  const restList = listGroup({
-    title: 'Restaurantes',
+  const restaurantManager = renderListManager({
+    title: 'Gerenciar Restaurantes',
     addAction: 'add-restaurants',
-    listId: 'restaurants-list',
-    itemsHtml: restaurants.map((r, i) => hospItemHtml(r, i, 'restaurants')).join(''),
-    emptyText: 'Nenhum restaurante cadastrado.',
+    removeAction: 'remove-restaurants',
+    items: restaurants,
+    labelFromItem: (item, i) => item.name?.trim() ? `Restaurante ${i + 1}: ${item.name}` : `Restaurante ${i + 1}`,
   });
   const typography = renderLinkedTypographyEditor({
     title: 'Tipografia da Hospedagem',
-    hint: 'Mapeamento de fontes e tamanhos para os textos da página de hospedagem.',
+    hint: 'Fluxo completo: edite hotéis/restaurantes e tipografia no mesmo bloco.',
     mappings: [...TYPOGRAPHY_LINKED_HOSPEDAGEM, ...buildHospedagemMappings(hotels, restaurants)],
   });
-  return intro + hotelList + restList + typography;
+  return hotelManager + restaurantManager + typography;
 }
 
 // ── Theme tab ─────────────────────────────────────────────────────────────────

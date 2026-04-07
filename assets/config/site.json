@@ -8,7 +8,7 @@
     "assets/config/themes/classic-purple.json"
   ],
   "couple": {
-    "names": "Diego & Siannah",
+    "names": "Siannah & Diego",
     "subtitle": "Seguimos escolhendo um ao outro para sempre."
   },
   "event": {
@@ -130,28 +130,12 @@
         "intro": "Reunimos as perguntas mais frequentes para facilitar o seu preparo.",
         "items": [
           {
-            "question": "Qual é o dress code?",
-            "answer": "Esporte fino. Pedimos gentilmente que evitem roupas brancas."
+            "question": "Qual valor do convite avulço?",
+            "answer": "R$100,00 por pessoa"
           },
           {
-            "question": "Tem estacionamento no local?",
-            "answer": "Sim, o estacionamento é gratuito e tem capacidade para todos os convidados."
-          },
-          {
-            "question": "Crianças são bem-vindas?",
-            "answer": "A celebração é voltada para adultos, mas crianças são bem-vindas mediante confirmação."
-          },
-          {
-            "question": "Até quando posso confirmar presença?",
-            "answer": "Pedimos que a confirmação seja feita até 30 dias antes do evento."
-          },
-          {
-            "question": "Eu estou convidado?",
-            "answer": "Infelizmente não, é apenas para os mais intimos."
-          },
-          {
-            "question": "Posso levar bebida?",
-            "answer": "Infelizmente não é permitido levar bebidas de fora."
+            "question": "Qual o dresscode da festa?",
+            "answer": "Apenas roupas da lacoste"
           }
         ]
       }
@@ -171,12 +155,6 @@
             "description": "A 5 minutos do local. Café da manhã incluído.",
             "link": "",
             "linkLabel": "Ver hotel"
-          },
-          {
-            "name": "Hotel Exemplo 2",
-            "description": "A 10 minutos do local. Estacionamento gratuito.",
-            "link": "",
-            "linkLabel": "Ver hotel"
           }
         ],
         "restaurantsTitle": "Restaurantes",
@@ -184,12 +162,6 @@
           {
             "name": "Restaurante Exemplo 1",
             "description": "Ótima opção para o almoço do dia anterior.",
-            "link": "",
-            "linkLabel": "Ver no Maps"
-          },
-          {
-            "name": "Restaurante Exemplo 2",
-            "description": "A 5 minutos do local. Culinária variada.",
             "link": "",
             "linkLabel": "Ver no Maps"
           }
