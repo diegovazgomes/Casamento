@@ -271,6 +271,7 @@
                   "type": "array",
                   "items": {
                     "type": "object",
+                    "required": ["name", "description"],
                     "properties": {
                       "name": { "type": "string" },
                       "description": { "type": "string" },
@@ -284,6 +285,7 @@
                   "type": "array",
                   "items": {
                     "type": "object",
+                    "required": ["name", "description"],
                     "properties": {
                       "name": { "type": "string" },
                       "description": { "type": "string" },
@@ -366,6 +368,21 @@
             }
           }
         }
+      }
+    },
+    "themeOverrides": {
+      "type": "object",
+      "description": "Sobrescritas de tema aplicadas sobre o tema ativo. Suporta todos os campos de um arquivo de tema.",
+      "properties": {
+        "colors":     { "type": "object" },
+        "typography": { "type": "object" },
+        "spacing":    { "type": "object" },
+        "layout":     { "type": "object" },
+        "components": { "type": "object" },
+        "radius":     { "type": "object" },
+        "effects":    { "type": "object" },
+        "animation":  { "type": "object" },
+        "countdown":  { "type": "object" }
       }
     }
   }

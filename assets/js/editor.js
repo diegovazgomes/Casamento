@@ -12,6 +12,16 @@ let isDirty = false;
 let activeTab = 'casal';
 let _siteSchema = null;
 
+// ── Utilities ─────────────────────────────────────────────────────────────────
+
+function debounce(fn, ms) {
+  let timer;
+  return (...args) => {
+    clearTimeout(timer);
+    timer = setTimeout(() => fn(...args), ms);
+  };
+}
+
 // ── Path utilities ────────────────────────────────────────────────────────────
 
 function getPath(obj, path) {
@@ -154,8 +164,8 @@ async function startEditor(parsed) {
   renderActiveTab();
   markClean();
 
-  const schema = await loadSchema();
-  if (schema) renderValidationBanner(validateAgainstSchema(config, schema));
+  await loadSchema();
+  revalidate();
 }
 
 function ensureArrayPath(root, path) {
@@ -210,10 +220,23 @@ function checkType(value, type) {
   }
 }
 
-function validateAgainstSchema(data, schema, path) {
+function validateAgainstSchema(data, schema, path, rootSchema) {
   if (path === undefined) path = '';
+  if (rootSchema === undefined) rootSchema = schema;
   const results = [];
   if (!schema) return results;
+
+  // Resolve $ref before any other checks
+  if (schema.$ref) {
+    const refParts = typeof schema.$ref === 'string' && schema.$ref.startsWith('#/')
+      ? schema.$ref.slice(2).split('/')
+      : null;
+    if (refParts) {
+      const resolved = refParts.reduce((obj, key) => obj?.[key], rootSchema);
+      if (resolved) return validateAgainstSchema(data, resolved, path, rootSchema);
+    }
+    return results;
+  }
 
   // Type check (only when value is present)
   if (schema.type && data !== null && data !== undefined) {
@@ -250,7 +273,7 @@ function validateAgainstSchema(data, schema, path) {
     for (const [key, propSchema] of Object.entries(schema.properties)) {
       if (obj[key] !== undefined) {
         const subPath = path ? `${path}.${key}` : key;
-        const sub = validateAgainstSchema(obj[key], propSchema, subPath);
+        const sub = validateAgainstSchema(obj[key], propSchema, subPath, rootSchema);
         for (const r of sub) results.push(r);
       }
     }
@@ -260,7 +283,7 @@ function validateAgainstSchema(data, schema, path) {
   if (schema.items && Array.isArray(data)) {
     data.forEach((item, i) => {
       const subPath = `${path}[${i}]`;
-      const sub = validateAgainstSchema(item, schema.items, subPath);
+      const sub = validateAgainstSchema(item, schema.items, subPath, rootSchema);
       for (const r of sub) results.push(r);
     });
   }
@@ -290,15 +313,30 @@ function renderValidationBanner(results) {
 
   const errors   = results.filter((r) => r.severity === 'error');
   const warnings = results.filter((r) => r.severity === 'warning');
-  if (errors.length === 0 && warnings.length === 0) return;
+
+  if (errors.length === 0 && warnings.length === 0) {
+    const banner = document.createElement('div');
+    banner.id = 'validation-banner';
+    banner.setAttribute('role', 'status');
+    banner.style.cssText = 'background:#f0fdf4;border-bottom:1px solid #bbf7d0;padding:10px 24px 12px;font-size:12px;line-height:1.6;';
+    banner.innerHTML = `<strong style="color:#166534">✓ Configuração válida — nenhum problema encontrado</strong>`;
+    document.querySelector('.ed-tab-bar-wrap')?.insertAdjacentElement('afterend', banner);
+    setTimeout(() => banner.remove(), 3000);
+    return;
+  }
 
   const hasErrors  = errors.length > 0;
   const bgColor    = hasErrors ? '#fef2f2' : '#fffbeb';
   const bdColor    = hasErrors ? '#fecaca' : '#fde68a';
   const titleColor = hasErrors ? '#991b1b' : '#92400e';
-  const count      = hasErrors ? errors.length : warnings.length;
-  const noun       = hasErrors ? 'erro' : 'aviso';
-  const title      = `${count} ${noun}${count > 1 ? 's' : ''} de validação`;
+  let title;
+  if (errors.length > 0 && warnings.length > 0) {
+    title = `${errors.length} erro${errors.length > 1 ? 's' : ''}, ${warnings.length} aviso${warnings.length > 1 ? 's' : ''} de validação`;
+  } else if (errors.length > 0) {
+    title = `${errors.length} erro${errors.length > 1 ? 's' : ''} de validação`;
+  } else {
+    title = `${warnings.length} aviso${warnings.length > 1 ? 's' : ''} de validação`;
+  }
 
   const allItems  = [...errors, ...warnings];
   const itemsHtml = allItems
@@ -360,6 +398,21 @@ function collectInvalidAccommodationLinks() {
   return invalid;
 }
 
+// ── Revalidation ──────────────────────────────────────────────────────────────
+
+function revalidate() {
+  if (!config || !_siteSchema) return;
+  const schemaResults = validateAgainstSchema(config, _siteSchema);
+  const linkErrors = collectInvalidAccommodationLinks().map((msg) => ({
+    path: 'pages.hospedagem.content',
+    message: msg,
+    severity: 'error',
+  }));
+  renderValidationBanner([...schemaResults, ...linkErrors]);
+}
+
+const debouncedRevalidate = debounce(revalidate, 600);
+
 async function exportJson() {
   const schema = await loadSchema();
   const schemaErrors = schema
@@ -368,17 +421,13 @@ async function exportJson() {
   const invalidLinks = collectInvalidAccommodationLinks();
 
   if (schemaErrors.length > 0 || invalidLinks.length > 0) {
-    const lines = [];
-    if (schemaErrors.length > 0) {
-      lines.push(`${schemaErrors.length} erro(s) de validação encontrado(s):`);
-      schemaErrors.forEach((e) => lines.push(`  • ${e.path}: ${e.message}`));
-    }
-    if (invalidLinks.length > 0) {
-      if (lines.length > 0) lines.push('');
-      lines.push('Links inválidos em Hospedagem (use http:// ou https://):');
-      invalidLinks.forEach((l) => lines.push(`  • ${l}`));
-    }
-    alert(lines.join('\n'));
+    const linkResults = invalidLinks.map((msg) => ({
+      path: 'pages.hospedagem.content',
+      message: msg,
+      severity: 'error',
+    }));
+    renderValidationBanner([...schemaErrors, ...linkResults]);
+    document.getElementById('validation-banner')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     return;
   }
 
@@ -1524,11 +1573,13 @@ function bindContentEvents(root) {
       setConfigValue(path, e.target.value);
       refreshTypographyPreviews(root);
       markDirty();
+      debouncedRevalidate();
     }
     if (list !== undefined && idx !== undefined && key !== undefined) {
       listArray(list)[parseInt(idx)][key] = e.target.value;
       refreshTypographyPreviews(root);
       markDirty();
+      debouncedRevalidate();
     }
   });
 
@@ -1592,6 +1643,7 @@ function init() {
     if (btn && btn.dataset.tab !== activeTab) {
       activeTab = btn.dataset.tab;
       renderActiveTab();
+      revalidate();
     }
   });
 
