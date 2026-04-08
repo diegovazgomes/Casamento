@@ -1,0 +1,112 @@
+﻿{
+    "couple": {
+        "names": "Siannah & Diego",
+        "subtitle": "Seguimos escolhendo um ao outro, agora para todo sempre."
+    },
+    "event": {
+        "date": "2026-09-06T17:00:00-03:00",
+        "heroDate": "06 . 09 . 2026",
+        "detailDate": "06 Set 2026",
+        "weekday": "Domingo",
+        "time": "17:00",
+        "timezone": "Horario de Brasilia",
+        "locationName": "Mansao Ilha de Capri",
+        "locationCity": "Sao Bernardo do Campo",
+        "mapsLink": "https://share.google/7Qt15gWSb3IAGGofM"
+    },
+    "texts": {
+        "metaTitle": "Siannah & Diego - Casamento",
+        "metaDescription": "Siannah e Diego convidam voce para celebrar o casamento em uma noite elegante e inesquecivel.",
+        "themeColor": "#1a1714",
+        "introLabel": "Convite",
+        "intro": "Seguimos escolhendo um ao outro, agora para todo sempre.",
+        "heroLabel": "Voce foi convidado para o casamento de",
+        "countdownTag": "Contagem Regressiva",
+        "countdownTitle": "O grande dia se aproxima!",
+        "countdownFinished": "O grande dia chegou.",
+        "detailsTag": "Detalhes da Cerimonia",
+        "detailsTitle": "O inicio de tudo o que queremos viver juntos.",
+        "detailsIntro": "Uma celebracao intima, pensada para compartilhar esse momento com quem faz parte da nossa historia.",
+        "detailsDateLabel": "Data",
+        "detailsTimeLabel": "Horario",
+        "detailsLocationLabel": "Local",
+        "detailsOccasionLabel": "Ocasiao",
+        "detailsOccasionValue": "Cerimonia & Recepcao",
+        "detailsOccasionSub": "Traje esporte fino",
+        "detailsLocationHint": "Abrir no mapa",
+        "detailsGiftTitle": "Presente",
+        "detailsGiftValue": "Para nos presentear",
+        "detailsGiftSub": "Abrir opcoes",
+        "rsvpTag": "Confirmacao de Presenca",
+        "rsvpTitle": "Esperamos voce.",
+        "rsvpSubtitle": "Pedimos, por gentileza, que confirme sua presenca o quanto antes.",
+        "rsvpFormTitle": "Confirmar Presenca",
+        "rsvpFormSubtitle": "Preencha os dados para continuar no WhatsApp",
+        "rsvpPlaceholderName": "Seu nome completo",
+        "rsvpPlaceholderPhone": "Seu WhatsApp",
+        "rsvpYesLabel": "Confirmo presenca",
+        "rsvpNoLabel": "Nao poderei ir",
+        "rsvpSubmit": "Continuar no WhatsApp",
+        "giftTag": "Presente",
+        "giftTitle": "Para nos presentear",
+        "giftIntro": "Sua presenca ja e o nosso maior presente.",
+        "giftPixTag": "Pix",
+        "giftPixTitle": "Pix do casal",
+        "giftPixDescription": "Se preferir, voce pode nos presentear por Pix.",
+        "giftPixCopyLabel": "Pix copia e cola",
+        "giftPixCopyButton": "Copiar codigo Pix",
+        "giftCardTag": "Pagamento por cartao",
+        "giftCardTitle": "Pagamento por cartao",
+        "giftCardBody": "Em breve, esta opcao estara disponivel.",
+        "giftCardPlaceholder": "Espaco reservado para o link de pagamento por cartao.",
+        "backToExtrasButton": "Voltar",
+        "giftOverlayCloseButton": "Fechar",
+        "giftOverlayBackButton": "Voltar para confirmacao",
+        "footerNote": "06 . 09 . 2026 | Sao Bernardo do Campo"
+    },
+    "gift": {
+        "pixKey": "CHAVE_PIX_OU_CODIGO_COPIA_E_COLA_AQUI",
+        "pixQrImage": "assets/images/icons/pix-placeholder.svg"
+    },
+    "media": {
+        "heroImage": "assets/images/couple/casal.png",
+        "tracks": {
+            "main": {
+                "src": "assets/audio/main-theme.mp3",
+                "volume": 0.14,
+                "startTime": 8
+            },
+            "gift": {
+                "src": "assets/audio/gift-theme.mp3",
+                "volume": 0.12,
+                "startTime": 78
+            }
+        }
+    },
+    "whatsapp": {
+        "destinationPhone": "5511914772174",
+        "recipientName": "Siannah",
+        "redirectDelayMs": 5000,
+        "messages": {
+            "attending": "Ola, {recipientName}!\n\nAqui e {name}.\nMeu WhatsApp para contato e {phone}.\nEstou passando para confirmar minha presenca no casamento.\n\nNos vemos em breve.",
+            "notAttending": "Ola, {recipientName}!\n\nAqui e {name}.\nMeu WhatsApp para contato e {phone}.\nInfelizmente, nao poderei estar presente no casamento.\n\nAgradeço muito pelo convite e desejo um dia lindo para voces."
+        },
+        "feedback": {
+            "attending": {
+                "title": "Presenca confirmada, {firstName}.",
+                "subtitle": "Sua mensagem esta pronta e vamos te levar ao WhatsApp para finalizar o envio.",
+                "note": "Abrindo o WhatsApp em {delaySeconds} segundos"
+            },
+            "notAttending": {
+                "title": "Obrigada pelo aviso, {firstName}.",
+                "subtitle": "Sua mensagem de ausencia esta pronta para seguir ao WhatsApp.",
+                "note": "Abrindo o WhatsApp em {delaySeconds} segundos"
+            },
+            "error": {
+                "title": "Nao foi possivel continuar.",
+                "subtitle": "Confira os dados informados e tente novamente.",
+                "note": ""
+            }
+        }
+    }
+}

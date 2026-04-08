@@ -1,4 +1,4 @@
-import { WeddingApp } from './main.js';
+﻿import { WeddingApp } from './main.js';
 import { Countdown } from './countdown.js';
 import { RSVP } from './rsvp.js';
 import { PresentPage } from './presente.js';
@@ -13,296 +13,30 @@ const NAVIGATION_SECTION_PARAM = 'section';
 // Temas disponíveis: classic-gold.json, classic-silver.json
 const ACTIVE_THEME_PATH = 'assets/config/themes/classic-silver-light.json';
 
-const DEFAULT_THEME = {
-    colors: {
-        background: '#1a1714',
-        surface: '#201c18',
-        surfaceSoft: 'rgba(255,255,255,0.04)',
-        primary: '#c9a84c',
-        primarySoft: '#e8d08a',
-        text: '#faf7f2',
-        textMuted: 'rgba(250,247,242,0.6)',
-        textSoft: 'rgba(250,247,242,0.62)',
-        textDim: 'rgba(250,247,242,0.45)',
-        textFaint: 'rgba(250,247,242,0.25)',
-        textPlaceholder: 'rgba(250,247,242,0.25)',
-        border: 'rgba(201,168,76,0.2)',
-        borderSoft: 'rgba(201,168,76,0.16)',
-        borderStrong: 'rgba(201,168,76,0.38)',
-        goldSurfaceSoft: 'rgba(201,168,76,0.06)',
-        goldSurface: 'rgba(201,168,76,0.08)',
-        goldSurfaceStrong: 'rgba(201,168,76,0.15)',
-        primaryGlow: 'rgba(201,168,76,0.12)',
-        pageGridLine: 'rgba(255,255,255,0.015)',
-        overlayBackdrop: 'rgba(10,8,7,0.78)',
-        audioPanelBg: 'rgba(17,14,12,0.68)',
-        audioPanelHoverBg: 'rgba(17,14,12,0.8)',
-        audioPanelBorder: 'rgba(201,168,76,0.24)',
-        pulseRing: 'rgba(201,168,76,0.45)',
-        pulseRingSpread: 'rgba(201,168,76,0)',
-        inputFocusBg: 'rgba(255,255,255,0.06)'
-    },
-    typography: {
-        fonts: {
-            primary: "'Jost', sans-serif",
-            serif: "'Cormorant Garamond', serif",
-            accent: "'Great Vibes', cursive"
-        },
-        sizes: {
-            base: '13px',
-            heroLabel: '10px',
-            heroDate: '11px',
-            heroNames: { min: '54px', fluid: '12vw', max: '110px' },
-            scrollHint: '9px',
-            sectionTag: '9px',
-            sectionTitle: { min: '34px', fluid: '7vw', max: '56px' },
-            sectionBody: '13px',
-            countdownNumber: '42px',
-            countdownLabel: '8px',
-            countdownFinished: '30px',
-            detailIcon: '18px',
-            detailTitle: '8px',
-            detailValue: '20px',
-            detailSub: '10px',
-            rsvpTitle: '38px',
-            rsvpSubtitle: '11px',
-            rsvpInput: '12px',
-            rsvpChoice: '10px',
-            rsvpSubmit: '10px',
-            rsvpSuccessText: '26px',
-            rsvpSuccessSub: '11px',
-            footerNames: '30px',
-            footerNote: '10px'
-        }
-    },
-    spacing: {
-        containerWidth: '760px',
-        cardPadding: '28px',
-        sectionPaddingTop: '88px',
-        sectionPaddingInline: '24px',
-        detailsSectionPaddingTop: '88px',
-        sectionTagGap: '30px',
-        sectionTitleGap: '22px',
-        heroLabelGap: '16px',
-        heroDateGap: '22px',
-        scrollHintBottom: '20px',
-        scrollHintGap: '8px',
-        dividerMarginTop: '56px',
-        countdownMarginTop: '40px',
-        countdownGap: '12px',
-        detailsMarginTop: '40px',
-        detailsGridGap: '1px',
-        detailCardPaddingBlock: '28px',
-        detailCardPaddingInline: '20px',
-        rsvpShellPaddingBottom: '88px',
-        rsvpCardMarginTop: '40px',
-        rsvpCardPaddingBlock: '48px',
-        rsvpCardPaddingInline: '32px',
-        rsvpSubtitleGap: '32px',
-        rsvpFormGap: '14px',
-        rsvpChoiceGap: '10px',
-        rsvpSubmitMarginTop: '8px',
-        footerPaddingBottom: '48px'
-    },
-    layout: {
-        heroHeight: '100vh',
-        heroPadding: '0 24px 64px',
-        heroContentWidth: '720px',
-        heroContentPaddingBottom: '36px',
-        heroFadeOffset: '44px',
-        contentMaxWidth: '760px'
-    },
-    components: {
-        dividerWidth: '320px',
-        dividerDiamond: '6px',
-        scrollArrowWidth: '14px',
-        scrollArrowHeight: '48px',
-        scrollArrowStemHeight: '36px',
-        scrollArrowHeadSize: '8px',
-        countdownCardPaddingTop: '22px',
-        countdownCardPaddingInline: '8px',
-        countdownCardPaddingBottom: '16px',
-        rsvpInputPaddingBlock: '14px',
-        rsvpInputPaddingInline: '18px',
-        rsvpChoiceMinHeight: '48px',
-        rsvpChoicePadding: '12px',
-        rsvpSubmitPaddingBlock: '16px',
-        rsvpSubmitPaddingInline: '32px',
-        rsvpSuccessIcon: '32px'
-    },
-    radius: {
-        card: '0px',
-        button: '0px'
-    },
-    effects: {
-        shadowSoft: '0 20px 60px rgba(0,0,0,0.28)',
-        shadowHover: '0 12px 28px rgba(0,0,0,0.18)',
-        textShadowStrong: '0 8px 28px rgba(0,0,0,0.32)',
-        textShadowSoft: '0 2px 18px rgba(0,0,0,0.3)',
-        focusRing: '0 0 0 3px rgba(201,168,76,0.12)',
-        transition: 'all 0.3s ease',
-        pageGradient: 'linear-gradient(180deg, #1a1714 0%, #1a1714 100%)',
-        introBackdropGradient: 'linear-gradient(180deg, rgba(10,8,7,0.96) 0%, rgba(18,15,13,0.96) 45%, rgba(26,23,20,0.98) 100%)',
-        introCardGradient: 'linear-gradient(180deg, rgba(255,255,255,0.03), rgba(201,168,76,0.03))',
-        buttonFillGradient: 'linear-gradient(135deg, rgba(201,168,76,0.95), rgba(232,208,138,0.95))',
-        heroOverlayGradient: 'linear-gradient(to bottom, rgba(26,23,20,0.1) 0%, rgba(26,23,20,0.18) 40%, rgba(26,23,20,0.78) 76%, rgba(26,23,20,1) 100%)',
-        overlayPanelGradient: 'linear-gradient(180deg, rgba(15,12,10,0.98) 0%, rgba(24,21,18,0.98) 100%)',
-        overlayCloseGradient: 'linear-gradient(180deg, rgba(15,12,10,0.92), rgba(15,12,10,0))',
-        rsvpPanelGradient: 'linear-gradient(135deg, rgba(201,168,76,0.05), rgba(201,168,76,0.015))',
-        giftPanelGradient: 'linear-gradient(135deg, rgba(201,168,76,0.05), rgba(255,255,255,0.02))'
-    },
-    animation: {
-        fadeDuration: '0.8s',
-        staggerDelay: '0.1s',
-        heroFadeDuration: '1.35s',
-        heroRevealDelayMs: 320
-    },
-    countdown: {
-        format: 'two-digits',
-        updateInterval: 1000
-    },
-    responsive: {
-        mobile: {
-            typography: {
-                sizes: {
-                    base: '12px',
-                    heroDate: '14px',
-                    heroNames: { min: '24px', fluid: '10vw', max: '46px' }
-                }
-            },
-            spacing: {
-                sectionPaddingTop: '40px',
-                sectionPaddingInline: '20px',
-                detailsSectionPaddingTop: '40px'
-            },
-            layout: {
-                heroHeight: '680px',
-                heroPadding: '0 20px 72px',
-                heroContentWidth: '340px',
-                heroContentPaddingBottom: '32px',
-                heroFadeOffset: '20px',
-                contentMaxWidth: '620px'
-            },
-            animation: {
-                heroFadeDuration: '2.15s',
-                heroRevealDelayMs: 1260
-            }
-        }
-    }
+const DEFAULT_THEME_URL         = 'assets/config/defaults/theme.json';
+const DEFAULT_SITE_CONTENT_URL  = 'assets/config/defaults/site.json';
+
+// Minimal safety-net fallbacks — populated from the external files above at bootstrap.
+// These only activate if both the server AND the defaults files are unreachable.
+let DEFAULT_THEME = {
+    colors: {},
+    typography: { fonts: {}, sizes: { heroNames: {}, sectionTitle: {} } },
+    spacing: {}, layout: {}, components: {}, radius: {}, effects: {},
+    animation: {}, countdown: { format: 'two-digits', updateInterval: 1000 }, responsive: {}
+};
+let DEFAULT_SITE_CONTENT = {
+    couple: {}, event: {}, texts: {}, gift: {},
+    media: { tracks: { main: {}, gift: {} } },
+    whatsapp: { messages: {}, feedback: {} }, pages: {}
 };
 
-const DEFAULT_SITE_CONTENT = {
-    couple: {
-        names: 'Siannah & Diego',
-        subtitle: 'Seguimos escolhendo um ao outro, agora para todo sempre.'
-    },
-    event: {
-        date: '2026-09-06T17:00:00-03:00',
-        heroDate: '06 . 09 . 2026',
-        detailDate: '06 Set 2026',
-        weekday: 'Domingo',
-        time: '17:00',
-        timezone: 'Horário de Brasília',
-        locationName: 'Mansão Ilha de Capri',
-        locationCity: 'São Bernardo do Campo',
-        mapsLink: 'https://share.google/7Qt15gWSb3IAGGofM'
-    },
-    texts: {
-        metaTitle: 'Siannah & Diego - Casamento',
-        metaDescription: 'Siannah e Diego convidam você para celebrar o casamento em uma noite elegante e inesquecível.',
-        themeColor: '#1a1714',
-        introLabel: 'Convite',
-        intro: 'Seguimos escolhendo um ao outro, agora para todo sempre.',
-        heroLabel: 'Você foi convidado para o casamento de',
-        countdownTag: 'Contagem Regressiva',
-        countdownTitle: 'O grande dia se aproxima!',
-        countdownFinished: 'O grande dia chegou.',
-        detailsTag: 'Detalhes da Cerimônia',
-        detailsTitle: 'O início de tudo o que queremos viver juntos.',
-        detailsIntro: 'Uma celebração íntima, pensada para compartilhar esse momento com quem faz parte da nossa história.',
-        detailsDateLabel: 'Data',
-        detailsTimeLabel: 'Horário',
-        detailsLocationLabel: 'Local',
-        detailsOccasionLabel: 'Ocasião',
-        detailsOccasionValue: 'Cerimônia & Recepção',
-        detailsOccasionSub: 'Traje esporte fino',
-        detailsLocationHint: '📍 Abrir no mapa',
-        detailsGiftTitle: 'Presente',
-        detailsGiftValue: 'Para nos presentear',
-        detailsGiftSub: 'Abrir opções',
-        rsvpTag: 'Confirmação de Presença',
-        rsvpTitle: 'Esperamos você.',
-        rsvpSubtitle: 'Pedimos, por gentileza, que confirme sua presença o quanto antes. Sua presença tornará este momento ainda mais especial para nós.',
-        rsvpFormTitle: 'Confirmar Presença',
-        rsvpFormSubtitle: 'Preencha os dados para continuar no WhatsApp',
-        rsvpPlaceholderName: 'Seu nome completo',
-        rsvpPlaceholderPhone: 'Seu WhatsApp',
-        rsvpYesLabel: 'Confirmo presença',
-        rsvpNoLabel: 'Não poderei ir',
-        rsvpSubmit: 'Continuar no WhatsApp',
-        giftTag: 'Presente',
-        giftTitle: 'Para nos presentear',
-        giftIntro: 'Sua presença já é o nosso maior presente. Mas, se desejar nos presentear de outra forma, deixamos abaixo algumas opções com carinho.',
-        giftPixTag: 'Pix',
-        giftPixTitle: 'Pix do casal',
-        giftPixDescription: 'Se preferir, você pode nos presentear por Pix usando o QR Code ou o código abaixo.',
-        giftPixCopyLabel: 'Pix copia e cola',
-        giftPixCopyButton: 'Copiar código Pix',
-        giftCardTag: 'Pagamento por cartão',
-        giftCardTitle: 'Pagamento por cartão',
-        giftCardBody: 'Em breve, esta opção estará disponível.',
-        giftCardPlaceholder: 'Espaço reservado para inserir o link ou a plataforma de pagamento por cartão.',
-        backToExtrasButton: 'Voltar para "Tem mais para você"',
-        giftOverlayCloseButton: 'Fechar',
-        giftOverlayBackButton: 'Voltar para confirmação',
-        footerNote: '06 . 09 . 2026 | São Bernardo do Campo'
-    },
-    gift: {
-        pixKey: 'CHAVE_PIX_OU_CODIGO_COPIA_E_COLA_AQUI',
-        pixQrImage: 'assets/images/icons/pix-placeholder.svg'
-    },
-    media: {
-        heroImage: 'assets/images/couple/casal.png',
-        tracks: {
-            main: {
-                src: 'assets/audio/main-theme.mp3',
-                volume: 0.14,
-                startTime: 8
-            },
-            gift: {
-                src: 'assets/audio/gift-theme.mp3',
-                volume: 0.12,
-                startTime: 78
-            }
-        }
-    },
-    whatsapp: {
-        destinationPhone: '5511914772174',
-        recipientName: 'Siannah',
-        redirectDelayMs: 5000,
-        messages: {
-            attending: 'Olá, {recipientName}!\n\nAqui é {name}.\nMeu WhatsApp para contato é {phone}.\nEstou passando para confirmar minha presença no casamento.\n\nNos vemos em breve.',
-            notAttending: 'Olá, {recipientName}!\n\nAqui é {name}.\nMeu WhatsApp para contato é {phone}.\nInfelizmente, não poderei estar presente no casamento.\n\nAgradeço muito pelo convite e desejo um dia lindo para vocês.'
-        },
-        feedback: {
-            attending: {
-                title: 'Presença confirmada, {firstName}.',
-                subtitle: 'Sua mensagem está pronta e vamos te levar ao WhatsApp para finalizar o envio com carinho.',
-                note: 'Abrindo o WhatsApp em {delaySeconds} segundos'
-            },
-            notAttending: {
-                title: 'Obrigada pelo aviso, {firstName}.',
-                subtitle: 'Sua mensagem de ausência está pronta para seguir ao WhatsApp com todo o carinho que este momento merece.',
-                note: 'Abrindo o WhatsApp em {delaySeconds} segundos'
-            },
-            error: {
-                title: 'Não foi possível continuar.',
-                subtitle: 'Confira os dados informados e tente novamente em instantes.',
-                note: ''
-            }
-        }
-    }
-};
+// ──────────────────────────────────────────────────────────────────────────────
+// The large DEFAULT_THEME and DEFAULT_SITE_CONTENT objects have been moved to:
+//   assets/config/defaults/theme.json
+//   assets/config/defaults/site.json
+// They are loaded in bootstrap() before anything else via loadDefaults().
+// ──────────────────────────────────────────────────────────────────────────────
+
 
 function isMobileViewport() {
     return window.matchMedia('(max-width: 767px)').matches;
@@ -600,6 +334,23 @@ function warnThemeIssues(theme) {
     critical.forEach(([path, val]) => {
         if (!val) console.warn(`[theme] Campo crítico ausente ou vazio: ${path}`);
     });
+}
+
+async function loadDefaults() {
+    const fetchJson = async (url) => {
+        const res = await fetch(url, { method: 'GET', headers: { Accept: 'application/json' }, cache: 'no-store' });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json();
+    };
+
+    await Promise.all([
+        fetchJson(DEFAULT_THEME_URL)
+            .then((d) => { DEFAULT_THEME = d; })
+            .catch((e) => console.warn('[defaults] Falha ao carregar defaults/theme.json. Usando fallback mínimo.', e)),
+        fetchJson(DEFAULT_SITE_CONTENT_URL)
+            .then((d) => { DEFAULT_SITE_CONTENT = d; })
+            .catch((e) => console.warn('[defaults] Falha ao carregar defaults/site.json. Usando fallback mínimo.', e)),
+    ]);
 }
 
 async function loadConfig() {
@@ -1250,6 +1001,7 @@ class InvitationExperience {
 
 async function bootstrap() {
     try {
+        await loadDefaults();
         const config = await loadConfig();
         const themePath = config.activeTheme ?? ACTIVE_THEME_PATH;
         const [theme, typographyConfig] = await Promise.all([
