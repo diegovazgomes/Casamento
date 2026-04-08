@@ -10,6 +10,7 @@
 let config = null;
 let isDirty = false;
 let activeTab = 'casal';
+let _siteSchema = null;
 
 // ── Path utilities ────────────────────────────────────────────────────────────
 
@@ -145,13 +146,16 @@ function handleFileImport(e) {
   e.target.value = '';
 }
 
-function startEditor(parsed) {
+async function startEditor(parsed) {
   config = parsed;
   normalizeListCollections(config);
   document.getElementById('import-screen').classList.add('hidden');
   document.getElementById('editor-screen').classList.remove('hidden');
   renderActiveTab();
   markClean();
+
+  const schema = await loadSchema();
+  if (schema) renderValidationBanner(validateAgainstSchema(config, schema));
 }
 
 function ensureArrayPath(root, path) {
@@ -178,6 +182,151 @@ function normalizeListCollections(root) {
   ensureArrayPath(root, 'pages.historia.content.chapters');
   ensureArrayPath(root, 'pages.hospedagem.content.hotels');
   ensureArrayPath(root, 'pages.hospedagem.content.restaurants');
+}
+
+// ── Schema validation ─────────────────────────────────────────────────────────
+
+async function loadSchema() {
+  if (_siteSchema) return _siteSchema;
+  try {
+    const res = await fetch('assets/config/schemas/site-schema.json');
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    _siteSchema = await res.json();
+    return _siteSchema;
+  } catch {
+    return null;
+  }
+}
+
+function checkType(value, type) {
+  switch (type) {
+    case 'string':  return typeof value === 'string';
+    case 'number':  return typeof value === 'number' && !isNaN(value);
+    case 'boolean': return typeof value === 'boolean';
+    case 'array':   return Array.isArray(value);
+    case 'object':  return typeof value === 'object' && value !== null && !Array.isArray(value);
+    case 'null':    return value === null;
+    default:        return true;
+  }
+}
+
+function validateAgainstSchema(data, schema, path) {
+  if (path === undefined) path = '';
+  const results = [];
+  if (!schema) return results;
+
+  // Type check (only when value is present)
+  if (schema.type && data !== null && data !== undefined) {
+    const types = Array.isArray(schema.type) ? schema.type : [schema.type];
+    if (!types.some((t) => checkType(data, t))) {
+      const label = path || 'raiz';
+      results.push({ path: label, message: `Deve ser do tipo ${types.join(' ou ')}`, severity: 'error' });
+      return results;
+    }
+  }
+
+  // Enum check
+  if (schema.enum && data !== undefined && data !== null) {
+    if (!schema.enum.includes(data)) {
+      results.push({ path, message: `Valor inválido. Permitido: ${schema.enum.join(', ')}`, severity: 'error' });
+    }
+  }
+
+  // Required fields
+  if (schema.required && Array.isArray(schema.required)) {
+    const obj = (typeof data === 'object' && data !== null && !Array.isArray(data)) ? data : {};
+    for (const key of schema.required) {
+      const val = obj[key];
+      if (val === undefined || val === null) {
+        const fieldPath = path ? `${path}.${key}` : key;
+        results.push({ path: fieldPath, message: 'Campo obrigatório ausente', severity: 'error' });
+      }
+    }
+  }
+
+  // Properties — recurse into existing values
+  if (schema.properties) {
+    const obj = (typeof data === 'object' && data !== null && !Array.isArray(data)) ? data : {};
+    for (const [key, propSchema] of Object.entries(schema.properties)) {
+      if (obj[key] !== undefined) {
+        const subPath = path ? `${path}.${key}` : key;
+        const sub = validateAgainstSchema(obj[key], propSchema, subPath);
+        for (const r of sub) results.push(r);
+      }
+    }
+  }
+
+  // Array items
+  if (schema.items && Array.isArray(data)) {
+    data.forEach((item, i) => {
+      const subPath = `${path}[${i}]`;
+      const sub = validateAgainstSchema(item, schema.items, subPath);
+      for (const r of sub) results.push(r);
+    });
+  }
+
+  // Format: uri
+  if (schema.format === 'uri' && typeof data === 'string' && data.trim()) {
+    if (!isValidHttpUrl(data)) {
+      results.push({ path, message: 'Deve ser uma URL válida (http:// ou https://)', severity: 'error' });
+    }
+  }
+
+  // Numeric range
+  if (typeof data === 'number') {
+    if (schema.minimum !== undefined && data < schema.minimum) {
+      results.push({ path, message: `Deve ser ≥ ${schema.minimum}`, severity: 'warning' });
+    }
+    if (schema.maximum !== undefined && data > schema.maximum) {
+      results.push({ path, message: `Deve ser ≤ ${schema.maximum}`, severity: 'warning' });
+    }
+  }
+
+  return results;
+}
+
+function renderValidationBanner(results) {
+  document.getElementById('validation-banner')?.remove();
+
+  const errors   = results.filter((r) => r.severity === 'error');
+  const warnings = results.filter((r) => r.severity === 'warning');
+  if (errors.length === 0 && warnings.length === 0) return;
+
+  const hasErrors  = errors.length > 0;
+  const bgColor    = hasErrors ? '#fef2f2' : '#fffbeb';
+  const bdColor    = hasErrors ? '#fecaca' : '#fde68a';
+  const titleColor = hasErrors ? '#991b1b' : '#92400e';
+  const count      = hasErrors ? errors.length : warnings.length;
+  const noun       = hasErrors ? 'erro' : 'aviso';
+  const title      = `${count} ${noun}${count > 1 ? 's' : ''} de validação`;
+
+  const allItems  = [...errors, ...warnings];
+  const itemsHtml = allItems
+    .map((r) => `<li><code style="background:rgba(0,0,0,0.06);padding:1px 4px;border-radius:3px;">${esc(r.path)}</code> — ${esc(r.message)}</li>`)
+    .join('');
+
+  const banner = document.createElement('div');
+  banner.id = 'validation-banner';
+  banner.style.cssText = [
+    `background:${bgColor}`,
+    `border-bottom:1px solid ${bdColor}`,
+    'padding:10px 24px 12px',
+    'font-size:12px',
+    'line-height:1.6',
+  ].join(';');
+  banner.innerHTML = `
+    <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;">
+      <strong style="color:${titleColor}">⚠ ${esc(title)}</strong>
+      <button
+        onclick="document.getElementById('validation-banner')?.remove()"
+        style="background:none;border:none;cursor:pointer;color:#666;font-size:12px;padding:0;flex-shrink:0;"
+        aria-label="Fechar aviso de validação">
+        Fechar ×
+      </button>
+    </div>
+    <ul style="margin-top:6px;padding-left:16px;color:#4b4b4b;">${itemsHtml}</ul>`;
+
+  document.querySelector('.ed-tab-bar-wrap')?.insertAdjacentElement('afterend', banner);
 }
 
 function isValidHttpUrl(value) {
@@ -211,10 +360,25 @@ function collectInvalidAccommodationLinks() {
   return invalid;
 }
 
-function exportJson() {
+async function exportJson() {
+  const schema = await loadSchema();
+  const schemaErrors = schema
+    ? validateAgainstSchema(config, schema).filter((r) => r.severity === 'error')
+    : [];
   const invalidLinks = collectInvalidAccommodationLinks();
-  if (invalidLinks.length > 0) {
-    alert(`Existem links inválidos em Hospedagem. Use URLs completas com http:// ou https://.\n\n${invalidLinks.join('\n')}`);
+
+  if (schemaErrors.length > 0 || invalidLinks.length > 0) {
+    const lines = [];
+    if (schemaErrors.length > 0) {
+      lines.push(`${schemaErrors.length} erro(s) de validação encontrado(s):`);
+      schemaErrors.forEach((e) => lines.push(`  • ${e.path}: ${e.message}`));
+    }
+    if (invalidLinks.length > 0) {
+      if (lines.length > 0) lines.push('');
+      lines.push('Links inválidos em Hospedagem (use http:// ou https://):');
+      invalidLinks.forEach((l) => lines.push(`  • ${l}`));
+    }
+    alert(lines.join('\n'));
     return;
   }
 

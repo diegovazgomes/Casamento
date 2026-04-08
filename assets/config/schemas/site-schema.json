@@ -1,0 +1,372 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Wedding Site Configuration",
+  "description": "Schema de validação para assets/config/site.json",
+  "type": "object",
+  "required": ["activeTheme", "couple", "event", "texts", "gift", "media", "pages", "whatsapp"],
+  "properties": {
+    "activeTheme": {
+      "type": "string",
+      "description": "Caminho do arquivo JSON do tema ativo"
+    },
+    "themeFiles": {
+      "type": "array",
+      "description": "Lista de temas disponíveis",
+      "items": { "type": "string" }
+    },
+    "couple": {
+      "type": "object",
+      "description": "Dados do casal",
+      "required": ["names", "subtitle"],
+      "properties": {
+        "names": {
+          "type": "string",
+          "description": "Nomes do casal separados por &"
+        },
+        "subtitle": {
+          "type": "string",
+          "description": "Subtítulo exibido no convite"
+        }
+      }
+    },
+    "event": {
+      "type": "object",
+      "description": "Dados do evento",
+      "required": ["date", "displayDate", "heroDate", "detailDate", "weekday", "time", "timezone", "locationName", "locationCity", "mapsLink"],
+      "properties": {
+        "date": {
+          "type": "string",
+          "description": "Data e hora do evento (ISO 8601 com timezone)"
+        },
+        "displayDate": {
+          "type": "string",
+          "description": "Data formatada para exibição legível"
+        },
+        "heroDate": {
+          "type": "string",
+          "description": "Data formatada para o hero"
+        },
+        "detailDate": {
+          "type": "string",
+          "description": "Data formatada para a seção de detalhes"
+        },
+        "weekday": {
+          "type": "string",
+          "description": "Dia da semana"
+        },
+        "time": {
+          "type": "string",
+          "description": "Horário do evento (ex: 17:00)"
+        },
+        "timezone": {
+          "type": "string",
+          "description": "Descrição do fuso horário"
+        },
+        "locationName": {
+          "type": "string",
+          "description": "Nome do local do evento"
+        },
+        "locationCity": {
+          "type": "string",
+          "description": "Cidade do evento"
+        },
+        "mapsLink": {
+          "type": "string",
+          "format": "uri",
+          "description": "Link do Google Maps para o local"
+        }
+      }
+    },
+    "texts": {
+      "type": "object",
+      "description": "Textos da interface",
+      "required": [
+        "metaTitle", "metaDescription", "themeColor",
+        "introLabel", "heroLabel",
+        "rsvpPlaceholderName", "rsvpPlaceholderPhone", "rsvpSubmit",
+        "rsvpYesLabel", "rsvpNoLabel",
+        "footerNote"
+      ],
+      "properties": {
+        "metaTitle": { "type": "string" },
+        "metaDescription": { "type": "string" },
+        "themeColor": { "type": "string" },
+        "introLabel": { "type": "string" },
+        "intro": { "type": "string" },
+        "heroLabel": { "type": "string" },
+        "countdownTag": { "type": "string" },
+        "countdownTitle": { "type": "string" },
+        "countdownFinished": { "type": "string" },
+        "detailsTag": { "type": "string" },
+        "detailsTitle": { "type": "string" },
+        "detailsIntro": { "type": "string" },
+        "detailsDateLabel": { "type": "string" },
+        "detailsTimeLabel": { "type": "string" },
+        "detailsLocationLabel": { "type": "string" },
+        "detailsOccasionLabel": { "type": "string" },
+        "detailsOccasionValue": { "type": "string" },
+        "detailsOccasionSub": { "type": "string" },
+        "detailsLocationHint": { "type": "string" },
+        "detailsGiftTitle": { "type": "string" },
+        "detailsGiftValue": { "type": "string" },
+        "detailsGiftSub": { "type": "string" },
+        "rsvpTag": { "type": "string" },
+        "rsvpTitle": { "type": "string" },
+        "rsvpSubtitle": { "type": "string" },
+        "rsvpFormTitle": { "type": "string" },
+        "rsvpFormSubtitle": { "type": "string" },
+        "rsvpPlaceholderName": { "type": "string" },
+        "rsvpPlaceholderPhone": { "type": "string" },
+        "rsvpYesLabel": { "type": "string" },
+        "rsvpNoLabel": { "type": "string" },
+        "rsvpSubmit": { "type": "string" },
+        "giftTag": { "type": "string" },
+        "giftTitle": { "type": "string" },
+        "giftIntro": { "type": "string" },
+        "giftPixTag": { "type": "string" },
+        "giftPixTitle": { "type": "string" },
+        "giftPixDescription": { "type": "string" },
+        "giftPixCopyLabel": { "type": "string" },
+        "giftPixCopyButton": { "type": "string" },
+        "giftCardTag": { "type": "string" },
+        "giftCardTitle": { "type": "string" },
+        "giftCardBody": { "type": "string" },
+        "giftCardPlaceholder": { "type": "string" },
+        "backToExtrasButton": { "type": "string" },
+        "giftOverlayCloseButton": { "type": "string" },
+        "giftOverlayBackButton": { "type": "string" },
+        "footerNote": { "type": "string" }
+      }
+    },
+    "gift": {
+      "type": "object",
+      "description": "Configuração de presente (PIX)",
+      "required": ["pixKey", "pixQrImage"],
+      "properties": {
+        "pixKey": {
+          "type": "string",
+          "description": "Chave PIX do casal"
+        },
+        "pixQrImage": {
+          "type": "string",
+          "description": "Caminho da imagem do QR Code PIX"
+        }
+      }
+    },
+    "media": {
+      "type": "object",
+      "description": "Arquivos de mídia",
+      "required": ["heroImage", "tracks"],
+      "properties": {
+        "heroImage": {
+          "type": "string",
+          "description": "Caminho da imagem do casal"
+        },
+        "tracks": {
+          "type": "object",
+          "required": ["main", "gift"],
+          "properties": {
+            "main": {
+              "type": "object",
+              "required": ["src", "volume", "startTime"],
+              "properties": {
+                "src": { "type": "string", "description": "Arquivo de áudio principal" },
+                "volume": { "type": "number", "minimum": 0, "maximum": 1, "description": "Volume entre 0 e 1" },
+                "startTime": { "type": "number", "minimum": 0, "description": "Ponto inicial em segundos" }
+              }
+            },
+            "gift": {
+              "type": "object",
+              "required": ["src", "volume", "startTime"],
+              "properties": {
+                "src": { "type": "string", "description": "Arquivo de áudio de presente" },
+                "volume": { "type": "number", "minimum": 0, "maximum": 1, "description": "Volume entre 0 e 1" },
+                "startTime": { "type": "number", "minimum": 0, "description": "Ponto inicial em segundos" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "pages": {
+      "type": "object",
+      "description": "Configuração das páginas extras",
+      "required": ["historia", "faq", "hospedagem", "presente"],
+      "properties": {
+        "historia": {
+          "type": "object",
+          "required": ["enabled", "cardLabel", "cardHint"],
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "cardLabel": { "type": "string" },
+            "cardHint": { "type": "string" },
+            "content": {
+              "type": "object",
+              "required": ["tag", "title", "intro", "chapters"],
+              "properties": {
+                "tag": { "type": "string" },
+                "title": { "type": "string" },
+                "intro": { "type": "string" },
+                "chapters": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": ["year", "title", "text"],
+                    "properties": {
+                      "year": { "type": "string" },
+                      "title": { "type": "string" },
+                      "text": { "type": "string" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "faq": {
+          "type": "object",
+          "required": ["enabled", "cardLabel", "cardHint"],
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "cardLabel": { "type": "string" },
+            "cardHint": { "type": "string" },
+            "content": {
+              "type": "object",
+              "required": ["tag", "title", "intro", "items"],
+              "properties": {
+                "tag": { "type": "string" },
+                "title": { "type": "string" },
+                "intro": { "type": "string" },
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": ["question", "answer"],
+                    "properties": {
+                      "question": { "type": "string" },
+                      "answer": { "type": "string" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "hospedagem": {
+          "type": "object",
+          "required": ["enabled", "cardLabel", "cardHint"],
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "cardLabel": { "type": "string" },
+            "cardHint": { "type": "string" },
+            "content": {
+              "type": "object",
+              "required": ["tag", "title", "intro", "hotelsTitle", "hotels", "restaurantsTitle", "restaurants"],
+              "properties": {
+                "tag": { "type": "string" },
+                "title": { "type": "string" },
+                "intro": { "type": "string" },
+                "hotelsTitle": { "type": "string" },
+                "hotels": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "name": { "type": "string" },
+                      "description": { "type": "string" },
+                      "link": { "type": "string" },
+                      "linkLabel": { "type": "string" }
+                    }
+                  }
+                },
+                "restaurantsTitle": { "type": "string" },
+                "restaurants": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "name": { "type": "string" },
+                      "description": { "type": "string" },
+                      "link": { "type": "string" },
+                      "linkLabel": { "type": "string" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "presente": {
+          "type": "object",
+          "required": ["enabled", "cardLabel", "cardHint"],
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "cardLabel": { "type": "string" },
+            "cardHint": { "type": "string" }
+          }
+        }
+      }
+    },
+    "whatsapp": {
+      "type": "object",
+      "description": "Configuração do fluxo de RSVP via WhatsApp",
+      "required": ["destinationPhone", "recipientName", "redirectDelayMs", "messages", "feedback"],
+      "properties": {
+        "destinationPhone": {
+          "type": "string",
+          "description": "Número com DDI e DDD (ex: 5511999999999)"
+        },
+        "recipientName": {
+          "type": "string",
+          "description": "Nome do destinatário da mensagem"
+        },
+        "redirectDelayMs": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Delay em milissegundos antes de redirecionar"
+        },
+        "messages": {
+          "type": "object",
+          "required": ["attending", "notAttending"],
+          "properties": {
+            "attending": { "type": "string", "description": "Template de mensagem para quem confirmou" },
+            "notAttending": { "type": "string", "description": "Template de mensagem para quem não pode ir" }
+          }
+        },
+        "feedback": {
+          "type": "object",
+          "required": ["attending", "notAttending", "error"],
+          "properties": {
+            "attending": {
+              "type": "object",
+              "required": ["title", "subtitle", "note"],
+              "properties": {
+                "title": { "type": "string" },
+                "subtitle": { "type": "string" },
+                "note": { "type": "string" }
+              }
+            },
+            "notAttending": {
+              "type": "object",
+              "required": ["title", "subtitle", "note"],
+              "properties": {
+                "title": { "type": "string" },
+                "subtitle": { "type": "string" },
+                "note": { "type": "string" }
+              }
+            },
+            "error": {
+              "type": "object",
+              "required": ["title", "subtitle", "note"],
+              "properties": {
+                "title": { "type": "string" },
+                "subtitle": { "type": "string" },
+                "note": { "type": "string" }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

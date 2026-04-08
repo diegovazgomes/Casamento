@@ -111,7 +111,10 @@ Isso torna o projeto relativamente facil de portar para outro casal, outro event
 │   ├── config/
 │   │   ├── site.json
 │   │   ├── typography.json
-│   │   └── themes/
+│   │   ├── themes/
+│   │   └── schemas/
+│   │       ├── site-schema.json
+│   │       └── theme-schema.json
 │   ├── css/
 │   │   ├── style.css
 │   │   ├── animations.css
@@ -995,6 +998,43 @@ O script remove aliases semanticos duplicados como `display`, `body`, `serif` e 
 
 ---
 
+## 15.3 Sistema de validacao de schemas
+
+O repositorio possui dois arquivos JSON Schema (draft-07) em `assets/config/schemas/` que documentam e validam a estrutura dos arquivos de configuracao.
+
+### `assets/config/schemas/site-schema.json`
+
+Define o contrato completo do `site.json`. Campos obrigatorios, tipos, format uri para URLs e ranges numericos para volume de audio. Consumido pelo `editor.js` via `loadSchema()`.
+
+### `assets/config/schemas/theme-schema.json`
+
+Define o contrato dos arquivos de tema. Inclui a definicao reutilizavel `typographyRole` para os papeis tipograficos.
+
+### Integracao com `editor.js`
+
+Funcoes adicionadas:
+
+#### `loadSchema()`
+Carrega e cacheia `site-schema.json` via fetch. Retorna `null` silenciosamente em caso de falha (nao bloqueia o editor).
+
+#### `validateAgainstSchema(data, schema, path)`
+Validador recursivo leve sem dependencias externas. Cobre: `type`, `required`, `properties`, `items`, `format: uri`, `enum`, `minimum`, `maximum`. Retorna array de `{ path, message, severity }`.
+
+#### `renderValidationBanner(results)`
+Injeta um banner visual abaixo das abas do editor. Vermelho para erros, amarelo para avisos. Inclui botao de fechar. Exibido ao carregar um JSON e atualizado a cada validacao.
+
+`startEditor()` passou a ser async e chama validacao apos carregar o config. `exportJson()` passou a ser async e bloqueia o download se houver erros de schema.
+
+### Integracao com `script.js`
+
+#### `warnConfigIssues(config)`
+Verifica campos criticos do `site.json` mesclado (`couple.names`, `event.date`, `event.mapsLink`, `whatsapp.destinationPhone`) e emite `console.warn` se ausentes. Chamada dentro de `loadConfig()` apos o merge.
+
+#### `warnThemeIssues(theme)`
+Verifica campos criticos do tema mesclado (`meta.name`, `colors.background`, `colors.primary`, `typography.fonts.primary`) e emite `console.warn` se ausentes. Chamada dentro de `loadTheme()` apos o merge.
+
+---
+
 ## 16. Modulos existentes, mas nao integrados ao fluxo atual
 
 Ha dois arquivos JS no repositorio que representam funcionalidade pronta ou parcialmente pronta, mas hoje nao estao plugados nas paginas atuais.
@@ -1574,13 +1614,13 @@ O editor de JSON e o preview de fontes elevam a operabilidade do projeto.
 
 Essa secao e importante para qualquer evolucao futura.
 
-### 26.1 Ausencia de schema formal para `site.json`
+### 26.1 ~~Ausencia de schema formal para `site.json`~~ RESOLVIDO
 
-Hoje nao existe validacao estruturada com JSON Schema, Zod, TypeBox ou equivalente. Se o JSON estiver malformado estruturalmente, o sistema tende a falhar de forma silenciosa ou parcial.
+`assets/config/schemas/site-schema.json` define todos os campos, tipos e requisitos. O editor valida ao carregar e bloqueia o export em caso de erros. `script.js` emite `console.warn` para campos criticos ausentes via `warnConfigIssues()`.
 
 ### 26.2 Merge profundo sem validacao semantica
 
-`mergeDeep()` resolve a composicao, mas nao garante que os campos tenham tipo correto, nome correto ou sentido correto.
+`mergeDeep()` resolve a composicao, mas nao garante que os campos tenham tipo correto, nome correto ou sentido correto. O schema de `site.json` mitiga isso no editor, mas nao ha validacao em runtime no bootstrap.
 
 ### 26.3 Dependencia forte de IDs e naming convention de DOM
 
@@ -1629,18 +1669,13 @@ Apesar do bom uso de variaveis, a semantica de alguns componentes ainda depende 
 
 ## 27. Melhorias futuras recomendadas
 
-### 27.1 Criar um schema formal para `site.json`
+### ~~27.1 Criar um schema formal para `site.json`~~ FEITO
 
-Essa e a melhoria mais importante. Permitiria:
+Implementado em `assets/config/schemas/site-schema.json`. Validador recursivo integrado ao `editor.js` (`loadSchema`, `validateAgainstSchema`, `renderValidationBanner`). Banner visual no editor, bloqueio de export em erros, `console.warn` em runtime via `warnConfigIssues()` em `script.js`.
 
-- validar antes do deploy;
-- validar no `editor.html`;
-- evitar falhas silenciosas;
-- documentar o contrato do arquivo.
+### ~~27.2 Criar schema para os temas~~ FEITO
 
-### 27.2 Criar schema para os temas
-
-Mesmo raciocinio do item anterior. Isso reduziria erros ao criar novos temas.
+Implementado em `assets/config/schemas/theme-schema.json`. Define todos os campos obrigatorios, tipos e a estrutura de `typographyRole` como definicao reutilizavel. `script.js` emite `console.warn` para campos criticos via `warnThemeIssues()`.
 
 ### 27.3 Externalizar os fallbacks padrao
 

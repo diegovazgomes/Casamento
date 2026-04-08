@@ -578,6 +578,30 @@ function mergeDeep(base, override) {
     return output;
 }
 
+function warnConfigIssues(config) {
+    const critical = [
+        ['couple.names', config?.couple?.names],
+        ['event.date', config?.event?.date],
+        ['event.mapsLink', config?.event?.mapsLink],
+        ['whatsapp.destinationPhone', config?.whatsapp?.destinationPhone],
+    ];
+    critical.forEach(([path, val]) => {
+        if (!val) console.warn(`[site.json] Campo crítico ausente ou vazio: ${path}`);
+    });
+}
+
+function warnThemeIssues(theme) {
+    const critical = [
+        ['meta.name', theme?.meta?.name],
+        ['colors.background', theme?.colors?.background],
+        ['colors.primary', theme?.colors?.primary],
+        ['typography.fonts.primary', theme?.typography?.fonts?.primary],
+    ];
+    critical.forEach(([path, val]) => {
+        if (!val) console.warn(`[theme] Campo crítico ausente ou vazio: ${path}`);
+    });
+}
+
 async function loadConfig() {
     try {
         const response = await fetch(SITE_CONFIG_URL, {
@@ -591,7 +615,9 @@ async function loadConfig() {
         }
 
         const siteConfig = await response.json();
-        return mergeDeep(DEFAULT_SITE_CONTENT, siteConfig);
+        const merged = mergeDeep(DEFAULT_SITE_CONTENT, siteConfig);
+        warnConfigIssues(merged);
+        return merged;
     } catch (error) {
         console.warn('Falha ao carregar assets/config/site.json. Usando fallback local.', error);
         return cloneDeep(DEFAULT_SITE_CONTENT);
@@ -613,7 +639,9 @@ async function loadTheme(themePath) {
         }
 
         const themeConfig = await response.json();
-        return mergeDeep(baseTheme, themeConfig);
+        const merged = mergeDeep(baseTheme, themeConfig);
+        warnThemeIssues(merged);
+        return merged;
     } catch (error) {
         console.warn(`Falha ao carregar ${themePath}. Usando fallback local.`, error);
         return baseTheme;
