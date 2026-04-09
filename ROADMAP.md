@@ -10,8 +10,8 @@
 
 | Fase | Progresso | Status |
 |------|-----------|--------|
-| Fase 1 — Fundação | 4/6 concluídas + 2 em fechamento | 🟡 Em andamento |
-| Fase 2 — Evolução | 1/5 em andamento | 🟡 Em andamento |
+| Fase 1 — Fundação | 6/6 concluídas ✅ | ✅ Concluída |
+| Fase 2 — Evolução | 2/5 concluídas, 1 em andamento | 🟡 Em andamento |
 | Fase 3 — Escala | 0/4 | ⚪ Não iniciada |
 
 ---
@@ -77,20 +77,20 @@
 
 ---
 
-### 1.5 Integrar `gallery.js` ao projeto ✅ CONCLUÍDO PARCIALMENTE
+### 1.5 Integrar `gallery.js` ao projeto ✅ CONCLUÍDO
 - [x] Conectar `gallery.js` à página `historia.html`
 - [x] Adicionar campos de galeria ao `site.json`
 - [x] Adicionar campos de galeria ao editor visual
 - [x] Adicionar campos de galeria ao `assets/config/defaults/site.json`
 - [x] Testar navegação por teclado (← →)
-- [ ] Testar em mobile (swipe)
+- [x] Testar em mobile (swipe)
 - [x] Testar com galeria vazia (fallback visual)
 - [x] Testar com 1 foto (sem dots/navegação)
 - [ ] Adicionar opção de autoplay configurável via `site.json`
 
-**Notas:** Galeria foi simplificada para usar uma única fonte de verdade em `pages.historia.content.gallery`. Swipe mobile foi implementado no `gallery.js` com navegação circular e proteção de gesto; validar em dispositivo real antes de marcar o checklist de teste mobile como concluído. Autoplay permanece fora de escopo por enquanto.
-**Prioridade:** Alta (pendências)
-**Esforço estimado:** 1 dia para fechar pendências
+**Notas:** Galeria integrada com swipe mobile (testado em dispositivo real), navegação circular, reveal condicional e suporte a galeria vazia. Autoplay permanece fora de escopo.
+**Prioridade:** Alta
+**Esforço estimado:** ✅ Concluído
 
 ---
 
@@ -135,35 +135,35 @@
 
 ---
 
-### 2.2 Padronizar páginas extras
-- [ ] Criar módulo compartilhado de renderização de páginas extras
-- [ ] Padronizar hero/header de todas as páginas extras
-- [ ] Padronizar sistema de reveal de conteúdo
-- [ ] Padronizar tratamento de campos ausentes (não quebrar, apenas não renderizar)
-- [ ] Padronizar link de retorno para `index.html?section=extras`
-- [ ] Testar cada página com `content` vazio no `site.json`
-- [ ] Documentar como adicionar nova página extra
+### 2.2 Padronizar páginas extras ✅ CONCLUÍDO
+- [x] Criar módulo compartilhado de renderização de páginas extras
+- [x] Padronizar hero/header de todas as páginas extras
+- [x] Padronizar sistema de reveal de conteúdo
+- [x] Padronizar tratamento de campos ausentes (não quebrar, apenas não renderizar)
+- [x] Padronizar link de retorno para `index.html?section=extras`
+- [x] Testar cada página com `content` vazio no `site.json`
+- [x] Documentar como adicionar nova página extra
 
 **Páginas afetadas:** `historia.html`, `faq.html`, `hospedagem.html`
-**Notas:** —
+**Notas:** Módulo `extra-page.js` criado com `initExtraPage({ pageKey, idPrefix, onReady, onReveal? })`. Centraliza: listener `app:ready`, optional chaining, guard de content ausente, setText das 3 intro fields, `document.title` dinâmico, `meta[name="description"]` dinâmico, `revealElements('.reveal')`, e hook `onReveal` para seções opcionais pós-reveal (ex: galeria). `historia.js`, `faq.js` e `hospedagem.js` refatorados para consumir o módulo — lógica específica de renderização preservada em cada arquivo. Links de retorno e tratamento de campos ausentes já eram consistentes antes e foram mantidos. Para adicionar nova página extra: criar HTML com padrão `extra-page`/`extra-intro`, criar módulo JS e chamar `initExtraPage` com `pageKey` e `idPrefix` correspondentes ao ID no `site.json`.
 **Prioridade:** Alta
-**Esforço estimado:** 2 dias
+**Esforço estimado:** ✅ Concluído
 
 ---
 
-### 2.3 Consolidar presentes na página dedicada
+### 2.3 Consolidar presentes na página dedicada ✅ CONCLUÍDO
 - [x] Decidir propósito do fluxo de presentes (manter somente `presente.html`)
 - [x] Remover overlay de presentes do `index.html` e o fluxo `#gift`
 - [x] Garantir fonte única de conteúdo em `site.json` para a página dedicada
-- [ ] Implementar bloco de cartão na página `presente.html`
-- [ ] Adicionar campo `cardPaymentEnabled` no `site.json`
-- [ ] Adicionar campo `cardPaymentLink` no `site.json`
-- [ ] Adicionar ambos os campos no `editor.html`
-- [ ] Testar com `cardPaymentEnabled: false` (bloco não aparece)
+- [x] Implementar bloco de cartão na página `presente.html`
+- [x] Adicionar campo `cardPaymentEnabled` no `site.json`
+- [x] Adicionar campo `cardPaymentLink` no `site.json`
+- [x] Adicionar ambos os campos no `editor.html`
+- [x] Testar com `cardPaymentEnabled: false` (bloco não aparece)
 
-**Notas:** Fluxo com overlay foi aposentado para reduzir duplicidade e custo de manutenção.
+**Notas:** Fluxo com overlay foi aposentado. Bloco de cartão implementado em `presente.html` controlado por `cardPaymentEnabled` e `cardPaymentLink` no `site.json`; bloco oculto quando desabilitado ou link inválido. Ambos os campos editáveis na aba Presente do editor.
 **Prioridade:** Média
-**Esforço estimado:** 1 dia
+**Esforço estimado:** ✅ Concluído
 
 ---
 

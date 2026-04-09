@@ -1,4 +1,5 @@
-import { revealElements, setText } from './utils.js';
+import { setText } from './utils.js';
+import { initExtraPage } from './extra-page.js';
 
 function renderCards(containerId, items) {
     const container = document.getElementById(containerId);
@@ -19,17 +20,13 @@ function renderCards(containerId, items) {
     }).join('');
 }
 
-window.addEventListener('app:ready', ({ detail }) => {
-    const content = detail.config?.pages?.hospedagem?.content;
-    if (!content) return;
-
-    setText('hospedagemTag', content.tag);
-    setText('hospedagemTitle', content.title);
-    setText('hospedagemIntro', content.intro);
-    setText('hospedagemHotelsTitle', content.hotelsTitle);
-    setText('hospedagemRestaurantsTitle', content.restaurantsTitle);
-    renderCards('hospedagemHotels', content.hotels);
-    renderCards('hospedagemRestaurants', content.restaurants);
-
-    revealElements('.reveal');
+initExtraPage({
+    pageKey: 'hospedagem',
+    idPrefix: 'hospedagem',
+    onReady: (content) => {
+        setText('hospedagemHotelsTitle', content.hotelsTitle);
+        setText('hospedagemRestaurantsTitle', content.restaurantsTitle);
+        renderCards('hospedagemHotels', content.hotels);
+        renderCards('hospedagemRestaurants', content.restaurants);
+    },
 });

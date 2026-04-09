@@ -1,5 +1,6 @@
-import { revealElements, setText } from './utils.js';
+import { revealElements } from './utils.js';
 import { initGallery } from './gallery.js';
+import { initExtraPage } from './extra-page.js';
 
 function loadGallery(images) {
     const section = document.getElementById('historiaGallery');
@@ -25,15 +26,9 @@ function renderTimeline(chapters) {
     `).join('');
 }
 
-window.addEventListener('app:ready', ({ detail }) => {
-    const content = detail.config?.pages?.historia?.content;
-    if (!content) return;
-
-    setText('historiaTag', content.tag);
-    setText('historiaTitle', content.title);
-    setText('historiaIntro', content.intro);
-    renderTimeline(content.chapters);
-
-    revealElements('.reveal');
-    loadGallery(content.gallery);
+initExtraPage({
+    pageKey: 'historia',
+    idPrefix: 'historia',
+    onReady: (content) => renderTimeline(content.chapters),
+    onReveal: (content) => loadGallery(content.gallery),
 });

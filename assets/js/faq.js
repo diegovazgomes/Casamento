@@ -1,4 +1,4 @@
-import { revealElements, setText } from './utils.js';
+import { initExtraPage } from './extra-page.js';
 
 function renderFaq(items) {
     const container = document.getElementById('faqList');
@@ -12,14 +12,8 @@ function renderFaq(items) {
     `).join('');
 }
 
-window.addEventListener('app:ready', ({ detail }) => {
-    const content = detail.config?.pages?.faq?.content;
-    if (!content) return;
-
-    setText('faqTag', content.tag);
-    setText('faqTitle', content.title);
-    setText('faqIntro', content.intro);
-    renderFaq(content.items);
-
-    revealElements('.reveal');
+initExtraPage({
+    pageKey: 'faq',
+    idPrefix: 'faq',
+    onReady: (content) => renderFaq(content.items),
 });
