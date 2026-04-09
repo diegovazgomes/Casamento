@@ -1,5 +1,5 @@
 ---
-name: criar_tema
+name: criar-tema
 description: Cria um novo tema visual no projeto de convite de casamento. Use quando o usuário pedir para criar, duplicar ou adicionar um novo tema em assets/config/themes/.
 ---
 

@@ -1,12 +1,13 @@
 {
-  "activeTheme": "assets/config/themes/classic-blue.json",
+  "activeTheme": "assets/config/themes/classic-green-light.json",
   "themeFiles": [
     "assets/config/themes/classic-gold.json",
     "assets/config/themes/classic-gold-light.json",
     "assets/config/themes/classic-silver.json",
     "assets/config/themes/classic-silver-light.json",
     "assets/config/themes/classic-purple.json",
-    "assets/config/themes/classic-blue.json"
+    "assets/config/themes/classic-blue.json",
+    "assets/config/themes/classic-green-light.json"
   ],
   "couple": {
     "names": "Siannah & Diego",
@@ -284,7 +285,8 @@
         "background": "#000000"
       }
     },
-    "classic-blue": {}
+    "classic-blue": {},
+    "classic-green-light": {}
   },
   "themeOverrides": {}
 }
