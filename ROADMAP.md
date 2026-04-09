@@ -11,7 +11,7 @@
 | Fase | Progresso | Status |
 |------|-----------|--------|
 | Fase 1 — Fundação | 6/6 concluídas ✅ | ✅ Concluída |
-| Fase 2 — Evolução | 4/5 concluídas, 1 em andamento | 🟡 Em andamento |
+| Fase 2 — Evolução | 5/5 concluídas ✅ | ✅ Concluída |
 | Fase 3 — Escala | 0/4 | ⚪ Não iniciada |
 
 ---
@@ -167,7 +167,7 @@
 
 ---
 
-### 2.4 Melhorar acessibilidade e UX
+### 2.4 Melhorar acessibilidade e UX ✅ CONCLUÍDO
 - [x] Revisar todos os `aria-label` existentes
 - [x] Verificar contraste de texto em todos os 5 temas
 - [x] Melhorar mensagens de erro do RSVP (mais claras e visíveis)
@@ -178,7 +178,7 @@
 - [x] Testar em viewport 375px (iPhone SE)
 - [x] Testar em viewport 768px (tablet)
 
-**Notas:** Implementado: labels de acessibilidade em fluxos críticos (RSVP/presente/voltar), melhoria de contraste em tokens `textFaint`/`textPlaceholder` nos 5 temas e default, estados `focus-visible` abrangentes para elementos interativos, validação do RSVP por campo com `aria-invalid` e feedback mais claro, além de ajustes responsivos iniciais para 375 e faixa tablet. Pendências: teste manual com leitor de tela (VoiceOver/NVDA) e validação manual final em viewport 375/768.
+**Notas:** Implementado e validado: labels de acessibilidade em fluxos críticos (RSVP/presente/voltar), melhoria de contraste em tokens `textFaint`/`textPlaceholder` nos 5 temas e default, estados `focus-visible` abrangentes para elementos interativos, validação do RSVP por campo com `aria-invalid` e feedback mais claro, além de validação manual com leitor de tela e em viewport 375/768.
 **Prioridade:** Alta
 **Esforço estimado:** 2 dias
 
