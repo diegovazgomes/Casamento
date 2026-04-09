@@ -151,18 +151,17 @@
 
 ---
 
-### 2.3 Resolver duplicidade de presentes
-- [ ] Decidir propósito de cada caminho (overlay vs. página dedicada)
-- [ ] Documentar decisão no código
-- [ ] Garantir que ambos leem de uma única fonte (`site.json`)
+### 2.3 Consolidar presentes na página dedicada
+- [x] Decidir propósito do fluxo de presentes (manter somente `presente.html`)
+- [x] Remover overlay de presentes do `index.html` e o fluxo `#gift`
+- [x] Garantir fonte única de conteúdo em `site.json` para a página dedicada
 - [ ] Implementar bloco de cartão na página `presente.html`
-- [ ] Implementar bloco de cartão no overlay do `index.html`
 - [ ] Adicionar campo `cardPaymentEnabled` no `site.json`
 - [ ] Adicionar campo `cardPaymentLink` no `site.json`
 - [ ] Adicionar ambos os campos no `editor.html`
 - [ ] Testar com `cardPaymentEnabled: false` (bloco não aparece)
 
-**Notas:** —
+**Notas:** Fluxo com overlay foi aposentado para reduzir duplicidade e custo de manutenção.
 **Prioridade:** Média
 **Esforço estimado:** 1 dia
 
@@ -273,6 +272,7 @@
 - **[2026-04-09]** `gallery.js` e `map.js` saíram do estado "adormecido" e foram integrados ao produto.
 - **[2026-04-09]** A galeria foi simplificada: saiu de um arquivo externo `index.json` e passou a viver diretamente em `pages.historia.content.gallery` no `site.json`.
 - **[2026-04-09]** O editor visual ganhou a aba `Mapa & Galeria`, reduzindo edição manual de JSON.
+- **[2026-04-09]** Fluxo de presentes consolidado na página dedicada `presente.html`; overlay removido da home.
 - Espaçamentos inconsistentes identificados entre seções em mobile — endereçar em 2.4.
 - Bloco de cartão em `presente.html` ainda é placeholder — endereçar em 2.3.
 
@@ -283,7 +283,6 @@
 | Decisão | Contexto | Urgência |
 |---------|----------|----------|
 | Infraestrutura de backend | Necessária para Fase 3 | Antes de iniciar Fase 3 |
-| Overlay vs. página de presentes | Dois caminhos sem propósito claro | Fase 2 item 2.3 |
 | Modelo visual único vs. múltiplos layouts | Hoje só existe 1 layout HTML | Antes de criar novos modelos |
 
 ---
@@ -300,4 +299,4 @@
 
 ---
 
-*Última atualização: fundação praticamente consolidada; editor expandido com mapa e galeria; galeria migrada para `site.json` como fonte única de verdade.*
+*Última atualização: fundação praticamente consolidada; editor expandido com mapa e galeria; galeria migrada para `site.json`; presentes consolidados em `presente.html`.*

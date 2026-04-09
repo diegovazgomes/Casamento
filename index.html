@@ -29,7 +29,7 @@
 
             window.__INVITATION_BOOTSTRAP__ = {
                 navigationTarget: navigationTarget,
-                shouldSkipIntro: invitationStarted || Boolean(navigationTarget) || window.location.hash === '#gift'
+                shouldSkipIntro: invitationStarted || Boolean(navigationTarget)
             };
 
             if (window.__INVITATION_BOOTSTRAP__.shouldSkipIntro) {
@@ -209,77 +209,6 @@
             </div>
         </section>
 
-        <div class="gift-overlay-shell" id="giftOverlay" hidden aria-hidden="true">
-            <div class="gift-overlay-backdrop" data-close-gift-overlay aria-hidden="true"></div>
-            <section class="gift-overlay-panel" role="dialog" aria-modal="true" aria-labelledby="giftOverlayTitle">
-                <button class="gift-overlay-close" id="giftOverlayCloseButton" type="button" data-close-gift-overlay aria-label="Fechar área de presentes"></button>
-
-                <section class="content-section gift-intro gift-overlay-intro">
-                    <span class="section-tag" id="giftTag">Presente</span>
-                    <h2 class="section-title" id="giftOverlayTitle">Para nos presentear</h2>
-                    <p class="section-body" id="giftIntroText">
-                        Sua presença já é o nosso maior presente. Mas, se desejar nos presentear de outra forma,
-                        deixamos abaixo algumas opções com carinho.
-                    </p>
-                </section>
-
-                <div class="divider gift-overlay-divider" aria-hidden="true">
-                    <div class="divider-line"></div>
-                    <div class="divider-diamond"></div>
-                    <div class="divider-line"></div>
-                </div>
-
-                <section class="content-section gift-shell gift-overlay-content">
-                    <div class="gift-grid">
-                        <article class="gift-panel gift-panel-pix">
-                            <span class="gift-panel-tag" id="giftPixTag">Pix</span>
-                            <h3 class="gift-panel-title" id="giftPixTitle">Pix do casal</h3>
-                            <p class="gift-panel-body" id="giftPixDescription">
-                                Se preferir, você pode nos presentear por Pix usando o QR Code ou o código abaixo.
-                            </p>
-
-                            <div class="gift-qr-frame">
-                                <img id="giftPixQr" src="assets/images/icons/pix-placeholder.svg" alt="Placeholder do QR Code para pagamento via Pix">
-                            </div>
-
-                            <p class="gift-copy-label" id="giftPixCopyLabel">Pix copia e cola</p>
-                            <code class="gift-copy-code" id="pixCode">CHAVE_PIX_OU_CODIGO_COPIA_E_COLA_AQUI</code>
-
-                            <button
-                                class="gift-copy-button"
-                                id="giftPixCopyButton"
-                                type="button"
-                                data-copy-value="CHAVE_PIX_OU_CODIGO_COPIA_E_COLA_AQUI"
-                                data-copy-feedback-target="pixCopyFeedback"
-                            >
-                                Copiar código Pix
-                            </button>
-                            <p class="gift-feedback" id="pixCopyFeedback" aria-live="polite"></p>
-                        </article>
-
-                        <article class="gift-panel gift-panel-card">
-                            <span class="gift-panel-tag" id="giftCardTag">Pagamento por cartão</span>
-                            <h3 class="gift-panel-title" id="giftCardTitle">Pagamento por cartão</h3>
-                            <p class="gift-panel-body" id="giftCardBody">
-                                Em breve, esta opção estará disponível.
-                            </p>
-                            <div class="gift-card-placeholder" id="giftCardPlaceholder">
-                                Espaço reservado para inserir o link ou a plataforma de pagamento por cartão.
-                            </div>
-                        </article>
-                    </div>
-
-                    <div class="gift-back-wrap">
-                        <button class="gift-back-link" id="giftOverlayBackButton" type="button" data-close-gift-overlay data-scroll-target="#rsvp"></button>
-                    </div>
-
-                    <footer class="gift-overlay-footer">
-                        <div class="footer-names" id="overlayFooterNames">Siannah & Diego</div>
-                        <p class="footer-note" id="overlayFooterNote">06 . 09 . 2026 | São Bernardo do Campo</p>
-                    </footer>
-                </section>
-            </section>
-        </div>
     </main>
 
     <footer>

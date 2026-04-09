@@ -12,6 +12,16 @@ Este arquivo serve como referencia tecnica completa do projeto de convite de cas
 
 Este nao e apenas um resumo conceitual. O objetivo aqui e documentar o comportamento real do codigo no estado atual do repositorio.
 
+### 1.1 Fontes de verdade do projeto
+
+Para reduzir duplicidade de manutencao entre documentos:
+
+- `ROADMAP.md`: backlog, prioridades e status de execucao.
+- `cursorrules`: padroes de implementacao, qualidade e seguranca de mudancas.
+- `CLAUDE.md`: referencia tecnica estavel de arquitetura, modulos, contratos e fluxos.
+
+Mudancas de status devem ficar no `ROADMAP.md`. Este arquivo deve registrar apenas o estado tecnico atual.
+
 ---
 
 ## 2. Visao geral do projeto
@@ -124,7 +134,6 @@ Isso torna o projeto relativamente facil de portar para outro casal, outro event
 │   │   └── fonts.css
 │   ├── images/
 │   │   └── gallery/
-│   │       └── index.json
 │   └── js/
 │       ├── script.js
 │       ├── main.js
@@ -252,7 +261,7 @@ Depois de iniciado, o sistema:
 - mostra o shell principal do site;
 - inicializa os modulos centrais;
 - desbloqueia o audio;
-- navega para hash, secao ou overlay, quando aplicavel.
+- navega para hash ou secao, quando aplicavel.
 
 ---
 
@@ -368,7 +377,6 @@ Essa classe orquestra a experiencia de pagina.
 - preencher o DOM com textos e dados configurados;
 - controlar intro screen;
 - inicializar modulos centrais;
-- controlar overlay de presentes;
 - integrar o controle de audio;
 - montar os cards de paginas extras;
 - sincronizar estado visual com navegacao e hash.
@@ -382,9 +390,7 @@ Guarda configuracoes, cria instancias base e coleta referencias do DOM, incluind
 - intro screen;
 - botao de abrir convite;
 - shell principal;
-- overlay de presente;
-- botao de audio;
-- gatilhos de abrir/fechar overlay.
+- botao de audio.
 
 ##### `init()`
 
@@ -397,7 +403,7 @@ Executa a inicializacao principal da experiencia:
 - `setGift()`
 - `setPages()`
 - `presentPage.init()`
-- binds de intro, overlay, audio e teclado
+- binds de intro e audio
 
 Depois decide se deve entrar direto no convite ou aguardar o clique do usuario.
 
@@ -405,17 +411,9 @@ Depois decide se deve entrar direto no convite ou aguardar o clique do usuario.
 
 Liga o clique do botao de abertura da intro ao fluxo `enterInvitation()` e inicia o contexto de audio a partir do gesto do usuario.
 
-##### `bindGiftOverlay()`
-
-Conecta elementos com `data-open-gift-overlay` e `data-close-gift-overlay` aos metodos de abrir/fechar overlay.
-
 ##### `bindAudioToggle()`
 
 Conecta o botao flutuante de audio ao metodo `audio.toggle()`.
-
-##### `bindKeyboardShortcuts()`
-
-Hoje usa a tecla `Escape` para fechar o overlay de presentes quando ele esta aberto.
 
 ##### `initializeMainSite()`
 
@@ -442,7 +440,6 @@ Fluxo principal de entrada na experiencia. Marca a sessao como iniciada, atualiz
 
 Centraliza a logica de navegacao apos o inicio:
 
-- abre overlay se `hash === '#gift'`
 - rola ate uma secao se houver `targetSection`
 - posiciona no topo quando necessario
 - respeita hashes existentes no DOM
@@ -466,18 +463,6 @@ Le `sessionStorage` para verificar se o convite ja foi iniciado.
 ##### `markInvitationStarted()`
 
 Escreve no `sessionStorage` a chave `wedding-invitation-started = true`.
-
-##### `openGiftOverlay()`
-
-Abre o overlay de presentes, revela o conteudo animado, muda o contexto de audio para `gift` e foca o botao de fechar.
-
-##### `closeGiftOverlay(scrollTarget)`
-
-Fecha o overlay, restaura o contexto de audio para `main` e opcionalmente faz scroll para um alvo no DOM.
-
-##### `revealGiftOverlayContent()`
-
-Adiciona a classe `visible` aos elementos animaveis do overlay.
 
 ##### `syncAudioButton()`
 
@@ -1144,7 +1129,6 @@ Pagina principal do convite.
 - details
 - extras
 - RSVP
-- gift overlay
 - footer
 - botao flutuante de audio
 
@@ -1153,7 +1137,7 @@ Pagina principal do convite.
 - contem o script bootstrap inline no `<head>`;
 - usa `body.experience-locked` ate a experiencia ser liberada;
 - a secao `extras` inicia com `hidden` e so aparece se houver paginas extras habilitadas;
-- o overlay de presente existe dentro da pagina, alem da pagina `presente.html` separada.
+- o card de presente redireciona para a pagina dedicada `presente.html`.
 
 #### Scripts usados
 
@@ -1513,7 +1497,7 @@ E a folha principal de estilo do produto. Ela consome as variaveis CSS produzida
 #### Papel
 
 - definir layout global;
-- estilizar hero, detalhes, RSVP, overlay e paginas extras;
+- estilizar hero, detalhes, RSVP, pagina de presentes e paginas extras;
 - aplicar tipografia, cores e espacamentos via `var(--...)`.
 
 #### Regra arquitetural importante
@@ -1595,7 +1579,7 @@ Usado para abrir a pagina principal e rolar para uma secao especifica depois da 
 
 ### 23.2 Hash `#gift`
 
-Usado para abrir automaticamente o overlay de presente dentro da pagina principal.
+Nao existe mais tratamento especial para `#gift`. O fluxo de presentes e feito pela pagina dedicada `presente.html`.
 
 ### 23.3 Fluxo de retorno das paginas extras
 
@@ -1619,7 +1603,6 @@ Assim, o usuario volta para a area de cards extras em vez de voltar ao topo do c
 - cards de detalhes;
 - secao dinamica de extras;
 - formulario RSVP com redirecionamento;
-- overlay interno de presentes;
 - audio flutuante.
 
 ### Pagina de presentes (`presente.html`)
@@ -1679,7 +1662,7 @@ O editor de JSON e o preview de fontes elevam a operabilidade do projeto.
 
 Essa secao e importante para qualquer evolucao futura.
 
-### 26.1 ~~Ausencia de schema formal para `site.json`~~ RESOLVIDO
+### 26.1 Dependencia de schema para manter qualidade de config
 
 `assets/config/schemas/site-schema.json` define todos os campos, tipos e requisitos. O editor valida ao carregar e bloqueia o export em caso de erros. `script.js` emite `console.warn` para campos criticos ausentes via `warnConfigIssues()`.
 
@@ -1710,9 +1693,9 @@ Nao ha testes para:
 
 Ha `console.warn()` e `console.error()`, mas nao existe camada clara de recuperacao visual, logging estruturado ou telemetria.
 
-### 26.7 Modulos legados coexistem sem integracao clara
+### 26.7 Modulos opcionais exigem governanca de configuracao
 
-~~`gallery.js` e `map.js` existem no repositorio, mas nao fazem parte do fluxo atual.~~ Ambos foram integrados: `gallery.js` em `historia.html` via `index.json` opt-in; `map.js` em `hospedagem.html` via flag `mapEnabled` em `site.json`.
+`gallery.js` e `map.js` estao integrados ao fluxo atual, mas continuam opcionais por configuracao. A fragilidade atual nao e integracao, e sim manter consistencia de dados no `site.json` entre conteudo, links e flags.
 
 ### 26.8 `sessionStorage` pode nao ser confiavel em todos os contextos
 
@@ -1734,19 +1717,19 @@ Apesar do bom uso de variaveis, a semantica de alguns componentes ainda depende 
 
 ## 27. Melhorias futuras recomendadas
 
-### ~~27.1 Criar um schema formal para `site.json`~~ FEITO
+### 27.1 Manter e evoluir schema formal para `site.json`
 
 Implementado em `assets/config/schemas/site-schema.json`. Validador recursivo integrado ao `editor.js` (`loadSchema`, `validateAgainstSchema`, `renderValidationBanner`). Banner visual no editor, bloqueio de export em erros, `console.warn` em runtime via `warnConfigIssues()` em `script.js`.
 
-### ~~27.2 Criar schema para os temas~~ FEITO
+### 27.2 Manter e evoluir schema para os temas
 
 Implementado em `assets/config/schemas/theme-schema.json`. Define todos os campos obrigatorios, tipos e a estrutura de `typographyRole` como definicao reutilizavel. `script.js` emite `console.warn` para campos criticos via `warnThemeIssues()`.
 
-### ~~27.3 Externalizar os fallbacks padrao~~ FEITO
+### 27.3 Manter fallbacks externalizados
 
 Implementado com `assets/config/defaults/theme.json` e `assets/config/defaults/site.json`. O `script.js` agora carrega esses defaults via `loadDefaults()` no bootstrap.
 
-### ~~27.4 Criar camada de utilitarios compartilhados~~ FEITO
+### 27.4 Expandir camada de utilitarios compartilhados quando necessario
 
 Implementado em `assets/js/utils.js`. Hoje concentra helpers compartilhados de DOM, URL, escaping, debounce, clone/merge profundo e manipulacao de paths. Modulos como `script.js`, `editor.js`, `historia.js`, `faq.js` e `hospedagem.js` passaram a importar essas funcoes.
 
@@ -1773,20 +1756,22 @@ Ha boas bases de `aria-*`, mas seria positivo ampliar:
 - feedbacks de erro mais claros;
 - validacao mais semantica do formulario.
 
-### 27.8 Revisar pagina de presentes duplicada vs overlay
+### 27.8 Evoluir pagina dedicada de presentes
 
-Hoje ha dois caminhos para presentes:
+O fluxo de presentes foi consolidado em `presente.html`. As proximas melhorias recomendadas sao:
 
-- overlay dentro de `index.html`
-- pagina `presente.html`
+- implementar bloco de pagamento por cartao com flag de habilitacao;
+- expor esses campos no editor visual;
+- manter fallback claro quando cartao estiver desabilitado.
 
-Essa duplicidade pode ser mantida por estrategia de UX, mas deveria estar explicitamente decidida. Caso contrario, vira custo de manutencao desnecessario.
+### 27.9 Evoluir modulos opcionais ja integrados
 
-### 27.9 Definir o destino dos modulos legados
+`gallery.js` e `map.js` ja estao integrados ao produto e configurados por `site.json`.
 
-~~Ou integrar `gallery.js` e `map.js` ao produto, ou removelos/arquivalos.~~ FEITO.
+- `gallery.js`: integrado em `historia.html` via `pages.historia.content.gallery`.
+- `map.js`: integrado em `hospedagem.html` via `event.mapEnabled` e campos de localizacao.
 
-`gallery.js` convertido para ES Module; exporta `initGallery(containerId, images)`. Integrado em `historia.html` com carregamento opt-in via `assets/images/gallery/index.json`. `map.js` convertido para ES Module; integrado em `hospedagem.html` com flag `event.mapEnabled` em `site.json`. Leaflet CDN carregado apenas em `hospedagem.html`. Ambos respondem ao evento `app:ready`.
+As melhorias recomendadas sao observabilidade de falhas de dados e testes de smoke focados nesses modulos.
 
 ### 27.10 Adicionar testes minimos de smoke
 
@@ -1827,7 +1812,7 @@ Essa e uma das motivacoes principais deste documento.
 1. duplicar a estrutura de paginas e `assets/js/script.js` como base;
 2. redefinir o schema desejado de `site.json` antes de escalar o projeto;
 3. manter o sistema de temas, mas documentar o contrato com schema;
-4. decidir cedo se presentes serao overlay, pagina dedicada ou ambos;
+4. decidir cedo o fluxo de presentes (neste projeto, pagina dedicada);
 5. decidir cedo se RSVP sera apenas WhatsApp ou fluxo com backend.
 
 ---

@@ -165,8 +165,7 @@ html {
     scroll-behavior: smooth;
 }
 
-body.experience-locked,
-body.gift-overlay-open {
+body.experience-locked {
     overflow: hidden;
 }
 
@@ -974,87 +973,6 @@ img {
     border-radius: var(--radius-button);
 }
 
-.gift-overlay-footer {
-    margin-top: var(--space-3xl);
-    padding-top: var(--space-xl);
-    border-top: 1px solid var(--color-border);
-    text-align: center;
-}
-
-.gift-overlay-shell {
-    position: fixed;
-    inset: 0;
-    z-index: 45;
-    padding: 16px;
-    opacity: 0;
-    visibility: hidden;
-    pointer-events: none;
-    transition: opacity var(--fade-duration) ease, visibility var(--fade-duration) ease;
-}
-
-.gift-overlay-shell.is-open {
-    opacity: 1;
-    visibility: visible;
-    pointer-events: auto;
-}
-
-.gift-overlay-backdrop {
-    position: absolute;
-    inset: 0;
-    background: var(--color-overlay-backdrop);
-    backdrop-filter: blur(10px);
-}
-
-.gift-overlay-panel {
-    position: relative;
-    z-index: 1;
-    width: min(100%, 860px);
-    max-height: calc(100vh - 32px);
-    margin: 0 auto;
-    overflow-y: auto;
-    border: 1px solid var(--color-border);
-    background:
-        radial-gradient(circle at top, var(--color-gold-surface), transparent 30%),
-        var(--overlay-panel-gradient);
-    box-shadow: var(--shadow-soft);
-    transform: translateY(24px) scale(0.98);
-    transition: transform var(--fade-duration) cubic-bezier(0.22, 1, 0.36, 1);
-    border-radius: var(--radius-card);
-}
-
-.gift-overlay-shell.is-open .gift-overlay-panel {
-    transform: none;
-}
-
-.gift-overlay-close {
-    position: sticky;
-    top: 0;
-    z-index: 2;
-    display: inline-flex;
-    justify-content: flex-end;
-    width: 100%;
-    padding: 16px 18px 0;
-    background: var(--overlay-close-gradient);
-    color: var(--color-text-soft);
-    cursor: pointer;
-    font-size: 9px;
-    letter-spacing: 0.28em;
-    text-transform: uppercase;
-}
-
-.gift-overlay-intro.content-section {
-    padding-top: 38px;
-}
-
-.gift-overlay-divider {
-    margin-top: 40px;
-}
-
-.gift-overlay-content.content-section {
-    padding-top: 36px;
-    padding-bottom: var(--space-4xl);
-}
-
 .rsvp-shell {
     padding-bottom: var(--rsvp-shell-padding-bottom);
 }
@@ -1408,35 +1326,6 @@ footer {
         margin-top: 0;
     }
 
-    .gift-overlay-shell {
-        padding: 0;
-    }
-
-    .gift-overlay-panel {
-        width: 100%;
-        max-height: 100vh;
-        min-height: 100vh;
-        border-left: 0;
-        border-right: 0;
-    }
-
-    .gift-overlay-close {
-        padding: 18px 18px 0;
-    }
-
-    .gift-overlay-intro.content-section {
-        padding-top: 22px;
-    }
-
-    .gift-overlay-divider {
-        margin-top: 32px;
-    }
-
-    .gift-overlay-content.content-section {
-        padding-top: 32px;
-        padding-bottom: 36px;
-    }
-
     .gift-panel {
         padding: 34px var(--space-md) 30px;
     }
@@ -1512,9 +1401,6 @@ footer {
         background: var(--color-gold-surface-soft);
     }
 
-    .gift-overlay-close:hover {
-        color: var(--gold-light);
-    }
 }
 
 @media (prefers-reduced-motion: reduce) {

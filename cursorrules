@@ -135,6 +135,8 @@ Este é um ponto crítico. Erros de espaçamento destroem a experiência premium
 
 3. Nunca deixar `console.log()` de debug no código final. Usar `console.warn()` para avisos reais.
 
+4. Sempre evitar quebrar código ou fazer alterações de algo que não tenha sido solicitado para aquela modificação
+
 ---
 
 ## 9. O QUE NUNCA FAZER

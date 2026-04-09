@@ -412,16 +412,12 @@ class InvitationExperience {
         this.audio = new AudioController(this.getAudioTracks());
         this.hasStarted = false;
         this.mainInitialized = false;
-        this.overlayHideTimeoutId = null;
 
         this.introScreen = document.getElementById('introScreen');
         this.openInviteButton = document.getElementById('openInviteButton');
         this.siteShell = document.getElementById('siteShell');
-        this.giftOverlay = document.getElementById('giftOverlay');
         this.audioToggle = document.getElementById('audioToggle');
         this.audioToggleLabel = this.audioToggle?.querySelector('.audio-toggle__label') ?? null;
-        this.giftOpenTriggers = Array.from(document.querySelectorAll('[data-open-gift-overlay]'));
-        this.giftCloseTriggers = Array.from(document.querySelectorAll('[data-close-gift-overlay]'));
     }
 
     init() {
@@ -433,9 +429,7 @@ class InvitationExperience {
         this.setPages();
         this.presentPage.init();
         this.bindIntro();
-        this.bindGiftOverlay();
         this.bindAudioToggle();
-        this.bindKeyboardShortcuts();
         this.audio.addEventListener('statechange', () => this.syncAudioButton());
         this.syncAudioButton();
 
@@ -448,7 +442,7 @@ class InvitationExperience {
             this.enterInvitation({
                 skipIntro: true,
                 targetSection: this.navigationState.navigationTarget,
-                forceTop: !this.navigationState.navigationTarget && window.location.hash !== '#gift'
+                forceTop: !this.navigationState.navigationTarget
             });
         }
     }
@@ -465,19 +459,6 @@ class InvitationExperience {
         });
     }
 
-    bindGiftOverlay() {
-        this.giftOpenTriggers.forEach((trigger) => {
-            trigger.addEventListener('click', () => this.openGiftOverlay());
-        });
-
-        this.giftCloseTriggers.forEach((trigger) => {
-            trigger.addEventListener('click', () => {
-                const scrollTarget = trigger.dataset.scrollTarget;
-                this.closeGiftOverlay(scrollTarget);
-            });
-        });
-    }
-
     bindAudioToggle() {
         if (!this.audioToggle) {
             return;
@@ -486,14 +467,6 @@ class InvitationExperience {
         this.audioToggle.addEventListener('click', async () => {
             await this.audio.toggle();
             this.syncAudioButton();
-        });
-    }
-
-    bindKeyboardShortcuts() {
-        document.addEventListener('keydown', (event) => {
-            if (event.key === 'Escape' && this.giftOverlay?.classList.contains('is-open')) {
-                this.closeGiftOverlay();
-            }
         });
     }
 
@@ -555,11 +528,6 @@ class InvitationExperience {
 
     navigateWithinInvitation({ targetSection = null, forceTop = false } = {}) {
         const hash = window.location.hash;
-
-        if (hash === '#gift') {
-            window.setTimeout(() => this.openGiftOverlay(), 420);
-            return;
-        }
 
         if (targetSection) {
             this.scrollToSection(targetSection);
@@ -643,60 +611,6 @@ class InvitationExperience {
             window.sessionStorage.setItem(INVITATION_STARTED_STORAGE_KEY, 'true');
         } catch {
         }
-    }
-
-    openGiftOverlay() {
-        if (!this.giftOverlay) {
-            return;
-        }
-
-        if (!this.hasStarted) {
-            this.enterInvitation().then(() => this.openGiftOverlay());
-            return;
-        }
-
-        window.clearTimeout(this.overlayHideTimeoutId);
-        this.giftOverlay.hidden = false;
-        this.giftOverlay.setAttribute('aria-hidden', 'false');
-        document.body.classList.add('gift-overlay-open');
-
-        window.requestAnimationFrame(() => {
-            this.giftOverlay.classList.add('is-open');
-        });
-
-        this.revealGiftOverlayContent();
-        this.audio.setContext('gift');
-        this.giftOverlay.querySelector('.gift-overlay-close')?.focus();
-    }
-
-    closeGiftOverlay(scrollTarget) {
-        if (!this.giftOverlay) {
-            return;
-        }
-
-        this.giftOverlay.classList.remove('is-open');
-        this.giftOverlay.setAttribute('aria-hidden', 'true');
-        document.body.classList.remove('gift-overlay-open');
-        this.audio.setContext('main');
-
-        this.overlayHideTimeoutId = window.setTimeout(() => {
-            this.giftOverlay.hidden = true;
-        }, 380);
-
-        if (scrollTarget) {
-            const target = document.querySelector(scrollTarget);
-            target?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-    }
-
-    revealGiftOverlayContent() {
-        if (!this.giftOverlay) {
-            return;
-        }
-
-        this.giftOverlay
-            .querySelectorAll('.section-tag, .section-title, .section-body, .divider')
-            .forEach((element) => element.classList.add('visible'));
     }
 
     syncAudioButton() {
@@ -799,7 +713,6 @@ class InvitationExperience {
         }
 
         setText('mainFooterNames', names.names);
-        setText('overlayFooterNames', names.names);
     }
 
     setEventDetails() {
@@ -844,8 +757,6 @@ class InvitationExperience {
         setText('btn-no', this.config.texts?.rsvpNoLabel);
         setText('rsvpSubmit', this.config.texts?.rsvpSubmit);
         setText('backToExtrasButton', this.config.texts?.backToExtrasButton);
-        setText('giftOverlayCloseButton', this.config.texts?.giftOverlayCloseButton);
-        setText('giftOverlayBackButton', this.config.texts?.giftOverlayBackButton);
 
         setText('detailGiftValue', this.config.texts?.detailsGiftValue);
         setText('detailGiftSub', this.config.texts?.detailsGiftSub);
@@ -869,7 +780,6 @@ class InvitationExperience {
         const footerNote = this.config.texts?.footerNote;
 
         setText('mainFooterNote', footerNote);
-        setText('overlayFooterNote', footerNote);
 
         if (pixCode) {
             document.querySelectorAll('#pixCode').forEach((element) => {
