@@ -23,8 +23,8 @@
     --color-border-strong: rgba(201, 168, 76, 0.38);
     --color-text-soft: rgba(250, 247, 242, 0.62);
     --color-text-dim: rgba(250, 247, 242, 0.45);
-    --color-text-faint: rgba(250, 247, 242, 0.25);
-    --color-text-placeholder: rgba(250, 247, 242, 0.25);
+    --color-text-faint: rgba(250, 247, 242, 0.4);
+    --color-text-placeholder: rgba(250, 247, 242, 0.4);
     --color-surface-soft: rgba(255, 255, 255, 0.04);
     --color-gold-surface-soft: rgba(201, 168, 76, 0.06);
     --color-gold-surface: rgba(201, 168, 76, 0.08);
@@ -324,6 +324,11 @@ footer {
     transition: transform var(--fade-duration) ease;
 }
 
+.intro-screen__open:focus-visible {
+    color: var(--gold-light);
+    border-color: var(--gold-light);
+}
+
 @keyframes audioPulse {
     0%,
     100% {
@@ -386,9 +391,19 @@ footer {
     font-size: 9px;
 }
 
+.audio-toggle:focus-visible {
+    border-color: var(--color-border-strong);
+    box-shadow: var(--focus-ring);
+}
+
 button,
 input {
     font: inherit;
+}
+
+:where(button, a, input, textarea, select, [role="button"], [tabindex]:not([tabindex="-1"])):focus-visible {
+    outline: 2px solid var(--gold);
+    outline-offset: 2px;
 }
 
 button {
@@ -442,7 +457,7 @@ img {
     z-index: 2;
     width: min(100%, var(--hero-content-width));
     text-align: center;
-    padding-bottom: var(--hero-content-padding-bottom);
+    padding-bottom: max(var(--hero-content-padding-bottom), calc(var(--scroll-hint-bottom) + var(--scroll-arrow-height) + 8px));
     opacity: 0;
     transform: translateY(var(--hero-fade-offset));
     transition: opacity var(--fade-duration) cubic-bezier(0.22, 1, 0.36, 1), transform var(--fade-duration) cubic-bezier(0.22, 1, 0.36, 1);
@@ -529,6 +544,11 @@ img {
     font-size: var(--scroll-hint-text-size);
     letter-spacing: 0.32em;
     text-transform: uppercase;
+}
+
+.scroll-hint:focus-visible {
+    border-radius: var(--radius-button);
+    background: var(--color-gold-surface-soft);
 }
 
 .scroll-arrow {
@@ -777,6 +797,7 @@ img {
     margin-top: 4px;
     color: var(--color-text-dim);
     font-size: var(--detail-sub-size);
+    line-height: 1.6;
 }
 
 .detail-link-hint {
@@ -926,6 +947,10 @@ img {
     transform: translateX(0);
 }
 
+.gift-copy-button:focus-visible {
+    outline-color: var(--gold-light);
+}
+
 .gift-feedback {
     min-height: 1.5em;
     margin-top: var(--space-sm);
@@ -1000,6 +1025,11 @@ img {
     text-transform: uppercase;
     transition: var(--transition-standard);
     border-radius: var(--radius-button);
+}
+
+.gift-back-link:focus-visible {
+    border-color: var(--color-border-strong);
+    background: var(--color-gold-surface-soft);
 }
 
 .rsvp-shell {
@@ -1098,6 +1128,27 @@ img {
     background: var(--color-input-focus-bg);
 }
 
+.rsvp-input:focus-visible {
+    border-color: var(--gold);
+    background: var(--color-input-focus-bg);
+    box-shadow: var(--focus-ring);
+}
+
+.rsvp-input.is-invalid {
+    border-color: #d96f6f;
+    background: rgba(217, 111, 111, 0.08);
+}
+
+.rsvp-field-error {
+    margin-top: -6px;
+    margin-bottom: 2px;
+    color: #ff9e9e;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    line-height: 1.5;
+    text-align: left;
+}
+
 .rsvp-btns {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1124,6 +1175,10 @@ img {
     border-color: var(--gold);
     background: var(--color-gold-surface);
     color: var(--gold);
+}
+
+.rsvp-btn-choice:focus-visible {
+    border-color: var(--gold-light);
 }
 
 .rsvp-submit {
@@ -1162,6 +1217,10 @@ img {
     transform: translateX(0);
 }
 
+.rsvp-submit:focus-visible {
+    border-color: var(--gold-light);
+}
+
 .rsvp-submit:disabled {
     cursor: default;
     opacity: 0.55;
@@ -1183,6 +1242,20 @@ img {
 
 .rsvp-success.show {
     display: block;
+}
+
+.rsvp-success.is-error {
+    border: 1px solid rgba(217, 111, 111, 0.55);
+    background: rgba(217, 111, 111, 0.1);
+    border-radius: var(--radius-card);
+    padding: 14px 12px;
+}
+
+.rsvp-success.is-error .rsvp-success-icon,
+.rsvp-success.is-error .rsvp-success-text,
+.rsvp-success.is-error .rsvp-success-sub,
+.rsvp-success.is-error .rsvp-success-note {
+    color: #ffd5d5;
 }
 
 .rsvp-success-icon {
@@ -1237,6 +1310,7 @@ footer {
     font-weight: var(--typo-eyebrow-weight);
     letter-spacing: 0.2em;
     text-transform: uppercase;
+    line-height: 1.6;
 }
 
 .countdown-finished {
@@ -1383,6 +1457,73 @@ footer {
 
     .gift-back-wrap {
         margin-top: var(--space-2xl);
+    }
+
+    .rsvp-section {
+        padding: 38px 20px;
+    }
+
+    .rsvp-field-error {
+        margin-top: -4px;
+    }
+}
+
+@media (max-width: 480px) {
+    .content-section {
+        padding-top: min(var(--spacing-section), 32px);
+    }
+
+    #details.content-section {
+        padding-top: min(var(--spacing-section), 32px);
+    }
+
+    .hero {
+        padding: 0 14px 42px;
+    }
+
+    .detail-card {
+        padding: 22px 16px;
+    }
+
+    .rsvp-section {
+        padding: 32px 16px;
+    }
+
+    .rsvp-btns {
+        grid-template-columns: 1fr;
+    }
+
+    .countdown-num {
+        font-size: clamp(30px, 8.5vw, 36px);
+    }
+
+    .section-body,
+    .gift-panel-body,
+    .historia-chapter-text,
+    .faq-answer,
+    .hospedagem-card-description {
+        line-height: 1.75;
+    }
+}
+
+@media (min-width: 641px) and (max-width: 900px) {
+    .content-section,
+    .extra-content {
+        width: min(100%, 840px);
+    }
+
+    .extra-main {
+        padding-top: max(48px, env(safe-area-inset-top));
+    }
+
+    .rsvp-section {
+        max-width: 680px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .gift-grid {
+        gap: var(--space-lg);
     }
 }
 
@@ -1548,6 +1689,10 @@ footer {
 
 .extra-back:hover {
     color: var(--gold);
+}
+
+.extra-back:focus-visible {
+    color: var(--gold-light);
 }
 
 .extra-main {
@@ -1736,6 +1881,11 @@ footer {
     border-color: var(--color-border-strong);
 }
 
+.hospedagem-card-link:focus-visible {
+    color: var(--gold-light);
+    border-color: var(--color-border-strong);
+}
+
 @media (max-width: 480px) {
     .hospedagem-grid {
         grid-template-columns: 1fr;
@@ -1846,6 +1996,11 @@ footer {
 .gallery-dot.active {
     background: var(--gold);
     border-color: var(--gold);
+}
+
+.gallery-dot:focus-visible {
+    border-color: var(--gold-light);
+    background: var(--color-gold-surface-soft);
 }
 
 /* ─── Mapa do Local (hospedagem.html) ────────────────────────────────────── */

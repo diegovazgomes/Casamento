@@ -1,5 +1,5 @@
 {
-  "activeTheme": "assets/config/themes/classic-silver-light.json",
+  "activeTheme": "assets/config/themes/classic-gold-light.json",
   "themeFiles": [
     "assets/config/themes/classic-gold.json",
     "assets/config/themes/classic-gold-light.json",
@@ -228,8 +228,8 @@
         "note": "Abrindo o WhatsApp em {delaySeconds} segundos"
       },
       "error": {
-        "title": "Não foi possível continuar.",
-        "subtitle": "Confira os dados informados e tente novamente em instantes.",
+        "title": "Faltam alguns dados para continuar.",
+        "subtitle": "Revise os campos destacados e tente novamente.",
         "note": ""
       }
     }

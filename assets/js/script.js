@@ -310,9 +310,9 @@ async function loadDefaults() {
     ]);
 }
 
-async function loadConfig() {
+export async function loadConfig(configUrl = SITE_CONFIG_URL, defaults = DEFAULT_SITE_CONTENT) {
     try {
-        const response = await fetch(SITE_CONFIG_URL, {
+        const response = await fetch(configUrl, {
             method: 'GET',
             headers: { Accept: 'application/json' },
             cache: 'no-store'
@@ -323,17 +323,17 @@ async function loadConfig() {
         }
 
         const siteConfig = await response.json();
-        const merged = mergeDeep(DEFAULT_SITE_CONTENT, siteConfig);
+        const merged = mergeDeep(defaults, siteConfig);
         warnConfigIssues(merged);
         return merged;
     } catch (error) {
         console.warn('Falha ao carregar assets/config/site.json. Usando fallback local.', error);
-        return cloneDeep(DEFAULT_SITE_CONTENT);
+        return cloneDeep(defaults);
     }
 }
 
-async function loadTheme(themePath) {
-    const baseTheme = cloneDeep(DEFAULT_THEME);
+export async function loadTheme(themePath, defaults = DEFAULT_THEME) {
+    const baseTheme = cloneDeep(defaults);
 
     try {
         const response = await fetch(themePath, {
@@ -906,8 +906,15 @@ async function bootstrap() {
     }
 }
 
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', bootstrap, { once: true });
-} else {
-    bootstrap();
+const shouldAutoBootstrap =
+    typeof window !== 'undefined' &&
+    typeof document !== 'undefined' &&
+    window.__INVITATION_DISABLE_BOOTSTRAP__ !== true;
+
+if (shouldAutoBootstrap) {
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', bootstrap, { once: true });
+    } else {
+        bootstrap();
+    }
 }

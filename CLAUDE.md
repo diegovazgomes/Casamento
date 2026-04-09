@@ -82,6 +82,43 @@ python -m http.server 8080
 
 Embora varios navegadores consigam abrir o site direto por arquivo local, o comportamento com `fetch()` e mais previsivel quando se usa um servidor estatico local. Isso e especialmente importante porque o sistema carrega JSON em runtime.
 
+### Testes de smoke (Vitest)
+
+O projeto possui uma suite minima de smoke tests com Vitest para validar partes criticas de configuracao e logica.
+
+#### Instalar dependencias de teste
+
+```bash
+npm install
+```
+
+#### Rodar os testes
+
+```bash
+npm test
+```
+
+#### Modo watch (opcional)
+
+```bash
+npm run test:watch
+```
+
+#### Cobertura (opcional)
+
+```bash
+npm run test:coverage
+```
+
+#### Escopo atual da suite
+
+- `tests/unit/utils.test.js`: `mergeDeep()` e `cloneDeep()`
+- `tests/unit/countdown.calculation.test.js`: calculo puro do countdown
+- `tests/unit/rsvp.message.test.js`: construcao de mensagem/URL de WhatsApp
+- `tests/integration/script.config.test.js`: `loadConfig()` e `loadTheme()` com `fetch` mockado
+- `tests/integration/countdown.integration.test.js`: atualizacao de DOM do contador
+- `tests/integration/presente.clipboard.test.js`: fluxo de copia do Pix (clipboard e fallback)
+
 ---
 
 ## 4. Filosofia arquitetural

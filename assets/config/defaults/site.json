@@ -152,8 +152,8 @@
                 "note": "Abrindo o WhatsApp em {delaySeconds} segundos"
             },
             "error": {
-                "title": "Nao foi possivel continuar.",
-                "subtitle": "Confira os dados informados e tente novamente.",
+                "title": "Faltam alguns dados para continuar.",
+                "subtitle": "Revise os campos destacados e tente novamente.",
                 "note": ""
             }
         }

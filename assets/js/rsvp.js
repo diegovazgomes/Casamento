@@ -1,3 +1,24 @@
+export function interpolateTemplate(template, values) {
+    return String(template ?? '').replace(/\{(\w+)\}/g, (match, key) => values[key] ?? match);
+}
+
+export function buildWhatsAppMessage(template, values) {
+    if (!template) {
+        return '';
+    }
+
+    return interpolateTemplate(template, values);
+}
+
+export function buildWhatsAppUrl(destinationPhone, text) {
+    if (!destinationPhone || !text) {
+        return '';
+    }
+
+    const params = new URLSearchParams({ text });
+    return `https://wa.me/${destinationPhone}?${params.toString()}`;
+}
+
 export class RSVP {
     constructor(config = {}) {
         this.config = config;
@@ -13,11 +34,19 @@ export class RSVP {
         this.successSub = document.getElementById('successSub');
         this.successNote = document.getElementById('successNote');
         this.attendanceInput = document.getElementById('rsvp-attendance');
+        this.nameError = document.getElementById('rsvp-name-error');
+        this.phoneError = document.getElementById('rsvp-phone-error');
         this.buttons = Array.from(document.querySelectorAll('.rsvp-btn-choice'));
         this.submitButton = this.form?.querySelector('.rsvp-submit') ?? null;
         this.fields = {
             name: document.getElementById('rsvp-name'),
             phone: document.getElementById('rsvp-phone')
+        };
+        this.validationMessages = {
+            form: 'Revise os campos destacados para continuar.',
+            nameRequired: 'Informe seu nome completo.',
+            phoneRequired: 'Informe seu WhatsApp.',
+            phoneInvalid: 'Informe um WhatsApp válido com DDD (10 ou 11 dígitos).'
         };
     }
 
@@ -27,7 +56,25 @@ export class RSVP {
         }
 
         this.bindAttendanceButtons();
+        this.bindFieldValidation();
         this.form.addEventListener('submit', (event) => this.handleSubmit(event));
+    }
+
+    bindFieldValidation() {
+        this.fields.name?.addEventListener('input', () => {
+            if (this.fields.name.getAttribute('aria-invalid') === 'true') {
+                this.validateName();
+            }
+        });
+
+        this.fields.phone?.addEventListener('input', () => {
+            if (this.fields.phone.getAttribute('aria-invalid') === 'true') {
+                this.validatePhone();
+            }
+        });
+
+        this.fields.name?.addEventListener('blur', () => this.validateName());
+        this.fields.phone?.addEventListener('blur', () => this.validatePhone());
     }
 
     bindAttendanceButtons() {
@@ -56,13 +103,14 @@ export class RSVP {
             return;
         }
 
-        if (!this.validateRequiredField(this.fields.name)) {
-            this.fields.name.focus();
-            return;
-        }
-
-        if (!this.validateRequiredField(this.fields.phone)) {
-            this.fields.phone.focus();
+        const validation = this.validateForm();
+        if (!validation.isValid) {
+            validation.firstInvalidField?.focus();
+            this.renderError({
+                title: 'Faltam alguns dados.',
+                subtitle: this.validationMessages.form,
+                note: ''
+            });
             return;
         }
 
@@ -77,15 +125,76 @@ export class RSVP {
         this.scheduleRedirect(whatsappUrl);
     }
 
-    validateRequiredField(field) {
-        if (!field) {
-            return false;
-        }
+    validateForm() {
+        const isNameValid = this.validateName();
+        const isPhoneValid = this.validatePhone();
+
+        return {
+            isValid: isNameValid && isPhoneValid,
+            firstInvalidField: !isNameValid
+                ? this.fields.name
+                : (!isPhoneValid ? this.fields.phone : null)
+        };
+    }
+
+    validateName() {
+        const field = this.fields.name;
+        if (!field) return false;
 
         const value = field.value.trim();
         field.value = value;
 
-        return Boolean(value);
+        if (!value) {
+            this.setFieldError('name', this.validationMessages.nameRequired);
+            return false;
+        }
+
+        this.clearFieldError('name');
+        return true;
+    }
+
+    validatePhone() {
+        const field = this.fields.phone;
+        if (!field) return false;
+
+        const value = field.value.trim();
+        field.value = value;
+
+        if (!value) {
+            this.setFieldError('phone', this.validationMessages.phoneRequired);
+            return false;
+        }
+
+        const digits = value.replace(/\D/g, '');
+        if (digits.length < 10 || digits.length > 11) {
+            this.setFieldError('phone', this.validationMessages.phoneInvalid);
+            return false;
+        }
+
+        this.clearFieldError('phone');
+        return true;
+    }
+
+    setFieldError(fieldKey, message) {
+        const field = this.fields[fieldKey];
+        const feedback = fieldKey === 'name' ? this.nameError : this.phoneError;
+        if (!field || !feedback) return;
+
+        feedback.textContent = message;
+        feedback.hidden = false;
+        field.classList.add('is-invalid');
+        field.setAttribute('aria-invalid', 'true');
+    }
+
+    clearFieldError(fieldKey) {
+        const field = this.fields[fieldKey];
+        const feedback = fieldKey === 'name' ? this.nameError : this.phoneError;
+        if (!field || !feedback) return;
+
+        feedback.textContent = '';
+        feedback.hidden = true;
+        field.classList.remove('is-invalid');
+        field.setAttribute('aria-invalid', 'false');
     }
 
     buildWhatsAppUrl() {
@@ -95,14 +204,13 @@ export class RSVP {
             return '';
         }
 
-        const text = this.interpolate(template, {
+        const text = buildWhatsAppMessage(template, {
             recipientName: this.whatsapp.recipientName ?? '',
             name: this.fields.name.value.trim(),
             phone: this.fields.phone.value.trim()
         });
-        const params = new URLSearchParams({ text });
 
-        return `https://wa.me/${this.whatsapp.destinationPhone}?${params.toString()}`;
+        return buildWhatsAppUrl(this.whatsapp.destinationPhone, text);
     }
 
     getMessageTemplate() {
@@ -114,7 +222,7 @@ export class RSVP {
     }
 
     interpolate(template, values) {
-        return template.replace(/\{(\w+)\}/g, (match, key) => values[key] ?? match);
+        return interpolateTemplate(template, values);
     }
 
     renderSuccess() {
@@ -135,6 +243,9 @@ export class RSVP {
 
         this.flow?.classList.add('is-hidden');
         this.section?.classList.add('is-feedback-visible');
+        this.successBox.classList.remove('is-error');
+        this.successBox.setAttribute('role', 'status');
+        this.successBox.setAttribute('aria-live', 'polite');
         this.successMsg.textContent = this.interpolate(
             feedback?.title ?? 'Sua mensagem está pronta.',
             interpolationValues
@@ -151,12 +262,16 @@ export class RSVP {
         this.successBox.classList.add('show');
     }
 
-    renderError() {
+    renderError(customFeedback = null) {
         const feedback = this.whatsapp?.feedback?.error ?? {};
+        const effectiveFeedback = customFeedback ?? feedback;
 
-        this.successMsg.textContent = feedback.title ?? 'Não foi possível continuar.';
-        this.successSub.textContent = feedback.subtitle ?? 'Confira os dados informados e tente novamente em instantes.';
-        this.successNote.textContent = feedback.note ?? '';
+        this.successBox.classList.add('is-error');
+        this.successBox.setAttribute('role', 'alert');
+        this.successBox.setAttribute('aria-live', 'assertive');
+        this.successMsg.textContent = effectiveFeedback.title ?? 'Não foi possível continuar.';
+        this.successSub.textContent = effectiveFeedback.subtitle ?? 'Confira os dados informados e tente novamente em instantes.';
+        this.successNote.textContent = effectiveFeedback.note ?? '';
         this.successBox.classList.add('show');
     }
 

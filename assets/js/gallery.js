@@ -27,7 +27,7 @@ export function initGallery(containerId, images) {
 
     // Constrói o HTML interno da galeria
     container.innerHTML =
-        `<div class="gallery-track" role="region" aria-label="Galeria de fotos">` +
+        `<div class="gallery-track" role="region" aria-live="polite" aria-label="Galeria de fotos, imagem 1 de ${total}">` +
             images.map((img, i) =>
                 `<figure class="gallery-slide${i === 0 ? ' active' : ''}" aria-hidden="${i !== 0}" data-index="${i}">` +
                 `<img src="${img.src}" alt="${img.alt ?? ''}" loading="lazy">` +
@@ -36,13 +36,13 @@ export function initGallery(containerId, images) {
         `</div>` +
         (total > 1
             ? `<div class="gallery-controls">` +
-                `<button class="gallery-nav gallery-prev" aria-label="Foto anterior" type="button">&#8592;</button>` +
+                                `<button class="gallery-nav gallery-prev" aria-label="Ver foto anterior" type="button">&#8592;</button>` +
                 `<div class="gallery-dots" role="tablist">` +
                     images.map((_, i) =>
-                        `<button class="gallery-dot${i === 0 ? ' active' : ''}" role="tab" aria-selected="${i === 0}" aria-label="Foto ${i + 1}" data-index="${i}" type="button"></button>`
+                                                `<button class="gallery-dot${i === 0 ? ' active' : ''}" role="tab" aria-selected="${i === 0}" aria-label="Ir para foto ${i + 1}" data-index="${i}" type="button"></button>`
                     ).join('') +
                 `</div>` +
-                `<button class="gallery-nav gallery-next" aria-label="Próxima foto" type="button">&#8594;</button>` +
+                                `<button class="gallery-nav gallery-next" aria-label="Ver próxima foto" type="button">&#8594;</button>` +
               `</div>`
             : '');
 
@@ -59,6 +59,11 @@ export function initGallery(containerId, images) {
             s.classList.toggle('active', i === currentIndex);
             s.setAttribute('aria-hidden', String(i !== currentIndex));
         });
+
+        if (track) {
+            track.setAttribute('aria-label', `Galeria de fotos, imagem ${currentIndex + 1} de ${total}`);
+        }
+
         dots.forEach((d, i) => {
             d.classList.toggle('active', i === currentIndex);
             d.setAttribute('aria-selected', String(i === currentIndex));
