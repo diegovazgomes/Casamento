@@ -1,6 +1,6 @@
 {
-  "activeLayout": "classic",
-  "activeTheme": "assets/layouts/classic/themes/classic-silver.json",
+  "activeLayout": "modern",
+  "activeTheme": "assets/config/themes/classic-purple.json",
   "themeFiles": [
     "assets/config/themes/classic-gold.json",
     "assets/config/themes/classic-gold-light.json",
@@ -294,7 +294,9 @@
     },
     "classic-blue": {},
     "classic-green-light": {},
-    "classic-silver": {}
+    "classic-silver": {},
+    "classic-silver-light": {},
+    "classic-purple": {}
   },
   "themeOverrides": {}
 }
