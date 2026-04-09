@@ -26,7 +26,7 @@ Mudancas de status devem ficar no `ROADMAP.md`. Este arquivo deve registrar apen
 
 ## 2. Visao geral do projeto
 
-Trata-se de um site estatico de convite de casamento construido sem framework, sem build step e sem gerenciador de dependencias. Toda a aplicacao roda diretamente no navegador usando:
+Trata-se de um site estatico de convite de casamento construido sem framework e sem build step para runtime. A aplicacao roda diretamente no navegador e usa npm apenas para a camada de testes (Vitest/happy-dom), com:
 
 - HTML estatico por pagina;
 - CSS global com variaveis CSS;
@@ -145,7 +145,8 @@ Isso torna o projeto relativamente facil de portar para outro casal, outro event
 ```text
 .
 ├── CLAUDE.md
-├── README.md
+├── ROADMAP.md
+├── cursorrules
 ├── index.html
 ├── presente.html
 ├── historia.html
@@ -155,6 +156,9 @@ Isso torna o projeto relativamente facil de portar para outro casal, outro event
 ├── musica.html
 ├── editor.html
 ├── font-preview.html
+├── package.json
+├── package-lock.json
+├── vitest.config.js
 ├── assets/
 │   ├── audio/
 │   ├── config/
@@ -172,7 +176,10 @@ Isso torna o projeto relativamente facil de portar para outro casal, outro event
 │   │   ├── animations.css
 │   │   └── fonts.css
 │   ├── images/
-│   │   └── gallery/
+│   │   ├── couple/
+│   │   ├── gallery/
+│   │   ├── icons/
+│   │   └── venue/
 │   └── js/
 │       ├── script.js
 │       ├── main.js
@@ -191,6 +198,10 @@ Isso torna o projeto relativamente facil de portar para outro casal, outro event
 │       ├── gallery.js
 │       ├── map.js
 │       └── utils.js
+├── tests/
+│   ├── integration/
+│   ├── setup/
+│   └── unit/
 └── docs/
 		└── theme-guide.md
 ```
@@ -1559,8 +1570,10 @@ Esses aliases ajudam o tema a apontar para familias sem depender diretamente do 
 
 O projeto possui hoje os seguintes temas:
 
+- `classic-blue.json`
 - `classic-gold.json`
 - `classic-gold-light.json`
+- `classic-green-light.json`
 - `classic-silver.json`
 - `classic-silver-light.json`
 - `classic-purple.json`
@@ -1863,16 +1876,22 @@ Boa parte do sistema depende de `document.getElementById()` com nomes fixos. Iss
 
 O sistema nao confirma presenca em backend. Ele apenas encaminha uma mensagem ao WhatsApp. Se for necessario controle real de convidados, essa arquitetura nao basta.
 
-### 26.5 Falta de testes automatizados
+### 26.5 Cobertura de testes ainda parcial
 
-Nao ha testes para:
+O projeto ja possui suite minima de smoke com Vitest cobrindo:
 
-- carga de config;
-- merge de tema;
-- RSVP;
-- countdown;
-- navegacao;
-- editor de JSON.
+- carga/merge de config e tema;
+- utilitarios de merge/clone;
+- calculo e atualizacao do countdown;
+- geracao de URL/mensagem de RSVP;
+- fluxo de copia Pix (clipboard e fallback).
+
+Ainda faltam testes para partes relevantes, como:
+
+- fluxo de navegacao completo entre intro, secoes e extras;
+- comportamento de audio (troca de contexto, pausa/retomada, erros de autoplay);
+- validacao/export do editor com cenarios mais amplos;
+- integracao de mapa e galeria em cenarios de erro de dados.
 
 ### 26.6 Erros sao tratados de forma simples
 
@@ -1945,9 +1964,9 @@ Ha boas bases de `aria-*`, mas seria positivo ampliar:
 
 O fluxo de presentes foi consolidado em `presente.html`. As proximas melhorias recomendadas sao:
 
-- implementar bloco de pagamento por cartao com flag de habilitacao;
-- expor esses campos no editor visual;
-- manter fallback claro quando cartao estiver desabilitado.
+- ampliar o bloco de pagamento por cartao com estados adicionais (carregando/indisponivel);
+- reforcar validacoes de URL e mensagens de feedback no editor;
+- adicionar testes de smoke especificos para variacoes do fluxo de cartao.
 
 ### 27.9 Evoluir modulos opcionais ja integrados
 
@@ -1958,15 +1977,15 @@ O fluxo de presentes foi consolidado em `presente.html`. As proximas melhorias r
 
 As melhorias recomendadas sao observabilidade de falhas de dados e testes de smoke focados nesses modulos.
 
-### 27.10 Adicionar testes minimos de smoke
+### 27.10 Expandir cobertura de testes de smoke
 
-Mesmo sem framework, ja valeria criar testes simples para:
+A base minima de smoke ja esta implementada. O proximo passo recomendado e ampliar cobertura para:
 
-- carregamento de config;
-- merge de tema;
-- render de extras;
-- URL do WhatsApp;
-- copy de Pix.
+- renderizacao das paginas extras com conteudo incompleto;
+- fluxo de mapa/galeria com entradas invalidas;
+- estados de acessibilidade (aria-invalid/focus-visible) nos formularios;
+- regressao de tema responsivo e overrides por tema;
+- cenarios de erro em `loadDefaults()`, `loadConfig()` e `loadTheme()`.
 
 ---
 
