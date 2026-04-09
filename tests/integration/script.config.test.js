@@ -78,4 +78,56 @@ describe('script config/theme loaders', () => {
     expect(theme).toEqual(defaults);
     expect(theme).not.toBe(defaults);
   });
+
+  it('applies scoped theme overrides by active theme key', async () => {
+    const { applySiteThemeOverrides } = await import('../../assets/js/script.js');
+
+    const baseTheme = {
+      colors: { primary: '#111111', background: '#222222' },
+      typography: { sizes: { base: '13px' } }
+    };
+
+    const config = {
+      activeTheme: 'assets/config/themes/classic-gold-light.json',
+      themeOverridesByTheme: {
+        'classic-gold-light': { colors: { primary: '#d4af37' } },
+        'classic-purple': { colors: { primary: '#6d5ce8' } }
+      }
+    };
+
+    const result = applySiteThemeOverrides(baseTheme, config, config.activeTheme);
+
+    expect(result.colors.primary).toBe('#d4af37');
+    expect(result.colors.background).toBe('#222222');
+  });
+
+  it('falls back to legacy global themeOverrides when scoped bucket is absent', async () => {
+    const { applySiteThemeOverrides } = await import('../../assets/js/script.js');
+
+    const baseTheme = {
+      colors: { primary: '#111111' }
+    };
+
+    const config = {
+      activeTheme: 'assets/config/themes/classic-gold-light.json',
+      themeOverridesByTheme: {
+        'classic-purple': { colors: { primary: '#6d5ce8' } }
+      },
+      themeOverrides: {
+        colors: { primary: '#c0c0c0' }
+      }
+    };
+
+    const result = applySiteThemeOverrides(baseTheme, config, config.activeTheme);
+
+    expect(result.colors.primary).toBe('#c0c0c0');
+  });
+
+  it('extracts theme override key from theme path', async () => {
+    const { getThemeOverrideKey } = await import('../../assets/js/script.js');
+
+    expect(getThemeOverrideKey('assets/config/themes/classic-gold-light.json')).toBe('classic-gold-light');
+    expect(getThemeOverrideKey('classic-purple.json')).toBe('classic-purple');
+    expect(getThemeOverrideKey('')).toBe('');
+  });
 });

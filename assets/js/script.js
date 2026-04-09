@@ -391,9 +391,33 @@ function mergeThemeWithGlobalTypography(theme, typographyConfig) {
     return mergedTheme;
 }
 
-function applySiteThemeOverrides(theme, siteConfig) {
-    const overrides = siteConfig?.themeOverrides;
-    if (!overrides || typeof overrides !== 'object') {
+export function getThemeOverrideKey(themePath) {
+    if (!themePath) return '';
+    const normalized = String(themePath).replace(/\\/g, '/');
+    const fileName = normalized.split('/').pop() || '';
+    return fileName.replace(/\.json$/i, '');
+}
+
+function getThemeOverridesForActiveTheme(siteConfig, activeThemePath) {
+    const byTheme = siteConfig?.themeOverridesByTheme;
+    const themeKey = getThemeOverrideKey(activeThemePath);
+    const scoped = themeKey ? byTheme?.[themeKey] : null;
+
+    if (scoped && typeof scoped === 'object') {
+        return scoped;
+    }
+
+    const legacy = siteConfig?.themeOverrides;
+    if (legacy && typeof legacy === 'object') {
+        return legacy;
+    }
+
+    return null;
+}
+
+export function applySiteThemeOverrides(theme, siteConfig, activeThemePath = null) {
+    const overrides = getThemeOverridesForActiveTheme(siteConfig, activeThemePath);
+    if (!overrides) {
         return theme;
     }
 
@@ -895,7 +919,7 @@ async function bootstrap() {
             loadTypographyConfig()
         ]);
         const themeWithGlobalTypography = mergeThemeWithGlobalTypography(theme, typographyConfig);
-        const themeWithSiteOverrides = applySiteThemeOverrides(themeWithGlobalTypography, config);
+        const themeWithSiteOverrides = applySiteThemeOverrides(themeWithGlobalTypography, config, themePath);
         const effectiveTheme = resolveTheme(themeWithSiteOverrides);
         const navigationState = getBootstrapNavigationState();
         window.CONFIG = config;

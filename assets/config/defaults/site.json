@@ -201,7 +201,10 @@
             }
         }
     },
-    "themeOverrides": {
-        "colors": {}
-    }
+    "themeOverridesByTheme": {
+        "classic-gold-light": {
+            "colors": {}
+        }
+    },
+    "themeOverrides": {}
 }

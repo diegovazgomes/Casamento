@@ -21,18 +21,21 @@ const ACTIVE_THEME_PATH = 'assets/config/themes/classic-gold.json';
 
 Temas disponíveis: `classic-gold.json`, `classic-silver.json`.
 
-## Overrides de cor via editor (site.json)
+## Overrides por tema via editor (site.json)
 
-Além dos arquivos de tema, o projeto permite sobrescrever cores diretamente em `site.json`, no bloco `themeOverrides.colors`. Esses valores são aplicados em runtime por merge sobre o tema ativo.
+Além dos arquivos de tema, o projeto permite sobrescrever cores e tipografia diretamente em `site.json`, de forma isolada por tema, no bloco `themeOverridesByTheme`.
 
 Exemplo mínimo:
 
 ```json
 {
-  "themeOverrides": {
-    "colors": {
-      "background": "#111111",
-      "primary": "#d4af37"
+  "activeTheme": "assets/config/themes/classic-gold-light.json",
+  "themeOverridesByTheme": {
+    "classic-gold-light": {
+      "colors": {
+        "background": "#111111",
+        "primary": "#d4af37"
+      }
     }
   }
 }
@@ -41,10 +44,11 @@ Exemplo mínimo:
 ### Como funciona a precedência
 
 1. Tema base carregado em `assets/config/themes/*.json`
-2. Overrides de `site.json` em `themeOverrides.colors`
-3. Fallback para defaults quando uma chave não existe
+2. Overrides do tema ativo em `themeOverridesByTheme.<temaAtivo>`
+3. Fallback legado em `themeOverrides` (apenas compatibilidade)
+4. Fallback para defaults quando uma chave não existe
 
-Resumo: se a chave existir em `themeOverrides.colors`, ela ganha do tema base.
+Resumo: se a chave existir em `themeOverridesByTheme.<temaAtivo>`, ela ganha do tema base sem afetar os outros temas.
 
 ### Chaves usadas no editor de Tema
 
@@ -73,6 +77,21 @@ Compatibilidade legada já suportada em runtime:
 ### Escala e manutenção
 
 No editor, os campos de cor são orientados a dados em uma estrutura única (`THEME_COLOR_SECTIONS`), facilitando expansão sem duplicar HTML de formulário.
+
+As chaves de `themeOverridesByTheme` são derivadas automaticamente do nome do arquivo do tema (sem `.json`).
+
+Exemplos:
+
+- `assets/config/themes/classic-gold-light.json` -> `classic-gold-light`
+- `assets/config/themes/classic-purple.json` -> `classic-purple`
+
+Ao criar um novo tema, basta:
+
+1. Criar o novo arquivo em `assets/config/themes/`
+2. Adicionar o caminho em `site.json.themeFiles`
+3. Selecionar o tema no editor e editar normalmente
+
+O editor cria/usa automaticamente o bucket desse tema em `themeOverridesByTheme`.
 
 Para adicionar uma nova cor no editor:
 

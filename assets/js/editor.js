@@ -6,13 +6,14 @@
  */
 
 import {
+  mergeDeep,
   debounce,
   escapeHtml as esc,
-  getPath,
+  getPath as rawGetPath,
   isIndexKey,
   isValidHttpUrl,
-  removePath,
-  setPath,
+  removePath as rawRemovePath,
+  setPath as rawSetPath,
 } from './utils.js';
 
 // ── State ─────────────────────────────────────────────────────────────────────
@@ -21,11 +22,84 @@ let config = null;
 let isDirty = false;
 let activeTab = 'casal';
 let _siteSchema = null;
+const THEME_OVERRIDES_PREFIX = 'themeOverrides.';
+const THEME_OVERRIDES_BY_THEME_ROOT = 'themeOverridesByTheme';
+
+function getThemeOverrideKey(themePath) {
+  if (!themePath) return '';
+  const normalized = String(themePath).replace(/\\/g, '/');
+  const fileName = normalized.split('/').pop() || '';
+  return fileName.replace(/\.json$/i, '');
+}
+
+function resolveThemeOverrideScopedPath(path) {
+  if (!path?.startsWith(THEME_OVERRIDES_PREFIX)) {
+    return path;
+  }
+
+  const themeKey = getThemeOverrideKey(config?.activeTheme);
+  if (!themeKey) {
+    return path;
+  }
+
+  return `${THEME_OVERRIDES_BY_THEME_ROOT}.${themeKey}.${path.slice(THEME_OVERRIDES_PREFIX.length)}`;
+}
+
+function getPath(root, path) {
+  const scopedPath = resolveThemeOverrideScopedPath(path);
+  if (scopedPath !== path) {
+    const scopedValue = rawGetPath(root, scopedPath);
+    if (scopedValue !== undefined) {
+      return scopedValue;
+    }
+  }
+
+  return rawGetPath(root, path);
+}
+
+function setPath(root, path, value) {
+  rawSetPath(root, resolveThemeOverrideScopedPath(path), value);
+}
+
+function removePath(root, path) {
+  rawRemovePath(root, resolveThemeOverrideScopedPath(path));
+}
+
+function ensureActiveThemeOverrideBucket(root) {
+  const themeKey = getThemeOverrideKey(root?.activeTheme);
+  if (!themeKey) return;
+
+  const bucketPath = `${THEME_OVERRIDES_BY_THEME_ROOT}.${themeKey}`;
+  const existing = rawGetPath(root, bucketPath);
+  if (!existing || typeof existing !== 'object' || Array.isArray(existing)) {
+    rawSetPath(root, bucketPath, {});
+  }
+}
+
+function migrateLegacyThemeOverrides(root) {
+  ensureActiveThemeOverrideBucket(root);
+
+  const legacy = rawGetPath(root, 'themeOverrides');
+  if (!legacy || typeof legacy !== 'object' || Array.isArray(legacy) || Object.keys(legacy).length === 0) {
+    return;
+  }
+
+  const themeKey = getThemeOverrideKey(root?.activeTheme);
+  if (!themeKey) {
+    return;
+  }
+
+  const bucketPath = `${THEME_OVERRIDES_BY_THEME_ROOT}.${themeKey}`;
+  const scoped = rawGetPath(root, bucketPath) || {};
+  // Per-theme scoped values win over legacy values when both exist.
+  rawSetPath(root, bucketPath, mergeDeep(legacy, scoped));
+  rawRemovePath(root, 'themeOverrides');
+}
 
 // ── Path utilities ────────────────────────────────────────────────────────────
 
 function isThemeOverridePath(path) {
-  return path.startsWith('themeOverrides.');
+  return path.startsWith(THEME_OVERRIDES_PREFIX);
 }
 
 function setConfigValue(path, value) {
@@ -80,6 +154,7 @@ function handleFileImport(e) {
 
 async function startEditor(parsed) {
   config = parsed;
+  migrateLegacyThemeOverrides(config);
   normalizeListCollections(config);
   document.getElementById('import-screen').classList.add('hidden');
   document.getElementById('editor-screen').classList.remove('hidden');
@@ -1930,6 +2005,7 @@ function bindContentEvents(root) {
     const themeBtn = e.target.closest('[data-select-theme]');
     if (themeBtn) {
       config.activeTheme = themeBtn.dataset.selectTheme;
+      ensureActiveThemeOverrideBucket(config);
       markDirty();
       renderActiveTab();  // re-render to update active state
       debouncedRevalidate();

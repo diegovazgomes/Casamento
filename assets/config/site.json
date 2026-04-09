@@ -277,9 +277,12 @@
       }
     }
   },
-  "themeOverrides": {
-    "colors": {
-      "background": "#000000"
+  "themeOverridesByTheme": {
+    "classic-gold-light": {
+      "colors": {
+        "background": "#000000"
+      }
     }
-  }
+  },
+  "themeOverrides": {}
 }

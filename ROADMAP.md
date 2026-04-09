@@ -129,7 +129,7 @@
 - [x] Melhorar import/export (validar antes de exportar)
 - [x] Adicionar preview parcial das alterações
 
-**Notas:** O editor já cobre conteúdo principal, tipografia, tema, mapa, galeria e agora também presentes/cartão com campos dedicados. A aba Tema também passou a expor overrides de cores via `themeOverrides.colors` para customização global sem editar arquivo de tema. Campos obrigatórios passaram a ser marcados visualmente com base no schema e foi adicionado preview parcial por aba ativa para acelerar revisão antes da exportação.
+**Notas:** O editor já cobre conteúdo principal, tipografia, tema, mapa, galeria e agora também presentes/cartão com campos dedicados. A aba Tema passou a expor overrides de cores/tipografia isolados por tema ativo via `themeOverridesByTheme.<tema>`, evitando vazamento entre temas ao trocar a seleção. Campos obrigatórios passaram a ser marcados visualmente com base no schema e foi adicionado preview parcial por aba ativa para acelerar revisão antes da exportação.
 **Prioridade:** Alta
 **Esforço estimado:** 3–5 dias
 
