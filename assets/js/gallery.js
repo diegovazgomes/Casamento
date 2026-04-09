@@ -20,6 +20,10 @@ export function initGallery(containerId, images) {
 
     const total = images.length;
     let currentIndex = 0;
+    let lastSwipeAt = 0;
+
+    const SWIPE_THRESHOLD_PX = 48;
+    const SWIPE_COOLDOWN_MS = 220;
 
     // Constrói o HTML interno da galeria
     container.innerHTML =
@@ -42,6 +46,7 @@ export function initGallery(containerId, images) {
               `</div>`
             : '');
 
+    const track = container.querySelector('.gallery-track');
     const slides = container.querySelectorAll('.gallery-slide');
     const dots   = container.querySelectorAll('.gallery-dot');
     const prevBtn = container.querySelector('.gallery-prev');
@@ -66,6 +71,69 @@ export function initGallery(containerId, images) {
     dots.forEach((dot, i) => {
         dot.addEventListener('click', () => showSlide(i));
     });
+
+    if (track && total > 1) {
+        const swipeState = {
+            startX: 0,
+            startY: 0,
+            endX: 0,
+            endY: 0,
+            isTracking: false
+        };
+
+        const resetSwipeState = () => {
+            swipeState.startX = 0;
+            swipeState.startY = 0;
+            swipeState.endX = 0;
+            swipeState.endY = 0;
+            swipeState.isTracking = false;
+        };
+
+        track.addEventListener('touchstart', (event) => {
+            if (event.touches.length !== 1) {
+                resetSwipeState();
+                return;
+            }
+
+            const touch = event.touches[0];
+            swipeState.startX = touch.clientX;
+            swipeState.startY = touch.clientY;
+            swipeState.endX = touch.clientX;
+            swipeState.endY = touch.clientY;
+            swipeState.isTracking = true;
+        }, { passive: true });
+
+        track.addEventListener('touchmove', (event) => {
+            if (!swipeState.isTracking || event.touches.length !== 1) return;
+
+            const touch = event.touches[0];
+            swipeState.endX = touch.clientX;
+            swipeState.endY = touch.clientY;
+        }, { passive: true });
+
+        track.addEventListener('touchcancel', resetSwipeState, { passive: true });
+
+        track.addEventListener('touchend', () => {
+            if (!swipeState.isTracking) return;
+
+            const deltaX = swipeState.endX - swipeState.startX;
+            const deltaY = swipeState.endY - swipeState.startY;
+            const absDeltaX = Math.abs(deltaX);
+            const absDeltaY = Math.abs(deltaY);
+
+            const isHorizontalSwipe = absDeltaX >= SWIPE_THRESHOLD_PX && absDeltaX > absDeltaY;
+            const now = Date.now();
+            const isOnCooldown = now - lastSwipeAt < SWIPE_COOLDOWN_MS;
+
+            if (isHorizontalSwipe && !isOnCooldown) {
+                if (deltaX < 0) showSlide(currentIndex + 1);
+                else showSlide(currentIndex - 1);
+                lastSwipeAt = now;
+            }
+
+            resetSwipeState();
+        }, { passive: true });
+    }
 
     // Se a extensão estiver errada no index.json, tenta alternativas comuns automaticamente.
     container.querySelectorAll('.gallery-slide img').forEach((imgEl) => {

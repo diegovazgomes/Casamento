@@ -88,7 +88,7 @@
 - [x] Testar com 1 foto (sem dots/navegação)
 - [ ] Adicionar opção de autoplay configurável via `site.json`
 
-**Notas:** Galeria foi simplificada para usar uma única fonte de verdade em `pages.historia.content.gallery`. Pendente apenas decidir se haverá autoplay e swipe explícito.
+**Notas:** Galeria foi simplificada para usar uma única fonte de verdade em `pages.historia.content.gallery`. Swipe mobile foi implementado no `gallery.js` com navegação circular e proteção de gesto; validar em dispositivo real antes de marcar o checklist de teste mobile como concluído. Autoplay permanece fora de escopo por enquanto.
 **Prioridade:** Alta (pendências)
 **Esforço estimado:** 1 dia para fechar pendências
 

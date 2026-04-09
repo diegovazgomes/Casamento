@@ -22,6 +22,18 @@
         transform: scaleY(1);
     }
 }
+
+@keyframes galleryNavHint {
+    0%,
+    100% {
+        opacity: 0.58;
+    }
+
+    50% {
+        opacity: 1;
+    }
+}
+
 .form-group select:focus,
 .form-group textarea:focus {
     animation: scaleIn var(--fade-duration) ease-out;
