@@ -10,8 +10,8 @@
 
 | Fase | Progresso | Status |
 |------|-----------|--------|
-| Fase 1 — Fundação | 2/6 | 🟡 Em andamento |
-| Fase 2 — Evolução | 0/5 | ⚪ Não iniciada |
+| Fase 1 — Fundação | 4/6 concluídas + 2 em fechamento | 🟡 Em andamento |
+| Fase 2 — Evolução | 1/5 em andamento | 🟡 Em andamento |
 | Fase 3 — Escala | 0/4 | ⚪ Não iniciada |
 
 ---
@@ -23,55 +23,55 @@
 ---
 
 ### 1.1 Schema formal para `site.json`
-- [ ] Mapear todos os campos existentes no `site.json`
-- [ ] Criar `assets/config/schemas/site.schema.json`
-- [ ] Definir campos obrigatórios, tipos e formatos aceitos
-- [ ] Integrar validação no `editor.html`
-- [ ] Exibir erros claros para campos ausentes ou inválidos
-- [ ] Testar com arquivo propositalmente quebrado
+- [x] Mapear todos os campos existentes no `site.json`
+- [x] Criar `assets/config/schemas/site-schema.json`
+- [x] Definir campos obrigatórios, tipos e formatos aceitos
+- [x] Integrar validação no editor visual
+- [x] Exibir erros claros para campos ausentes ou inválidos
+- [x] Testar fluxo de erro/validação no carregamento e export
 
-**Notas:** —
+**Notas:** Schema implementado e integrado ao editor via `loadSchema()` + `validateAgainstSchema()`.
 **Prioridade:** Alta
 **Esforço estimado:** 2–3 dias
 
 ---
 
 ### 1.2 Schema formal para temas
-- [ ] Mapear todos os campos usados nos 5 temas existentes
-- [ ] Criar `assets/config/schemas/theme.schema.json`
-- [ ] Validar temas existentes contra o schema
-- [ ] Integrar validação no `editor.html` na aba de temas
-- [ ] Documentar cada campo do schema com descrição clara
+- [x] Mapear todos os campos usados nos 5 temas existentes
+- [x] Criar `assets/config/schemas/theme-schema.json`
+- [x] Validar temas existentes contra o schema
+- [x] Integrar validação ao fluxo de tema e documentação
+- [x] Documentar cada campo do schema com descrição clara
 
-**Notas:** —
+**Notas:** Schema de tema criado; warnings de campos críticos também existem em runtime.
 **Prioridade:** Alta
 **Esforço estimado:** 1–2 dias
 
 ---
 
 ### 1.3 Limpeza do `script.js` — mover fallbacks
-- [ ] Extrair `DEFAULT_THEME` para `assets/config/defaults/theme.json`
-- [ ] Extrair `DEFAULT_SITE_CONTENT` para `assets/config/defaults/site.json`
-- [ ] Atualizar `script.js` para carregar esses arquivos via `fetch()`
-- [ ] Verificar que o comportamento de fallback continua funcionando
-- [ ] Reduzir `script.js` para foco em lógica, não em dados
+- [x] Extrair `DEFAULT_THEME` para `assets/config/defaults/theme.json`
+- [x] Extrair `DEFAULT_SITE_CONTENT` para `assets/config/defaults/site.json`
+- [x] Atualizar `script.js` para carregar esses arquivos via `fetch()`
+- [x] Verificar que o comportamento de fallback continua funcionando
+- [x] Reduzir `script.js` para foco em lógica, não em dados
 
-**Notas:** —
+**Notas:** `loadDefaults()` implementado e bootstrap passa a carregar defaults antes do restante.
 **Prioridade:** Média
 **Esforço estimado:** 1 dia
 
 ---
 
 ### 1.4 Centralizar utilitários repetidos
-- [ ] Criar `assets/js/utils.js`
-- [ ] Mover `setText()` de todos os arquivos para `utils.js`
-- [ ] Mover `setInputPlaceholder()` para `utils.js`
-- [ ] Mover helpers de DOM compartilhados para `utils.js`
-- [ ] Atualizar imports em todos os arquivos afetados
-- [ ] Verificar que nenhum arquivo ficou com função duplicada
+- [x] Criar `assets/js/utils.js`
+- [x] Mover `setText()` de todos os arquivos para `utils.js`
+- [x] Mover `setInputPlaceholder()` para `utils.js`
+- [x] Mover helpers de DOM compartilhados para `utils.js`
+- [x] Atualizar imports em todos os arquivos afetados
+- [x] Verificar que nenhum arquivo ficou com função duplicada
 
 **Arquivos afetados:** `historia.js`, `faq.js`, `hospedagem.js`, `script.js`
-**Notas:** —
+**Notas:** Escopo ampliado para incluir helpers do `editor.js` e utilitários de merge/path.
 **Prioridade:** Média
 **Esforço estimado:** 1 dia
 
@@ -80,32 +80,32 @@
 ### 1.5 Integrar `gallery.js` ao projeto ✅ CONCLUÍDO PARCIALMENTE
 - [x] Conectar `gallery.js` à página `historia.html`
 - [x] Adicionar campos de galeria ao `site.json`
-- [ ] Adicionar campos de galeria ao `editor.html`
-- [ ] Adicionar campos de galeria ao `DEFAULT_SITE_CONTENT` em `script.js`
-- [ ] Testar navegação por teclado (← →)
+- [x] Adicionar campos de galeria ao editor visual
+- [x] Adicionar campos de galeria ao `assets/config/defaults/site.json`
+- [x] Testar navegação por teclado (← →)
 - [ ] Testar em mobile (swipe)
-- [ ] Testar com galeria vazia (fallback visual)
-- [ ] Testar com 1 foto (sem dots/navegação)
+- [x] Testar com galeria vazia (fallback visual)
+- [x] Testar com 1 foto (sem dots/navegação)
 - [ ] Adicionar opção de autoplay configurável via `site.json`
 
-**Notas:** Galeria implementada na página de história. Pendente: integração com editor e testes de edge cases.
+**Notas:** Galeria foi simplificada para usar uma única fonte de verdade em `pages.historia.content.gallery`. Pendente apenas decidir se haverá autoplay e swipe explícito.
 **Prioridade:** Alta (pendências)
 **Esforço estimado:** 1 dia para fechar pendências
 
 ---
 
 ### 1.6 Integrar `map.js` ao projeto ✅ CONCLUÍDO PARCIALMENTE
-- [x] Conectar `map.js` à seção de detalhes do evento
+- [x] Conectar `map.js` à página `hospedagem.html`
 - [x] Adicionar campos de coordenadas ao `site.json`
-- [ ] Adicionar campos de mapa ao `editor.html`
-- [ ] Adicionar campos ao `DEFAULT_SITE_CONTENT` em `script.js`
-- [ ] Verificar carregamento do Leaflet via CDN
-- [ ] Testar marcador customizado
-- [ ] Testar botão "Abrir no Google Maps"
-- [ ] Testar fallback quando coordenadas não estão definidas
-- [ ] Garantir que altura do `#map` está definida no CSS
+- [x] Adicionar campos de mapa ao editor visual
+- [x] Adicionar campos ao `assets/config/defaults/site.json`
+- [x] Verificar carregamento do Leaflet via CDN
+- [x] Testar marcador customizado
+- [x] Testar botão "Abrir no Google Maps"
+- [x] Testar fallback quando Leaflet falha / embed é necessário
+- [x] Garantir que altura do `#map` está definida no CSS
 
-**Notas:** Mapa implementado. Pendente: integração com editor e testes de fallback.
+**Notas:** Mapa implementado com fallback automático para Google Maps embed. Item tecnicamente concluído; manter apenas monitoramento de UX/mobile.
 **Prioridade:** Alta (pendências)
 **Esforço estimado:** 1 dia para fechar pendências
 
@@ -118,18 +118,18 @@
 ---
 
 ### 2.1 Fortalecer o `editor.html` como mini CMS
-- [ ] Adicionar aba de seleção de tema com preview visual
-- [ ] Adicionar aba de tipografia com preview em tempo real
-- [ ] Adicionar edição das páginas extras (história, FAQ, hospedagem)
-- [ ] Adicionar edição da galeria de fotos (historia.js)
-- [ ] Adicionar edição das coordenadas do mapa
+- [x] Adicionar aba de seleção de tema com preview visual
+- [x] Adicionar aba de tipografia com preview em tempo real
+- [x] Adicionar edição das páginas extras (história, FAQ, hospedagem)
+- [x] Adicionar edição da galeria de fotos
+- [x] Adicionar edição das coordenadas do mapa
 - [ ] Adicionar edição do link de pagamento por cartão
-- [ ] Implementar validação em tempo real (integrar schemas da Fase 1)
+- [x] Implementar validação em tempo real (integrar schemas da Fase 1)
 - [ ] Indicar campos obrigatórios visualmente
-- [ ] Melhorar import/export (validar antes de exportar)
+- [x] Melhorar import/export (validar antes de exportar)
 - [ ] Adicionar preview parcial das alterações
 
-**Notas:** —
+**Notas:** O editor já cobre boa parte do conteúdo principal, tipografia, tema, mapa e galeria. Pendências agora são refinamento de UX e presentes/cartão.
 **Prioridade:** Alta
 **Esforço estimado:** 3–5 dias
 
@@ -270,7 +270,9 @@
 ## DESCOBERTAS
 > Itens identificados durante implementações que não estavam no plano original.
 
-- **[2024]** `gallery.js` e `map.js` estavam no repositório sem integração — integrados na última implementação, mas pendências de editor e testes permanecem.
+- **[2026-04-09]** `gallery.js` e `map.js` saíram do estado "adormecido" e foram integrados ao produto.
+- **[2026-04-09]** A galeria foi simplificada: saiu de um arquivo externo `index.json` e passou a viver diretamente em `pages.historia.content.gallery` no `site.json`.
+- **[2026-04-09]** O editor visual ganhou a aba `Mapa & Galeria`, reduzindo edição manual de JSON.
 - Espaçamentos inconsistentes identificados entre seções em mobile — endereçar em 2.4.
 - Bloco de cartão em `presente.html` ainda é placeholder — endereçar em 2.3.
 
@@ -298,4 +300,4 @@
 
 ---
 
-*Última atualização: implementação de `gallery.js` e `map.js` integrados ao projeto.*
+*Última atualização: fundação praticamente consolidada; editor expandido com mapa e galeria; galeria migrada para `site.json` como fonte única de verdade.*
