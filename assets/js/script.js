@@ -1,8 +1,9 @@
-﻿import { WeddingApp } from './main.js';
+import { WeddingApp } from './main.js';
 import { Countdown } from './countdown.js';
 import { RSVP } from './rsvp.js';
 import { PresentPage } from './presente.js';
 import { AudioController } from './audio.js';
+import { cloneDeep, mergeDeep, setInputPlaceholder, setText } from './utils.js';
 
 const SITE_CONFIG_URL = 'assets/config/site.json';
 const TYPOGRAPHY_CONFIG_URL = 'assets/config/typography.json';
@@ -266,50 +267,6 @@ function applyTheme(theme) {
     Object.entries(cssVars).forEach(([key, value]) => {
         root.style.setProperty(key, String(value));
     });
-}
-
-function cloneDeep(value) {
-    if (Array.isArray(value)) {
-        return value.map((item) => cloneDeep(item));
-    }
-
-    if (value && typeof value === 'object') {
-        return Object.fromEntries(
-            Object.entries(value).map(([key, nested]) => [key, cloneDeep(nested)])
-        );
-    }
-
-    return value;
-}
-
-function mergeDeep(base, override) {
-    const output = cloneDeep(base);
-
-    if (!override || typeof override !== 'object') {
-        return output;
-    }
-
-    Object.entries(override).forEach(([key, value]) => {
-        const current = output[key];
-
-        if (
-            value &&
-            typeof value === 'object' &&
-            !Array.isArray(value) &&
-            current &&
-            typeof current === 'object' &&
-            !Array.isArray(current)
-        ) {
-            output[key] = mergeDeep(current, value);
-            return;
-        }
-
-        if (value !== null && value !== undefined) {
-            output[key] = value;
-        }
-    });
-
-    return output;
 }
 
 function warnConfigIssues(config) {
@@ -800,32 +757,6 @@ class InvitationExperience {
         };
     }
 
-    setText(id, value) {
-        if (value === undefined || value === null || value === '') {
-            return;
-        }
-
-        const element = document.getElementById(id);
-        if (!element) {
-            return;
-        }
-
-        element.textContent = value;
-    }
-
-    setInputPlaceholder(id, value) {
-        if (!value) {
-            return;
-        }
-
-        const element = document.getElementById(id);
-        if (!element) {
-            return;
-        }
-
-        element.setAttribute('placeholder', value);
-    }
-
     setMeta() {
         const title = this.config.texts?.metaTitle;
         const description = this.config.texts?.metaDescription;
@@ -855,37 +786,37 @@ class InvitationExperience {
             introScreenTitle.innerHTML = `${names.firstName} <span>&</span> ${names.secondName}`;
         }
 
-        this.setText('introLabel', this.config.texts?.introLabel);
-        this.setText('introNote', this.config.couple?.subtitle || this.config.texts?.intro);
-        this.setText('heroLabel', this.config.texts?.heroLabel);
-        this.setText('heroName1', names.firstName);
-        this.setText('heroName2', names.secondName);
-        this.setText('heroDate', this.config.event?.heroDate || this.config.event?.displayDate);
+        setText('introLabel', this.config.texts?.introLabel);
+        setText('introNote', this.config.couple?.subtitle || this.config.texts?.intro);
+        setText('heroLabel', this.config.texts?.heroLabel);
+        setText('heroName1', names.firstName);
+        setText('heroName2', names.secondName);
+        setText('heroDate', this.config.event?.heroDate || this.config.event?.displayDate);
 
         const heroPhoto = document.getElementById('couplePhoto');
         if (heroPhoto && heroImage) {
             heroPhoto.setAttribute('src', heroImage);
         }
 
-        this.setText('mainFooterNames', names.names);
-        this.setText('overlayFooterNames', names.names);
+        setText('mainFooterNames', names.names);
+        setText('overlayFooterNames', names.names);
     }
 
     setEventDetails() {
-        this.setText('detailDateTitle', this.config.texts?.detailsDateLabel);
-        this.setText('detailTimeTitle', this.config.texts?.detailsTimeLabel);
-        this.setText('detailLocationTitle', this.config.texts?.detailsLocationLabel);
-        this.setText('detailOccasionTitle', this.config.texts?.detailsOccasionLabel);
-        this.setText('detailGiftTitle', this.config.texts?.detailsGiftTitle);
-        this.setText('detailDateValue', this.config.event?.detailDate || this.config.event?.displayDate);
-        this.setText('detailDateSub', this.config.event?.weekday);
-        this.setText('detailTimeValue', this.config.event?.time);
-        this.setText('detailTimeSub', this.config.event?.timezone);
-        this.setText('detailLocationName', this.config.event?.locationName);
-        this.setText('detailLocationCity', this.config.event?.locationCity);
-        this.setText('detailLocationHint', this.config.texts?.detailsLocationHint);
-        this.setText('detailOccasionValue', this.config.texts?.detailsOccasionValue);
-        this.setText('detailOccasionSub', this.config.texts?.detailsOccasionSub);
+        setText('detailDateTitle', this.config.texts?.detailsDateLabel);
+        setText('detailTimeTitle', this.config.texts?.detailsTimeLabel);
+        setText('detailLocationTitle', this.config.texts?.detailsLocationLabel);
+        setText('detailOccasionTitle', this.config.texts?.detailsOccasionLabel);
+        setText('detailGiftTitle', this.config.texts?.detailsGiftTitle);
+        setText('detailDateValue', this.config.event?.detailDate || this.config.event?.displayDate);
+        setText('detailDateSub', this.config.event?.weekday);
+        setText('detailTimeValue', this.config.event?.time);
+        setText('detailTimeSub', this.config.event?.timezone);
+        setText('detailLocationName', this.config.event?.locationName);
+        setText('detailLocationCity', this.config.event?.locationCity);
+        setText('detailLocationHint', this.config.texts?.detailsLocationHint);
+        setText('detailOccasionValue', this.config.texts?.detailsOccasionValue);
+        setText('detailOccasionSub', this.config.texts?.detailsOccasionSub);
 
         const locationLink = document.getElementById('detailLocationLink');
         if (locationLink && this.config.event?.mapsLink) {
@@ -896,49 +827,49 @@ class InvitationExperience {
     }
 
     setTexts() {
-        this.setText('countdownTag', this.config.texts?.countdownTag);
-        this.setText('countdownTitle', this.config.texts?.countdownTitle);
-        this.setText('detailsTag', this.config.texts?.detailsTag);
-        this.setText('detailsTitle', this.config.texts?.detailsTitle);
-        this.setText('detailsIntro', this.config.texts?.detailsIntro);
+        setText('countdownTag', this.config.texts?.countdownTag);
+        setText('countdownTitle', this.config.texts?.countdownTitle);
+        setText('detailsTag', this.config.texts?.detailsTag);
+        setText('detailsTitle', this.config.texts?.detailsTitle);
+        setText('detailsIntro', this.config.texts?.detailsIntro);
 
-        this.setText('rsvpTag', this.config.texts?.rsvpTag);
-        this.setText('rsvpSectionTitle', this.config.texts?.rsvpTitle);
-        this.setText('rsvpSectionBody', this.config.texts?.rsvpSubtitle);
-        this.setText('rsvpFormTitle', this.config.texts?.rsvpFormTitle);
-        this.setText('rsvpFormSubtitle', this.config.texts?.rsvpFormSubtitle);
-        this.setInputPlaceholder('rsvp-name', this.config.texts?.rsvpPlaceholderName);
-        this.setInputPlaceholder('rsvp-phone', this.config.texts?.rsvpPlaceholderPhone);
-        this.setText('btn-yes', this.config.texts?.rsvpYesLabel);
-        this.setText('btn-no', this.config.texts?.rsvpNoLabel);
-        this.setText('rsvpSubmit', this.config.texts?.rsvpSubmit);
-        this.setText('backToExtrasButton', this.config.texts?.backToExtrasButton);
-        this.setText('giftOverlayCloseButton', this.config.texts?.giftOverlayCloseButton);
-        this.setText('giftOverlayBackButton', this.config.texts?.giftOverlayBackButton);
+        setText('rsvpTag', this.config.texts?.rsvpTag);
+        setText('rsvpSectionTitle', this.config.texts?.rsvpTitle);
+        setText('rsvpSectionBody', this.config.texts?.rsvpSubtitle);
+        setText('rsvpFormTitle', this.config.texts?.rsvpFormTitle);
+        setText('rsvpFormSubtitle', this.config.texts?.rsvpFormSubtitle);
+        setInputPlaceholder('rsvp-name', this.config.texts?.rsvpPlaceholderName);
+        setInputPlaceholder('rsvp-phone', this.config.texts?.rsvpPlaceholderPhone);
+        setText('btn-yes', this.config.texts?.rsvpYesLabel);
+        setText('btn-no', this.config.texts?.rsvpNoLabel);
+        setText('rsvpSubmit', this.config.texts?.rsvpSubmit);
+        setText('backToExtrasButton', this.config.texts?.backToExtrasButton);
+        setText('giftOverlayCloseButton', this.config.texts?.giftOverlayCloseButton);
+        setText('giftOverlayBackButton', this.config.texts?.giftOverlayBackButton);
 
-        this.setText('detailGiftValue', this.config.texts?.detailsGiftValue);
-        this.setText('detailGiftSub', this.config.texts?.detailsGiftSub);
+        setText('detailGiftValue', this.config.texts?.detailsGiftValue);
+        setText('detailGiftSub', this.config.texts?.detailsGiftSub);
     }
 
     setGift() {
-        this.setText('giftTag', this.config.texts?.giftTag);
-        this.setText('giftOverlayTitle', this.config.texts?.giftTitle);
-        this.setText('giftIntroText', this.config.texts?.giftIntro);
-        this.setText('giftPixTag', this.config.texts?.giftPixTag);
-        this.setText('giftPixTitle', this.config.texts?.giftPixTitle);
-        this.setText('giftPixDescription', this.config.texts?.giftPixDescription);
-        this.setText('giftPixCopyLabel', this.config.texts?.giftPixCopyLabel);
-        this.setText('giftCardTag', this.config.texts?.giftCardTag);
-        this.setText('giftCardTitle', this.config.texts?.giftCardTitle);
-        this.setText('giftCardBody', this.config.texts?.giftCardBody);
-        this.setText('giftCardPlaceholder', this.config.texts?.giftCardPlaceholder);
+        setText('giftTag', this.config.texts?.giftTag);
+        setText('giftOverlayTitle', this.config.texts?.giftTitle);
+        setText('giftIntroText', this.config.texts?.giftIntro);
+        setText('giftPixTag', this.config.texts?.giftPixTag);
+        setText('giftPixTitle', this.config.texts?.giftPixTitle);
+        setText('giftPixDescription', this.config.texts?.giftPixDescription);
+        setText('giftPixCopyLabel', this.config.texts?.giftPixCopyLabel);
+        setText('giftCardTag', this.config.texts?.giftCardTag);
+        setText('giftCardTitle', this.config.texts?.giftCardTitle);
+        setText('giftCardBody', this.config.texts?.giftCardBody);
+        setText('giftCardPlaceholder', this.config.texts?.giftCardPlaceholder);
 
         const pixCode = this.config.gift?.pixKey;
         const pixImage = this.config.gift?.pixQrImage;
         const footerNote = this.config.texts?.footerNote;
 
-        this.setText('mainFooterNote', footerNote);
-        this.setText('overlayFooterNote', footerNote);
+        setText('mainFooterNote', footerNote);
+        setText('overlayFooterNote', footerNote);
 
         if (pixCode) {
             document.querySelectorAll('#pixCode').forEach((element) => {
@@ -950,7 +881,7 @@ class InvitationExperience {
             });
         }
 
-        this.setText('giftPixCopyButton', this.config.texts?.giftPixCopyButton);
+        setText('giftPixCopyButton', this.config.texts?.giftPixCopyButton);
 
         if (pixImage) {
             document.querySelectorAll('#giftPixQr').forEach((image) => {

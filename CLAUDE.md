@@ -111,6 +111,9 @@ Isso torna o projeto relativamente facil de portar para outro casal, outro event
 │   ├── config/
 │   │   ├── site.json
 │   │   ├── typography.json
+│   │   ├── defaults/
+│   │   │   ├── site.json
+│   │   │   └── theme.json
 │   │   ├── themes/
 │   │   └── schemas/
 │   │       ├── site-schema.json
@@ -133,7 +136,8 @@ Isso torna o projeto relativamente facil de portar para outro casal, outro event
 │       ├── editor.js
 │       ├── font-preview.js
 │       ├── gallery.js
-│       └── map.js
+│       ├── map.js
+│       └── utils.js
 └── docs/
 		└── theme-guide.md
 ```
@@ -196,12 +200,14 @@ Essas familias sao mescladas com as familias declaradas no tema. O tema tem prio
 
 O tema efetivo aplicado ao site e construido assim:
 
-1. `DEFAULT_THEME` embutido em `assets/js/script.js`
+1. `assets/config/defaults/theme.json` carregado por `loadDefaults()`
 2. merge do arquivo de tema carregado por `loadTheme()`
 3. merge da tipografia global via `mergeThemeWithGlobalTypography()`
 4. merge de `siteConfig.themeOverrides` via `applySiteThemeOverrides()`
 5. aplicacao de `responsive.mobile` via `resolveTheme()` quando viewport <= 767px
 6. escrita das CSS variables via `applyTheme()`
+
+Se os arquivos de defaults falharem no carregamento, `script.js` ainda possui um fallback minimo inline para evitar quebra total do bootstrap.
 
 Essa pipeline e uma das partes mais importantes da arquitetura.
 
@@ -213,14 +219,15 @@ Essa pipeline e uma das partes mais importantes da arquitetura.
 
 Em `assets/js/script.js`, a funcao `bootstrap()`:
 
-1. carrega `site.json` com `loadConfig()`;
-2. identifica o tema ativo;
-3. carrega o tema com `loadTheme()`;
-4. carrega `typography.json` com `loadTypographyConfig()`;
-5. mescla tipografia, overrides e responsividade;
-6. aplica todas as CSS variables no `:root`;
-7. instancia `InvitationExperience`;
-8. dispara o evento global `app:ready` com `{ config, theme }`.
+1. carrega defaults (`assets/config/defaults/theme.json` e `assets/config/defaults/site.json`) com `loadDefaults()`;
+2. carrega `site.json` com `loadConfig()`;
+3. identifica o tema ativo;
+4. carrega o tema com `loadTheme()`;
+5. carrega `typography.json` com `loadTypographyConfig()`;
+6. mescla tipografia, overrides e responsividade;
+7. aplica todas as CSS variables no `:root`;
+8. instancia `InvitationExperience`;
+9. dispara o evento global `app:ready` com `{ config, theme }`.
 
 ### 7.2 Bootstrapping antecipado no HTML
 
@@ -258,12 +265,13 @@ Este e o arquivo mais importante do projeto. Ele faz o papel de entry point, agr
 - `INVITATION_STARTED_STORAGE_KEY`: chave do `sessionStorage`
 - `NAVIGATION_SECTION_PARAM`: nome do query param de navegacao (`section`)
 - `ACTIVE_THEME_PATH`: fallback do tema ativo
-- `DEFAULT_THEME`: tema base embutido
-- `DEFAULT_SITE_CONTENT`: conteudo de fallback embutido
+- `DEFAULT_THEME_URL`: caminho do fallback de tema (`assets/config/defaults/theme.json`)
+- `DEFAULT_SITE_CONTENT_URL`: caminho do fallback de conteudo (`assets/config/defaults/site.json`)
+- `DEFAULT_THEME` / `DEFAULT_SITE_CONTENT`: objetos carregados em runtime a partir dos arquivos acima (com fallback minimo inline)
 
 ### Observacao importante
 
-O `DEFAULT_SITE_CONTENT` nao e apenas um exemplo. Ele funciona como fallback real caso o JSON falhe ao carregar.
+O fallback real do projeto fica em JSON dedicado (`assets/config/defaults/site.json` e `assets/config/defaults/theme.json`). Os objetos em `script.js` sao apenas rede de seguranca minima caso os arquivos externos nao possam ser carregados.
 
 ### 8.2 Funcoes utilitarias de topo
 
@@ -321,21 +329,21 @@ Tambem preserva aliases legados usados no CSS existente, como:
 - `--gold-light`
 - `--dark`
 
-#### `cloneDeep(value)`
+#### `cloneDeep(value)` e `mergeDeep(base, override)`
 
-Faz clone profundo de arrays e objetos simples.
+Sao importadas de `assets/js/utils.js`. Mantem o mesmo comportamento de clone/merge profundo e sao usadas como base da composicao de configuracoes.
 
-#### `mergeDeep(base, override)`
+#### `loadDefaults()`
 
-Faz merge profundo entre objetos, ignorando `null` e `undefined` no override. E a base da estrategia de composicao de configuracoes do projeto.
+Carrega em paralelo `assets/config/defaults/theme.json` e `assets/config/defaults/site.json`, preenchendo `DEFAULT_THEME` e `DEFAULT_SITE_CONTENT` antes do restante do bootstrap.
 
 #### `loadConfig()`
 
-Faz `fetch()` de `site.json`, aplica merge com `DEFAULT_SITE_CONTENT` e retorna o resultado. Se houver falha, usa o fallback local completo.
+Faz `fetch()` de `site.json`, aplica merge com `DEFAULT_SITE_CONTENT` e retorna o resultado. Se houver falha, usa o fallback carregado de `assets/config/defaults/site.json` (ou o minimo inline, se necessario).
 
 #### `loadTheme(themePath)`
 
-Carrega o arquivo de tema via `fetch()` e faz merge sobre `DEFAULT_THEME`. Em erro, retorna apenas o tema base.
+Carrega o arquivo de tema via `fetch()` e faz merge sobre `DEFAULT_THEME` (vindo de `assets/config/defaults/theme.json`). Em erro, retorna apenas o tema base.
 
 #### `loadTypographyConfig()`
 
@@ -481,13 +489,9 @@ Extrai do config as trilhas `main` e `gift`.
 
 Quebra `couple.names` em dois nomes usando `&`. Se a estrutura nao estiver no formato esperado, usa fallbacks.
 
-##### `setText(id, value)`
+##### `setText(id, value)` e `setInputPlaceholder(id, value)`
 
-Utilitario para escrever texto em um elemento por ID.
-
-##### `setInputPlaceholder(id, value)`
-
-Utilitario para atualizar placeholder de um input por ID.
+Esses utilitarios foram centralizados em `assets/js/utils.js` e sao consumidos por import em `script.js`.
 
 ##### `setMeta()`
 
@@ -884,8 +888,9 @@ Nao exporta classe. Trabalha por listener global.
 
 #### Funcoes
 
-- `setText(id, value)`
 - `renderTimeline(chapters)`
+
+`setText()` e `revealElements()` sao importadas de `assets/js/utils.js`.
 
 #### Fluxo
 
@@ -902,8 +907,9 @@ Tambem trabalha por listener global.
 
 #### Funcoes
 
-- `setText(id, value)`
 - `renderFaq(items)`
+
+`setText()` e `revealElements()` sao importadas de `assets/js/utils.js`.
 
 #### Fluxo
 
@@ -920,8 +926,9 @@ Mesmo padrao das demais extras.
 
 #### Funcoes
 
-- `setText(id, value)`
 - `renderCards(containerId, items)`
+
+`setText()` e `revealElements()` sao importadas de `assets/js/utils.js`.
 
 #### Fluxo
 
@@ -957,9 +964,6 @@ Permitir carregar, editar e exportar um JSON de configuracao sem depender de IDE
 
 #### Funcoes de infraestrutura mais importantes
 
-- `getPath(obj, path)`
-- `setPath(obj, path, value)`
-- `removePath(obj, path)`
 - `setConfigValue(path, value)`
 - `markDirty()`
 - `markClean()`
@@ -968,9 +972,10 @@ Permitir carregar, editar e exportar um JSON de configuracao sem depender de IDE
 - `startEditor(parsed)`
 - `ensureArrayPath(root, path)`
 - `normalizeListCollections(root)`
-- `isValidHttpUrl(value)`
 - `collectInvalidAccommodationLinks()`
 - `exportJson()`
+
+`getPath()`, `setPath()`, `removePath()`, `isIndexKey()`, `debounce()`, `escapeHtml()` e `isValidHttpUrl()` foram centralizadas em `assets/js/utils.js` e consumidas por import no `editor.js`.
 
 #### Papel estrategico no projeto
 
@@ -1677,13 +1682,13 @@ Implementado em `assets/config/schemas/site-schema.json`. Validador recursivo in
 
 Implementado em `assets/config/schemas/theme-schema.json`. Define todos os campos obrigatorios, tipos e a estrutura de `typographyRole` como definicao reutilizavel. `script.js` emite `console.warn` para campos criticos via `warnThemeIssues()`.
 
-### 27.3 Externalizar os fallbacks padrao
+### ~~27.3 Externalizar os fallbacks padrao~~ FEITO
 
-Hoje `DEFAULT_THEME` e `DEFAULT_SITE_CONTENT` sao muito grandes dentro de `script.js`. Eles poderiam virar arquivos JSON dedicados para reduzir peso cognitivo do entry point.
+Implementado com `assets/config/defaults/theme.json` e `assets/config/defaults/site.json`. O `script.js` agora carrega esses defaults via `loadDefaults()` no bootstrap.
 
-### 27.4 Criar camada de utilitarios compartilhados
+### ~~27.4 Criar camada de utilitarios compartilhados~~ FEITO
 
-Funcoes repetidas como `setText()` aparecem em varios arquivos. Uma camada compartilhada simples poderia reduzir duplicacao.
+Implementado em `assets/js/utils.js`. Hoje concentra helpers compartilhados de DOM, URL, escaping, debounce, clone/merge profundo e manipulacao de paths. Modulos como `script.js`, `editor.js`, `historia.js`, `faq.js` e `hospedagem.js` passaram a importar essas funcoes.
 
 ### 27.5 Isolar melhor os modulos de pagina
 
@@ -1791,6 +1796,7 @@ Se alguem precisar entender o projeto rapidamente, a ordem recomendada de leitur
 5. `assets/css/style.css`
 6. `assets/js/rsvp.js`
 7. `assets/js/audio.js`
-8. `assets/js/editor.js`
+8. `assets/js/utils.js`
+9. `assets/js/editor.js`
 
 Essa sequencia da uma visao quase completa da arquitetura e do comportamento atual.

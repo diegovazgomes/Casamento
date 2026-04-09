@@ -1,8 +1,4 @@
-function setText(id, value) {
-    if (!value) return;
-    const el = document.getElementById(id);
-    if (el) el.textContent = value;
-}
+import { revealElements, setText } from './utils.js';
 
 function renderCards(containerId, items) {
     const container = document.getElementById(containerId);
@@ -35,5 +31,5 @@ window.addEventListener('app:ready', ({ detail }) => {
     renderCards('hospedagemHotels', content.hotels);
     renderCards('hospedagemRestaurants', content.restaurants);
 
-    document.querySelectorAll('.reveal').forEach((el) => el.classList.add('visible'));
+    revealElements('.reveal');
 });

@@ -1,8 +1,4 @@
-function setText(id, value) {
-    if (!value) return;
-    const el = document.getElementById(id);
-    if (el) el.textContent = value;
-}
+import { revealElements, setText } from './utils.js';
 
 function renderTimeline(chapters) {
     const container = document.getElementById('historiaTimeline');
@@ -26,5 +22,5 @@ window.addEventListener('app:ready', ({ detail }) => {
     setText('historiaIntro', content.intro);
     renderTimeline(content.chapters);
 
-    document.querySelectorAll('.reveal').forEach((el) => el.classList.add('visible'));
+    revealElements('.reveal');
 });

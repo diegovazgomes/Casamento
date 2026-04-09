@@ -1,8 +1,4 @@
-function setText(id, value) {
-    if (!value) return;
-    const el = document.getElementById(id);
-    if (el) el.textContent = value;
-}
+import { revealElements, setText } from './utils.js';
 
 function renderFaq(items) {
     const container = document.getElementById('faqList');
@@ -25,5 +21,5 @@ window.addEventListener('app:ready', ({ detail }) => {
     setText('faqIntro', content.intro);
     renderFaq(content.items);
 
-    document.querySelectorAll('.reveal').forEach((el) => el.classList.add('visible'));
+    revealElements('.reveal');
 });

@@ -5,6 +5,16 @@
  * No build step, no server required.
  */
 
+import {
+  debounce,
+  escapeHtml as esc,
+  getPath,
+  isIndexKey,
+  isValidHttpUrl,
+  removePath,
+  setPath,
+} from './utils.js';
+
 // ── State ─────────────────────────────────────────────────────────────────────
 
 let config = null;
@@ -12,87 +22,7 @@ let isDirty = false;
 let activeTab = 'casal';
 let _siteSchema = null;
 
-// ── Utilities ─────────────────────────────────────────────────────────────────
-
-function debounce(fn, ms) {
-  let timer;
-  return (...args) => {
-    clearTimeout(timer);
-    timer = setTimeout(() => fn(...args), ms);
-  };
-}
-
 // ── Path utilities ────────────────────────────────────────────────────────────
-
-function getPath(obj, path) {
-  return path.split('.').reduce((o, k) => o?.[k], obj);
-}
-
-function isIndexKey(key) {
-  return /^\d+$/.test(key);
-}
-
-function setPath(obj, path, value) {
-  const keys = path.split('.');
-  const last = keys[keys.length - 1];
-  let target = obj;
-
-  for (let i = 0; i < keys.length - 1; i += 1) {
-    const key = keys[i];
-    const nextKey = keys[i + 1];
-
-    if (Array.isArray(target) && isIndexKey(key)) {
-      const idx = Number(key);
-      if (target[idx] === undefined || target[idx] === null || typeof target[idx] !== 'object') {
-        target[idx] = isIndexKey(nextKey) ? [] : {};
-      }
-      target = target[idx];
-      continue;
-    }
-
-    if (target[key] === undefined || target[key] === null || typeof target[key] !== 'object') {
-      target[key] = isIndexKey(nextKey) ? [] : {};
-    }
-    target = target[key];
-  }
-
-  if (Array.isArray(target) && isIndexKey(last)) {
-    target[Number(last)] = value;
-    return;
-  }
-
-  target[last] = value;
-}
-
-function removePath(obj, path) {
-  const keys = path.split('.');
-  const stack = [obj];
-  let current = obj;
-
-  for (const key of keys) {
-    if (!current || typeof current !== 'object' || !(key in current)) {
-      return;
-    }
-    current = current[key];
-    stack.push(current);
-  }
-
-  const leafParent = stack[stack.length - 2];
-  const leafKey = keys[keys.length - 1];
-  delete leafParent[leafKey];
-
-  for (let i = keys.length - 1; i > 0; i -= 1) {
-    const parent = stack[i - 1];
-    const key = keys[i - 1];
-    const value = parent[key];
-
-    if (value && typeof value === 'object' && !Array.isArray(value) && Object.keys(value).length === 0) {
-      delete parent[key];
-      continue;
-    }
-    break;
-  }
-}
 
 function isThemeOverridePath(path) {
   return path.startsWith('themeOverrides.');
@@ -104,14 +34,6 @@ function setConfigValue(path, value) {
     return;
   }
   setPath(config, path, value);
-}
-
-function esc(str) {
-  return String(str ?? '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
 }
 
 // ── Dirty state ───────────────────────────────────────────────────────────────
@@ -365,15 +287,6 @@ function renderValidationBanner(results) {
     <ul style="margin-top:6px;padding-left:16px;color:#4b4b4b;">${itemsHtml}</ul>`;
 
   document.querySelector('.ed-tab-bar-wrap')?.insertAdjacentElement('afterend', banner);
-}
-
-function isValidHttpUrl(value) {
-  try {
-    const parsed = new URL(value);
-    return parsed.protocol === 'http:' || parsed.protocol === 'https:';
-  } catch {
-    return false;
-  }
 }
 
 function collectInvalidAccommodationLinks() {
