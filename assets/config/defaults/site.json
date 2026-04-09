@@ -69,7 +69,9 @@
     },
     "gift": {
         "pixKey": "CHAVE_PIX_OU_CODIGO_COPIA_E_COLA_AQUI",
-        "pixQrImage": "assets/images/icons/pix-placeholder.svg"
+        "pixQrImage": "assets/images/icons/pix-placeholder.svg",
+        "cardPaymentEnabled": false,
+        "cardPaymentLink": "https://pagamento.exemplo.com/link-do-casal"
     },
     "media": {
         "heroImage": "assets/images/couple/casal.png",

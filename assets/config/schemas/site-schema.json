@@ -157,7 +157,7 @@
     },
     "gift": {
       "type": "object",
-      "description": "Configuração de presente (PIX)",
+      "description": "Configuração de presente (PIX e cartão)",
       "required": ["pixKey", "pixQrImage"],
       "properties": {
         "pixKey": {
@@ -167,6 +167,15 @@
         "pixQrImage": {
           "type": "string",
           "description": "Caminho da imagem do QR Code PIX"
+        },
+        "cardPaymentEnabled": {
+          "type": "boolean",
+          "description": "Habilita bloco de pagamento por cartão"
+        },
+        "cardPaymentLink": {
+          "type": "string",
+          "format": "uri",
+          "description": "Link da plataforma de pagamento por cartão"
         }
       }
     },

@@ -773,11 +773,12 @@ class InvitationExperience {
         setText('giftCardTag', this.config.texts?.giftCardTag);
         setText('giftCardTitle', this.config.texts?.giftCardTitle);
         setText('giftCardBody', this.config.texts?.giftCardBody);
-        setText('giftCardPlaceholder', this.config.texts?.giftCardPlaceholder);
 
         const pixCode = this.config.gift?.pixKey;
         const pixImage = this.config.gift?.pixQrImage;
         const footerNote = this.config.texts?.footerNote;
+        const cardEnabled = this.config.gift?.cardPaymentEnabled === true;
+        const cardLink = String(this.config.gift?.cardPaymentLink ?? '').trim();
 
         setText('mainFooterNote', footerNote);
 
@@ -798,6 +799,47 @@ class InvitationExperience {
                 image.setAttribute('src', pixImage);
             });
         }
+
+        const cardPanel = document.getElementById('giftCardPanel');
+        const cardPlaceholder = document.getElementById('giftCardPlaceholder');
+        const cardBody = document.getElementById('giftCardBody');
+
+        if (!cardPanel || !cardPlaceholder) {
+            return;
+        }
+
+        const hasValidCardLink = (() => {
+            if (!cardLink) return false;
+            try {
+                const parsed = new URL(cardLink, window.location.href);
+                return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+            } catch {
+                return false;
+            }
+        })();
+
+        if (!cardEnabled || !hasValidCardLink) {
+            cardPanel.hidden = true;
+            return;
+        }
+
+        cardPanel.hidden = false;
+        if (cardBody && !cardBody.textContent?.trim()) {
+            cardBody.textContent = this.config.texts?.giftCardBody || '';
+        }
+
+        const linkLabel = this.config.texts?.giftCardPlaceholder || 'Pagar com cartão';
+        cardPlaceholder.innerHTML = '';
+
+        const cardAnchor = document.createElement('a');
+        cardAnchor.className = 'gift-card-link';
+        cardAnchor.href = cardLink;
+        cardAnchor.target = '_blank';
+        cardAnchor.rel = 'noopener noreferrer';
+        cardAnchor.textContent = linkLabel;
+        cardAnchor.setAttribute('aria-label', `${linkLabel} em nova aba`);
+
+        cardPlaceholder.appendChild(cardAnchor);
     }
 
     setPages() {

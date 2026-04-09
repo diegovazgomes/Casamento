@@ -123,13 +123,13 @@
 - [x] Adicionar edição das páginas extras (história, FAQ, hospedagem)
 - [x] Adicionar edição da galeria de fotos
 - [x] Adicionar edição das coordenadas do mapa
-- [ ] Adicionar edição do link de pagamento por cartão
+- [x] Adicionar edição do link de pagamento por cartão
 - [x] Implementar validação em tempo real (integrar schemas da Fase 1)
-- [ ] Indicar campos obrigatórios visualmente
+- [x] Indicar campos obrigatórios visualmente
 - [x] Melhorar import/export (validar antes de exportar)
-- [ ] Adicionar preview parcial das alterações
+- [x] Adicionar preview parcial das alterações
 
-**Notas:** O editor já cobre boa parte do conteúdo principal, tipografia, tema, mapa e galeria. Pendências agora são refinamento de UX e presentes/cartão.
+**Notas:** O editor já cobre conteúdo principal, tipografia, tema, mapa, galeria e agora também presentes/cartão com campos dedicados. Campos obrigatórios passaram a ser marcados visualmente com base no schema e foi adicionado preview parcial por aba ativa para acelerar revisão antes da exportação.
 **Prioridade:** Alta
 **Esforço estimado:** 3–5 dias
 

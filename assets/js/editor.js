@@ -83,10 +83,10 @@ async function startEditor(parsed) {
   normalizeListCollections(config);
   document.getElementById('import-screen').classList.add('hidden');
   document.getElementById('editor-screen').classList.remove('hidden');
-  renderActiveTab();
-  markClean();
 
   await loadSchema();
+  renderActiveTab();
+  markClean();
   revalidate();
 }
 
@@ -362,18 +362,57 @@ async function exportJson() {
   markClean();
 }
 
+function normalizeRequiredPath(path) {
+  return String(path || '').replace(/\[\d+\]/g, '').replace(/\.\d+(?=\.|$)/g, '');
+}
+
+function isFieldRequired(path) {
+  if (!_siteSchema || !path) return false;
+
+  const normalizedPath = normalizeRequiredPath(path);
+  const parts = normalizedPath.split('.').filter(Boolean);
+  if (parts.length === 0) return false;
+
+  let schemaNode = _siteSchema;
+
+  for (let i = 0; i < parts.length - 1; i += 1) {
+    const key = parts[i];
+
+    if (schemaNode.type === 'array') {
+      schemaNode = schemaNode.items ?? null;
+    }
+
+    if (!schemaNode?.properties || !schemaNode.properties[key]) {
+      return false;
+    }
+
+    schemaNode = schemaNode.properties[key];
+  }
+
+  if (schemaNode?.type === 'array') {
+    schemaNode = schemaNode.items ?? null;
+  }
+
+  const parentRequired = Array.isArray(schemaNode?.required) ? schemaNode.required : [];
+  const fieldKey = parts[parts.length - 1];
+
+  return parentRequired.includes(fieldKey);
+}
+
 // ── Field templates (return HTML strings) ─────────────────────────────────────
 
-function fieldInput({ label, path, placeholder = '', hint = '', inputType = 'text', cast = '' }) {
+function fieldInput({ label, path, placeholder = '', hint = '', inputType = 'text', cast = '', required = isFieldRequired(path) }) {
   const val = esc(getPath(config, path));
+  const requiredMark = required ? '<span class="ed-required" aria-hidden="true">*</span>' : '';
   return `
-    <div class="ed-field">
+    <div class="ed-field${required ? ' is-required' : ''}">
       <label class="ed-label">
-        ${esc(label)}
+        ${esc(label)}${requiredMark}
         ${hint ? `<span class="ed-hint">${esc(hint)}</span>` : ''}
       </label>
-      <input class="ed-input" type="${esc(inputType)}" data-path="${path}"
+      <input class="ed-input${required ? ' is-required' : ''}" type="${esc(inputType)}" data-path="${path}"
         ${cast ? `data-cast="${esc(cast)}"` : ''}
+        ${required ? 'aria-required="true"' : ''}
         value="${val}" placeholder="${esc(placeholder)}">
     </div>`;
 }
@@ -385,15 +424,17 @@ function fieldInputRow(items) {
     </div>`;
 }
 
-function fieldTextarea({ label, path, placeholder = '', hint = '', tall = false }) {
+function fieldTextarea({ label, path, placeholder = '', hint = '', tall = false, required = isFieldRequired(path) }) {
   const val = esc(getPath(config, path));
+  const requiredMark = required ? '<span class="ed-required" aria-hidden="true">*</span>' : '';
   return `
-    <div class="ed-field">
+    <div class="ed-field${required ? ' is-required' : ''}">
       <label class="ed-label">
-        ${esc(label)}
+        ${esc(label)}${requiredMark}
         ${hint ? `<span class="ed-hint">${esc(hint)}</span>` : ''}
       </label>
-      <textarea class="ed-textarea${tall ? ' ed-textarea--tall' : ''}" data-path="${path}"
+      <textarea class="ed-textarea${tall ? ' ed-textarea--tall' : ''}${required ? ' is-required' : ''}" data-path="${path}"
+        ${required ? 'aria-required="true"' : ''}
         placeholder="${esc(placeholder)}">${val}</textarea>
     </div>`;
 }
@@ -1341,6 +1382,22 @@ function renderMapaGaleria() {
   return mapGroup + galleryGroup;
 }
 
+function renderPresente() {
+  return group('Pix', `
+    ${fieldInput({ label: 'Chave Pix', path: 'gift.pixKey', placeholder: 'CHAVE_PIX_OU_CODIGO_COPIA_E_COLA_AQUI' })}
+    ${fieldInput({ label: 'Imagem QR Code do Pix', path: 'gift.pixQrImage', placeholder: 'assets/images/icons/pix-placeholder.svg' })}
+    ${fieldInput({ label: 'Label Pix (copia e cola)', path: 'texts.giftPixCopyLabel', placeholder: 'Pix copia e cola' })}
+    ${fieldInput({ label: 'Texto botão copiar Pix', path: 'texts.giftPixCopyButton', placeholder: 'Copiar código Pix' })}
+  `) + group('Pagamento por cartão', `
+    ${fieldInput({ label: 'Cartão habilitado (true/false)', path: 'gift.cardPaymentEnabled', placeholder: 'false', cast: 'boolean', hint: 'Quando false, o bloco de cartão fica oculto no site.' })}
+    ${fieldInput({ label: 'Link de pagamento', path: 'gift.cardPaymentLink', placeholder: 'https://pagamento.exemplo.com/link-do-casal', inputType: 'url', hint: 'Aceita apenas URL válida (http/https).' })}
+    ${fieldInput({ label: 'Tag do bloco', path: 'texts.giftCardTag', placeholder: 'Pagamento por cartão' })}
+    ${fieldInput({ label: 'Título do bloco', path: 'texts.giftCardTitle', placeholder: 'Pagamento por cartão' })}
+    ${fieldTextarea({ label: 'Descrição do bloco', path: 'texts.giftCardBody', placeholder: 'Escolha a melhor forma para nos presentear com carinho.' })}
+    ${fieldInput({ label: 'Texto do botão de cartão', path: 'texts.giftCardPlaceholder', placeholder: 'Pagar com cartão', hint: 'Esse texto vira o botão clicável quando o cartão estiver habilitado.' })}
+  `);
+}
+
 // ── Theme tab ─────────────────────────────────────────────────────────────────
 
 const DEFAULT_THEME_FILES = [
@@ -1502,10 +1559,104 @@ const TABS = [
   { id: 'historia',   label: 'Nossa História',    render: renderHistoria },
   { id: 'hospedagem', label: 'Hospedagem',        render: renderHospedagem },
   { id: 'mapa-galeria', label: 'Mapa & Galeria',  render: renderMapaGaleria },
+  { id: 'presente',   label: 'Presente',          render: renderPresente },
   { id: 'tema',       label: 'Tema',              render: renderTema, async: true },
 ];
 
 // ── Rendering ─────────────────────────────────────────────────────────────────
+
+function renderPreviewItems(items) {
+  if (!items.length) {
+    return '<p class="ed-preview-empty">Sem conteúdo para pré-visualizar neste bloco.</p>';
+  }
+
+  return `<ul class="ed-preview-list">${items.map((item) => `<li>${esc(item)}</li>`).join('')}</ul>`;
+}
+
+function getActiveTabPreviewHtml() {
+  switch (activeTab) {
+    case 'casal':
+      return `
+        <h3 class="ed-preview-title">${esc(getPath(config, 'couple.names') || 'Siannah & Diego')}</h3>
+        <p class="ed-preview-text">${esc(getPath(config, 'couple.subtitle') || '')}</p>
+        <p class="ed-preview-meta">${esc(getPath(config, 'event.displayDate') || '')} • ${esc(getPath(config, 'event.time') || '')}</p>
+        <p class="ed-preview-meta">${esc(getPath(config, 'event.locationName') || '')} — ${esc(getPath(config, 'event.locationCity') || '')}</p>
+      `;
+    case 'textos':
+      return `
+        <h3 class="ed-preview-title">${esc(getPath(config, 'texts.detailsTitle') || 'Prévia de textos')}</h3>
+        <p class="ed-preview-text">${esc(getPath(config, 'texts.detailsIntro') || '')}</p>
+        <p class="ed-preview-meta">RSVP: ${esc(getPath(config, 'texts.rsvpTitle') || '')}</p>
+      `;
+    case 'faq': {
+      const items = (config.pages?.faq?.content?.items ?? []).map((item) => item.question || '').filter(Boolean);
+      return `
+        <h3 class="ed-preview-title">${esc(getPath(config, 'pages.faq.content.title') || 'FAQ')}</h3>
+        <p class="ed-preview-text">${esc(getPath(config, 'pages.faq.content.intro') || '')}</p>
+        ${renderPreviewItems(items)}
+      `;
+    }
+    case 'historia': {
+      const chapters = (config.pages?.historia?.content?.chapters ?? []).map((item) => item.title || '').filter(Boolean);
+      return `
+        <h3 class="ed-preview-title">${esc(getPath(config, 'pages.historia.content.title') || 'Nossa História')}</h3>
+        <p class="ed-preview-text">${esc(getPath(config, 'pages.historia.content.intro') || '')}</p>
+        ${renderPreviewItems(chapters)}
+      `;
+    }
+    case 'hospedagem': {
+      const hotels = (config.pages?.hospedagem?.content?.hotels ?? []).map((item) => item.name || '').filter(Boolean);
+      const restaurants = (config.pages?.hospedagem?.content?.restaurants ?? []).map((item) => item.name || '').filter(Boolean);
+      return `
+        <h3 class="ed-preview-title">${esc(getPath(config, 'pages.hospedagem.content.title') || 'Hospedagem')}</h3>
+        <p class="ed-preview-text">${esc(getPath(config, 'pages.hospedagem.content.intro') || '')}</p>
+        <h4 class="ed-preview-subtitle">Hotéis</h4>
+        ${renderPreviewItems(hotels)}
+        <h4 class="ed-preview-subtitle">Restaurantes</h4>
+        ${renderPreviewItems(restaurants)}
+      `;
+    }
+    case 'mapa-galeria': {
+      const mapEnabled = Boolean(getPath(config, 'event.mapEnabled'));
+      const gallerySize = (config.pages?.historia?.content?.gallery ?? []).length;
+      return `
+        <h3 class="ed-preview-title">Mapa & Galeria</h3>
+        <p class="ed-preview-meta">Mapa: ${mapEnabled ? 'habilitado' : 'desabilitado'}</p>
+        <p class="ed-preview-meta">Fotos da galeria: ${gallerySize}</p>
+        <p class="ed-preview-text">${esc(getPath(config, 'event.venueAddress') || '')}</p>
+      `;
+    }
+    case 'presente': {
+      const cardEnabled = Boolean(getPath(config, 'gift.cardPaymentEnabled'));
+      const cardLabel = getPath(config, 'texts.giftCardPlaceholder') || 'Pagar com cartão';
+      const cardLink = getPath(config, 'gift.cardPaymentLink') || '';
+      return `
+        <h3 class="ed-preview-title">${esc(getPath(config, 'texts.giftTitle') || 'Para nos presentear')}</h3>
+        <p class="ed-preview-text">${esc(getPath(config, 'texts.giftIntro') || '')}</p>
+        <p class="ed-preview-meta">Pix: ${esc(getPath(config, 'gift.pixKey') || 'não informado')}</p>
+        ${cardEnabled ? `<a class="ed-preview-link" href="${esc(cardLink)}" target="_blank" rel="noopener noreferrer">${esc(cardLabel)}</a>` : '<p class="ed-preview-muted">Cartão desabilitado: bloco oculto no site.</p>'}
+      `;
+    }
+    case 'tema':
+      return `
+        <h3 class="ed-preview-title">Tema ativo</h3>
+        <p class="ed-preview-meta">${esc(config.activeTheme || '')}</p>
+        <p class="ed-preview-muted">Prévia simplificada desta aba. Use os cards de tema para o preview visual completo.</p>
+      `;
+    default:
+      return '<p class="ed-preview-empty">Sem prévia disponível para esta aba.</p>';
+  }
+}
+
+function renderActivePreview() {
+  const panel = document.getElementById('tab-preview-content');
+  const title = document.getElementById('tab-preview-title');
+  if (!panel || !title) return;
+
+  const tab = TABS.find((item) => item.id === activeTab);
+  title.textContent = tab ? `Prévia: ${tab.label}` : 'Prévia';
+  panel.innerHTML = getActiveTabPreviewHtml();
+}
 
 function renderActiveTab() {
   // Tab buttons
@@ -1521,11 +1672,14 @@ function renderActiveTab() {
 
   if (tab.async) {
     content.innerHTML = '<div class="ed-section"><p class="ed-loading">Carregando...</p></div>';
+    renderActivePreview();
     tab.render().then(html => {
       content.innerHTML = `<div class="ed-section">${html}</div>`;
+      renderActivePreview();
     });
   } else {
     content.innerHTML = `<div class="ed-section">${tab.render()}</div>`;
+    renderActivePreview();
   }
 }
 
@@ -1551,12 +1705,14 @@ function bindContentEvents(root) {
       }
       setConfigValue(path, value);
       refreshTypographyPreviews(root);
+      renderActivePreview();
       markDirty();
       debouncedRevalidate();
     }
     if (list !== undefined && idx !== undefined && key !== undefined) {
       listArray(list)[parseInt(idx)][key] = e.target.value;
       refreshTypographyPreviews(root);
+      renderActivePreview();
       markDirty();
       debouncedRevalidate();
     }
@@ -1573,6 +1729,7 @@ function bindContentEvents(root) {
       config.activeTheme = themeBtn.dataset.selectTheme;
       markDirty();
       renderActiveTab();  // re-render to update active state
+      debouncedRevalidate();
     }
   });
 }
@@ -1613,6 +1770,7 @@ function handleAction(action, index) {
   }
   markDirty();
   renderActiveTab();
+  debouncedRevalidate();
 }
 
 // ── Init ──────────────────────────────────────────────────────────────────────

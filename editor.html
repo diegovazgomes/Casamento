@@ -236,18 +236,135 @@
       font-weight: 500;
     }
 
-    /* ── Tab content ─────────────────────────────────────────────────────────── */
-    #tab-content {
+    /* ── Workspace (editor + preview) ───────────────────────────────────────── */
+    .ed-workspace {
       flex: 1;
-      padding: 28px 24px 56px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 340px;
+      gap: 16px;
+      padding: 24px;
+      align-items: start;
+    }
+
+    #tab-content {
+      min-width: 0;
     }
 
     .ed-section {
-      max-width: 720px;
+      max-width: 760px;
       margin: 0 auto;
       display: flex;
       flex-direction: column;
       gap: 24px;
+    }
+
+    .ed-preview {
+      position: sticky;
+      top: 92px;
+      background: #fffdf9;
+      border: 1px solid #e5ddd4;
+      border-radius: 16px;
+      padding: 18px;
+      box-shadow: 0 8px 24px rgba(42, 36, 32, 0.06);
+      max-height: calc(100vh - 120px);
+      overflow: auto;
+    }
+
+    .ed-preview-title-wrap {
+      padding-bottom: 12px;
+      margin-bottom: 12px;
+      border-bottom: 1px solid #ede7e0;
+    }
+
+    .ed-preview-title-wrap h3 {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 20px;
+      font-weight: 400;
+      color: #2a2420;
+      margin-bottom: 2px;
+    }
+
+    .ed-preview-title-wrap p {
+      font-size: 11px;
+      color: #9a8e88;
+      letter-spacing: 0.03em;
+    }
+
+    .ed-preview-body {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .ed-preview-body .ed-preview-title {
+      font-size: 17px;
+      font-weight: 600;
+      color: #2a2420;
+      line-height: 1.35;
+    }
+
+    .ed-preview-body .ed-preview-subtitle {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: #7a6e68;
+      margin-top: 6px;
+    }
+
+    .ed-preview-body .ed-preview-text {
+      font-size: 13px;
+      color: #4a3f3a;
+      line-height: 1.6;
+    }
+
+    .ed-preview-body .ed-preview-meta {
+      font-size: 12px;
+      color: #7a6e68;
+      line-height: 1.5;
+    }
+
+    .ed-preview-body .ed-preview-muted {
+      font-size: 12px;
+      color: #9a8e88;
+      line-height: 1.5;
+      font-style: italic;
+    }
+
+    .ed-preview-list {
+      margin: 4px 0 0;
+      padding-left: 18px;
+      display: grid;
+      gap: 6px;
+      color: #3a302c;
+      font-size: 12px;
+    }
+
+    .ed-preview-empty {
+      color: #9a8e88;
+      font-size: 12px;
+    }
+
+    .ed-preview-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 40px;
+      padding: 9px 14px;
+      margin-top: 6px;
+      border: 1px solid #2a2420;
+      border-radius: 8px;
+      color: #2a2420;
+      background: #f7f1ea;
+      font-size: 11px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .ed-preview-link:hover {
+      background: #efe5db;
     }
 
     /* ── Groups ──────────────────────────────────────────────────────────────── */
@@ -388,6 +505,28 @@
       font-weight: 400;
       color: #9a8e88;
       letter-spacing: 0;
+    }
+
+    .ed-required {
+      color: #c0776a;
+      margin-left: 3px;
+      font-weight: 700;
+    }
+
+    .ed-field.is-required > .ed-label {
+      color: #6b3a30;
+    }
+
+    .ed-input.is-required,
+    .ed-textarea.is-required {
+      border-color: #e6cec8;
+      background: #fff8f6;
+    }
+
+    .ed-input.is-required:focus,
+    .ed-textarea.is-required:focus {
+      border-color: #c0776a;
+      box-shadow: 0 0 0 3px rgba(192, 119, 106, 0.16);
     }
 
     .ed-input {
@@ -638,10 +777,21 @@
     }
 
     /* ── Responsive ──────────────────────────────────────────────────────────── */
+    @media (max-width: 1080px) {
+      .ed-workspace {
+        grid-template-columns: minmax(0, 1fr);
+      }
+
+      .ed-preview {
+        position: static;
+        max-height: none;
+      }
+    }
+
     @media (max-width: 600px) {
       .ed-header { padding: 12px 16px; }
       .ed-header h1 { font-size: 18px; }
-      #tab-content { padding: 20px 16px 48px; }
+      .ed-workspace { padding: 16px; }
       .ed-group { padding: 18px; }
       .ed-fields-row { grid-template-columns: 80px 1fr; }
       .ed-fields-grid { grid-template-columns: 1fr; }
@@ -698,9 +848,18 @@
       </div>
     </div>
 
-    <!-- Tab content -->
-    <main id="tab-content">
-      <!-- Injected by editor.js -->
+    <!-- Workspace -->
+    <main class="ed-workspace">
+      <section id="tab-content">
+        <!-- Injected by editor.js -->
+      </section>
+      <aside class="ed-preview" aria-live="polite">
+        <div class="ed-preview-title-wrap">
+          <h3 id="tab-preview-title">Prévia</h3>
+          <p>Atualiza automaticamente com base na aba ativa.</p>
+        </div>
+        <div id="tab-preview-content" class="ed-preview-body"></div>
+      </aside>
     </main>
 
   </div>

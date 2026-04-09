@@ -137,6 +137,8 @@ Este é um ponto crítico. Erros de espaçamento destroem a experiência premium
 
 4. Sempre evitar quebrar código ou fazer alterações de algo que não tenha sido solicitado para aquela modificação
 
+5. Sempre que implementar uma alteração, seja sucinto mas preciso com ao informar o que foi feito, por último sempre explane como essa modificalção pode ser percebida e como testá-la.
+
 ---
 
 ## 9. O QUE NUNCA FAZER
