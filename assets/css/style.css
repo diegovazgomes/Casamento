@@ -1005,7 +1005,10 @@ img {
 
 .gift-back-wrap {
     margin-top: var(--space-3xl);
-    text-align: center;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px;
 }
 
 .gift-back-link {
@@ -1619,7 +1622,7 @@ footer {
     border-radius: var(--radius-card);
     transition: var(--transition-standard);
     -webkit-tap-highlight-color: transparent;
-    min-height: 96px;
+    min-height: 118px;
     overflow: hidden;
 }
 
@@ -1649,6 +1652,7 @@ footer {
     font-size: clamp(16px, 3.5vw, 22px);
     font-weight: 300;
     line-height: 1.3;
+    min-height: 2.6em;
 }
 
 .extras-card-hint {
@@ -1803,6 +1807,86 @@ footer {
     color: var(--color-text-soft);
     font-size: var(--section-body-size);
     line-height: 1.85;
+}
+
+/* ─── Mensagem e Musica ─────────────────────────────────────────────────── */
+
+.extra-form-card {
+    width: min(100%, 760px);
+    margin: 0 auto;
+    padding: var(--card-padding);
+    border: 1px solid var(--color-border);
+    background: var(--color-surface);
+    border-radius: var(--radius-card);
+    text-align: left;
+    position: relative;
+    overflow: hidden;
+}
+
+.extra-form-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(to right, transparent, var(--gold), transparent);
+}
+
+.extra-form-title {
+    margin-bottom: var(--space-sm);
+    color: var(--cream);
+    font-family: var(--font-serif);
+    font-size: clamp(22px, 4vw, 30px);
+    font-weight: 300;
+    line-height: 1.2;
+}
+
+.extra-form-subtitle {
+    margin-bottom: var(--space-lg);
+    color: var(--color-text-soft);
+    font-size: var(--section-body-size);
+    line-height: 1.7;
+}
+
+.extra-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+}
+
+.extra-form-field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+}
+
+.extra-form-label {
+    color: var(--gold);
+    font-size: 9px;
+    letter-spacing: 0.26em;
+    text-transform: uppercase;
+}
+
+.extra-form .rsvp-submit {
+    margin-top: var(--space-sm);
+}
+
+.extra-form-textarea {
+    min-height: 136px;
+    resize: vertical;
+}
+
+.extra-form-feedback {
+    min-height: 1.2em;
+    color: var(--color-text-muted);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.extra-form-feedback.is-error {
+    color: #f5b9b9;
 }
 
 /* ─── Hospedagem ─────────────────────────────────────────────────────────── */

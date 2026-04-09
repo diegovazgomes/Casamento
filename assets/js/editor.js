@@ -1398,6 +1398,60 @@ function renderPresente() {
   `);
 }
 
+function renderMensagem() {
+  return group('Card em Extras', `
+    ${fieldInput({ label: 'Página habilitada (true/false)', path: 'pages.mensagem.enabled', placeholder: 'true', cast: 'boolean', hint: 'Quando false, o card de Mensagem não aparece no bloco de extras.' })}
+    ${fieldInput({ label: 'Título do card', path: 'pages.mensagem.cardLabel', placeholder: 'Mensagem ao Casal' })}
+    ${fieldInput({ label: 'Hint do card', path: 'pages.mensagem.cardHint', placeholder: 'Deixar recado' })}
+  `) + group('Conteúdo da página', `
+    ${fieldInput({ label: 'Tag da seção', path: 'pages.mensagem.content.tag', placeholder: 'Mensagem ao Casal' })}
+    ${fieldInput({ label: 'Título principal', path: 'pages.mensagem.content.title', placeholder: 'Deixe uma mensagem de carinho' })}
+    ${fieldTextarea({ label: 'Introdução', path: 'pages.mensagem.content.intro', placeholder: 'Seu recado vai deixar esse momento ainda mais especial para nós.' })}
+  `) + group('Formulário', `
+    ${fieldInput({ label: 'Título do formulário', path: 'pages.mensagem.content.formTitle', placeholder: 'Escreva para nós' })}
+    ${fieldTextarea({ label: 'Subtítulo do formulário', path: 'pages.mensagem.content.formSubtitle', placeholder: 'Você pode deixar seu nome e uma mensagem que prepararemos para guardar com carinho.' })}
+    ${fieldInput({ label: 'Label de nome', path: 'pages.mensagem.content.nameLabel', placeholder: 'Seu nome (opcional)' })}
+    ${fieldInput({ label: 'Label da mensagem', path: 'pages.mensagem.content.messageLabel', placeholder: 'Sua mensagem' })}
+    ${fieldInput({ label: 'Placeholder do nome', path: 'pages.mensagem.content.namePlaceholder', placeholder: 'Como podemos te chamar?' })}
+    ${fieldTextarea({ label: 'Placeholder da mensagem', path: 'pages.mensagem.content.messagePlaceholder', placeholder: 'Escreva aqui sua mensagem de carinho...' })}
+    ${fieldInput({ label: 'Texto do botão', path: 'pages.mensagem.content.submitLabel', placeholder: 'Preparar envio no WhatsApp' })}
+    ${fieldTextarea({ label: 'Mensagem de sucesso', path: 'pages.mensagem.content.successMessage', placeholder: 'Mensagem preparada. Abrimos o WhatsApp para você finalizar o envio.' })}
+    ${fieldTextarea({ label: 'Mensagem de erro', path: 'pages.mensagem.content.errorMessage', placeholder: 'Não foi possível preparar o envio. Tente novamente.' })}
+  `) + group('Navegação', `
+    ${fieldInput({ label: 'Texto do botão voltar ao início', path: 'texts.backToHomeButton', placeholder: 'Voltar para o início' })}
+    ${fieldInput({ label: 'Texto do botão voltar para extras', path: 'texts.backToExtrasButton', placeholder: 'Voltar para página principal' })}
+  `);
+}
+
+function renderMusica() {
+  return group('Card em Extras', `
+    ${fieldInput({ label: 'Página habilitada (true/false)', path: 'pages.musica.enabled', placeholder: 'true', cast: 'boolean', hint: 'Quando false, o card de Música não aparece no bloco de extras.' })}
+    ${fieldInput({ label: 'Título do card', path: 'pages.musica.cardLabel', placeholder: 'Sugerir Música' })}
+    ${fieldInput({ label: 'Hint do card', path: 'pages.musica.cardHint', placeholder: 'Para a festa' })}
+  `) + group('Conteúdo da página', `
+    ${fieldInput({ label: 'Tag da seção', path: 'pages.musica.content.tag', placeholder: 'Sugestão de Música' })}
+    ${fieldInput({ label: 'Título principal', path: 'pages.musica.content.title', placeholder: 'Qual música não pode faltar?' })}
+    ${fieldTextarea({ label: 'Introdução', path: 'pages.musica.content.intro', placeholder: 'Sugira uma música para tocar na nossa festa e ajudar a montar a trilha desse dia.' })}
+  `) + group('Formulário', `
+    ${fieldInput({ label: 'Título do formulário', path: 'pages.musica.content.formTitle', placeholder: 'Envie sua sugestão' })}
+    ${fieldTextarea({ label: 'Subtítulo do formulário', path: 'pages.musica.content.formSubtitle', placeholder: 'Compartilhe ao menos o nome da música. Se quiser, inclua artista e observações.' })}
+    ${fieldInput({ label: 'Label de nome', path: 'pages.musica.content.nameLabel', placeholder: 'Seu nome (opcional)' })}
+    ${fieldInput({ label: 'Label da música', path: 'pages.musica.content.songLabel', placeholder: 'Nome da música' })}
+    ${fieldInput({ label: 'Label do artista', path: 'pages.musica.content.artistLabel', placeholder: 'Artista (opcional)' })}
+    ${fieldInput({ label: 'Label de observações', path: 'pages.musica.content.notesLabel', placeholder: 'Observações (opcional)' })}
+    ${fieldInput({ label: 'Placeholder do nome', path: 'pages.musica.content.namePlaceholder', placeholder: 'Como podemos te chamar?' })}
+    ${fieldInput({ label: 'Placeholder da música', path: 'pages.musica.content.songPlaceholder', placeholder: 'Ex: Velha Infância' })}
+    ${fieldInput({ label: 'Placeholder do artista', path: 'pages.musica.content.artistPlaceholder', placeholder: 'Ex: Tribalistas' })}
+    ${fieldTextarea({ label: 'Placeholder de observações', path: 'pages.musica.content.notesPlaceholder', placeholder: 'Diga por que essa música é especial...' })}
+    ${fieldInput({ label: 'Texto do botão', path: 'pages.musica.content.submitLabel', placeholder: 'Preparar envio no WhatsApp' })}
+    ${fieldTextarea({ label: 'Mensagem de sucesso', path: 'pages.musica.content.successMessage', placeholder: 'Sugestão preparada. Abrimos o WhatsApp para você finalizar o envio.' })}
+    ${fieldTextarea({ label: 'Mensagem de erro', path: 'pages.musica.content.errorMessage', placeholder: 'Não foi possível preparar o envio. Tente novamente.' })}
+  `) + group('Navegação', `
+    ${fieldInput({ label: 'Texto do botão voltar ao início', path: 'texts.backToHomeButton', placeholder: 'Voltar para o início' })}
+    ${fieldInput({ label: 'Texto do botão voltar para extras', path: 'texts.backToExtrasButton', placeholder: 'Voltar para página principal' })}
+  `);
+}
+
 // ── Theme tab ─────────────────────────────────────────────────────────────────
 
 const DEFAULT_THEME_FILES = [
@@ -1558,6 +1612,8 @@ const TABS = [
   { id: 'faq',        label: 'FAQ',               render: renderFaq },
   { id: 'historia',   label: 'Nossa História',    render: renderHistoria },
   { id: 'hospedagem', label: 'Hospedagem',        render: renderHospedagem },
+  { id: 'mensagem',   label: 'Mensagem ao Casal', render: renderMensagem },
+  { id: 'musica',     label: 'Sugestão de Música', render: renderMusica },
   { id: 'mapa-galeria', label: 'Mapa & Galeria',  render: renderMapaGaleria },
   { id: 'presente',   label: 'Presente',          render: renderPresente },
   { id: 'tema',       label: 'Tema',              render: renderTema, async: true },
@@ -1614,6 +1670,22 @@ function getActiveTabPreviewHtml() {
         ${renderPreviewItems(hotels)}
         <h4 class="ed-preview-subtitle">Restaurantes</h4>
         ${renderPreviewItems(restaurants)}
+      `;
+    }
+    case 'mensagem': {
+      return `
+        <h3 class="ed-preview-title">${esc(getPath(config, 'pages.mensagem.content.title') || 'Mensagem ao Casal')}</h3>
+        <p class="ed-preview-text">${esc(getPath(config, 'pages.mensagem.content.intro') || '')}</p>
+        <p class="ed-preview-meta">Card: ${esc(getPath(config, 'pages.mensagem.cardLabel') || '')}</p>
+        <p class="ed-preview-meta">Botão: ${esc(getPath(config, 'pages.mensagem.content.submitLabel') || '')}</p>
+      `;
+    }
+    case 'musica': {
+      return `
+        <h3 class="ed-preview-title">${esc(getPath(config, 'pages.musica.content.title') || 'Sugestão de Música')}</h3>
+        <p class="ed-preview-text">${esc(getPath(config, 'pages.musica.content.intro') || '')}</p>
+        <p class="ed-preview-meta">Card: ${esc(getPath(config, 'pages.musica.cardLabel') || '')}</p>
+        <p class="ed-preview-meta">Campo principal: ${esc(getPath(config, 'pages.musica.content.songLabel') || '')}</p>
       `;
     }
     case 'mapa-galeria': {

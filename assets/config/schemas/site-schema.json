@@ -149,6 +149,7 @@
         "giftCardTitle": { "type": "string" },
         "giftCardBody": { "type": "string" },
         "giftCardPlaceholder": { "type": "string" },
+        "backToHomeButton": { "type": "string" },
         "backToExtrasButton": { "type": "string" },
         "giftOverlayCloseButton": { "type": "string" },
         "giftOverlayBackButton": { "type": "string" },
@@ -217,7 +218,7 @@
     "pages": {
       "type": "object",
       "description": "Configuração das páginas extras",
-      "required": ["historia", "faq", "hospedagem", "presente"],
+      "required": ["historia", "faq", "hospedagem", "mensagem", "musica", "presente"],
       "properties": {
         "historia": {
           "type": "object",
@@ -331,6 +332,64 @@
                     }
                   }
                 }
+              }
+            }
+          }
+        },
+        "mensagem": {
+          "type": "object",
+          "required": ["enabled", "cardLabel", "cardHint", "content"],
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "cardLabel": { "type": "string" },
+            "cardHint": { "type": "string" },
+            "content": {
+              "type": "object",
+              "required": ["tag", "title", "intro"],
+              "properties": {
+                "tag": { "type": "string" },
+                "title": { "type": "string" },
+                "intro": { "type": "string" },
+                "formTitle": { "type": "string" },
+                "formSubtitle": { "type": "string" },
+                "nameLabel": { "type": "string" },
+                "messageLabel": { "type": "string" },
+                "namePlaceholder": { "type": "string" },
+                "messagePlaceholder": { "type": "string" },
+                "submitLabel": { "type": "string" },
+                "successMessage": { "type": "string" },
+                "errorMessage": { "type": "string" }
+              }
+            }
+          }
+        },
+        "musica": {
+          "type": "object",
+          "required": ["enabled", "cardLabel", "cardHint", "content"],
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "cardLabel": { "type": "string" },
+            "cardHint": { "type": "string" },
+            "content": {
+              "type": "object",
+              "required": ["tag", "title", "intro"],
+              "properties": {
+                "tag": { "type": "string" },
+                "title": { "type": "string" },
+                "intro": { "type": "string" },
+                "formTitle": { "type": "string" },
+                "formSubtitle": { "type": "string" },
+                "nameLabel": { "type": "string" },
+                "songLabel": { "type": "string" },
+                "artistLabel": { "type": "string" },
+                "notesLabel": { "type": "string" },
+                "namePlaceholder": { "type": "string" },
+                "songPlaceholder": { "type": "string" },
+                "artistPlaceholder": { "type": "string" },
+                "notesPlaceholder": { "type": "string" },
+                "submitLabel": { "type": "string" },
+                "successMessage": { "type": "string" },
+                "errorMessage": { "type": "string" }
               }
             }
           }

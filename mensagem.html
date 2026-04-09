@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="description" content="Deixe uma mensagem de carinho para o casal.">
+    <meta name="theme-color" content="#1a1714">
+    <title>Mensagem ao Casal</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/animations.css">
+</head>
+<body class="extra-page mensagem-page">
+
+    <main class="extra-main">
+        <section class="content-section extra-intro">
+            <span class="section-tag reveal" id="mensagemTag">Mensagem ao Casal</span>
+            <h1 class="section-title reveal" id="mensagemTitle">Deixe uma mensagem de carinho</h1>
+            <p class="section-body reveal" id="mensagemIntro"></p>
+        </section>
+
+        <div class="divider reveal" aria-hidden="true">
+            <div class="divider-line"></div>
+            <div class="divider-diamond"></div>
+            <div class="divider-line"></div>
+        </div>
+
+        <div class="extra-content">
+            <section class="extra-form-card reveal" aria-labelledby="mensagemFormTitle">
+                <h2 class="extra-form-title" id="mensagemFormTitle">Escreva para nós</h2>
+                <p class="extra-form-subtitle" id="mensagemFormSubtitle"></p>
+
+                <form class="extra-form" id="mensagemForm" novalidate>
+                    <div class="extra-form-field">
+                        <label class="extra-form-label" id="mensagemNameLabel" for="mensagemNameInput">Seu nome (opcional)</label>
+                        <input
+                            class="rsvp-input"
+                            id="mensagemNameInput"
+                            name="guestName"
+                            type="text"
+                            maxlength="80"
+                            autocomplete="name"
+                            placeholder="Como podemos te chamar?">
+                    </div>
+
+                    <div class="extra-form-field">
+                        <label class="extra-form-label" id="mensagemBodyLabel" for="mensagemBodyInput">Sua mensagem</label>
+                        <textarea
+                            class="rsvp-input extra-form-textarea"
+                            id="mensagemBodyInput"
+                            name="guestMessage"
+                            rows="5"
+                            maxlength="1000"
+                            required
+                            aria-required="true"
+                            placeholder="Escreva aqui sua mensagem de carinho..."></textarea>
+                    </div>
+
+                    <button class="rsvp-submit" id="mensagemSubmitButton" type="submit">Preparar envio no WhatsApp</button>
+                    <p class="extra-form-feedback" id="mensagemFeedback" role="status" aria-live="polite"></p>
+                </form>
+            </section>
+        </div>
+
+        <div class="gift-back-wrap">
+            <a class="gift-back-link" id="backToHomeButton" href="index.html" aria-label="Voltar para o início"></a>
+            <a class="gift-back-link" id="backToExtrasButton" href="index.html?section=extras" aria-label="Voltar para opções extras"></a>
+        </div>
+    </main>
+
+    <footer>
+        <div class="footer-names" id="mainFooterNames">Siannah & Diego</div>
+        <p class="footer-note" id="mainFooterNote">06 . 09 . 2026 | São Bernardo do Campo</p>
+    </footer>
+
+    <script type="module" src="assets/js/script.js"></script>
+    <script type="module" src="assets/js/mensagem.js"></script>
+</body>
+</html>

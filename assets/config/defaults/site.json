@@ -62,6 +62,7 @@
         "giftCardTitle": "Pagamento por cartao",
         "giftCardBody": "Em breve, esta opcao estara disponivel.",
         "giftCardPlaceholder": "Espaco reservado para o link de pagamento por cartao.",
+        "backToHomeButton": "Voltar para o início",
         "backToExtrasButton": "Voltar",
         "giftOverlayCloseButton": "Fechar",
         "giftOverlayBackButton": "Voltar para confirmacao",
@@ -124,6 +125,48 @@
                 "hotels": [],
                 "restaurantsTitle": "Restaurantes",
                 "restaurants": []
+            }
+        },
+        "mensagem": {
+            "enabled": false,
+            "cardLabel": "Mensagem ao Casal",
+            "cardHint": "Deixar recado",
+            "content": {
+                "tag": "Mensagem ao Casal",
+                "title": "Deixe uma mensagem de carinho",
+                "intro": "Seu recado vai deixar esse momento ainda mais especial para nós.",
+                "formTitle": "Escreva para nós",
+                "formSubtitle": "Você pode deixar seu nome e uma mensagem que prepararemos para guardar com carinho.",
+                "nameLabel": "Seu nome (opcional)",
+                "messageLabel": "Sua mensagem",
+                "namePlaceholder": "Como podemos te chamar?",
+                "messagePlaceholder": "Escreva aqui sua mensagem de carinho...",
+                "submitLabel": "Preparar envio no WhatsApp",
+                "successMessage": "Mensagem preparada. Abrimos o WhatsApp para você finalizar o envio.",
+                "errorMessage": "Não foi possível preparar o envio. Tente novamente."
+            }
+        },
+        "musica": {
+            "enabled": false,
+            "cardLabel": "Sugerir Música",
+            "cardHint": "Para a festa",
+            "content": {
+                "tag": "Sugestão de Música",
+                "title": "Qual música não pode faltar?",
+                "intro": "Sugira uma música para tocar na nossa festa e ajudar a montar a trilha desse dia.",
+                "formTitle": "Envie sua sugestão",
+                "formSubtitle": "Compartilhe ao menos o nome da música. Se quiser, inclua artista e observações.",
+                "nameLabel": "Seu nome (opcional)",
+                "songLabel": "Nome da música",
+                "artistLabel": "Artista (opcional)",
+                "notesLabel": "Observações (opcional)",
+                "namePlaceholder": "Como podemos te chamar?",
+                "songPlaceholder": "Ex: Velha Infância",
+                "artistPlaceholder": "Ex: Tribalistas",
+                "notesPlaceholder": "Diga por que essa música é especial...",
+                "submitLabel": "Preparar envio no WhatsApp",
+                "successMessage": "Sugestão preparada. Abrimos o WhatsApp para você finalizar o envio.",
+                "errorMessage": "Não foi possível preparar o envio. Tente novamente."
             }
         },
         "presente": {

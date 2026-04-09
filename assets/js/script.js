@@ -756,6 +756,7 @@ class InvitationExperience {
         setText('btn-yes', this.config.texts?.rsvpYesLabel);
         setText('btn-no', this.config.texts?.rsvpNoLabel);
         setText('rsvpSubmit', this.config.texts?.rsvpSubmit);
+        setText('backToHomeButton', this.config.texts?.backToHomeButton);
         setText('backToExtrasButton', this.config.texts?.backToExtrasButton);
 
         setText('detailGiftValue', this.config.texts?.detailsGiftValue);
@@ -852,11 +853,13 @@ class InvitationExperience {
         }
 
         const pages = this.config.pages ?? {};
-        const PAGE_ORDER = ['historia', 'faq', 'hospedagem', 'presente'];
+        const PAGE_ORDER = ['historia', 'faq', 'hospedagem', 'mensagem', 'musica', 'presente'];
         const PAGE_URLS = {
             historia: 'historia.html',
             faq: 'faq.html',
             hospedagem: 'hospedagem.html',
+            mensagem: 'mensagem.html',
+            musica: 'musica.html',
             presente: 'presente.html'
         };
 

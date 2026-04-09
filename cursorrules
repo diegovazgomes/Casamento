@@ -139,6 +139,8 @@ Este é um ponto crítico. Erros de espaçamento destroem a experiência premium
 
 5. Sempre que implementar uma alteração, seja sucinto mas preciso com ao informar o que foi feito, por último sempre explane como essa modificalção pode ser percebida e como testá-la.
 
+6. Sempre que fizer uma alteração que seja de frontend e que seja texto que apareça ao usuário, SEMPRE verifique ortografia e pontuação.
+
 ---
 
 ## 9. O QUE NUNCA FAZER

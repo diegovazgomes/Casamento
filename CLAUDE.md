@@ -39,7 +39,7 @@ Trata-se de um site estatico de convite de casamento construido sem framework, s
 - O tema visual e carregado em runtime a partir de um arquivo JSON em `assets/config/themes/`.
 - A tipografia global disponivel fica em `assets/config/typography.json`.
 - O arquivo central de inicializacao e `assets/js/script.js`.
-- O projeto possui uma pagina principal (`index.html`), paginas extras (`historia.html`, `faq.html`, `hospedagem.html`, `presente.html`) e duas ferramentas auxiliares (`editor.html` e `font-preview.html`).
+- O projeto possui uma pagina principal (`index.html`), paginas extras (`historia.html`, `faq.html`, `hospedagem.html`, `mensagem.html`, `musica.html`, `presente.html`) e duas ferramentas auxiliares (`editor.html` e `font-preview.html`).
 - Existe um fluxo de intro screen, liberacao da experiencia, troca de contexto de audio e navegacao dinamica entre paginas e secoes.
 
 ### O que o sistema faz hoje
@@ -74,7 +74,7 @@ python -m http.server 8080
 
 - Pagina inicial: `index.html`
 - Pagina de presentes: `presente.html`
-- Paginas extras: `historia.html`, `faq.html`, `hospedagem.html`
+- Paginas extras: `historia.html`, `faq.html`, `hospedagem.html`, `mensagem.html`, `musica.html`
 - Ferramenta de edicao de configuracao: `editor.html`
 - Ferramenta de comparacao tipografica: `font-preview.html`
 
@@ -151,6 +151,8 @@ Isso torna o projeto relativamente facil de portar para outro casal, outro event
 ├── historia.html
 ├── faq.html
 ├── hospedagem.html
+├── mensagem.html
+├── musica.html
 ├── editor.html
 ├── font-preview.html
 ├── assets/
@@ -181,6 +183,9 @@ Isso torna o projeto relativamente facil de portar para outro casal, outro event
 │       ├── historia.js
 │       ├── faq.js
 │       ├── hospedagem.js
+│       ├── extra-page.js
+│       ├── mensagem.js
+│       ├── musica.js
 │       ├── editor.js
 │       ├── font-preview.js
 │       ├── gallery.js
@@ -537,6 +542,11 @@ Preenche a secao de detalhes da cerimonia e atualiza o link do mapa com `aria-la
 
 Preenche textos do contador, detalhes, RSVP, botoes, placeholders e links de retorno.
 
+Inclui os links de navegacao das paginas extras:
+
+- `texts.backToHomeButton` para o botao de retorno ao inicio;
+- `texts.backToExtrasButton` para o retorno ao bloco de extras.
+
 ##### `setGift()`
 
 Preenche todos os textos da area de presente, injeta QR code, atualiza o codigo Pix no DOM e sincroniza os atributos `data-copy-value`.
@@ -550,7 +560,9 @@ Ordem fixa atual:
 1. `historia`
 2. `faq`
 3. `hospedagem`
-4. `presente`
+4. `mensagem`
+5. `musica`
+6. `presente`
 
 ### 8.4 `bootstrap()`
 
@@ -906,62 +918,94 @@ As paginas extras seguem um padrao simples:
 - leem `detail.config.pages.<pagina>.content`;
 - escrevem o conteudo no DOM.
 
+### 14.0 `assets/js/extra-page.js`
+
+Modulo compartilhado para bootstrap das paginas extras.
+
+#### Papel
+
+Padroniza o fluxo comum das extras, reduzindo duplicacao entre modulos de pagina.
+
+#### Funcao principal
+
+- `initExtraPage({ pageKey, idPrefix, onReady, onReveal })`
+
+#### Responsabilidades
+
+- aguardar `app:ready`;
+- localizar `config.pages.<pageKey>.content`;
+- preencher metadados basicos da pagina extra;
+- disparar callback de inicializacao especifica (`onReady`).
+
 ### 14.1 `assets/js/historia.js`
 
-Nao exporta classe. Trabalha por listener global.
+Nao exporta classe. Usa `initExtraPage` como bootstrap compartilhado.
 
 #### Funcoes
 
 - `renderTimeline(chapters)`
 
-`setText()` e `revealElements()` sao importadas de `assets/js/utils.js`.
+`revealElements()` e importada de `assets/js/utils.js`, e a galeria usa `initGallery()` de `assets/js/gallery.js`.
 
 #### Fluxo
 
-No `window.addEventListener('app:ready', ...)`:
-
-- le `config.pages.historia.content`;
-- preenche tag, titulo e intro;
+- usa `initExtraPage` com `pageKey: 'historia'`;
 - monta a timeline alternando classes esquerda/direita;
-- marca todos os `.reveal` como `visible`.
+- quando `content.gallery` possui itens, revela `#historiaGallery` e inicializa o carrossel.
 
 ### 14.2 `assets/js/faq.js`
 
-Tambem trabalha por listener global.
+Tambem usa `initExtraPage` no mesmo padrao.
 
 #### Funcoes
 
 - `renderFaq(items)`
 
-`setText()` e `revealElements()` sao importadas de `assets/js/utils.js`.
-
 #### Fluxo
 
-No `app:ready`:
-
-- le `config.pages.faq.content`;
-- preenche tag, titulo e intro;
-- monta a lista de perguntas e respostas;
-- revela os elementos animaveis.
+- usa `initExtraPage` com `pageKey: 'faq'`;
+- monta a lista de perguntas e respostas no container `#faqList`.
 
 ### 14.3 `assets/js/hospedagem.js`
 
-Mesmo padrao das demais extras.
+Mesmo padrao das demais extras com `initExtraPage`.
 
 #### Funcoes
 
 - `renderCards(containerId, items)`
 
-`setText()` e `revealElements()` sao importadas de `assets/js/utils.js`.
+`setText()` e importada de `assets/js/utils.js`.
 
 #### Fluxo
 
-No `app:ready`:
-
-- le `config.pages.hospedagem.content`;
+- usa `initExtraPage` com `pageKey: 'hospedagem'`;
 - preenche textos principais;
 - renderiza cards de hoteis e restaurantes;
 - adiciona links externos quando `item.link` existe.
+
+### 14.4 `assets/js/mensagem.js`
+
+Modulo da pagina de mensagens ao casal.
+
+#### Fluxo
+
+- usa `initExtraPage` com `pageKey: 'mensagem'`;
+- preenche labels/placeholders via `setText()` e `setInputPlaceholder()`;
+- valida campo obrigatorio de mensagem;
+- constroi URL `wa.me` com template configuravel (`content.whatsappTemplate`, quando presente);
+- abre o WhatsApp em nova aba e exibe feedback local de sucesso/erro.
+
+### 14.5 `assets/js/musica.js`
+
+Modulo da pagina de sugestao de musica.
+
+#### Fluxo
+
+- usa `initExtraPage` com `pageKey: 'musica'`;
+- preenche labels/placeholders do formulario;
+- valida campo obrigatorio de nome da musica;
+- constroi URL `wa.me` com dados de musica/artista/observacoes;
+- abre o WhatsApp em nova aba e exibe feedback local de sucesso/erro.
 
 ---
 
@@ -985,6 +1029,28 @@ Permitir carregar, editar e exportar um JSON de configuracao sem depender de IDE
 - edita conteudo por abas;
 - exporta o JSON resultante via download local;
 - indica estado sujo (`isDirty`).
+
+### Abas de conteudo disponiveis
+
+O editor contem abas dedicadas para:
+
+- `Casal & Evento`
+- `Textos Principais`
+- `FAQ`
+- `Nossa Historia`
+- `Hospedagem`
+- `Mensagem ao Casal`
+- `Sugestao de Musica`
+- `Mapa & Galeria`
+- `Presente`
+- `Tema`
+
+As abas `Mensagem ao Casal` e `Sugestao de Musica` permitem editar:
+
+- `enabled`, `cardLabel`, `cardHint`;
+- textos de intro e formulario;
+- placeholders e mensagens de feedback;
+- textos globais de navegacao (`texts.backToHomeButton` e `texts.backToExtrasButton`).
 
 #### Funcoes de infraestrutura mais importantes
 
@@ -1227,7 +1293,25 @@ Pagina extra para convidados de fora, com hospedagem e restaurantes.
 - `assets/js/script.js`
 - `assets/js/hospedagem.js`
 
-### 17.6 `editor.html`
+### 17.6 `mensagem.html`
+
+Pagina extra para convidados deixarem uma mensagem ao casal.
+
+#### Scripts usados
+
+- `assets/js/script.js`
+- `assets/js/mensagem.js`
+
+### 17.7 `musica.html`
+
+Pagina extra para sugestoes de musica para a festa.
+
+#### Scripts usados
+
+- `assets/js/script.js`
+- `assets/js/musica.js`
+
+### 17.8 `editor.html`
 
 Ferramenta administrativa/operacional para edicao do JSON.
 
@@ -1235,7 +1319,7 @@ Ferramenta administrativa/operacional para edicao do JSON.
 
 - `assets/js/editor.js`
 
-### 17.7 `font-preview.html`
+### 17.9 `font-preview.html`
 
 Ferramenta visual para auditar familias tipograficas cadastradas.
 
@@ -1298,6 +1382,7 @@ Inclui:
 - detalhes do evento;
 - labels e placeholders do RSVP;
 - textos da area de presente;
+- textos de navegacao (`backToHomeButton`, `backToExtrasButton`);
 - rotulos de navegacao e rodape.
 
 #### `gift`
@@ -1382,6 +1467,52 @@ Cada item usa:
 - `description`
 - `link`
 - `linkLabel`
+
+#### `pages.mensagem`
+
+Possui `content` com:
+
+- `tag`
+- `title`
+- `intro`
+- `formTitle`
+- `formSubtitle`
+- `nameLabel`
+- `messageLabel`
+- `namePlaceholder`
+- `messagePlaceholder`
+- `submitLabel`
+- `successMessage`
+- `errorMessage`
+
+Opcionalmente pode conter:
+
+- `whatsappTemplate`
+
+#### `pages.musica`
+
+Possui `content` com:
+
+- `tag`
+- `title`
+- `intro`
+- `formTitle`
+- `formSubtitle`
+- `nameLabel`
+- `songLabel`
+- `artistLabel`
+- `notesLabel`
+- `namePlaceholder`
+- `songPlaceholder`
+- `artistPlaceholder`
+- `notesPlaceholder`
+- `submitLabel`
+- `successMessage`
+- `errorMessage`
+
+Opcionalmente pode conter:
+
+- `whatsappTemplate`
 
 #### `pages.presente`
 
@@ -1574,9 +1705,7 @@ Isso facilita debug manual e o consumo pelas paginas extras.
 
 Disparado ao final do bootstrap. E consumido por:
 
-- `historia.js`
-- `faq.js`
-- `hospedagem.js`
+- `extra-page.js` (base das paginas extras: historia, faq, hospedagem, mensagem e musica)
 
 #### Estrutura do payload
 
@@ -1628,6 +1757,11 @@ index.html?section=extras
 
 Assim, o usuario volta para a area de cards extras em vez de voltar ao topo do convite.
 
+Nas paginas `mensagem.html` e `musica.html` existem dois caminhos de retorno:
+
+- `index.html` para voltar ao inicio;
+- `index.html?section=extras` para voltar direto ao bloco de extras.
+
 ---
 
 ## 24. Mapeamento funcional por pagina
@@ -1661,9 +1795,23 @@ Assim, o usuario volta para a area de cards extras em vez de voltar ao topo do c
 
 - cards externos de hotel e restaurante.
 
+### Pagina de mensagem (`mensagem.html`)
+
+- formulario para recado ao casal;
+- validacao local de campo obrigatorio;
+- preparacao de mensagem e abertura de `wa.me`;
+- botoes de retorno para inicio e extras.
+
+### Pagina de musica (`musica.html`)
+
+- formulario para sugestao de musica;
+- validacao local de campo obrigatorio;
+- preparacao de mensagem e abertura de `wa.me`;
+- botoes de retorno para inicio e extras.
+
 ### Editor (`editor.html`)
 
-- manutencao operacional do JSON.
+- manutencao operacional do JSON, incluindo abas dedicadas para `mensagem` e `musica`.
 
 ### Preview tipografico (`font-preview.html`)
 
