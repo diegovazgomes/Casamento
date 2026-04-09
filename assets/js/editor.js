@@ -1482,6 +1482,7 @@ async function loadThemeCatalog() {
       path,
       name: data.meta?.name ?? path,
       description: data.meta?.description ?? '',
+      allColors: data.colors ?? {},
       colors: {
         background: data.colors?.background ?? '#1a1714',
         primary:    data.colors?.primary    ?? '#c9a84c',
@@ -1550,6 +1551,61 @@ async function renderTema() {
   await loadThemeCatalog();
   const cards = themeCatalog.map(t => themeCardHtml(t)).join('');
 
+  const activeTheme = themeCatalog.find((theme) => theme.path === config.activeTheme) || themeCatalog[0] || { allColors: {} };
+
+  function getColorHint({ key, description, aliases = [] }) {
+    const overrideValue = getPath(config, `themeOverrides.colors.${key}`);
+    const aliasKey = aliases.find((alias) => String(getPath(config, `themeOverrides.colors.${alias}`) ?? '').trim());
+    const aliasValue = aliasKey ? getPath(config, `themeOverrides.colors.${aliasKey}`) : '';
+    const themeValue = activeTheme.allColors?.[key] ?? '';
+
+    const currentValue = String(overrideValue ?? '').trim()
+      || String(aliasValue ?? '').trim()
+      || String(themeValue ?? '').trim()
+      || 'sem valor definido';
+
+    const source = String(overrideValue ?? '').trim()
+      ? `override (${key})`
+      : (String(aliasValue ?? '').trim() ? `override legado (${aliasKey})` : 'tema base');
+
+    return `${description} | Atual: ${currentValue} | Origem: ${source}`;
+  }
+
+  const colorsSection = group('Cores (override no site.json)', `
+    <p class="ed-theme-hint">Esses campos sobrescrevem apenas as cores do tema ativo. Cada campo mostra para que serve e qual valor está valendo agora.</p>
+    <div class="ed-subsection">
+      <h4 class="ed-subtitle">Base visual e textos</h4>
+      ${fieldInputRow([
+        { label: 'Fundo geral da página', path: 'themeOverrides.colors.background', placeholder: '#0f0f12', hint: getColorHint({ key: 'background', description: 'Cor principal do fundo do site inteiro' }) },
+        { label: 'Superfície de cards e caixas', path: 'themeOverrides.colors.surface', placeholder: '#1b1b21', hint: getColorHint({ key: 'surface', description: 'Fundos de blocos como cards e painéis' }) },
+        { label: 'Cor de destaque principal', path: 'themeOverrides.colors.primary', placeholder: '#d4af37', hint: getColorHint({ key: 'primary', description: 'Botões, destaques e elementos de chamada' }) },
+      ])}
+      ${fieldInputRow([
+        { label: 'Destaque suave', path: 'themeOverrides.colors.primarySoft', placeholder: 'rgba(212, 175, 55, 0.14)', hint: getColorHint({ key: 'primarySoft', description: 'Variação suave da cor de destaque' }) },
+        { label: 'Texto principal', path: 'themeOverrides.colors.text', placeholder: '#f5f2ea', hint: getColorHint({ key: 'text', description: 'Texto mais importante (títulos e conteúdos)' }) },
+        { label: 'Texto secundário', path: 'themeOverrides.colors.textMuted', placeholder: '#d3c9b2', hint: getColorHint({ key: 'textMuted', description: 'Texto auxiliar e informações secundárias' }) },
+      ])}
+      ${fieldInputRow([
+        { label: 'Texto de apoio discreto', path: 'themeOverrides.colors.textFaint', placeholder: '#aaa08a', hint: getColorHint({ key: 'textFaint', description: 'Texto mais sutil, notas e conteúdos menos importantes' }) },
+        { label: 'Borda padrão', path: 'themeOverrides.colors.border', placeholder: 'rgba(255, 255, 255, 0.22)', hint: getColorHint({ key: 'border', description: 'Bordas principais de cards, inputs e divisores' }) },
+        { label: 'Borda suave', path: 'themeOverrides.colors.borderSoft', placeholder: 'rgba(255, 255, 255, 0.12)', hint: getColorHint({ key: 'borderSoft', description: 'Bordas mais leves e discretas' }) },
+      ])}
+      ${fieldInputRow([
+        { label: 'Escurecimento de fundo em sobreposição', path: 'themeOverrides.colors.overlayBackdrop', placeholder: 'rgba(0, 0, 0, 0.7)', hint: getColorHint({ key: 'overlayBackdrop', description: 'Sombra escura por trás de modais e camadas sobrepostas' }) },
+        { label: 'Fundo de foco do input', path: 'themeOverrides.colors.inputFocusBg', placeholder: 'rgba(212, 175, 55, 0.08)', hint: getColorHint({ key: 'inputFocusBg', description: 'Cor de realce quando o campo de formulário recebe foco', aliases: ['inputBorderFocus'] }) },
+        { label: 'Linha de grade de fundo', path: 'themeOverrides.colors.pageGridLine', placeholder: 'rgba(255, 255, 255, 0.06)', hint: getColorHint({ key: 'pageGridLine', description: 'Linhas decorativas da textura de fundo (quando usadas)' }) },
+      ])}
+    </div>
+    <div class="ed-subsection">
+      <h4 class="ed-subtitle">Botão de áudio</h4>
+      ${fieldInputRow([
+        { label: 'Fundo do botão de áudio', path: 'themeOverrides.colors.audioPanelBg', placeholder: 'rgba(16, 16, 18, 0.72)', hint: getColorHint({ key: 'audioPanelBg', description: 'Fundo do botão flutuante de áudio', aliases: ['audioButtonBg'] }) },
+        { label: 'Fundo ao passar o mouse', path: 'themeOverrides.colors.audioPanelHoverBg', placeholder: 'rgba(24, 24, 26, 0.9)', hint: getColorHint({ key: 'audioPanelHoverBg', description: 'Cor do botão de áudio no hover' }) },
+        { label: 'Borda do botão de áudio', path: 'themeOverrides.colors.audioPanelBorder', placeholder: 'rgba(255, 255, 255, 0.28)', hint: getColorHint({ key: 'audioPanelBorder', description: 'Contorno do botão de áudio', aliases: ['audioButtonBorder'] }) },
+      ])}
+    </div>
+  `);
+
   const typographySection = group('Tipografia (override no site.json)', `
     <p class="ed-theme-hint">Esses campos ajustam fontes e tamanhos sem alterar o arquivo do tema. Deixe em branco para usar o valor padrão do tema selecionado.</p>
     <div class="ed-subsection">
@@ -1601,6 +1657,7 @@ async function renderTema() {
       <p class="ed-theme-hint">Escolha o tema do convite. A seleção é salva ao exportar o site.json.</p>
       <div class="ed-theme-grid">${cards}</div>
     </div>
+    ${colorsSection}
     ${typographySection}`;
 }
 
@@ -1713,6 +1770,7 @@ function getActiveTabPreviewHtml() {
       return `
         <h3 class="ed-preview-title">Tema ativo</h3>
         <p class="ed-preview-meta">${esc(config.activeTheme || '')}</p>
+        <p class="ed-preview-meta">Overrides de cores preenchidos: ${Object.entries(getPath(config, 'themeOverrides.colors') || {}).filter(([, value]) => String(value || '').trim()).length}</p>
         <p class="ed-preview-muted">Prévia simplificada desta aba. Use os cards de tema para o preview visual completo.</p>
       `;
     default:

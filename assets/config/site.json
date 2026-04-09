@@ -276,5 +276,10 @@
         "note": ""
       }
     }
+  },
+  "themeOverrides": {
+    "colors": {
+      "background": "#000000"
+    }
   }
 }
