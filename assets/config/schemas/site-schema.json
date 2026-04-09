@@ -74,6 +74,23 @@
           "type": "string",
           "format": "uri",
           "description": "Link do Google Maps para o local"
+        },
+        "mapEnabled": {
+          "type": "boolean",
+          "description": "Ativa mapa interativo na página de hospedagem"
+        },
+        "venueCoordinates": {
+          "type": "object",
+          "description": "Coordenadas do local para renderização do mapa",
+          "required": ["lat", "lng"],
+          "properties": {
+            "lat": { "type": "number" },
+            "lng": { "type": "number" }
+          }
+        },
+        "venueAddress": {
+          "type": "string",
+          "description": "Endereço textual exibido no popup do mapa"
         }
       }
     },
@@ -207,6 +224,17 @@
                 "tag": { "type": "string" },
                 "title": { "type": "string" },
                 "intro": { "type": "string" },
+                "gallery": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": ["src", "alt"],
+                    "properties": {
+                      "src": { "type": "string" },
+                      "alt": { "type": "string" }
+                    }
+                  }
+                },
                 "chapters": {
                   "type": "array",
                   "items": {

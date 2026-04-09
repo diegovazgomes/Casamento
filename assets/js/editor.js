@@ -90,6 +90,19 @@ async function startEditor(parsed) {
   revalidate();
 }
 
+function downloadJson(filename, payload) {
+  const json = JSON.stringify(payload, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
 function ensureArrayPath(root, path) {
   const current = getPath(root, path);
 
@@ -112,6 +125,7 @@ function ensureArrayPath(root, path) {
 function normalizeListCollections(root) {
   ensureArrayPath(root, 'pages.faq.content.items');
   ensureArrayPath(root, 'pages.historia.content.chapters');
+  ensureArrayPath(root, 'pages.historia.content.gallery');
   ensureArrayPath(root, 'pages.hospedagem.content.hotels');
   ensureArrayPath(root, 'pages.hospedagem.content.restaurants');
 }
@@ -344,22 +358,13 @@ async function exportJson() {
     return;
   }
 
-  const json = JSON.stringify(config, null, 2);
-  const blob = new Blob([json], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'site.json';
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  URL.revokeObjectURL(url);
+  downloadJson('site.json', config);
   markClean();
 }
 
 // ── Field templates (return HTML strings) ─────────────────────────────────────
 
-function fieldInput({ label, path, placeholder = '', hint = '', inputType = 'text' }) {
+function fieldInput({ label, path, placeholder = '', hint = '', inputType = 'text', cast = '' }) {
   const val = esc(getPath(config, path));
   return `
     <div class="ed-field">
@@ -368,6 +373,7 @@ function fieldInput({ label, path, placeholder = '', hint = '', inputType = 'tex
         ${hint ? `<span class="ed-hint">${esc(hint)}</span>` : ''}
       </label>
       <input class="ed-input" type="${esc(inputType)}" data-path="${path}"
+        ${cast ? `data-cast="${esc(cast)}"` : ''}
         value="${val}" placeholder="${esc(placeholder)}">
     </div>`;
 }
@@ -1284,6 +1290,57 @@ function renderHospedagem() {
   return hotelManager + restaurantManager + typography;
 }
 
+function galleryItemHtml(item, i) {
+  return `
+    <div class="ed-list-item">
+      <div class="ed-list-item-header">
+        <span class="ed-list-num">Foto ${i + 1}</span>
+        <button class="ed-btn-remove" data-action="remove-gallery" data-index="${i}" title="Remover">Remover</button>
+      </div>
+      <div class="ed-field">
+        <label class="ed-label">Caminho da imagem</label>
+        <input class="ed-input" type="text"
+          data-list="historia-gallery" data-idx="${i}" data-key="src"
+          value="${esc(item.src)}" placeholder="assets/images/gallery/foto1.png">
+      </div>
+      <div class="ed-field">
+        <label class="ed-label">Texto alternativo (alt)</label>
+        <input class="ed-input" type="text"
+          data-list="historia-gallery" data-idx="${i}" data-key="alt"
+          value="${esc(item.alt)}" placeholder="Descrição da foto">
+      </div>
+    </div>`;
+}
+
+function renderMapaGaleria() {
+  const gallery = config.pages.historia.content.gallery ?? [];
+  const galleryItems = gallery.length
+    ? gallery.map((item, i) => galleryItemHtml(item, i)).join('')
+    : '<p class="ed-empty">Nenhuma foto na galeria. Clique em "+ Adicionar".</p>';
+
+  const mapGroup = group('Mapa da Hospedagem', `
+    ${fieldInput({ label: 'Mapa habilitado (true/false)', path: 'event.mapEnabled', placeholder: 'true', hint: 'Use true para exibir o mapa na página hospedagem.', cast: 'boolean' })}
+    ${fieldInputRow([
+      { label: 'Latitude', path: 'event.venueCoordinates.lat', placeholder: '-23.8545', inputType: 'number', cast: 'number' },
+      { label: 'Longitude', path: 'event.venueCoordinates.lng', placeholder: '-46.5797', inputType: 'number', cast: 'number' },
+    ])}
+    ${fieldInput({ label: 'Endereço do local', path: 'event.venueAddress', placeholder: 'Rodovia Anchieta, SP-150, km 28, São Bernardo do Campo - SP' })}
+    ${fieldInput({ label: 'Link Google Maps', path: 'event.mapsLink', placeholder: 'https://maps.google.com/...', inputType: 'url' })}
+  `);
+
+  const galleryGroup = listGroup({
+    title: 'Galeria da página Nossa História',
+    addAction: 'add-gallery',
+    listId: 'gallery-list',
+    itemsHtml: galleryItems,
+    emptyText: 'Nenhuma foto.',
+  }) + group('Como usar a galeria', `
+    <p class="ed-theme-hint">Todas as fotos da galeria agora ficam dentro do próprio site.json, junto com o restante da configuração. Basta informar o caminho da imagem e o texto alternativo.</p>
+  `);
+
+  return mapGroup + galleryGroup;
+}
+
 // ── Theme tab ─────────────────────────────────────────────────────────────────
 
 const DEFAULT_THEME_FILES = [
@@ -1444,6 +1501,7 @@ const TABS = [
   { id: 'faq',        label: 'FAQ',               render: renderFaq },
   { id: 'historia',   label: 'Nossa História',    render: renderHistoria },
   { id: 'hospedagem', label: 'Hospedagem',        render: renderHospedagem },
+  { id: 'mapa-galeria', label: 'Mapa & Galeria',  render: renderMapaGaleria },
   { id: 'tema',       label: 'Tema',              render: renderTema, async: true },
 ];
 
@@ -1481,9 +1539,17 @@ function bindContentEvents(root) {
 
   // Flat field changes
   root.addEventListener('input', (e) => {
-    const { path, list, idx, key } = e.target.dataset;
+    const { path, list, idx, key, cast } = e.target.dataset;
     if (path) {
-      setConfigValue(path, e.target.value);
+      let value = e.target.value;
+      if (cast === 'number') {
+        value = value.trim() === '' ? '' : Number(value);
+      }
+      if (cast === 'boolean') {
+        const normalized = String(value).trim().toLowerCase();
+        value = normalized === 'true';
+      }
+      setConfigValue(path, value);
       refreshTypographyPreviews(root);
       markDirty();
       debouncedRevalidate();
@@ -1515,6 +1581,7 @@ function listArray(name) {
   return {
     faq:         config.pages.faq.content.items,
     historia:    config.pages.historia.content.chapters,
+    'historia-gallery': config.pages.historia.content.gallery,
     hotels:      config.pages.hospedagem.content.hotels,
     restaurants: config.pages.hospedagem.content.restaurants,
   }[name];
@@ -1538,6 +1605,10 @@ function handleAction(action, index) {
       config.pages.hospedagem.content.restaurants.push({ name: '', description: '', link: '', linkLabel: 'Ver no Maps' }); break;
     case 'remove-restaurants':
       config.pages.hospedagem.content.restaurants.splice(index, 1); break;
+    case 'add-gallery':
+      config.pages.historia.content.gallery.push({ src: '', alt: '' }); break;
+    case 'remove-gallery':
+      config.pages.historia.content.gallery.splice(index, 1); break;
     default: return;
   }
   markDirty();

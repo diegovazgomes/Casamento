@@ -23,7 +23,10 @@
     "locationCity": "São Bernardo do Campo",
     "mapsLink": "https://www.google.com/maps/dir//Ilha+de+Capri+Buffet+Eventos,+Rodovia+Anchieta,+SP-150,+km+28+-+Vila+Balnearia,+S%C3%A3o+Bernardo+do+Campo+-+SP,+09822-250/@-23.6611535,-46.6029821,15z/data=!4m8!4m7!1m0!1m5!1m1!1s0x94ce41794f164f17:0x93eaef9188424c1b!2m2!1d-46.535788!2d-23.767335?entry=ttu&g_ep=EgoyMDI2MDQwMS4wIKXMDSoASAFQAw%3D%3D",
     "mapEnabled": true,
-    "venueCoordinates": { "lat": -23.8545, "lng": -46.5797 },
+    "venueCoordinates": {
+      "lat": -23.8545,
+      "lng": -46.5797
+    },
     "venueAddress": "Rodovia Anchieta, SP-150, km 28, São Bernardo do Campo - SP"
   },
   "texts": {
@@ -104,6 +107,20 @@
         "tag": "Nossa História",
         "title": "Como tudo começou",
         "intro": "Uma história que é nossa, e que a partir de setembro passa a ser de vocês também.",
+        "gallery": [
+          {
+            "src": "assets/images/gallery/foto1.png",
+            "alt": "Foto 1"
+          },
+          {
+            "src": "assets/images/gallery/foto2.png",
+            "alt": "Foto 2"
+          },
+          {
+            "src": "assets/images/gallery/foto3.png",
+            "alt": "Foto 3"
+          }
+        ],
         "chapters": [
           {
             "year": "2013",

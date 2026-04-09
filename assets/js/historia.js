@@ -1,20 +1,9 @@
 import { revealElements, setText } from './utils.js';
 import { initGallery } from './gallery.js';
 
-const GALLERY_INDEX_URL = 'assets/images/gallery/index.json';
-
-async function loadGallery() {
+function loadGallery(images) {
     const section = document.getElementById('historiaGallery');
     if (!section) return;
-
-    let images;
-    try {
-        const res = await fetch(GALLERY_INDEX_URL);
-        if (!res.ok) return;
-        images = await res.json();
-    } catch {
-        return;
-    }
 
     if (!Array.isArray(images) || images.length === 0) return;
 
@@ -46,5 +35,5 @@ window.addEventListener('app:ready', ({ detail }) => {
     renderTimeline(content.chapters);
 
     revealElements('.reveal');
-    loadGallery();
+    loadGallery(content.gallery);
 });

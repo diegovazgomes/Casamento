@@ -86,6 +86,50 @@
             }
         }
     },
+    "pages": {
+        "historia": {
+            "enabled": true,
+            "cardLabel": "Nossa Historia",
+            "cardHint": "Ler nossa historia",
+            "content": {
+                "tag": "Nossa Historia",
+                "title": "Como tudo comecou",
+                "intro": "Uma historia que e nossa, e que a partir de setembro passa a ser de voces tambem.",
+                "gallery": [],
+                "chapters": []
+            }
+        },
+        "faq": {
+            "enabled": true,
+            "cardLabel": "Duvidas Frequentes",
+            "cardHint": "Ver perguntas",
+            "content": {
+                "tag": "FAQ",
+                "title": "Tudo que voce precisa saber",
+                "intro": "",
+                "items": []
+            }
+        },
+        "hospedagem": {
+            "enabled": true,
+            "cardLabel": "Para Quem Vem de Fora",
+            "cardHint": "Ver opcoes",
+            "content": {
+                "tag": "Para Quem Vem de Fora",
+                "title": "Fique a vontade para explorar",
+                "intro": "",
+                "hotelsTitle": "Hospedagem",
+                "hotels": [],
+                "restaurantsTitle": "Restaurantes",
+                "restaurants": []
+            }
+        },
+        "presente": {
+            "enabled": true,
+            "cardLabel": "Lista de Presentes",
+            "cardHint": "Ver opcoes"
+        }
+    },
     "whatsapp": {
         "destinationPhone": "5511914772174",
         "recipientName": "Siannah",

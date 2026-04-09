@@ -1053,7 +1053,7 @@ ES Module. Exporta `initGallery(containerId, images)`.
 #### Parametros
 
 - `containerId`: ID do elemento container no DOM.
-- `images`: array de `{ src, alt }` carregado de `assets/images/gallery/index.json`.
+- `images`: array de `{ src, alt }` carregado de `config.pages.historia.content.gallery`.
 
 #### Comportamento
 
@@ -1066,9 +1066,9 @@ ES Module. Exporta `initGallery(containerId, images)`.
 #### Como habilitar a galeria
 
 1. Coloque as fotos em `assets/images/gallery/`.
-2. Edite `assets/images/gallery/index.json` com a lista:
+2. Em `site.json`, dentro de `pages.historia.content.gallery`, adicione a lista:
 	 ```json
-	 [
+	 "gallery": [
 		 { "src": "assets/images/gallery/foto1.jpg", "alt": "Descricao da foto 1" },
 		 { "src": "assets/images/gallery/foto2.jpg", "alt": "Descricao da foto 2" }
 	 ]
@@ -1077,12 +1077,12 @@ ES Module. Exporta `initGallery(containerId, images)`.
 
 #### Como desabilitar
 
-Esvazie o `index.json` para `[]` ou remova o arquivo. A galeria desaparece sem erros.
+Esvazie `pages.historia.content.gallery` para `[]`. A galeria desaparece sem erros.
 
 #### Integracao
 
-- Importado e chamado por `historia.js` via `loadGallery()`.
-- A secao `#historiaGallery` em `historia.html` tem `hidden` por padrao e so e revelada quando `index.json` retorna ao menos 1 imagem.
+- Importado e chamado por `historia.js` via `loadGallery(content.gallery)`.
+- A secao `#historiaGallery` em `historia.html` tem `hidden` por padrao e so e revelada quando `content.gallery` retorna ao menos 1 imagem.
 
 ### 16.2 `assets/js/map.js`
 

@@ -1,0 +1,218 @@
+# Regras de Implementação — Convite de Casamento Siannah & Diego
+# Leia este arquivo inteiro antes de qualquer implementação.
+
+---
+
+## IDENTIDADE DO PROJETO
+
+Este é um site estático de convite de casamento sem framework, sem build step e sem gerenciador de dependências.
+Toda a lógica roda no navegador com HTML, CSS, JavaScript (ES Modules) e JSON de configuração.
+
+Arquivos centrais:
+- `assets/js/script.js` → entry point e orquestrador principal
+- `assets/config/site.json` → fonte de verdade de todo conteúdo
+- `assets/config/themes/*.json` → definição visual por tema
+- `assets/config/typography.json` → famílias tipográficas disponíveis
+- `editor.html` + `assets/js/editor.js` → painel de edição visual do site.json
+- `ROADMAP.md` → checklist de progresso do projeto
+
+---
+
+## REGRA PRINCIPAL — OBRIGATÓRIA EM TODA IMPLEMENTAÇÃO
+
+Antes de escrever qualquer linha de código, responda mentalmente:
+
+1. O conteúdo que estou adicionando vem do `site.json`?
+2. O campo correspondente existe no `editor.html`?
+3. O padrão segue a convenção já existente no projeto?
+4. Um segundo casal poderia usar isso sem reescrever o código?
+5. Os espaçamentos estão corretos e consistentes com o restante da UI?
+
+Se qualquer resposta for NÃO, ajuste antes de implementar.
+
+---
+
+## 1. ESCALABILIDADE — SEMPRE
+
+- NUNCA hardcode conteúdo no HTML. Nomes, datas, textos, links, imagens → tudo via `site.json`.
+- NUNCA use valores mágicos no CSS sem variável CSS correspondente.
+- SEMPRE pense: "Se outro casal usar este projeto, o que precisaria mudar?" — essa mudança deve ser apenas no `site.json`, não no código.
+- SEMPRE use o sistema de merge existente (`mergeDeep`) para sobrescritas de tema.
+- SEMPRE que adicionar um novo tipo de página extra, seguir o padrão de `historia.js`, `faq.js` e `hospedagem.js`.
+- SEMPRE que adicionar configuração nova, incluir valor padrão sensato em `DEFAULT_SITE_CONTENT` dentro de `script.js`.
+
+---
+
+## 2. EDITABILIDADE — PAINEL EDITOR
+
+Toda funcionalidade nova DEVE ter campo correspondente no `editor.html`.
+
+Checklist obrigatório ao adicionar qualquer campo novo ao `site.json`:
+
+- [ ] Campo adicionado ao `site.json` com valor padrão
+- [ ] Campo adicionado ao `DEFAULT_SITE_CONTENT` em `script.js`
+- [ ] Campo renderizado na aba correta do `editor.html`
+- [ ] Campo tem label claro e descritivo (não o nome técnico da chave)
+- [ ] Campo tem placeholder explicativo quando aplicável
+- [ ] Campo tem validação básica (vazio, tipo, formato de URL, etc.)
+
+Exemplos de como nomear labels no editor:
+- `pixKey` → "Chave Pix do casal"
+- `heroImage` → "Foto principal do casal (URL)"
+- `cardPaymentLink` → "Link de pagamento por cartão (Mercado Pago)"
+- `gallery[].src` → "URL da foto"
+- `gallery[].caption` → "Legenda da foto"
+
+---
+
+## 3. ESPAÇAMENTO E UI — ATENÇÃO REDOBRADA
+
+Este é um ponto crítico. Erros de espaçamento destroem a experiência premium do convite.
+
+### Regras de espaçamento:
+
+- Seções principais: `padding: 100px 24px` no desktop, `padding: 60px 20px` no mobile
+- Entre título e subtítulo de seção: `margin-bottom: 16px`
+- Entre subtítulo e corpo de seção: `margin-bottom: 40px`
+- Entre itens de lista ou cards: mínimo `gap: 16px`, preferencial `gap: 24px`
+- Entre seções inteiras: mínimo `margin-bottom: 80px`
+- Padding interno de cards: `padding: 36px 28px` no desktop, `padding: 24px 20px` no mobile
+- Padding interno de botões: `padding: 14px 32px` para botão normal, `padding: 18px 40px` para botão primário
+
+### Regras tipográficas:
+
+- Tags de seção (ex: "PRESENTE", "FAQ"): `font-size: 10px`, `letter-spacing: 6px`, `text-transform: uppercase`
+- Títulos de seção: `font-family: 'Cormorant Garamond'`, `font-size: clamp(32px, 5vw, 52px)`, `font-weight: 300`
+- Corpo de texto: `font-size: 15px`, `line-height: 1.85`, `font-weight: 300`
+- Labels de card: `font-size: 9px`, `letter-spacing: 5px`, `text-transform: uppercase`
+- Nunca use `font-size` abaixo de `9px`
+- Nunca use `line-height` abaixo de `1.4` em textos corridos
+
+### Responsividade obrigatória:
+
+- SEMPRE adicionar media query `@media (max-width: 767px)` para qualquer novo componente
+- Em mobile: reduzir padding, empilhar grids, aumentar line-height para legibilidade
+- Testar mentalmente: "Isso funciona num iPhone SE (375px de largura)?"
+
+---
+
+## 4. CONVENÇÕES DE CÓDIGO
+
+### JavaScript:
+- SEMPRE usar ES Modules (`import`/`export`) — sem CommonJS
+- NUNCA usar `var` — usar `const` e `let`
+- Funções utilitárias repetidas (ex: `setText()`) DEVEM vir de `assets/js/utils.js`
+- NUNCA duplicar funções que já existem em outro arquivo
+- Novos módulos de página DEVEM seguir o padrão: esperar `app:ready`, ler `detail.config`, preencher DOM
+- SEMPRE adicionar `try/catch` em operações de `fetch()` e `localStorage`/`sessionStorage`
+
+### CSS:
+- SEMPRE usar variáveis CSS (`var(--gold)`, `var(--cream)`, etc.) — nunca valores hardcoded de cor
+- NUNCA usar `!important` sem justificativa explícita em comentário
+- Classes de estado: `.is-open`, `.is-visible`, `.is-active`, `.is-loaded`
+- Classes de animação: `.reveal`, `.visible`, `.fade-in`
+- SEMPRE usar `transition` em elementos interativos (hover, focus)
+- SEMPRE incluir `outline` acessível em elementos focáveis
+
+### HTML:
+- SEMPRE incluir `aria-label` em botões sem texto descritivo
+- SEMPRE incluir `alt` em imagens
+- NUNCA usar `<table>` para layout
+- IDs são para JavaScript (`#rsvp-name`), classes são para CSS (`.rsvp-input`)
+- Seguir nomenclatura existente: `section-tag`, `section-title`, `section-body`
+
+---
+
+## 5. GALERIA (gallery.js) — INTEGRADO
+
+O módulo `gallery.js` exporta a classe `Gallery`. Regras de uso:
+
+- Imagens DEVEM vir de `site.json` em `pages.historia.content.gallery[]`
+- Cada item da galeria tem: `src`, `caption`, `alt`
+- O componente de galeria é inicializado via evento `app:ready`
+- Suporta: navegação por setas, dots, teclado (←→), autoplay opcional
+- Autoplay configurável via `site.json`: `gallery.autoplay: true/false`, `gallery.interval: 4000`
+- SEMPRE incluir fallback visual quando `gallery[]` estiver vazio
+
+Campos esperados em `site.json`:
+```json
+"pages": {
+  "historia": {
+    "content": {
+      "gallery": [
+        { "src": "URL_DA_FOTO", "caption": "Legenda", "alt": "Descrição acessível" }
+      ],
+      "galleryAutoplay": false,
+      "galleryInterval": 5000
+    }
+  }
+}
+```
+
+---
+
+## 6. MAPA (map.js) — INTEGRADO
+
+O módulo `map.js` exporta a classe `WeddingMap` baseada em Leaflet. Regras de uso:
+
+- Coordenadas DEVEM vir de `site.json` em `event.coordinates`
+- Leaflet DEVE ser carregado via CDN no HTML da página que usa o mapa
+- O mapa renderiza no elemento `#map`
+- Link "Abrir no Google Maps" usa `event.mapsLink` do `site.json`
+- SEMPRE definir altura do `#map` via CSS antes de inicializar
+
+Campos esperados em `site.json`:
+```json
+"event": {
+  "coordinates": { "lat": -23.5505, "lng": -46.6333 },
+  "mapsLink": "https://maps.google.com/...",
+  "locationName": "Nome do espaço",
+  "locationCity": "São Paulo · SP"
+}
+```
+
+---
+
+## 7. PRESENTES — ESTRUTURA ESPERADA
+
+```json
+"gift": {
+  "pixKey": "chave@pix.com",
+  "pixQrImage": "assets/images/qr-pix.png",
+  "cardPaymentLink": "https://mpago.la/xxxxx",
+  "cardPaymentEnabled": true
+}
+```
+
+- Bloco de cartão só renderiza se `cardPaymentEnabled: true`
+- Botão de cartão abre `cardPaymentLink` em nova aba (`target="_blank"`)
+
+---
+
+## 8. APÓS CADA IMPLEMENTAÇÃO — OBRIGATÓRIO
+
+1. Atualizar `ROADMAP.md`:
+   - Marcar item como `[x]` se concluído
+   - Adicionar nota com o que foi feito e data
+   - Se surgiram novos itens durante a implementação, adicionar em "Descobertas"
+
+2. Verificar:
+   - O `site.json` tem o novo campo com valor padrão?
+   - O `editor.html` tem o campo correspondente?
+   - O `DEFAULT_SITE_CONTENT` em `script.js` foi atualizado?
+   - Os espaçamentos estão consistentes com o restante da UI?
+   - Funciona em mobile (viewport 375px)?
+
+3. Nunca deixar `console.log()` de debug no código final. Usar `console.warn()` para avisos reais.
+
+---
+
+## 9. O QUE NUNCA FAZER
+
+- NUNCA reescrever `script.js` inteiro — é o coração do sistema
+- NUNCA remover o sistema de fallback (`DEFAULT_THEME`, `DEFAULT_SITE_CONTENT`)
+- NUNCA quebrar o evento `app:ready` — todas as páginas extras dependem dele
+- NUNCA usar `document.write()`
+- NUNCA usar `innerHTML` com conteúdo vindo diretamente do usuário sem sanitização
+- NUNCA criar dependência de biblioteca externa sem discutir primeiro
+- NUNCA hardcodar textos em português dentro do JavaScript — sempre via `site.json`
