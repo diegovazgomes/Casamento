@@ -1,3 +1,8 @@
+---
+name: criar_tema
+description: Cria um novo tema visual no projeto de convite de casamento. Use quando o usuário pedir para criar, duplicar ou adicionar um novo tema em assets/config/themes/.
+---
+
 # Guia Rapido: Como Criar um Novo Tema
 
 Este guia explica como criar um novo tema no projeto e quais arquivos precisam ser alterados.
