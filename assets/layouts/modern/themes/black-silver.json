@@ -1,0 +1,164 @@
+{
+  "meta": {
+    "name": "Black Silver",
+    "description": "Tema ultra escuro com acentos prata para o layout modern"
+  },
+  "colors": {
+    "background": "#0a0a0a",
+    "surface": "#111111",
+    "surfaceSoft": "rgba(255,255,255,0.03)",
+    "primary": "#c0c0c0",
+    "primarySoft": "#e8e8e8",
+    "text": "#cccccc",
+    "textMuted": "rgba(200,200,200,0.5)",
+    "textSoft": "rgba(200,200,200,0.55)",
+    "textDim": "rgba(200,200,200,0.38)",
+    "textFaint": "rgba(200,200,200,0.3)",
+    "textPlaceholder": "rgba(200,200,200,0.3)",
+    "border": "rgba(192,192,192,0.14)",
+    "borderSoft": "rgba(192,192,192,0.1)",
+    "borderStrong": "rgba(192,192,192,0.32)",
+    "goldSurfaceSoft": "rgba(192,192,192,0.04)",
+    "goldSurface": "rgba(192,192,192,0.07)",
+    "goldSurfaceStrong": "rgba(192,192,192,0.12)",
+    "primaryGlow": "rgba(192,192,192,0.08)",
+    "pageGridLine": "rgba(255,255,255,0.01)",
+    "overlayBackdrop": "rgba(0,0,0,0.85)",
+    "audioPanelBg": "rgba(8,8,8,0.72)",
+    "audioPanelHoverBg": "rgba(8,8,8,0.88)",
+    "audioPanelBorder": "rgba(192,192,192,0.2)",
+    "pulseRing": "rgba(192,192,192,0.4)",
+    "pulseRingSpread": "rgba(192,192,192,0)",
+    "inputFocusBg": "rgba(255,255,255,0.05)"
+  },
+  "typography": {
+    "roles": {
+      "heroTitle": {
+        "family": "jost",
+        "size": { "min": "48px", "fluid": "10vw", "max": "96px" },
+        "weight": 700,
+        "lineHeight": 1.0,
+        "style": "normal"
+      },
+      "heroSubtitle": {
+        "family": "jost",
+        "size": "10px",
+        "weight": 300,
+        "lineHeight": 1.4,
+        "style": "normal"
+      },
+      "eyebrow": {
+        "family": "jost",
+        "size": "10px",
+        "weight": 400,
+        "textTransform": "uppercase",
+        "letterSpacing": "0.05em",
+        "lineHeight": 1.2,
+        "style": "normal"
+      },
+      "sectionTitle": {
+        "family": "cormorant_garamond",
+        "size": { "min": "32px", "fluid": "6vw", "max": "52px" },
+        "weight": 300,
+        "lineHeight": 1.2,
+        "style": "normal"
+      },
+      "sectionSubtitle": {
+        "family": "jost",
+        "size": "12px",
+        "weight": 300,
+        "lineHeight": 1.5,
+        "style": "normal"
+      },
+      "body": {
+        "family": "jost",
+        "size": "13px",
+        "weight": 300,
+        "lineHeight": 1.6,
+        "style": "normal"
+      },
+      "formLabel": {
+        "family": "jost",
+        "size": "10px",
+        "weight": 400,
+        "lineHeight": 1.4,
+        "style": "normal"
+      },
+      "button": {
+        "family": "jost",
+        "size": "10px",
+        "weight": 500,
+        "letterSpacing": "0.04em",
+        "lineHeight": 1.2,
+        "style": "normal"
+      },
+      "countdownNumber": {
+        "family": "cormorant_garamond",
+        "size": "40px",
+        "weight": 300,
+        "lineHeight": 1,
+        "style": "normal"
+      },
+      "footer": {
+        "family": "cormorant_garamond",
+        "size": "22px",
+        "weight": 300,
+        "lineHeight": 1.4,
+        "style": "italic"
+      }
+    },
+    "fonts": {
+      "primary": "'Jost', sans-serif",
+      "serif": "'Cormorant Garamond', serif",
+      "accent": "'Jost', sans-serif"
+    }
+  },
+  "radius": {
+    "card": "4px",
+    "button": "2px"
+  },
+  "effects": {
+    "shadowSoft": "0 20px 60px rgba(0,0,0,0.5)",
+    "shadowHover": "0 8px 24px rgba(0,0,0,0.4)",
+    "textShadowStrong": "0 4px 20px rgba(0,0,0,0.6)",
+    "textShadowSoft": "0 2px 12px rgba(0,0,0,0.5)",
+    "focusRing": "0 0 0 2px rgba(192,192,192,0.2)",
+    "transition": "all 0.25s ease",
+    "pageGradient": "linear-gradient(180deg, #0a0a0a 0%, #0a0a0a 100%)",
+    "introBackdropGradient": "linear-gradient(180deg, rgba(0,0,0,0.97) 0%, rgba(6,6,6,0.97) 45%, rgba(10,10,10,0.98) 100%)",
+    "introCardGradient": "linear-gradient(180deg, rgba(255,255,255,0.02), rgba(192,192,192,0.02))",
+    "buttonFillGradient": "linear-gradient(135deg, rgba(192,192,192,0.95), rgba(232,232,232,0.95))",
+    "heroOverlayGradient": "linear-gradient(to right, #0a0a0a 0%, #0a0a0a 42%, rgba(0,0,0,0) 68%)",
+    "overlayPanelGradient": "linear-gradient(180deg, rgba(5,5,5,0.98) 0%, rgba(12,12,12,0.98) 100%)",
+    "overlayCloseGradient": "linear-gradient(180deg, rgba(5,5,5,0.92), rgba(5,5,5,0))",
+    "rsvpPanelGradient": "linear-gradient(135deg, rgba(192,192,192,0.03), rgba(192,192,192,0.01))",
+    "giftPanelGradient": "linear-gradient(135deg, rgba(192,192,192,0.04), rgba(255,255,255,0.01))"
+  },
+  "animation": {
+    "fadeDuration": "0.7s",
+    "staggerDelay": "0.08s",
+    "heroFadeDuration": "1.2s",
+    "heroRevealDelayMs": 280
+  },
+  "countdown": {
+    "format": "two-digits",
+    "updateInterval": 1000
+  },
+  "responsive": {
+    "mobile": {
+      "typography": {
+        "sizes": {
+          "base": "12px",
+          "heroNames": { "min": "36px", "fluid": "10vw", "max": "56px" }
+        }
+      },
+      "layout": {
+        "heroHeight": "680px"
+      },
+      "animation": {
+        "heroFadeDuration": "1.8s",
+        "heroRevealDelayMs": 800
+      }
+    }
+  }
+}

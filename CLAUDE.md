@@ -175,6 +175,20 @@ Isso torna o projeto relativamente facil de portar para outro casal, outro event
 │   │   ├── style.css
 │   │   ├── animations.css
 │   │   └── fonts.css
+│   ├── layouts/
+│   │   ├── classic/
+│   │   │   ├── layout.css
+│   │   │   └── themes/
+│   │   │       ├── classic-gold.json
+│   │   │       ├── classic-gold-light.json
+│   │   │       ├── classic-silver.json
+│   │   │       ├── classic-silver-light.json
+│   │   │       ├── classic-purple.json
+│   │   │       └── classic-blue.json
+│   │   └── modern/
+│   │       ├── layout.css
+│   │       └── themes/
+│   │           └── black-silver.json
 │   ├── images/
 │   │   ├── couple/
 │   │   ├── gallery/
@@ -274,6 +288,64 @@ O tema efetivo aplicado ao site e construido assim:
 Se os arquivos de defaults falharem no carregamento, `script.js` ainda possui um fallback minimo inline para evitar quebra total do bootstrap.
 
 Essa pipeline e uma das partes mais importantes da arquitetura.
+
+### 6.5 Pipeline de resolucao de layout
+
+Antes da resolucao de tema, o sistema resolve o layout:
+
+1. `config.activeLayout` (ou fallback `ACTIVE_LAYOUT_KEY = 'classic'`)
+2. `loadLayout(layoutKey)` injeta `<link rel="stylesheet" href="assets/layouts/{layout}/layout.css">` no `<head>`
+3. `resolveThemePath(activeTheme, layoutKey)` decide o caminho do tema:
+   - se `activeTheme` começa com `assets/`: caminho legado, usado diretamente
+   - caso contrario: `assets/layouts/{layout}/themes/{activeTheme}.json`
+
+O CSS de layout e carregado dinamicamente apos `style.css` e `animations.css`, garantindo maior prioridade na cascata.
+
+---
+
+## 6.6 Sistema de layouts
+
+### Conceito
+
+Layouts definem estrutura visual (disposicao do hero, grid, tipografia com personalidade). Temas definem cores e fontes. Sao dois niveis independentes e compostos.
+
+### Layouts disponiveis
+
+| Layout | Descricao | Pasta |
+|--------|-----------|-------|
+| `classic` | Visual atual: hero centralizado, tipografia caligrafica, ornamentos | `assets/layouts/classic/` |
+| `modern` | Hero dividido 50/50, texto a esquerda, tipografia sans-serif, minimalista | `assets/layouts/modern/` |
+
+### Estrutura de pastas por layout
+
+```text
+assets/layouts/
+  classic/
+    layout.css          ← CSS estrutural do layout classic
+    themes/
+      classic-gold.json
+      classic-gold-light.json
+      classic-silver.json
+      classic-silver-light.json
+      classic-purple.json
+      classic-blue.json
+  modern/
+    layout.css          ← CSS estrutural do layout modern
+    themes/
+      black-silver.json
+```
+
+### Campo `activeLayout` no `site.json`
+
+```json
+"activeLayout": "classic"
+```
+
+Valores aceitos: `"classic"` | `"modern"`. Padrao: `"classic"`.
+
+### Compatibilidade de chaves de override
+
+`getThemeOverrideKey()` no `editor.js` extrai o nome do arquivo sem `.json`. Os arquivos de tema dentro de `assets/layouts/classic/themes/` tem os mesmos nomes que os originais em `assets/config/themes/` (ex: `classic-purple.json`). Isso garante que as chaves em `themeOverridesByTheme` (ex: `"classic-purple"`) continuem funcionando sem migracao de dados.
 
 ---
 

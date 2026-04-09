@@ -5,6 +5,12 @@
   "type": "object",
   "required": ["activeTheme", "couple", "event", "texts", "gift", "media", "pages", "whatsapp"],
   "properties": {
+    "activeLayout": {
+      "type": "string",
+      "enum": ["classic", "modern"],
+      "default": "classic",
+      "description": "Layout visual ativo — define a estrutura do convite"
+    },
     "activeTheme": {
       "type": "string",
       "description": "Caminho do arquivo JSON do tema ativo"

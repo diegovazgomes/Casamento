@@ -671,6 +671,59 @@
       line-height: 1.6;
     }
 
+    .ed-layout-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-bottom: 4px;
+    }
+    .ed-layout-card {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      padding: 14px 16px;
+      border-radius: 10px;
+      border: 2px solid #e5ddd4;
+      background: #faf8f5;
+      cursor: pointer;
+      text-align: left;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      font-family: inherit;
+    }
+    .ed-layout-card:hover {
+      border-color: #a09088;
+      box-shadow: 0 4px 14px rgba(42, 36, 32, 0.1);
+    }
+    .ed-layout-card.is-active {
+      border-color: #2a2420;
+      background: #f5f0ea;
+      box-shadow: 0 4px 14px rgba(42, 36, 32, 0.12);
+    }
+    .ed-layout-card__name {
+      font-size: 13px;
+      font-weight: 600;
+      color: #2a2420;
+    }
+    .ed-layout-card__desc {
+      font-size: 11px;
+      color: #8a7a6e;
+      line-height: 1.4;
+    }
+    .ed-layout-card__badge {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      font-size: 9px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #fff;
+      background: #2a2420;
+      border-radius: 4px;
+      padding: 2px 6px;
+    }
+
     .ed-theme-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);

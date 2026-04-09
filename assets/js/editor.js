@@ -1555,7 +1555,22 @@ const DEFAULT_THEME_FILES = [
   'assets/config/themes/classic-gold-light.json',
   'assets/config/themes/classic-silver.json',
   'assets/config/themes/classic-silver-light.json',
-'assets/config/themes/classic-purple.json',
+  'assets/config/themes/classic-purple.json',
+];
+
+const LAYOUT_DEFINITIONS = [
+  {
+    key: 'classic',
+    name: 'Classic',
+    description: 'Hero centralizado, seções empilhadas, elegante e formal com tipografia mista.',
+    themePrefix: 'assets/layouts/classic/themes/',
+  },
+  {
+    key: 'modern',
+    name: 'Modern',
+    description: 'Hero dividido com foto à direita, títulos à esquerda, minimalista e sans-serif.',
+    themePrefix: 'assets/layouts/modern/themes/',
+  },
 ];
 
 const THEME_COLOR_SECTIONS = [
@@ -1589,10 +1604,20 @@ const THEME_COLOR_SECTIONS = [
 let themeCatalog = [];  // [{ path, meta, colors, fonts }]
 
 function getThemeFiles() {
-  if (Array.isArray(config?.themeFiles) && config.themeFiles.length > 0) {
-    return config.themeFiles;
+  const allFiles = Array.isArray(config?.themeFiles) && config.themeFiles.length > 0
+    ? config.themeFiles
+    : DEFAULT_THEME_FILES;
+
+  const activeLayout = config?.activeLayout;
+  if (activeLayout) {
+    const layoutDef = LAYOUT_DEFINITIONS.find(l => l.key === activeLayout);
+    if (layoutDef) {
+      const layoutThemes = allFiles.filter(f => f.startsWith(layoutDef.themePrefix));
+      if (layoutThemes.length > 0) return layoutThemes;
+    }
   }
-  return DEFAULT_THEME_FILES;
+
+  return allFiles;
 }
 
 async function loadThemeCatalog() {
@@ -1671,7 +1696,31 @@ function themeCardHtml(theme) {
     </div>`;
 }
 
+function layoutSelectorHtml() {
+  const activeLayout = config?.activeLayout || 'classic';
+  const cards = LAYOUT_DEFINITIONS.map(layout => {
+    const isActive = layout.key === activeLayout;
+    return `
+      <button
+        class="ed-layout-card${isActive ? ' is-active' : ''}"
+        data-select-layout="${esc(layout.key)}"
+        aria-pressed="${isActive}"
+        title="${esc(layout.description)}"
+      >
+        <span class="ed-layout-card__name">${esc(layout.name)}</span>
+        <span class="ed-layout-card__desc">${esc(layout.description)}</span>
+        ${isActive ? '<span class="ed-layout-card__badge">Ativo</span>' : ''}
+      </button>
+    `;
+  }).join('');
+  return group('Modelo visual', `
+    <p class="ed-theme-hint">O modelo visual define a estrutura e disposição dos elementos do convite. Alterar o modelo recarrega a lista de temas disponíveis.</p>
+    <div class="ed-layout-grid">${cards}</div>
+  `);
+}
+
 async function renderTema() {
+  themeCatalog = [];
   await loadThemeCatalog();
   const cards = themeCatalog.map(t => themeCardHtml(t)).join('');
 
@@ -1783,6 +1832,7 @@ async function renderTema() {
   `);
 
   return `
+    ${layoutSelectorHtml()}
     <div class="ed-group">
       <h3 class="ed-group-title">Tema Visual</h3>
       <p class="ed-theme-hint">Escolha o tema do convite. A seleção é salva ao exportar o site.json.</p>
@@ -2000,6 +2050,16 @@ function bindContentEvents(root) {
   root.addEventListener('click', (e) => {
     const btn = e.target.closest('[data-action]');
     if (btn) handleAction(btn.dataset.action, btn.dataset.index !== undefined ? parseInt(btn.dataset.index) : null);
+
+    // Layout selection
+    const layoutBtn = e.target.closest('[data-select-layout]');
+    if (layoutBtn) {
+      setConfigValue('activeLayout', layoutBtn.dataset.selectLayout);
+      themeCatalog = [];
+      markDirty();
+      renderActiveTab();
+      debouncedRevalidate();
+    }
 
     // Theme selection
     const themeBtn = e.target.closest('[data-select-theme]');

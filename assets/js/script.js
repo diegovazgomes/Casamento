@@ -14,6 +14,9 @@ const NAVIGATION_SECTION_PARAM = 'section';
 // Temas disponíveis: classic-gold.json, classic-silver.json
 const ACTIVE_THEME_PATH = 'assets/config/themes/classic-silver-light.json';
 
+// Layout padrão quando site.json não define activeLayout
+const ACTIVE_LAYOUT_KEY = 'classic';
+
 const DEFAULT_THEME_URL         = 'assets/config/defaults/theme.json';
 const DEFAULT_SITE_CONTENT_URL  = 'assets/config/defaults/site.json';
 
@@ -909,11 +912,33 @@ class InvitationExperience {
     }
 }
 
+async function loadLayout(layoutKey) {
+    return new Promise((resolve) => {
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = `assets/layouts/${layoutKey}/layout.css`;
+        link.onload = resolve;
+        link.onerror = () => {
+            console.warn(`Layout "${layoutKey}" não encontrado. Usando classic.`);
+            resolve();
+        };
+        document.head.appendChild(link);
+    });
+}
+
+function resolveThemePath(activeTheme, layoutKey) {
+    if (!activeTheme) return null;
+    if (activeTheme.startsWith('assets/')) return activeTheme; // formato legado
+    return `assets/layouts/${layoutKey}/themes/${activeTheme}.json`;
+}
+
 async function bootstrap() {
     try {
         await loadDefaults();
         const config = await loadConfig();
-        const themePath = config.activeTheme ?? ACTIVE_THEME_PATH;
+        const layoutKey = config.activeLayout || ACTIVE_LAYOUT_KEY;
+        await loadLayout(layoutKey);
+        const themePath = resolveThemePath(config.activeTheme, layoutKey) ?? ACTIVE_THEME_PATH;
         const [theme, typographyConfig] = await Promise.all([
             loadTheme(themePath),
             loadTypographyConfig()

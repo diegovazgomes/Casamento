@@ -1,5 +1,6 @@
 {
-  "activeTheme": "assets/config/themes/classic-green-light.json",
+  "activeLayout": "classic",
+  "activeTheme": "assets/layouts/classic/themes/classic-silver.json",
   "themeFiles": [
     "assets/config/themes/classic-gold.json",
     "assets/config/themes/classic-gold-light.json",
@@ -7,7 +8,13 @@
     "assets/config/themes/classic-silver-light.json",
     "assets/config/themes/classic-purple.json",
     "assets/config/themes/classic-blue.json",
-    "assets/config/themes/classic-green-light.json"
+    "assets/config/themes/classic-green-light.json",
+    "assets/layouts/classic/themes/classic-gold.json",
+    "assets/layouts/classic/themes/classic-gold-light.json",
+    "assets/layouts/classic/themes/classic-silver.json",
+    "assets/layouts/classic/themes/classic-silver-light.json",
+    "assets/layouts/classic/themes/classic-purple.json",
+    "assets/layouts/classic/themes/classic-blue.json"
   ],
   "couple": {
     "names": "Siannah & Diego",
@@ -286,7 +293,8 @@
       }
     },
     "classic-blue": {},
-    "classic-green-light": {}
+    "classic-green-light": {},
+    "classic-silver": {}
   },
   "themeOverrides": {}
 }

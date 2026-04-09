@@ -268,6 +268,8 @@
 ## DESCOBERTAS
 > Itens identificados durante implementações que não estavam no plano original.
 
+- **[2026-04-09]** Sistema de layouts implementado: `style.css` dividido em base compartilhada + `assets/layouts/{layout}/layout.css`; layouts `classic` e `modern` criados; `loadLayout()` e `resolveThemePath()` adicionados ao `script.js`; campo `activeLayout` adicionado ao `site.json` e ao schema; seletor de layout adicionado ao editor visual.
+- **[2026-04-09]** Decisão de nomes de arquivos de tema: mantidos iguais ao legado dentro de `assets/layouts/classic/themes/` para preservar chaves de override existentes em `themeOverridesByTheme`.
 - **[2026-04-09]** `gallery.js` e `map.js` saíram do estado "adormecido" e foram integrados ao produto.
 - **[2026-04-09]** A galeria foi simplificada: saiu de um arquivo externo `index.json` e passou a viver diretamente em `pages.historia.content.gallery` no `site.json`.
 - **[2026-04-09]** O editor visual ganhou a aba `Mapa & Galeria`, reduzindo edição manual de JSON.
@@ -282,7 +284,7 @@
 | Decisão | Contexto | Urgência |
 |---------|----------|----------|
 | Infraestrutura de backend | Necessária para Fase 3 | Antes de iniciar Fase 3 |
-| Modelo visual único vs. múltiplos layouts | Hoje só existe 1 layout HTML | Antes de criar novos modelos |
+| ~~Modelo visual único vs. múltiplos layouts~~ | ✅ Resolvido em 2026-04-09: sistema de layouts implementado com `classic` e `modern` | — |
 
 ---
 
