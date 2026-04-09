@@ -21,7 +21,10 @@
     "timezone": "Horário de Brasília",
     "locationName": "Mansão Ilha de Capri",
     "locationCity": "São Bernardo do Campo",
-    "mapsLink": "https://www.google.com/maps/dir//Ilha+de+Capri+Buffet+Eventos,+Rodovia+Anchieta,+SP-150,+km+28+-+Vila+Balnearia,+S%C3%A3o+Bernardo+do+Campo+-+SP,+09822-250/@-23.6611535,-46.6029821,15z/data=!4m8!4m7!1m0!1m5!1m1!1s0x94ce41794f164f17:0x93eaef9188424c1b!2m2!1d-46.535788!2d-23.767335?entry=ttu&g_ep=EgoyMDI2MDQwMS4wIKXMDSoASAFQAw%3D%3D"
+    "mapsLink": "https://www.google.com/maps/dir//Ilha+de+Capri+Buffet+Eventos,+Rodovia+Anchieta,+SP-150,+km+28+-+Vila+Balnearia,+S%C3%A3o+Bernardo+do+Campo+-+SP,+09822-250/@-23.6611535,-46.6029821,15z/data=!4m8!4m7!1m0!1m5!1m1!1s0x94ce41794f164f17:0x93eaef9188424c1b!2m2!1d-46.535788!2d-23.767335?entry=ttu&g_ep=EgoyMDI2MDQwMS4wIKXMDSoASAFQAw%3D%3D",
+    "mapEnabled": true,
+    "venueCoordinates": { "lat": -23.8545, "lng": -46.5797 },
+    "venueAddress": "Rodovia Anchieta, SP-150, km 28, São Bernardo do Campo - SP"
   },
   "texts": {
     "metaTitle": "Siannah & Diego - Casamento",

@@ -123,6 +123,8 @@ Isso torna o projeto relativamente facil de portar para outro casal, outro event
 │   │   ├── animations.css
 │   │   └── fonts.css
 │   ├── images/
+│   │   └── gallery/
+│   │       └── index.json
 │   └── js/
 │       ├── script.js
 │       ├── main.js
@@ -1042,31 +1044,89 @@ Verifica campos criticos do tema mesclado (`meta.name`, `colors.background`, `co
 
 ## 16. Modulos existentes, mas nao integrados ao fluxo atual
 
-Ha dois arquivos JS no repositorio que representam funcionalidade pronta ou parcialmente pronta, mas hoje nao estao plugados nas paginas atuais.
+Ambos os modulos foram integrados ao produto.
 
 ### 16.1 `assets/js/gallery.js`
 
-Implementa uma classe `Gallery` com:
+ES Module. Exporta `initGallery(containerId, images)`.
 
-- navegacao por proximo/anterior;
-- dots;
-- suporte a teclado;
-- contador de slide;
-- autoplay opcional.
+#### Parametros
 
-Hoje nao ha evidencias de uso nas paginas HTML atuais. Nao foram encontrados imports nem elementos de DOM correspondentes fora do proprio arquivo.
+- `containerId`: ID do elemento container no DOM.
+- `images`: array de `{ src, alt }` carregado de `assets/images/gallery/index.json`.
+
+#### Comportamento
+
+- Constroi o HTML interno da galeria (slides, dots, botoes prev/next).
+- Navegacao por clique nos botoes e dots.
+- Navegacao por teclado (ArrowLeft/ArrowRight) scoped ao container.
+- Atributos `aria-hidden` e `aria-selected` atualizados a cada troca.
+- Sem efeito nenhum se `images` for vazio ou `containerId` nao existir.
+
+#### Como habilitar a galeria
+
+1. Coloque as fotos em `assets/images/gallery/`.
+2. Edite `assets/images/gallery/index.json` com a lista:
+	 ```json
+	 [
+		 { "src": "assets/images/gallery/foto1.jpg", "alt": "Descricao da foto 1" },
+		 { "src": "assets/images/gallery/foto2.jpg", "alt": "Descricao da foto 2" }
+	 ]
+	 ```
+3. Abra `historia.html` — a galeria aparece automaticamente apos a timeline.
+
+#### Como desabilitar
+
+Esvazie o `index.json` para `[]` ou remova o arquivo. A galeria desaparece sem erros.
+
+#### Integracao
+
+- Importado e chamado por `historia.js` via `loadGallery()`.
+- A secao `#historiaGallery` em `historia.html` tem `hidden` por padrao e so e revelada quando `index.json` retorna ao menos 1 imagem.
 
 ### 16.2 `assets/js/map.js`
 
-Implementa uma classe `WeddingMap` baseada em Leaflet com:
+ES Module. Funcao principal: `initLeafletMap(event)`.
 
-- mapa inicializado em `#map`;
-- marcador customizado;
-- popup;
-- abertura no Google Maps;
-- circulo em volta do local.
+#### Comportamento
 
-Hoje tambem nao ha integracao com o HTML atual e nao ha carregamento do Leaflet nas paginas do site. Na pratica, esse modulo deve ser tratado como legado, experimento ou funcionalidade em espera.
+- Escuta `app:ready` e le `detail.config.event`.
+- Se `event.mapEnabled !== true`, esconde a secao `#venueMapSection` e retorna.
+- Se Leaflet nao estiver carregado, esconde a secao e emite `console.warn`.
+- Inicializa um mapa Leaflet em `#map` com tile OpenStreetMap.
+- Posiciona o marcador em `event.venueCoordinates`.
+- Popup com nome, endereco e link para o Google Maps (`event.mapsLink`).
+- Circulo de 400m ao redor do local.
+- Sem dados hardcoded: todos os valores vem do config.
+
+#### Como habilitar o mapa
+
+Em `site.json`, dentro de `event`:
+```json
+"mapEnabled": true
+```
+
+#### Como desabilitar
+
+```json
+"mapEnabled": false
+```
+
+A secao do mapa some sem erros. O padrao em `assets/config/defaults/site.json` e `false`.
+
+#### Campos de config relacionados
+
+- `event.mapEnabled` — flag mestre (boolean)
+- `event.venueCoordinates` — `{ lat, lng }`
+- `event.venueAddress` — endereco textual exibido no popup
+- `event.locationName` — nome do local exibido no popup
+- `event.mapsLink` — URL do Google Maps para o link no popup
+
+#### Integracao
+
+- Carregado em `hospedagem.html` via `<script type="module" src="assets/js/map.js">`.
+- Leaflet CSS e JS carregados via CDN (unpkg, versao 1.9.4) apenas em `hospedagem.html`.
+- A secao `#venueMapSection` no HTML tem `hidden` por padrao.
 
 ---
 
@@ -1652,7 +1712,7 @@ Ha `console.warn()` e `console.error()`, mas nao existe camada clara de recupera
 
 ### 26.7 Modulos legados coexistem sem integracao clara
 
-`gallery.js` e `map.js` existem no repositorio, mas nao fazem parte do fluxo atual. Isso pode gerar confusao para novos mantenedores.
+~~`gallery.js` e `map.js` existem no repositorio, mas nao fazem parte do fluxo atual.~~ Ambos foram integrados: `gallery.js` em `historia.html` via `index.json` opt-in; `map.js` em `hospedagem.html` via flag `mapEnabled` em `site.json`.
 
 ### 26.8 `sessionStorage` pode nao ser confiavel em todos os contextos
 
@@ -1724,7 +1784,9 @@ Essa duplicidade pode ser mantida por estrategia de UX, mas deveria estar explic
 
 ### 27.9 Definir o destino dos modulos legados
 
-Ou integrar `gallery.js` e `map.js` ao produto, ou removelos/arquivalos. O meio-termo atual gera ambiguidade.
+~~Ou integrar `gallery.js` e `map.js` ao produto, ou removelos/arquivalos.~~ FEITO.
+
+`gallery.js` convertido para ES Module; exporta `initGallery(containerId, images)`. Integrado em `historia.html` com carregamento opt-in via `assets/images/gallery/index.json`. `map.js` convertido para ES Module; integrado em `hospedagem.html` com flag `event.mapEnabled` em `site.json`. Leaflet CDN carregado apenas em `hospedagem.html`. Ambos respondem ao evento `app:ready`.
 
 ### 27.10 Adicionar testes minimos de smoke
 

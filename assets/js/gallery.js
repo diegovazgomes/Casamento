@@ -1,92 +1,92 @@
 /**
+/**
  * gallery.js
- * Gerencia a galeria interativa de fotos
+ * Galeria de fotos navegável, integrada à página de história do casal.
+ * Exporta initGallery(containerId, images) — recebe um array de { src, alt }.
+ * Chamada por historia.js após carregar assets/images/gallery/index.json.
+ *
+ * Para habilitar: adicione fotos em assets/images/gallery/ e liste-as no index.json.
+ * Para desabilitar: esvazie (ou remova) o index.json — a galeria simplesmente não aparece.
  */
 
-class Gallery {
-    constructor() {
-        this.currentIndex = 0;
-        this.slides = document.querySelectorAll('.gallery-slide');
-        this.dots = document.querySelectorAll('.dot');
-        this.totalSlides = this.slides.length;
+/**
+ * Inicializa a galeria dentro do elemento identificado por containerId.
+ * @param {string} containerId - ID do elemento container no DOM.
+ * @param {Array<{src: string, alt: string}>} images - Lista de imagens.
+ */
+export function initGallery(containerId, images) {
+    const container = document.getElementById(containerId);
+    if (!container || !Array.isArray(images) || images.length === 0) return;
 
-        this.elements = {
-            prevBtn: document.getElementById('prevBtn'),
-            nextBtn: document.getElementById('nextBtn'),
-            currentSlide: document.getElementById('currentSlide'),
-            totalSlides: document.getElementById('totalSlides')
-        };
+    const total = images.length;
+    let currentIndex = 0;
 
-        this.setupEventListeners();
-        this.updateCounter();
-    }
+    // Constrói o HTML interno da galeria
+    container.innerHTML =
+        `<div class="gallery-track" role="region" aria-label="Galeria de fotos">` +
+            images.map((img, i) =>
+                `<figure class="gallery-slide${i === 0 ? ' active' : ''}" aria-hidden="${i !== 0}" data-index="${i}">` +
+                `<img src="${img.src}" alt="${img.alt ?? ''}" loading="lazy">` +
+                `</figure>`
+            ).join('') +
+        `</div>` +
+        (total > 1
+            ? `<div class="gallery-controls">` +
+                `<button class="gallery-nav gallery-prev" aria-label="Foto anterior" type="button">&#8592;</button>` +
+                `<div class="gallery-dots" role="tablist">` +
+                    images.map((_, i) =>
+                        `<button class="gallery-dot${i === 0 ? ' active' : ''}" role="tab" aria-selected="${i === 0}" aria-label="Foto ${i + 1}" data-index="${i}" type="button"></button>`
+                    ).join('') +
+                `</div>` +
+                `<button class="gallery-nav gallery-next" aria-label="Próxima foto" type="button">&#8594;</button>` +
+              `</div>`
+            : '');
 
-    setupEventListeners() {
-        // Botões de navegação
-        this.elements.prevBtn.addEventListener('click', () => this.prev());
-        this.elements.nextBtn.addEventListener('click', () => this.next());
+    const slides = container.querySelectorAll('.gallery-slide');
+    const dots   = container.querySelectorAll('.gallery-dot');
+    const prevBtn = container.querySelector('.gallery-prev');
+    const nextBtn = container.querySelector('.gallery-next');
 
-        // Dots para navegação
-        this.dots.forEach((dot, index) => {
-            dot.addEventListener('click', () => this.goToSlide(index));
+    function showSlide(index) {
+        currentIndex = ((index % total) + total) % total;
+
+        slides.forEach((s, i) => {
+            s.classList.toggle('active', i === currentIndex);
+            s.setAttribute('aria-hidden', String(i !== currentIndex));
         });
-
-        // Teclado
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'ArrowLeft') this.prev();
-            if (e.key === 'ArrowRight') this.next();
+        dots.forEach((d, i) => {
+            d.classList.toggle('active', i === currentIndex);
+            d.setAttribute('aria-selected', String(i === currentIndex));
         });
     }
 
-    showSlide(index) {
-        // Garante que o índice está dentro do intervalo válido
-        if (index >= this.totalSlides) {
-            this.currentIndex = 0;
-        } else if (index < 0) {
-            this.currentIndex = this.totalSlides - 1;
-        } else {
-            this.currentIndex = index;
-        }
+    if (prevBtn) prevBtn.addEventListener('click', () => showSlide(currentIndex - 1));
+    if (nextBtn) nextBtn.addEventListener('click', () => showSlide(currentIndex + 1));
 
-        // Remove a classe 'active' de todos os slides
-        this.slides.forEach((slide) => slide.classList.remove('active'));
-        this.dots.forEach((dot) => dot.classList.remove('active'));
+    dots.forEach((dot, i) => {
+        dot.addEventListener('click', () => showSlide(i));
+    });
 
-        // Adiciona a classe 'active' ao slide e dot correto
-        this.slides[this.currentIndex].classList.add('active');
-        this.dots[this.currentIndex].classList.add('active');
+    // Se a extensão estiver errada no index.json, tenta alternativas comuns automaticamente.
+    container.querySelectorAll('.gallery-slide img').forEach((imgEl) => {
+        imgEl.addEventListener('error', () => {
+            if (imgEl.dataset.fallbackTried === 'true') return;
 
-        this.updateCounter();
-    }
+            const src = imgEl.getAttribute('src') || '';
+            let fallbackSrc = '';
+            if (/\.jpe?g$/i.test(src)) fallbackSrc = src.replace(/\.jpe?g$/i, '.png');
+            else if (/\.png$/i.test(src)) fallbackSrc = src.replace(/\.png$/i, '.jpg');
 
-    next() {
-        this.showSlide(this.currentIndex + 1);
-    }
+            if (!fallbackSrc || fallbackSrc === src) return;
 
-    prev() {
-        this.showSlide(this.currentIndex - 1);
-    }
+            imgEl.dataset.fallbackTried = 'true';
+            imgEl.src = fallbackSrc;
+        });
+    });
 
-    goToSlide(index) {
-        this.showSlide(index);
-    }
-
-    updateCounter() {
-        this.elements.currentSlide.textContent = this.currentIndex + 1;
-        this.elements.totalSlides.textContent = this.totalSlides;
-    }
-
-    autoPlay(interval = 5000) {
-        setInterval(() => {
-            this.next();
-        }, interval);
-    }
+    // Navegação por teclado scoped ao container
+    container.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowLeft')  showSlide(currentIndex - 1);
+        if (e.key === 'ArrowRight') showSlide(currentIndex + 1);
+    });
 }
-
-// Inicializa a galeria quando o documento carrega
-document.addEventListener('DOMContentLoaded', () => {
-    const gallery = new Gallery();
-
-    // Descomenta a linha abaixo para ativar o auto-play
-    // gallery.autoPlay(5000); // Troca de imagem a cada 5 segundos
-});

@@ -1826,3 +1826,156 @@ footer {
         grid-template-columns: 1fr;
     }
 }
+
+/* ─── Galeria de Fotos (historia.html) ───────────────────────────────────── */
+
+.historia-gallery-section {
+    padding-inline: var(--section-padding-inline);
+}
+
+.gallery-container {
+    position: relative;
+    width: 100%;
+}
+
+.gallery-track {
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--radius-card);
+    border: 1px solid var(--color-border);
+    background: var(--color-surface);
+    aspect-ratio: 4 / 3;
+}
+
+.gallery-slide {
+    display: none;
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    inset: 0;
+}
+
+.gallery-slide.active {
+    display: block;
+}
+
+.gallery-slide img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.gallery-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-md);
+    margin-top: var(--space-lg);
+}
+
+.gallery-nav {
+    background: none;
+    border: 1px solid var(--color-border);
+    color: var(--gold);
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 16px;
+    line-height: 1;
+    transition: border-color 0.2s ease, color 0.2s ease;
+    flex-shrink: 0;
+}
+
+.gallery-nav:hover {
+    border-color: var(--gold);
+    color: var(--gold-light);
+}
+
+.gallery-dots {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.gallery-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    border: 1px solid var(--color-border-strong);
+    background: transparent;
+    cursor: pointer;
+    padding: 0;
+    transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.gallery-dot.active {
+    background: var(--gold);
+    border-color: var(--gold);
+}
+
+/* ─── Mapa do Local (hospedagem.html) ────────────────────────────────────── */
+
+.venue-map-section {
+    padding-inline: var(--section-padding-inline);
+}
+
+.historia-gallery-section .divider,
+.venue-map-section .divider {
+    margin-top: 0;
+    margin-bottom: var(--divider-margin-top);
+}
+
+.historia-gallery-section .section-tag,
+.venue-map-section .section-tag {
+    margin-bottom: var(--section-title-gap);
+}
+
+#map {
+    height: 360px;
+    width: 100%;
+    border-radius: var(--radius-card);
+    border: 1px solid var(--color-border);
+    overflow: hidden;
+}
+
+.map-popup {
+    font-family: var(--font-body, var(--font-primary, sans-serif));
+    font-size: 13px;
+    line-height: 1.5;
+    color: #333;
+}
+
+.map-popup-name {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 4px;
+    color: #111;
+}
+
+.map-popup-address {
+    margin: 0 0 8px;
+    color: #555;
+}
+
+.map-popup-link {
+    color: #3b82f6;
+    text-decoration: none;
+    font-size: 12px;
+}
+
+.map-popup-link:hover {
+    text-decoration: underline;
+}
+
+@media (max-width: 767px) {
+    #map {
+        height: 280px;
+    }
+
+    .gallery-track {
+        aspect-ratio: 1 / 1;
+    }
+}

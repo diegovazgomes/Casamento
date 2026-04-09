@@ -12,7 +12,10 @@
         "timezone": "Horario de Brasilia",
         "locationName": "Mansao Ilha de Capri",
         "locationCity": "Sao Bernardo do Campo",
-        "mapsLink": "https://share.google/7Qt15gWSb3IAGGofM"
+        "mapsLink": "https://share.google/7Qt15gWSb3IAGGofM",
+        "mapEnabled": false,
+        "venueCoordinates": { "lat": -23.8545, "lng": -46.5797 },
+        "venueAddress": "Rodovia Anchieta, SP-150, km 28, Sao Bernardo do Campo - SP"
     },
     "texts": {
         "metaTitle": "Siannah & Diego - Casamento",
