@@ -401,13 +401,34 @@ function isFieldRequired(path) {
 
 // ── Field templates (return HTML strings) ─────────────────────────────────────
 
-function fieldInput({ label, path, placeholder = '', hint = '', inputType = 'text', cast = '', required = isFieldRequired(path) }) {
+function fieldInput({
+  label,
+  path,
+  placeholder = '',
+  hint = '',
+  inputType = 'text',
+  cast = '',
+  required = isFieldRequired(path),
+  showColorPreview = false,
+  colorPreview = 'transparent',
+  colorPreviewText = '',
+  colorPreviewFallback = 'transparent',
+  colorPreviewTextFallback = 'sem valor definido',
+}) {
   const val = esc(getPath(config, path));
   const requiredMark = required ? '<span class="ed-required" aria-hidden="true">*</span>' : '';
+  const colorPreviewBlock = showColorPreview
+    ? `
+      <span class="ed-color-inline" aria-live="polite">
+        <span class="ed-color-chip" data-color-chip-for="${esc(path)}" data-color-fallback-chip="${esc(colorPreviewFallback)}" style="background:${esc(colorPreview)}"></span>
+        <span class="ed-color-chip-value" data-color-value-for="${esc(path)}" data-color-fallback-val="${esc(colorPreviewTextFallback)}">${esc(colorPreviewText || colorPreviewTextFallback)}</span>
+      </span>`
+    : '';
   return `
     <div class="ed-field${required ? ' is-required' : ''}">
       <label class="ed-label">
         ${esc(label)}${requiredMark}
+        ${colorPreviewBlock}
         ${hint ? `<span class="ed-hint">${esc(hint)}</span>` : ''}
       </label>
       <input class="ed-input${required ? ' is-required' : ''}" type="${esc(inputType)}" data-path="${path}"
@@ -1462,6 +1483,34 @@ const DEFAULT_THEME_FILES = [
 'assets/config/themes/classic-purple.json',
 ];
 
+const THEME_COLOR_SECTIONS = [
+  {
+    title: 'Base visual e textos',
+    fields: [
+      { label: 'Fundo geral da página', key: 'background', placeholder: '#0f0f12', description: 'Cor principal do fundo do site inteiro' },
+      { label: 'Superfície de cards e caixas', key: 'surface', placeholder: '#1b1b21', description: 'Fundos de blocos como cards e painéis' },
+      { label: 'Cor de destaque principal', key: 'primary', placeholder: '#d4af37', description: 'Botões, destaques e elementos de chamada' },
+      { label: 'Destaque suave', key: 'primarySoft', placeholder: 'rgba(212, 175, 55, 0.14)', description: 'Variação suave da cor de destaque' },
+      { label: 'Texto principal', key: 'text', placeholder: '#f5f2ea', description: 'Texto mais importante (títulos e conteúdos)' },
+      { label: 'Texto secundário', key: 'textMuted', placeholder: '#d3c9b2', description: 'Texto auxiliar e informações secundárias' },
+      { label: 'Texto de apoio discreto', key: 'textFaint', placeholder: '#aaa08a', description: 'Texto mais sutil, notas e conteúdos menos importantes' },
+      { label: 'Borda padrão', key: 'border', placeholder: 'rgba(255, 255, 255, 0.22)', description: 'Bordas principais de cards, inputs e divisores' },
+      { label: 'Borda suave', key: 'borderSoft', placeholder: 'rgba(255, 255, 255, 0.12)', description: 'Bordas mais leves e discretas' },
+      { label: 'Escurecimento de fundo em sobreposição', key: 'overlayBackdrop', placeholder: 'rgba(0, 0, 0, 0.7)', description: 'Sombra escura por trás de modais e camadas sobrepostas' },
+      { label: 'Fundo de foco do input', key: 'inputFocusBg', placeholder: 'rgba(212, 175, 55, 0.08)', description: 'Cor de realce quando o campo de formulário recebe foco', aliases: ['inputBorderFocus'] },
+      { label: 'Linha de grade de fundo', key: 'pageGridLine', placeholder: 'rgba(255, 255, 255, 0.06)', description: 'Linhas decorativas da textura de fundo (quando usadas)' },
+    ],
+  },
+  {
+    title: 'Botão de áudio',
+    fields: [
+      { label: 'Fundo do botão de áudio', key: 'audioPanelBg', placeholder: 'rgba(16, 16, 18, 0.72)', description: 'Fundo do botão flutuante de áudio', aliases: ['audioButtonBg'] },
+      { label: 'Fundo ao passar o mouse', key: 'audioPanelHoverBg', placeholder: 'rgba(24, 24, 26, 0.9)', description: 'Cor do botão de áudio no hover' },
+      { label: 'Borda do botão de áudio', key: 'audioPanelBorder', placeholder: 'rgba(255, 255, 255, 0.28)', description: 'Contorno do botão de áudio', aliases: ['audioButtonBorder'] },
+    ],
+  },
+];
+
 let themeCatalog = [];  // [{ path, meta, colors, fonts }]
 
 function getThemeFiles() {
@@ -1553,7 +1602,7 @@ async function renderTema() {
 
   const activeTheme = themeCatalog.find((theme) => theme.path === config.activeTheme) || themeCatalog[0] || { allColors: {} };
 
-  function getColorHint({ key, description, aliases = [] }) {
+  function getColorContext({ key, description, aliases = [] }) {
     const overrideValue = getPath(config, `themeOverrides.colors.${key}`);
     const aliasKey = aliases.find((alias) => String(getPath(config, `themeOverrides.colors.${alias}`) ?? '').trim());
     const aliasValue = aliasKey ? getPath(config, `themeOverrides.colors.${aliasKey}`) : '';
@@ -1562,48 +1611,55 @@ async function renderTema() {
     const currentValue = String(overrideValue ?? '').trim()
       || String(aliasValue ?? '').trim()
       || String(themeValue ?? '').trim()
-      || 'sem valor definido';
+      || '';
 
     const source = String(overrideValue ?? '').trim()
       ? `override (${key})`
       : (String(aliasValue ?? '').trim() ? `override legado (${aliasKey})` : 'tema base');
 
-    return `${description} | Atual: ${currentValue} | Origem: ${source}`;
+    return {
+      hint: `${description} | Origem: ${source}`,
+      currentValue,
+      currentLabel: currentValue || 'sem valor definido',
+      previewColor: currentValue || 'transparent',
+    };
   }
+
+  function colorField({ label, key, placeholder, description, aliases = [] }) {
+    const context = getColorContext({ key, description, aliases });
+    return {
+      label,
+      path: `themeOverrides.colors.${key}`,
+      placeholder,
+      hint: context.hint,
+      showColorPreview: true,
+      colorPreview: context.previewColor,
+      colorPreviewText: context.currentLabel,
+      colorPreviewFallback: context.previewColor,
+      colorPreviewTextFallback: context.currentLabel,
+    };
+  }
+
+  function chunkFields(items, size = 3) {
+    const rows = [];
+    for (let i = 0; i < items.length; i += size) {
+      rows.push(items.slice(i, i + size));
+    }
+    return rows;
+  }
+
+  const colorSectionsHtml = THEME_COLOR_SECTIONS.map((section) => `
+    <div class="ed-subsection">
+      <h4 class="ed-subtitle">${esc(section.title)}</h4>
+      ${chunkFields(section.fields)
+        .map((row) => fieldInputRow(row.map(colorField)))
+        .join('')}
+    </div>
+  `).join('');
 
   const colorsSection = group('Cores (override no site.json)', `
     <p class="ed-theme-hint">Esses campos sobrescrevem apenas as cores do tema ativo. Cada campo mostra para que serve e qual valor está valendo agora.</p>
-    <div class="ed-subsection">
-      <h4 class="ed-subtitle">Base visual e textos</h4>
-      ${fieldInputRow([
-        { label: 'Fundo geral da página', path: 'themeOverrides.colors.background', placeholder: '#0f0f12', hint: getColorHint({ key: 'background', description: 'Cor principal do fundo do site inteiro' }) },
-        { label: 'Superfície de cards e caixas', path: 'themeOverrides.colors.surface', placeholder: '#1b1b21', hint: getColorHint({ key: 'surface', description: 'Fundos de blocos como cards e painéis' }) },
-        { label: 'Cor de destaque principal', path: 'themeOverrides.colors.primary', placeholder: '#d4af37', hint: getColorHint({ key: 'primary', description: 'Botões, destaques e elementos de chamada' }) },
-      ])}
-      ${fieldInputRow([
-        { label: 'Destaque suave', path: 'themeOverrides.colors.primarySoft', placeholder: 'rgba(212, 175, 55, 0.14)', hint: getColorHint({ key: 'primarySoft', description: 'Variação suave da cor de destaque' }) },
-        { label: 'Texto principal', path: 'themeOverrides.colors.text', placeholder: '#f5f2ea', hint: getColorHint({ key: 'text', description: 'Texto mais importante (títulos e conteúdos)' }) },
-        { label: 'Texto secundário', path: 'themeOverrides.colors.textMuted', placeholder: '#d3c9b2', hint: getColorHint({ key: 'textMuted', description: 'Texto auxiliar e informações secundárias' }) },
-      ])}
-      ${fieldInputRow([
-        { label: 'Texto de apoio discreto', path: 'themeOverrides.colors.textFaint', placeholder: '#aaa08a', hint: getColorHint({ key: 'textFaint', description: 'Texto mais sutil, notas e conteúdos menos importantes' }) },
-        { label: 'Borda padrão', path: 'themeOverrides.colors.border', placeholder: 'rgba(255, 255, 255, 0.22)', hint: getColorHint({ key: 'border', description: 'Bordas principais de cards, inputs e divisores' }) },
-        { label: 'Borda suave', path: 'themeOverrides.colors.borderSoft', placeholder: 'rgba(255, 255, 255, 0.12)', hint: getColorHint({ key: 'borderSoft', description: 'Bordas mais leves e discretas' }) },
-      ])}
-      ${fieldInputRow([
-        { label: 'Escurecimento de fundo em sobreposição', path: 'themeOverrides.colors.overlayBackdrop', placeholder: 'rgba(0, 0, 0, 0.7)', hint: getColorHint({ key: 'overlayBackdrop', description: 'Sombra escura por trás de modais e camadas sobrepostas' }) },
-        { label: 'Fundo de foco do input', path: 'themeOverrides.colors.inputFocusBg', placeholder: 'rgba(212, 175, 55, 0.08)', hint: getColorHint({ key: 'inputFocusBg', description: 'Cor de realce quando o campo de formulário recebe foco', aliases: ['inputBorderFocus'] }) },
-        { label: 'Linha de grade de fundo', path: 'themeOverrides.colors.pageGridLine', placeholder: 'rgba(255, 255, 255, 0.06)', hint: getColorHint({ key: 'pageGridLine', description: 'Linhas decorativas da textura de fundo (quando usadas)' }) },
-      ])}
-    </div>
-    <div class="ed-subsection">
-      <h4 class="ed-subtitle">Botão de áudio</h4>
-      ${fieldInputRow([
-        { label: 'Fundo do botão de áudio', path: 'themeOverrides.colors.audioPanelBg', placeholder: 'rgba(16, 16, 18, 0.72)', hint: getColorHint({ key: 'audioPanelBg', description: 'Fundo do botão flutuante de áudio', aliases: ['audioButtonBg'] }) },
-        { label: 'Fundo ao passar o mouse', path: 'themeOverrides.colors.audioPanelHoverBg', placeholder: 'rgba(24, 24, 26, 0.9)', hint: getColorHint({ key: 'audioPanelHoverBg', description: 'Cor do botão de áudio no hover' }) },
-        { label: 'Borda do botão de áudio', path: 'themeOverrides.colors.audioPanelBorder', placeholder: 'rgba(255, 255, 255, 0.28)', hint: getColorHint({ key: 'audioPanelBorder', description: 'Contorno do botão de áudio', aliases: ['audioButtonBorder'] }) },
-      ])}
-    </div>
+    ${colorSectionsHtml}
   `);
 
   const typographySection = group('Tipografia (override no site.json)', `
@@ -1815,6 +1871,20 @@ function renderActiveTab() {
 
 // ── Event binding ─────────────────────────────────────────────────────────────
 
+function updateColorPreviewField(root, path, value) {
+  const safePath = String(path || '').replace(/"/g, '\\"');
+  const chip = root.querySelector(`[data-color-chip-for="${safePath}"]`);
+  const label = root.querySelector(`[data-color-value-for="${safePath}"]`);
+  if (!chip || !label) return;
+
+  const normalizedValue = String(value ?? '').trim();
+  const fallbackChip = chip.dataset.colorFallbackChip || 'transparent';
+  const fallbackLabel = label.dataset.colorFallbackVal || 'sem valor definido';
+
+  chip.style.background = normalizedValue || fallbackChip;
+  label.textContent = normalizedValue || fallbackLabel;
+}
+
 function bindContentEvents(root) {
   if (root.dataset.eventsBound === 'true') {
     return;
@@ -1834,6 +1904,9 @@ function bindContentEvents(root) {
         value = normalized === 'true';
       }
       setConfigValue(path, value);
+      if (String(path).startsWith('themeOverrides.colors.')) {
+        updateColorPreviewField(root, path, value);
+      }
       refreshTypographyPreviews(root);
       renderActivePreview();
       markDirty();

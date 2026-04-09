@@ -21,6 +21,75 @@ const ACTIVE_THEME_PATH = 'assets/config/themes/classic-gold.json';
 
 Temas disponíveis: `classic-gold.json`, `classic-silver.json`.
 
+## Overrides de cor via editor (site.json)
+
+Além dos arquivos de tema, o projeto permite sobrescrever cores diretamente em `site.json`, no bloco `themeOverrides.colors`. Esses valores são aplicados em runtime por merge sobre o tema ativo.
+
+Exemplo mínimo:
+
+```json
+{
+  "themeOverrides": {
+    "colors": {
+      "background": "#111111",
+      "primary": "#d4af37"
+    }
+  }
+}
+```
+
+### Como funciona a precedência
+
+1. Tema base carregado em `assets/config/themes/*.json`
+2. Overrides de `site.json` em `themeOverrides.colors`
+3. Fallback para defaults quando uma chave não existe
+
+Resumo: se a chave existir em `themeOverrides.colors`, ela ganha do tema base.
+
+### Chaves usadas no editor de Tema
+
+- `background`
+- `surface`
+- `primary`
+- `primarySoft`
+- `text`
+- `textMuted`
+- `textFaint`
+- `border`
+- `borderSoft`
+- `overlayBackdrop`
+- `inputFocusBg`
+- `pageGridLine`
+- `audioPanelBg`
+- `audioPanelHoverBg`
+- `audioPanelBorder`
+
+Compatibilidade legada já suportada em runtime:
+
+- `audioButtonBg` é tratado como alias de `audioPanelBg`
+- `audioButtonBorder` é tratado como alias de `audioPanelBorder`
+- `inputBorderFocus` é tratado como alias de `inputFocusBg`
+
+### Escala e manutenção
+
+No editor, os campos de cor são orientados a dados em uma estrutura única (`THEME_COLOR_SECTIONS`), facilitando expansão sem duplicar HTML de formulário.
+
+Para adicionar uma nova cor no editor:
+
+1. Adicionar o token no tema (`assets/config/themes/*.json`) e no default de tema
+2. Garantir mapeamento em `applyTheme()` (`assets/js/script.js`)
+3. Adicionar um item em `THEME_COLOR_SECTIONS` (`assets/js/editor.js`)
+4. Validar no `site-schema.json` se necessário
+5. Rodar smoke tests
+
+### Checklist de commit (tema/cores)
+
+1. Validar alteração visual na home e em uma página extra
+2. Exportar e reimportar `site.json` pelo editor
+3. Confirmar que campo limpo volta a herdar do tema base
+4. Rodar `npm test`
+5. Atualizar `ROADMAP.md` quando houver novo escopo funcional
+
 ## Como criar um novo tema
 
 1. Duplique `classic-gold.json` e renomeie
