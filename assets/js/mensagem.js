@@ -1,5 +1,6 @@
 import { initExtraPage } from './extra-page.js';
 import { setInputPlaceholder, setText } from './utils.js';
+import { saveGuestMessage } from './rsvp-persistence.js';
 
 function interpolate(template, values) {
     return String(template ?? '').replace(/\{(\w+)\}/g, (_, key) => String(values[key] ?? ''));
@@ -72,6 +73,15 @@ function bindMessageForm(content, config) {
             feedback.classList.add('is-error');
             feedback.textContent = content?.errorMessage || 'Não foi possível preparar o envio agora. Tente novamente.';
             return;
+        }
+
+        // Salvar no Supabase sem bloquear o fluxo do WhatsApp
+        if (window.CONFIG?.rsvp?.supabaseEnabled !== false) {
+            saveGuestMessage({
+                guestName: guestName,
+                message:   messageBody,
+                eventId:   window.CONFIG?.rsvp?.eventId,
+            }).catch(() => {});
         }
 
         window.open(whatsappUrl, '_blank', 'noopener,noreferrer');

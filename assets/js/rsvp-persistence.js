@@ -35,6 +35,28 @@ async function getConfig() {
  * @returns {Promise<boolean>}
  */
 export async function saveRsvpConfirmation({ name, phone, attendance, eventId, message = null, songTitle = null, songArtist = null }) {
+    return postToSupabase({
+        name:        name.trim(),
+        phone:       phone.trim(),
+        attendance:  attendance,
+        event_id:    eventId || 'wedding-event',
+        source:      'website',
+        user_agent:  navigator.userAgent.slice(0, 200),
+        referrer:    document.referrer.slice(0, 200) || null,
+        message:     message || null,
+        song_title:  songTitle || null,
+        song_artist: songArtist || null,
+    });
+}
+
+/**
+ * Helper interno: executa o POST para o Supabase com o payload fornecido.
+ * Falha silenciosamente em qualquer cenário de erro.
+ *
+ * @param {Object} payload - Campos a inserir na tabela rsvp_confirmations
+ * @returns {Promise<boolean>}
+ */
+async function postToSupabase(payload) {
     try {
         const { supabaseUrl, supabaseAnonKey } = await getConfig();
 
@@ -42,19 +64,6 @@ export async function saveRsvpConfirmation({ name, phone, attendance, eventId, m
             console.warn('[rsvp-persistence] Supabase não configurado. Pulando persistência.');
             return false;
         }
-
-        const payload = {
-            name:       name.trim(),
-            phone:      phone.trim(),
-            attendance: attendance,
-            event_id:   eventId || 'wedding-event',
-            source:     'website',
-            user_agent:      navigator.userAgent.slice(0, 200),
-            referrer:        document.referrer.slice(0, 200) || null,
-            message:         message || null,
-            song_title:      songTitle || null,
-            song_artist:     songArtist || null,
-        };
 
         const response = await fetch(`${supabaseUrl}/rest/v1/rsvp_confirmations`, {
             method:  'POST',
@@ -73,12 +82,61 @@ export async function saveRsvpConfirmation({ name, phone, attendance, eventId, m
             return false;
         }
 
-        console.log('[rsvp-persistence] Confirmação salva com sucesso.');
+        console.log('[rsvp-persistence] Registro salvo com sucesso.');
         return true;
 
     } catch (error) {
-        // Falha silenciosa — o WhatsApp ainda vai funcionar
         console.warn('[rsvp-persistence] Erro inesperado:', error.message);
         return false;
     }
+}
+
+/**
+ * Salva uma mensagem de convidado para o casal no Supabase.
+ * Falha silenciosamente — nunca lança exceção.
+ *
+ * @param {Object} data
+ * @param {string} data.guestName - Nome do convidado (pode ser vazio)
+ * @param {string} data.message - Texto da mensagem
+ * @param {string} data.eventId - ID do evento
+ * @returns {Promise<boolean>}
+ */
+export async function saveGuestMessage({ guestName, message, eventId }) {
+    return postToSupabase({
+        name:       guestName || '',
+        phone:      '',
+        attendance: 'message',
+        event_id:   eventId || 'wedding-event',
+        source:     'mensagem-page',
+        user_agent: navigator.userAgent.slice(0, 200),
+        referrer:   document.referrer.slice(0, 200) || null,
+        message:    message || null,
+    });
+}
+
+/**
+ * Salva uma sugestão de música no Supabase.
+ * Falha silenciosamente — nunca lança exceção.
+ *
+ * @param {Object} data
+ * @param {string} data.guestName - Nome do convidado (pode ser vazio)
+ * @param {string} data.songTitle - Nome da música
+ * @param {string} data.songArtist - Artista (pode ser vazio)
+ * @param {string} data.songNotes - Observações (pode ser vazio)
+ * @param {string} data.eventId - ID do evento
+ * @returns {Promise<boolean>}
+ */
+export async function saveSongSuggestion({ guestName, songTitle, songArtist, songNotes, eventId }) {
+    return postToSupabase({
+        name:        guestName || '',
+        phone:       '',
+        attendance:  'song',
+        event_id:    eventId || 'wedding-event',
+        source:      'musica-page',
+        user_agent:  navigator.userAgent.slice(0, 200),
+        referrer:    document.referrer.slice(0, 200) || null,
+        song_title:  songTitle || null,
+        song_artist: songArtist || null,
+        song_notes:  songNotes || null,
+    });
 }
