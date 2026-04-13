@@ -31,7 +31,8 @@ let DEFAULT_THEME = {
 let DEFAULT_SITE_CONTENT = {
     couple: {}, event: {}, texts: {}, gift: {},
     media: { tracks: { main: {}, gift: {} } },
-    whatsapp: { messages: {}, feedback: {} }, pages: {}
+    whatsapp: { messages: {}, feedback: {} }, pages: {},
+    rsvp: { eventId: 'wedding-event', supabaseEnabled: false }
 };
 
 // ──────────────────────────────────────────────────────────────────────────────

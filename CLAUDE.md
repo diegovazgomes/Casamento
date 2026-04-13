@@ -834,7 +834,18 @@ Agenda `window.location.assign()` apos `redirectDelayMs`.
 
 ### Observacao tecnica
 
-Esse fluxo nao persiste confirmacoes em banco. Ele apenas prepara uma mensagem e encaminha o usuario ao WhatsApp.
+O fluxo do WhatsApp permanece intacto. A persistencia real e feita em paralelo via `rsvp-persistence.js` (ver secao abaixo) de forma nao-bloqueante.
+
+### RSVP — Persistencia
+
+Confirmacoes sao salvas no Supabase via `assets/js/rsvp-persistence.js`.
+
+- A chamada e nao-bloqueante: usa `.catch()` sem `await` no fluxo principal.
+- Se o Supabase estiver fora ou desconfigurado, o convidado nao ve erro nenhum.
+- As credenciais sao obtidas pelo endpoint serverless `/api/config` (Vercel Function), que le `SUPABASE_URL` e `SUPABASE_ANON_KEY` das variaveis de ambiente do Vercel.
+- Schema da tabela em `docs/supabase-setup.sql`.
+- Habilitado/desabilitado por `config.rsvp.supabaseEnabled` no `site.json`.
+- O ID do evento e configuravel via `config.rsvp.eventId`.
 
 ---
 

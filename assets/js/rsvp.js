@@ -1,3 +1,5 @@
+import { saveRsvpConfirmation } from './rsvp-persistence.js';
+
 export function interpolateTemplate(template, values) {
     return String(template ?? '').replace(/\{(\w+)\}/g, (match, key) => values[key] ?? match);
 }
@@ -119,6 +121,19 @@ export class RSVP {
         if (!whatsappUrl) {
             this.renderError();
             return;
+        }
+
+        // Salvar no Supabase sem bloquear o fluxo do WhatsApp
+        const eventId = window.CONFIG?.rsvp?.eventId || 'wedding-event';
+        if (window.CONFIG?.rsvp?.supabaseEnabled !== false) {
+            saveRsvpConfirmation({
+                name:       this.fields.name.value.trim(),
+                phone:      this.fields.phone.value.trim(),
+                attendance: this.attendanceInput.value,
+                eventId:    eventId,
+            }).catch(() => {
+                // Silencioso — não afeta a experiência do convidado
+            });
         }
 
         this.renderSuccess();

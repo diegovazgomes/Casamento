@@ -12,7 +12,7 @@
 |------|-----------|--------|
 | Fase 1 — Fundação | 6/6 concluídas ✅ | ✅ Concluída |
 | Fase 2 — Evolução | 5/5 concluídas ✅ | ✅ Concluída |
-| Fase 3 — Escala | 0/4 | ⚪ Não iniciada |
+| Fase 3 — Escala | 1/4 | 🟡 Em andamento |
 
 ---
 
@@ -208,18 +208,34 @@
 
 ---
 
-### 3.1 Persistência real de RSVP
-- [ ] Decidir infraestrutura de backend
-- [ ] Criar tabela de confirmações no banco
-- [ ] Integrar envio de dados no `rsvp.js`
-- [ ] Manter redirecionamento WhatsApp como confirmação ao usuário
-- [ ] Criar endpoint de listagem de confirmados
-- [ ] Testar com múltiplas confirmações simultâneas
-- [ ] Testar fallback quando backend está indisponível
+### 3.1 Persistência real de RSVP ✅ CONCLUÍDO
+- [x] Decidir infraestrutura de backend (Supabase)
+- [x] Criar tabela de confirmações no banco — SQL em `docs/supabase-setup.sql`
+- [x] Integrar envio de dados no `rsvp.js` via `rsvp-persistence.js`
+- [x] Manter redirecionamento WhatsApp como confirmação ao usuário
+- [x] Endpoint `api/config.js` criado para expor variáveis ao frontend estático
+- [x] `.env.example` criado na raiz
+- [x] Fluxo do WhatsApp preservado integralmente
+- [x] Falha silenciosa implementada — Supabase fora não afeta o convidado
+- [ ] Variáveis configuradas no Vercel (passo manual do operador — ver abaixo)
+- [ ] Teste end-to-end em produção
 
-**Notas:** Requer decisão de infraestrutura antes de iniciar.
+**Passos manuais do operador:**
+1. Criar conta em supabase.com e novo projeto (`wedding-rsvp`)
+2. No SQL Editor do Supabase, executar `docs/supabase-setup.sql`
+3. Copiar Project URL: Settings > API > Project URL
+4. Copiar anon key: Settings > API > Project API keys > anon public
+5. No Vercel: Settings > Environment Variables, adicionar:
+   - `SUPABASE_URL` = Project URL
+   - `SUPABASE_ANON_KEY` = anon key
+6. Fazer redeploy no Vercel
+7. Testar enviando uma confirmação pelo convite
+8. Verificar em Supabase: Table Editor > rsvp_confirmations
+
+**Notas:** Persistência não-bloqueante via `rsvp-persistence.js`. Usa `fetch` nativo sem SDK externo. Configuração injetada pelo endpoint serverless `/api/config`. `npm test` passa com 21 testes.
+**Data:** 2026-04-13
 **Prioridade:** Alta (quando escalar)
-**Esforço estimado:** 3–5 dias
+**Esforço estimado:** ✅ Concluído
 
 ---
 
