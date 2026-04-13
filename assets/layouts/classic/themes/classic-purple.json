@@ -192,7 +192,10 @@
     "rsvpChoicePadding": "12px",
     "rsvpSubmitPaddingBlock": "16px",
     "rsvpSubmitPaddingInline": "32px",
-    "rsvpSuccessIcon": "32px"
+    "rsvpSuccessIcon": "32px",
+    "cardLineHeight": "1px",
+    "cardLineHeightExtras": "1.5px",
+    "cardLineZIndex": 10
   },
   "radius": {
     "card": "0px",
@@ -219,7 +222,8 @@
     "fadeDuration": "0.8s",
     "staggerDelay": "0.1s",
     "heroFadeDuration": "1.35s",
-    "heroRevealDelayMs": 320
+    "heroRevealDelayMs": 320,
+    "cardLineTransition": "transform 0.35s ease"
   },
   "countdown": {
     "format": "two-digits",

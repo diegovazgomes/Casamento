@@ -235,6 +235,9 @@ function applyTheme(theme) {
         '--rsvp-submit-padding-block': components.rsvpSubmitPaddingBlock ?? dt.components.rsvpSubmitPaddingBlock,
         '--rsvp-submit-padding-inline': components.rsvpSubmitPaddingInline ?? dt.components.rsvpSubmitPaddingInline,
         '--rsvp-success-icon-size': components.rsvpSuccessIcon ?? dt.components.rsvpSuccessIcon,
+        '--components-card-line-height': components.cardLineHeight ?? dt.components.cardLineHeight,
+        '--components-card-line-height-extras': components.cardLineHeightExtras ?? dt.components.cardLineHeightExtras,
+        '--components-card-line-z-index': components.cardLineZIndex ?? dt.components.cardLineZIndex,
 
         // Bordas
         '--radius-card': radius.card ?? dt.radius.card,
@@ -260,7 +263,8 @@ function applyTheme(theme) {
         // Animações
         '--fade-duration': animation.fadeDuration ?? dt.animation.fadeDuration,
         '--stagger-delay': animation.staggerDelay ?? dt.animation.staggerDelay,
-        '--hero-fade-duration': animation.heroFadeDuration ?? dt.animation.heroFadeDuration
+        '--hero-fade-duration': animation.heroFadeDuration ?? dt.animation.heroFadeDuration,
+        '--animation-card-line-transition': animation.cardLineTransition ?? dt.animation.cardLineTransition
     };
 
     // Resolve and merge typography roles

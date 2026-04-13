@@ -240,11 +240,31 @@
 }
 
 .detail-card {
+    position: relative;
     display: block;
     padding: var(--card-padding) var(--card-padding);
     background: var(--color-surface);
     text-align: center;
     border-radius: var(--radius-card);
+    overflow: hidden;
+}
+
+.detail-card::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: var(--components-card-line-height);
+    background: linear-gradient(to right, var(--color-primary), color-mix(in srgb, var(--color-primary) 0%, transparent));
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: var(--animation-card-line-transition);
+}
+
+.detail-card:hover::after,
+.detail-card:focus-within::after {
+    transform: scaleX(1);
 }
 
 .detail-card-link {
@@ -837,15 +857,20 @@
 .extras-card::before {
     content: '';
     position: absolute;
-    inset: 0;
-    background: var(--color-gold-surface-soft);
-    opacity: 0;
-    transition: opacity 0.3s ease;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: var(--components-card-line-height-extras);
+    background: linear-gradient(to bottom, var(--color-primary), color-mix(in srgb, var(--color-primary) 0%, transparent));
+    transform: scaleY(0);
+    transform-origin: top;
+    transition: var(--animation-card-line-transition);
+    z-index: var(--components-card-line-z-index);
 }
 
 .extras-card:hover::before,
 .extras-card:focus-visible::before {
-    opacity: 1;
+    transform: scaleY(1);
 }
 
 .extras-card:focus-visible {

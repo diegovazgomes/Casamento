@@ -1,6 +1,6 @@
 {
-  "activeLayout": "modern",
-  "activeTheme": "assets/config/themes/classic-purple.json",
+  "activeLayout": "classic",
+  "activeTheme": "assets/layouts/classic/themes/classic-gold.json",
   "themeFiles": [
     "assets/config/themes/classic-gold.json",
     "assets/config/themes/classic-gold-light.json",
@@ -168,6 +168,10 @@
           {
             "question": "Qual o dresscode da festa?",
             "answer": "Apenas roupas da lacoste"
+          },
+          {
+            "question": "Tem estacionamento no local?",
+            "answer": "Sim. O estacionamento é cobrado R$40,00 por veículo"
           }
         ]
       }
@@ -296,7 +300,8 @@
     "classic-green-light": {},
     "classic-silver": {},
     "classic-silver-light": {},
-    "classic-purple": {}
+    "classic-purple": {},
+    "classic-gold": {}
   },
   "themeOverrides": {}
 }
