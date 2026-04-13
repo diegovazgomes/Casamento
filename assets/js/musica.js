@@ -86,6 +86,7 @@ function bindMusicForm(content, config) {
         }
 
         // Salvar no Supabase sem bloquear o fluxo do WhatsApp
+        console.log('[musica] supabaseEnabled:', window.CONFIG?.rsvp?.supabaseEnabled, '| eventId:', window.CONFIG?.rsvp?.eventId);
         if (window.CONFIG?.rsvp?.supabaseEnabled !== false) {
             saveSongSuggestion({
                 guestName:  guestName,

@@ -58,7 +58,11 @@ export async function saveRsvpConfirmation({ name, phone, attendance, eventId, m
  */
 async function postToSupabase(payload) {
     try {
+        console.log('[rsvp-persistence] postToSupabase chamado. attendance:', payload.attendance);
+
         const { supabaseUrl, supabaseAnonKey } = await getConfig();
+
+        console.log('[rsvp-persistence] config carregado. url ok:', !!supabaseUrl, '| key ok:', !!supabaseAnonKey);
 
         if (!supabaseUrl || !supabaseAnonKey) {
             console.warn('[rsvp-persistence] Supabase não configurado. Pulando persistência.');
@@ -78,11 +82,11 @@ async function postToSupabase(payload) {
 
         if (!response.ok) {
             const errorText = await response.text();
-            console.warn('[rsvp-persistence] Falha ao salvar:', response.status, errorText);
+            console.warn('[rsvp-persistence] Falha ao salvar. status:', response.status, '| erro:', errorText);
             return false;
         }
 
-        console.log('[rsvp-persistence] Registro salvo com sucesso.');
+        console.log('[rsvp-persistence] Registro salvo com sucesso. attendance:', payload.attendance);
         return true;
 
     } catch (error) {

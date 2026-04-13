@@ -76,6 +76,7 @@ function bindMessageForm(content, config) {
         }
 
         // Salvar no Supabase sem bloquear o fluxo do WhatsApp
+        console.log('[mensagem] supabaseEnabled:', window.CONFIG?.rsvp?.supabaseEnabled, '| eventId:', window.CONFIG?.rsvp?.eventId);
         if (window.CONFIG?.rsvp?.supabaseEnabled !== false) {
             saveGuestMessage({
                 guestName: guestName,

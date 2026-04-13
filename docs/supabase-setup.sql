@@ -4,16 +4,17 @@
 create table rsvp_confirmations (
   id uuid default gen_random_uuid() primary key,
   created_at timestamp with time zone default timezone('America/Sao_Paulo', now()),
-  name text not null,
-  phone text not null,
-  attendance text not null check (attendance in ('yes', 'no')),
+  name text not null default '',
+  phone text not null default '',
+  attendance text not null check (attendance in ('yes', 'no', 'message', 'song')),
   event_id text not null default 'siannah-diego-2026',
   source text default 'website',
   user_agent text,
   referrer text,
   message text,
   song_title text,
-  song_artist text
+  song_artist text,
+  song_notes text
 );
 
 -- Índices para consultas do dashboard
