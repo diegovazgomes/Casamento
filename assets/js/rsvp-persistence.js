@@ -29,9 +29,12 @@ async function getConfig() {
  * @param {string} data.phone - Telefone do convidado
  * @param {string} data.attendance - 'yes' ou 'no'
  * @param {string} data.eventId - ID do evento no site.json
+ * @param {string|null} [data.message] - Mensagem do convidado para o casal (opcional)
+ * @param {string|null} [data.songTitle] - Nome da música sugerida (opcional)
+ * @param {string|null} [data.songArtist] - Artista da música sugerida (opcional)
  * @returns {Promise<boolean>}
  */
-export async function saveRsvpConfirmation({ name, phone, attendance, eventId }) {
+export async function saveRsvpConfirmation({ name, phone, attendance, eventId, message = null, songTitle = null, songArtist = null }) {
     try {
         const { supabaseUrl, supabaseAnonKey } = await getConfig();
 
@@ -46,8 +49,11 @@ export async function saveRsvpConfirmation({ name, phone, attendance, eventId })
             attendance: attendance,
             event_id:   eventId || 'wedding-event',
             source:     'website',
-            user_agent: navigator.userAgent.slice(0, 200),
-            referrer:   document.referrer.slice(0, 200) || null,
+            user_agent:      navigator.userAgent.slice(0, 200),
+            referrer:        document.referrer.slice(0, 200) || null,
+            message:         message || null,
+            song_title:      songTitle || null,
+            song_artist:     songArtist || null,
         };
 
         const response = await fetch(`${supabaseUrl}/rest/v1/rsvp_confirmations`, {
