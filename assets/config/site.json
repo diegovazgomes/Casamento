@@ -4,7 +4,7 @@
     "eventId": "siannah-diego-2026",
     "supabaseEnabled": true
   },
-  "activeTheme": "assets/layouts/classic/themes/classic-gold.json",
+  "activeTheme": "assets/layouts/classic/themes/classic-silver.json",
   "themeFiles": [
     "assets/config/themes/classic-gold.json",
     "assets/config/themes/classic-gold-light.json",
@@ -94,10 +94,10 @@
     "footerNote": "06 . 09 . 2026 | São Bernardo do Campo"
   },
   "gift": {
-    "pixKey": "SUA_CHAVE_PIX_AQUI",
+    "pixKey": "c7806bc8-831c-4a41-8bd5-80862fe13584",
     "pixQrImage": "assets/images/icons/pix-placeholder.svg",
     "cardPaymentEnabled": true,
-    "cardPaymentLink": "https://pagamento.exemplo.com/link-do-casal"
+    "cardPaymentLink": "https://link.mercadopago.com.br/diegovaz"
   },
   "media": {
     "heroImage": "assets/images/couple/casal.png",
