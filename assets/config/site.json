@@ -83,11 +83,11 @@
     "giftPixDescription": "Se preferir, você pode nos presentear por Pix usando o QR Code ou o código abaixo.",
     "giftPixCopyLabel": "Pix copia e cola",
     "giftPixCopyButton": "Copiar código Pix",
-    "giftCardTag": "Pagamento por cartão",
+    "giftCardTag": "Pagamento por cartão 💳",
     "giftCardTitle": "Pagamento por cartão",
     "giftCardBody": "Se preferir, você pode nos presentear através do Cartão de crédito (possibilidade de parcelamento).",
 
-    "giftCardPlaceholder": "Ir para link de paganento",
+    "giftCardPlaceholder": "Ir para link de pagamento",
     "backToHomeButton": "Voltar para o início",
     "backToExtrasButton": "Voltar para página principal",
     "giftOverlayCloseButton": "Fechar",
