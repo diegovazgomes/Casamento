@@ -22,8 +22,9 @@ export function buildWhatsAppUrl(destinationPhone, text) {
 }
 
 export class RSVP {
-    constructor(config = {}) {
+    constructor(config = {}, guestTokenData = null) {
         this.config = config;
+        this.guestTokenData = guestTokenData;
         this.whatsapp = config.whatsapp ?? null;
         this.redirectDelayMs = this.whatsapp?.redirectDelayMs ?? 2000;
         this.redirectTimeoutId = null;
@@ -57,9 +58,40 @@ export class RSVP {
             return;
         }
 
+        if (this.guestTokenData) {
+            this.showSlotCounter();
+            if (this.isSlotsFull()) {
+                this.blockForm();
+                return;
+            }
+        }
+
         this.bindAttendanceButtons();
         this.bindFieldValidation();
         this.form.addEventListener('submit', (event) => this.handleSubmit(event));
+    }
+
+    showSlotCounter() {
+        const { confirmation_count, max_confirmations } = this.guestTokenData;
+        const counter = document.getElementById('rsvpSlotCounter');
+        if (counter) {
+            counter.textContent = `${confirmation_count} de ${max_confirmations} vagas confirmadas neste convite`;
+            counter.removeAttribute('hidden');
+        }
+    }
+
+    isSlotsFull() {
+        return this.guestTokenData.confirmation_count >= this.guestTokenData.max_confirmations;
+    }
+
+    blockForm() {
+        if (this.form) {
+            this.form.setAttribute('hidden', '');
+        }
+        const blocked = document.getElementById('rsvpBlocked');
+        if (blocked) {
+            blocked.removeAttribute('hidden');
+        }
     }
 
     bindFieldValidation() {
@@ -125,12 +157,15 @@ export class RSVP {
 
         // Salvar no Supabase sem bloquear o fluxo do WhatsApp
         const eventId = window.CONFIG?.rsvp?.eventId || 'wedding-event';
+        const marketingConsent = document.getElementById('rsvp-marketing-consent')?.checked ?? false;
         if (window.CONFIG?.rsvp?.supabaseEnabled !== false) {
             saveRsvpConfirmation({
-                name:       this.fields.name.value.trim(),
-                phone:      this.fields.phone.value.trim(),
-                attendance: this.attendanceInput.value,
-                eventId:    eventId,
+                name:            this.fields.name.value.trim(),
+                phone:           this.fields.phone.value.trim(),
+                attendance:      this.attendanceInput.value,
+                eventId:         eventId,
+                tokenId:         this.guestTokenData?.token_id || null,
+                marketingConsent,
             }).catch(() => {
                 // Silencioso — não afeta a experiência do convidado
             });

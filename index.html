@@ -17,10 +17,15 @@
                 invitationStarted = false;
             }
 
+            var guestToken = null;
+
             try {
-                navigationTarget = new URL(window.location.href).searchParams.get('section');
+                var searchParams = new URL(window.location.href).searchParams;
+                navigationTarget = searchParams.get('section');
+                guestToken = searchParams.get('g') || null;
             } catch (error) {
                 navigationTarget = null;
+                guestToken = null;
             }
 
             if ('scrollRestoration' in window.history) {
@@ -29,6 +34,7 @@
 
             window.__INVITATION_BOOTSTRAP__ = {
                 navigationTarget: navigationTarget,
+                guestToken: guestToken,
                 shouldSkipIntro: invitationStarted || Boolean(navigationTarget)
             };
 
@@ -63,6 +69,7 @@
             <div class="hero-overlay" aria-hidden="true"></div>
 
             <div class="hero-content">
+                <p class="guest-greeting" id="guestGreeting" hidden></p>
                 <p class="hero-label" id="heroLabel">Você foi convidado para o casamento de</p>
                 <h1 class="hero-names" id="heroNames">
                     <em id="heroName1">Siannah</em>
@@ -186,6 +193,8 @@
                     <p class="rsvp-title" id="rsvpFormTitle">Confirmar Presença</p>
                     <p class="rsvp-subtitle" id="rsvpFormSubtitle">Preencha os dados para continuar no WhatsApp</p>
 
+                    <p class="rsvp-slot-counter" id="rsvpSlotCounter" hidden></p>
+
                     <form class="rsvp-form" id="rsvpForm" novalidate>
                         <input class="rsvp-input" type="text" placeholder="Seu nome completo" required id="rsvp-name" name="name" autocomplete="name" aria-required="true" aria-label="Nome completo" aria-describedby="rsvp-name-error">
                         <p class="rsvp-field-error" id="rsvp-name-error" hidden></p>
@@ -198,8 +207,19 @@
                             <button type="button" class="rsvp-btn-choice" id="btn-no" data-attend="no" aria-label="Não poderei ir">Não poderei ir</button>
                         </div>
 
+                        <div class="rsvp-consent" id="rsvpConsentWrap">
+                            <label class="rsvp-consent-label">
+                                <input type="checkbox" id="rsvp-marketing-consent" name="marketing_consent">
+                                <span>Quero receber novidades sobre convites digitais da plataforma que criou este convite</span>
+                            </label>
+                        </div>
+
                         <button class="rsvp-submit" id="rsvpSubmit" type="submit" aria-label="Continuar para o WhatsApp">Continuar no WhatsApp</button>
                     </form>
+
+                    <div class="rsvp-blocked" id="rsvpBlocked" hidden role="status">
+                        <p>Este convite já atingiu o limite de confirmações. Entre em contato com os noivos.</p>
+                    </div>
                 </div>
 
                 <div class="rsvp-success" id="rsvpSuccess" role="status" aria-live="polite" aria-atomic="true">

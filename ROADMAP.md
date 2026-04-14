@@ -217,8 +217,8 @@
 - [x] `.env.example` criado na raiz
 - [x] Fluxo do WhatsApp preservado integralmente
 - [x] Falha silenciosa implementada — Supabase fora não afeta o convidado
-- [ ] Variáveis configuradas no Vercel (passo manual do operador — ver abaixo)
-- [ ] Teste end-to-end em produção
+- [x] Variáveis configuradas no Vercel (passo manual do operador — ver abaixo)
+- [x] Teste end-to-end em produção
 
 **Passos manuais do operador:**
 1. Criar conta em supabase.com e novo projeto (`wedding-rsvp`)

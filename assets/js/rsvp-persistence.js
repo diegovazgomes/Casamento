@@ -32,20 +32,25 @@ async function getConfig() {
  * @param {string|null} [data.message] - Mensagem do convidado para o casal (opcional)
  * @param {string|null} [data.songTitle] - Nome da música sugerida (opcional)
  * @param {string|null} [data.songArtist] - Artista da música sugerida (opcional)
+ * @param {string|null} [data.tokenId] - UUID do token do grupo de convidados (opcional)
+ * @param {boolean} [data.marketingConsent] - Consentimento de marketing LGPD (opcional)
  * @returns {Promise<boolean>}
  */
-export async function saveRsvpConfirmation({ name, phone, attendance, eventId, message = null, songTitle = null, songArtist = null }) {
+export async function saveRsvpConfirmation({ name, phone, attendance, eventId, message = null, songTitle = null, songArtist = null, tokenId = null, marketingConsent = false }) {
     return postToSupabase({
-        name:        name.trim(),
-        phone:       phone.trim(),
-        attendance:  attendance,
-        event_id:    eventId || 'wedding-event',
-        source:      'website',
-        user_agent:  navigator.userAgent.slice(0, 200),
-        referrer:    document.referrer.slice(0, 200) || null,
-        message:     message || null,
-        song_title:  songTitle || null,
-        song_artist: songArtist || null,
+        name:                   name.trim(),
+        phone:                  phone.trim(),
+        attendance:             attendance,
+        event_id:               eventId || 'wedding-event',
+        source:                 'website',
+        user_agent:             navigator.userAgent.slice(0, 200),
+        referrer:               document.referrer.slice(0, 200) || null,
+        message:                message || null,
+        song_title:             songTitle || null,
+        song_artist:            songArtist || null,
+        token_id:               tokenId || null,
+        marketing_consent:      marketingConsent,
+        marketing_consent_at:   marketingConsent ? new Date().toISOString() : null,
     });
 }
 

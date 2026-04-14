@@ -9,6 +9,7 @@ const SITE_CONFIG_URL = 'assets/config/site.json';
 const TYPOGRAPHY_CONFIG_URL = 'assets/config/typography.json';
 const INVITATION_STARTED_STORAGE_KEY = 'wedding-invitation-started';
 const NAVIGATION_SECTION_PARAM = 'section';
+const GUEST_TOKEN_API_URL = '/api/guest-token';
 
 // Para trocar o tema, altere apenas esta constante.
 // Temas disponíveis: classic-gold.json, classic-silver.json
@@ -52,8 +53,19 @@ function getBootstrapNavigationState() {
 
     return {
         shouldSkipIntro: Boolean(bootstrapState.shouldSkipIntro),
-        navigationTarget: bootstrapState.navigationTarget || null
+        navigationTarget: bootstrapState.navigationTarget || null,
+        guestToken: bootstrapState.guestToken || null
     };
+}
+
+async function loadGuestTokenData(token) {
+    try {
+        const res = await fetch(`${GUEST_TOKEN_API_URL}?token=${encodeURIComponent(token)}`);
+        if (!res.ok) return null;
+        return await res.json();
+    } catch {
+        return null;
+    }
 }
 
 // Resolve o tema final aplicando overrides de mobile quando necessário.
@@ -437,6 +449,8 @@ class InvitationExperience {
         this.config = config;
         this.theme = theme;
         this.navigationState = navigationState;
+        this.guestToken = navigationState.guestToken || null;
+        this.guestTokenData = null;
         this.weddingApp = null;
         this.countdown = null;
         this.rsvp = null;
@@ -452,7 +466,11 @@ class InvitationExperience {
         this.audioToggleLabel = this.audioToggle?.querySelector('.audio-toggle__label') ?? null;
     }
 
-    init() {
+    async init() {
+        if (this.guestToken) {
+            this.guestTokenData = await loadGuestTokenData(this.guestToken);
+        }
+
         this.setMeta();
         this.setHero();
         this.setEventDetails();
@@ -515,7 +533,7 @@ class InvitationExperience {
         this.countdown = new Countdown(eventDate, { countdown: themeCountdown });
         this.rsvp = new RSVP({
             whatsapp: this.config.whatsapp
-        });
+        }, this.guestTokenData);
 
         this.weddingApp.init();
         this.countdown.start();
@@ -745,6 +763,14 @@ class InvitationExperience {
         }
 
         setText('mainFooterNames', names.names);
+
+        if (this.guestTokenData?.group_name) {
+            const greeting = document.getElementById('guestGreeting');
+            if (greeting) {
+                greeting.textContent = `Olá, ${this.guestTokenData.group_name}!`;
+                greeting.removeAttribute('hidden');
+            }
+        }
     }
 
     setEventDetails() {
@@ -956,7 +982,7 @@ async function bootstrap() {
         window.THEME = effectiveTheme;
         applyTheme(effectiveTheme);
         const experience = new InvitationExperience(config, effectiveTheme, navigationState);
-        experience.init();
+        await experience.init();
         window.dispatchEvent(new CustomEvent('app:ready', { detail: { config, theme: effectiveTheme } }));
     } catch (error) {
         console.error('Falha ao carregar a configuracao da pagina.', error);
