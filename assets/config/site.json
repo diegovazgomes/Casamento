@@ -85,8 +85,9 @@
     "giftPixCopyButton": "Copiar código Pix",
     "giftCardTag": "Pagamento por cartão",
     "giftCardTitle": "Pagamento por cartão",
-    "giftCardBody": "Em breve, esta opção estará disponível.",
-    "giftCardPlaceholder": "Espaço reservado para inserir o link ou a plataforma de pagamento por cartão.",
+    "giftCardBody": "Se preferir, você pode nos presentear através do Cartão de crédito (possibilidade de parcelamento).",
+
+    "giftCardPlaceholder": "Ir para link de paganento",
     "backToHomeButton": "Voltar para o início",
     "backToExtrasButton": "Voltar para página principal",
     "giftOverlayCloseButton": "Fechar",
