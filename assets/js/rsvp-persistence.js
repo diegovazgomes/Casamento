@@ -36,7 +36,7 @@ async function getConfig() {
  * @param {boolean} [data.marketingConsent] - Consentimento de marketing LGPD (opcional)
  * @returns {Promise<boolean>}
  */
-export async function saveRsvpConfirmation({ name, phone, attendance, eventId, message = null, songTitle = null, songArtist = null, tokenId = null, marketingConsent = false }) {
+export async function saveRsvpConfirmation({ name, phone, attendance, eventId, message = null, songTitle = null, songArtist = null, tokenId = null, groupName = null, marketingConsent = false }) {
     return postToSupabase({
         name:                   name.trim(),
         phone:                  phone.trim(),
@@ -49,6 +49,7 @@ export async function saveRsvpConfirmation({ name, phone, attendance, eventId, m
         song_title:             songTitle || null,
         song_artist:            songArtist || null,
         token_id:               tokenId || null,
+        group_name:             groupName || null,
         marketing_consent:      marketingConsent,
         marketing_consent_at:   marketingConsent ? new Date().toISOString() : null,
     });

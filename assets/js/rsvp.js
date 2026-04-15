@@ -197,6 +197,7 @@ export class RSVP {
                 attendance:      this.attendanceInput.value,
                 eventId:         eventId,
                 tokenId:         this.guestTokenData?.token_id || null,
+                groupName:       this.guestTokenData?.group_name || null,
                 marketingConsent,
             }).catch(() => {
                 // Silencioso — não afeta a experiência do convidado
