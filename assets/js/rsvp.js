@@ -198,6 +198,7 @@ export class RSVP {
                 eventId:         eventId,
                 tokenId:         this.guestTokenData?.token_id || null,
                 groupName:       this.guestTokenData?.group_name || null,
+                groupMaxConfirmations: this.guestTokenData?.max_confirmations || null,
                 marketingConsent,
             }).catch(() => {
                 // Silencioso — não afeta a experiência do convidado

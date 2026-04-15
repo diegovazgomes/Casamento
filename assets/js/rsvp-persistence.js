@@ -36,22 +36,23 @@ async function getConfig() {
  * @param {boolean} [data.marketingConsent] - Consentimento de marketing LGPD (opcional)
  * @returns {Promise<boolean>}
  */
-export async function saveRsvpConfirmation({ name, phone, attendance, eventId, message = null, songTitle = null, songArtist = null, tokenId = null, groupName = null, marketingConsent = false }) {
+export async function saveRsvpConfirmation({ name, phone, attendance, eventId, message = null, songTitle = null, songArtist = null, tokenId = null, groupName = null, groupMaxConfirmations = null, marketingConsent = false }) {
     return postToSupabase({
-        name:                   name.trim(),
-        phone:                  phone.trim(),
-        attendance:             attendance,
-        event_id:               eventId || 'wedding-event',
-        source:                 'website',
-        user_agent:             navigator.userAgent.slice(0, 200),
-        referrer:               document.referrer.slice(0, 200) || null,
-        message:                message || null,
-        song_title:             songTitle || null,
-        song_artist:            songArtist || null,
-        token_id:               tokenId || null,
-        group_name:             groupName || null,
-        marketing_consent:      marketingConsent,
-        marketing_consent_at:   marketingConsent ? new Date().toISOString() : null,
+        name:                     name.trim(),
+        phone:                    phone.trim(),
+        attendance:               attendance,
+        event_id:                 eventId || 'wedding-event',
+        source:                   'website',
+        user_agent:               navigator.userAgent.slice(0, 200),
+        referrer:                 document.referrer.slice(0, 200) || null,
+        message:                  message || null,
+        song_title:               songTitle || null,
+        song_artist:              songArtist || null,
+        token_id:                 tokenId || null,
+        group_name:               groupName || null,
+        group_max_confirmations:  groupMaxConfirmations || null,
+        marketing_consent:        marketingConsent,
+        marketing_consent_at:     marketingConsent ? new Date().toISOString() : null,
     });
 }
 
