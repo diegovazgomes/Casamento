@@ -60,7 +60,7 @@ export class RSVP {
 
         if (this.guestTokenData) {
             this.showSlotCounter();
-            if (this.isSlotsFull()) {
+            if (this.isSlotsFull() || this.wasAlreadySubmittedThisSession()) {
                 this.blockForm();
                 return;
             }
@@ -82,6 +82,22 @@ export class RSVP {
 
     isSlotsFull() {
         return this.guestTokenData.confirmation_count >= this.guestTokenData.max_confirmations;
+    }
+
+    wasAlreadySubmittedThisSession() {
+        if (!this.guestTokenData?.token_id) return false;
+        try {
+            return sessionStorage.getItem(`rsvp-done-${this.guestTokenData.token_id}`) === 'true';
+        } catch {
+            return false;
+        }
+    }
+
+    markSubmittedThisSession() {
+        if (!this.guestTokenData?.token_id) return;
+        try {
+            sessionStorage.setItem(`rsvp-done-${this.guestTokenData.token_id}`, 'true');
+        } catch {}
     }
 
     blockForm() {
@@ -171,6 +187,7 @@ export class RSVP {
             });
         }
 
+        this.markSubmittedThisSession();
         this.renderSuccess();
         this.scheduleRedirect(whatsappUrl);
     }

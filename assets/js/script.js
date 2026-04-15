@@ -541,6 +541,14 @@ class InvitationExperience {
         this.mainInitialized = true;
 
         window.addEventListener('beforeunload', () => this.countdown?.stop(), { once: true });
+
+        // Detecta restauração via bfcache (botão voltar do browser após redirect)
+        // e bloqueia o formulário se o convidado já confirmou nesta sessão.
+        window.addEventListener('pageshow', (event) => {
+            if (event.persisted && this.rsvp?.wasAlreadySubmittedThisSession()) {
+                this.rsvp.blockForm();
+            }
+        });
     }
 
     getInitialAudioContext() {
