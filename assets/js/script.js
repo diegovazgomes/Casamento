@@ -546,6 +546,7 @@ class InvitationExperience {
         // e bloqueia o formulário se o convidado já confirmou nesta sessão.
         window.addEventListener('pageshow', (event) => {
             if (event.persisted && this.rsvp?.wasAlreadySubmittedThisSession()) {
+                this.rsvp.showSlotCounter();
                 this.rsvp.blockForm();
             }
         });

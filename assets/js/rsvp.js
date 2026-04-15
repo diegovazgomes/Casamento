@@ -97,6 +97,8 @@ export class RSVP {
         if (!this.guestTokenData?.token_id) return;
         try {
             sessionStorage.setItem(`rsvp-done-${this.guestTokenData.token_id}`, 'true');
+            // Incrementa localmente para que o bfcache restaure com o valor correto
+            this.guestTokenData.confirmation_count = (this.guestTokenData.confirmation_count || 0) + 1;
         } catch {}
     }
 
