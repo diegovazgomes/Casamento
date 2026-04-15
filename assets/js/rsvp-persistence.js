@@ -1,7 +1,10 @@
 /**
  * rsvp-persistence.js
- * Responsabilidade única: salvar confirmações no Supabase.
- * Não interfere com o fluxo do WhatsApp existente.
+ * Salva dados no Supabase em 3 tabelas separadas:
+ *   - rsvp_confirmations : confirmações de presença (yes/no)
+ *   - guest_submissions  : mensagens e sugestões de música
+ *   - guest_tokens       : gerenciado via painel, não escrito aqui
+ *
  * Falha silenciosamente — se o Supabase estiver fora, o WhatsApp ainda funciona.
  */
 
@@ -20,24 +23,22 @@ async function getConfig() {
 }
 
 /**
- * Salva uma confirmação de presença no Supabase.
+ * Salva uma confirmação de presença na tabela rsvp_confirmations.
  * Retorna true se salvou, false se falhou.
- * Nunca lança exceção — falha silenciosamente.
  *
  * @param {Object} data
- * @param {string} data.name - Nome do convidado
- * @param {string} data.phone - Telefone do convidado
- * @param {string} data.attendance - 'yes' ou 'no'
- * @param {string} data.eventId - ID do evento no site.json
- * @param {string|null} [data.message] - Mensagem do convidado para o casal (opcional)
- * @param {string|null} [data.songTitle] - Nome da música sugerida (opcional)
- * @param {string|null} [data.songArtist] - Artista da música sugerida (opcional)
- * @param {string|null} [data.tokenId] - UUID do token do grupo de convidados (opcional)
- * @param {boolean} [data.marketingConsent] - Consentimento de marketing LGPD (opcional)
+ * @param {string}       data.name                  - Nome do convidado
+ * @param {string}       data.phone                 - Telefone do convidado
+ * @param {string}       data.attendance             - 'yes' ou 'no'
+ * @param {string}       data.eventId               - ID do evento
+ * @param {string|null}  [data.tokenId]             - UUID do token do grupo
+ * @param {string|null}  [data.groupName]           - Nome do grupo (desnormalizado)
+ * @param {number|null}  [data.groupMaxConfirmations] - Máximo do grupo (desnormalizado)
+ * @param {boolean}      [data.marketingConsent]    - Consentimento LGPD
  * @returns {Promise<boolean>}
  */
-export async function saveRsvpConfirmation({ name, phone, attendance, eventId, message = null, songTitle = null, songArtist = null, tokenId = null, groupName = null, groupMaxConfirmations = null, marketingConsent = false }) {
-    return postToSupabase({
+export async function saveRsvpConfirmation({ name, phone, attendance, eventId, tokenId = null, groupName = null, groupMaxConfirmations = null, marketingConsent = false }) {
+    return postToSupabase('rsvp_confirmations', {
         name:                     name.trim(),
         phone:                    phone.trim(),
         attendance:               attendance,
@@ -45,9 +46,6 @@ export async function saveRsvpConfirmation({ name, phone, attendance, eventId, m
         source:                   'website',
         user_agent:               navigator.userAgent.slice(0, 200),
         referrer:                 document.referrer.slice(0, 200) || null,
-        message:                  message || null,
-        song_title:               songTitle || null,
-        song_artist:              songArtist || null,
         token_id:                 tokenId || null,
         group_name:               groupName || null,
         group_max_confirmations:  groupMaxConfirmations || null,
@@ -57,26 +55,71 @@ export async function saveRsvpConfirmation({ name, phone, attendance, eventId, m
 }
 
 /**
- * Helper interno: executa o POST para o Supabase com o payload fornecido.
- * Falha silenciosamente em qualquer cenário de erro.
+ * Salva uma mensagem de convidado para o casal na tabela guest_submissions.
+ * Falha silenciosamente — nunca lança exceção.
  *
- * @param {Object} payload - Campos a inserir na tabela rsvp_confirmations
+ * @param {Object} data
+ * @param {string} data.guestName - Nome do convidado (pode ser vazio)
+ * @param {string} data.message   - Texto da mensagem
+ * @param {string} data.eventId   - ID do evento
  * @returns {Promise<boolean>}
  */
-async function postToSupabase(payload) {
+export async function saveGuestMessage({ guestName, message, eventId }) {
+    return postToSupabase('guest_submissions', {
+        type:       'message',
+        guest_name: guestName || '',
+        message:    message || null,
+        event_id:   eventId || 'wedding-event',
+        source:     'mensagem-page',
+        user_agent: navigator.userAgent.slice(0, 200),
+        referrer:   document.referrer.slice(0, 200) || null,
+    });
+}
+
+/**
+ * Salva uma sugestão de música na tabela guest_submissions.
+ * Falha silenciosamente — nunca lança exceção.
+ *
+ * @param {Object} data
+ * @param {string} data.guestName  - Nome do convidado (pode ser vazio)
+ * @param {string} data.songTitle  - Nome da música
+ * @param {string} data.songArtist - Artista (pode ser vazio)
+ * @param {string} data.songNotes  - Observações (pode ser vazio)
+ * @param {string} data.eventId    - ID do evento
+ * @returns {Promise<boolean>}
+ */
+export async function saveSongSuggestion({ guestName, songTitle, songArtist, songNotes, eventId }) {
+    return postToSupabase('guest_submissions', {
+        type:        'song',
+        guest_name:  guestName || '',
+        song_title:  songTitle || null,
+        song_artist: songArtist || null,
+        song_notes:  songNotes || null,
+        event_id:    eventId || 'wedding-event',
+        source:      'musica-page',
+        user_agent:  navigator.userAgent.slice(0, 200),
+        referrer:    document.referrer.slice(0, 200) || null,
+    });
+}
+
+/**
+ * Helper interno: executa o POST para o Supabase na tabela indicada.
+ * Falha silenciosamente em qualquer cenário de erro.
+ *
+ * @param {string} table   - Nome da tabela no Supabase
+ * @param {Object} payload - Campos a inserir
+ * @returns {Promise<boolean>}
+ */
+async function postToSupabase(table, payload) {
     try {
-        console.log('[rsvp-persistence] postToSupabase chamado. attendance:', payload.attendance);
-
         const { supabaseUrl, supabaseAnonKey } = await getConfig();
-
-        console.log('[rsvp-persistence] config carregado. url ok:', !!supabaseUrl, '| key ok:', !!supabaseAnonKey);
 
         if (!supabaseUrl || !supabaseAnonKey) {
             console.warn('[rsvp-persistence] Supabase não configurado. Pulando persistência.');
             return false;
         }
 
-        const response = await fetch(`${supabaseUrl}/rest/v1/rsvp_confirmations`, {
+        const response = await fetch(`${supabaseUrl}/rest/v1/${table}`, {
             method:  'POST',
             headers: {
                 'Content-Type':  'application/json',
@@ -89,65 +132,15 @@ async function postToSupabase(payload) {
 
         if (!response.ok) {
             const errorText = await response.text();
-            console.warn('[rsvp-persistence] Falha ao salvar. status:', response.status, '| erro:', errorText);
+            console.warn(`[rsvp-persistence] Falha ao salvar em ${table}. status:`, response.status, '| erro:', errorText);
             return false;
         }
 
-        console.log('[rsvp-persistence] Registro salvo com sucesso. attendance:', payload.attendance);
+        console.log(`[rsvp-persistence] Registro salvo em ${table}.`);
         return true;
 
     } catch (error) {
         console.warn('[rsvp-persistence] Erro inesperado:', error.message);
         return false;
     }
-}
-
-/**
- * Salva uma mensagem de convidado para o casal no Supabase.
- * Falha silenciosamente — nunca lança exceção.
- *
- * @param {Object} data
- * @param {string} data.guestName - Nome do convidado (pode ser vazio)
- * @param {string} data.message - Texto da mensagem
- * @param {string} data.eventId - ID do evento
- * @returns {Promise<boolean>}
- */
-export async function saveGuestMessage({ guestName, message, eventId }) {
-    return postToSupabase({
-        name:       guestName || '',
-        phone:      '',
-        attendance: 'message',
-        event_id:   eventId || 'wedding-event',
-        source:     'mensagem-page',
-        user_agent: navigator.userAgent.slice(0, 200),
-        referrer:   document.referrer.slice(0, 200) || null,
-        message:    message || null,
-    });
-}
-
-/**
- * Salva uma sugestão de música no Supabase.
- * Falha silenciosamente — nunca lança exceção.
- *
- * @param {Object} data
- * @param {string} data.guestName - Nome do convidado (pode ser vazio)
- * @param {string} data.songTitle - Nome da música
- * @param {string} data.songArtist - Artista (pode ser vazio)
- * @param {string} data.songNotes - Observações (pode ser vazio)
- * @param {string} data.eventId - ID do evento
- * @returns {Promise<boolean>}
- */
-export async function saveSongSuggestion({ guestName, songTitle, songArtist, songNotes, eventId }) {
-    return postToSupabase({
-        name:        guestName || '',
-        phone:       '',
-        attendance:  'song',
-        event_id:    eventId || 'wedding-event',
-        source:      'musica-page',
-        user_agent:  navigator.userAgent.slice(0, 200),
-        referrer:    document.referrer.slice(0, 200) || null,
-        song_title:  songTitle || null,
-        song_artist: songArtist || null,
-        song_notes:  songNotes || null,
-    });
 }
