@@ -22,9 +22,10 @@ export function buildWhatsAppUrl(destinationPhone, text) {
 }
 
 export class RSVP {
-    constructor(config = {}, guestTokenData = null) {
+    constructor(config = {}, guestTokenData = null, refreshSlots = null) {
         this.config = config;
         this.guestTokenData = guestTokenData;
+        this.refreshSlots = refreshSlots;
         this.whatsapp = config.whatsapp ?? null;
         this.redirectDelayMs = this.whatsapp?.redirectDelayMs ?? 2000;
         this.redirectTimeoutId = null;
@@ -148,11 +149,24 @@ export class RSVP {
         });
     }
 
-    handleSubmit(event) {
+    async handleSubmit(event) {
         event.preventDefault();
 
         if (this.isPending) {
             return;
+        }
+
+        // Revalida vagas no servidor antes de qualquer ação
+        if (this.guestTokenData && this.refreshSlots) {
+            const fresh = await this.refreshSlots();
+            if (fresh) {
+                this.guestTokenData = fresh;
+                this.showSlotCounter();
+                if (this.isSlotsFull()) {
+                    this.blockForm();
+                    return;
+                }
+            }
         }
 
         const validation = this.validateForm();

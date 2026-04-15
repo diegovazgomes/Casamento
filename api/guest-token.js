@@ -1,6 +1,7 @@
 // api/guest-token.js
 // Endpoint público que retorna dados de um grupo de convidados pelo token.
-// Usado pelo convite para personalizar saudação e exibir contador de vagas.
+// Usado pelo convite para personalizar saudação, exibir contador de vagas
+// e revalidar no momento do submit.
 // Credenciais do Supabase ficam server-side — nunca expostas ao browser.
 
 export default async function handler(req, res) {
@@ -18,30 +19,17 @@ export default async function handler(req, res) {
     }
 
     try {
-        // Busca o token e conta confirmações em paralelo
-        const [tokenRes, countRes] = await Promise.all([
-            fetch(
-                `${supabaseUrl}/rest/v1/guest_tokens?token=eq.${encodeURIComponent(token)}&select=id,group_name,max_confirmations`,
-                {
-                    headers: {
-                        apikey: supabaseServiceKey,
-                        Authorization: `Bearer ${supabaseServiceKey}`,
-                        Accept: 'application/json',
-                    },
-                }
-            ),
-            fetch(
-                `${supabaseUrl}/rest/v1/rsvp_confirmations?select=id&attendance=eq.yes`,
-                {
-                    headers: {
-                        apikey: supabaseServiceKey,
-                        Authorization: `Bearer ${supabaseServiceKey}`,
-                        Accept: 'application/json',
-                        // Filtramos por token_id após buscar o id — feito abaixo
-                    },
-                }
-            ),
-        ]);
+        // 1. Busca o token
+        const tokenRes = await fetch(
+            `${supabaseUrl}/rest/v1/guest_tokens?token=eq.${encodeURIComponent(token)}&select=id,group_name,max_confirmations`,
+            {
+                headers: {
+                    apikey: supabaseServiceKey,
+                    Authorization: `Bearer ${supabaseServiceKey}`,
+                    Accept: 'application/json',
+                },
+            }
+        );
 
         if (!tokenRes.ok) {
             return res.status(502).json({ error: 'erro ao consultar banco' });
@@ -55,8 +43,8 @@ export default async function handler(req, res) {
 
         const guestToken = tokens[0];
 
-        // Conta confirmações para este token
-        const countFetch = await fetch(
+        // 2. Conta confirmações (yes) para este token
+        const countRes = await fetch(
             `${supabaseUrl}/rest/v1/rsvp_confirmations?token_id=eq.${guestToken.id}&attendance=eq.yes&select=id`,
             {
                 headers: {
@@ -69,12 +57,12 @@ export default async function handler(req, res) {
         );
 
         const confirmationCount = parseInt(
-            countFetch.headers.get('content-range')?.split('/')[1] ?? '0',
+            countRes.headers.get('content-range')?.split('/')[1] ?? '0',
             10
         );
 
-        // Cache curto: dados mudam conforme convidados confirmam
-        res.setHeader('Cache-Control', 's-maxage=30, stale-while-revalidate=60');
+        // Sem cache — dados precisam estar sempre atualizados
+        res.setHeader('Cache-Control', 'no-store');
 
         return res.status(200).json({
             token_id: guestToken.id,

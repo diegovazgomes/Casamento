@@ -531,9 +531,13 @@ class InvitationExperience {
 
         this.weddingApp = new WeddingApp({ animation: { delay: themeAnimation.heroRevealDelayMs ?? 300 } });
         this.countdown = new Countdown(eventDate, { countdown: themeCountdown });
+        const refreshSlots = this.guestToken
+            ? () => loadGuestTokenData(this.guestToken)
+            : null;
+
         this.rsvp = new RSVP({
             whatsapp: this.config.whatsapp
-        }, this.guestTokenData);
+        }, this.guestTokenData, refreshSlots);
 
         this.weddingApp.init();
         this.countdown.start();
