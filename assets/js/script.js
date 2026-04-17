@@ -773,9 +773,11 @@ class InvitationExperience {
         const heroPhoto = document.getElementById('couplePhoto');
         if (heroPhoto && heroImage) {
             heroPhoto.setAttribute('src', heroImage);
+            heroPhoto.setAttribute('alt', this.config.texts?.heroPhotoAlt || `${names.names} em retrato do casal`);
         }
 
         setText('mainFooterNames', names.names);
+        setText('mainFooterNote', this.config.texts?.footerNote);
 
         if (this.guestTokenData?.group_name) {
             const greeting = document.getElementById('guestGreeting');

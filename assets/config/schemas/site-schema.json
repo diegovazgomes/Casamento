@@ -117,6 +117,7 @@
         "introLabel": { "type": "string" },
         "intro": { "type": "string" },
         "heroLabel": { "type": "string" },
+        "heroPhotoAlt": { "type": "string" },
         "countdownTag": { "type": "string" },
         "countdownTitle": { "type": "string" },
         "countdownFinished": { "type": "string" },
