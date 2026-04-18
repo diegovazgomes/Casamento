@@ -978,6 +978,26 @@ function resolveThemePath(activeTheme, layoutKey) {
     return `assets/layouts/${layoutKey}/themes/${activeTheme}.json`;
 }
 
+// ──────────────────────────────────────────────────────────────────────────────
+// Loading Screen Management
+// ──────────────────────────────────────────────────────────────────────────────
+
+function hideLoadingScreen() {
+    const loadingScreen = document.getElementById('loadingScreen');
+    if (!loadingScreen) return;
+    
+    loadingScreen.classList.add('fade-out');
+    setTimeout(() => {
+        if (loadingScreen.parentNode) {
+            loadingScreen.remove();
+        }
+    }, 600);
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Bootstrap & Initialization
+// ──────────────────────────────────────────────────────────────────────────────
+
 async function bootstrap() {
     try {
         await loadDefaults();
@@ -999,8 +1019,10 @@ async function bootstrap() {
         const experience = new InvitationExperience(config, effectiveTheme, navigationState);
         await experience.init();
         window.dispatchEvent(new CustomEvent('app:ready', { detail: { config, theme: effectiveTheme } }));
+        hideLoadingScreen();
     } catch (error) {
         console.error('Falha ao carregar a configuracao da pagina.', error);
+        hideLoadingScreen();
     }
 }
 
