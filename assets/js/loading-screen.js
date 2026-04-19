@@ -67,7 +67,7 @@ export async function initLoadingScreen() {
         // 5. Extrair cores do tema
         const bgColor = theme?.colors?.background || '#ffffff';
         const textColor = theme?.colors?.text || '#f5f5f5';
-        const primaryColor = theme?.colors?.primary || '#d4a574';
+        const primaryColor = theme?.colors?.primary || textColor;
 
         // 6. Aplicar cores via CSS variables
         const root = document.documentElement;
@@ -103,7 +103,7 @@ function applyFallbackLoadingColors() {
     const root = document.documentElement;
     root.style.setProperty('--ls-bg-color', '#ffffff');
     root.style.setProperty('--ls-text-color', '#f5f5f5');
-    root.style.setProperty('--ls-primary-color', '#d4a574');
+    root.style.setProperty('--ls-primary-color', '#f5f5f5');
 }
 
 /**
