@@ -133,4 +133,39 @@ describe('rsvp persistence', () => {
     expect(global.fetch).toHaveBeenCalledTimes(1);
     expect(warnSpy).toHaveBeenCalled();
   });
+
+  it('nao envia colunas inexistentes no insert de RSVP', async () => {
+    global.fetch
+      .mockResolvedValueOnce(createJsonResponse({
+        supabaseUrl: 'https://demo.supabase.co',
+        supabaseAnonKey: 'anon-key',
+      }))
+      .mockResolvedValueOnce(createTextResponse('', true, 201));
+
+    const { saveRsvpConfirmation } = await import('../../assets/js/rsvp-persistence.js');
+    const saved = await saveRsvpConfirmation({
+      name: 'Ana',
+      phone: '11999999999',
+      attendance: 'yes',
+      eventId: 'evento-teste',
+      tokenId: 'token-1',
+      groupName: 'Familia Silva',
+      groupMaxConfirmations: 3,
+      marketingConsent: true,
+    });
+
+    expect(saved).toBe(true);
+
+    const payload = JSON.parse(global.fetch.mock.calls[1][1].body);
+    expect(payload).toMatchObject({
+      name: 'Ana',
+      phone: '11999999999',
+      attendance: 'yes',
+      event_id: 'evento-teste',
+      token_id: 'token-1',
+      marketing_consent: true,
+    });
+    expect(payload).not.toHaveProperty('group_name');
+    expect(payload).not.toHaveProperty('group_max_confirmations');
+  });
 });

@@ -60,8 +60,6 @@ export async function saveRsvpConfirmation({ name, phone, attendance, eventId, t
         user_agent:               navigator.userAgent.slice(0, 200),
         referrer:                 document.referrer.slice(0, 200) || null,
         token_id:                 tokenId || null,
-        group_name:               groupName || null,
-        group_max_confirmations:  groupMaxConfirmations || null,
         marketing_consent:        marketingConsent,
         marketing_consent_at:     marketingConsent ? new Date().toISOString() : null,
     });

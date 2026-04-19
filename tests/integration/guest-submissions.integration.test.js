@@ -118,6 +118,24 @@ describe('guest submissions integration', () => {
     expect(document.getElementById('mensagemFeedback').textContent).toContain('Mensagem enviada');
   });
 
+  it('inicializa a pagina de mensagem mesmo quando app:ready ja aconteceu', async () => {
+    createMessageDom();
+    const { saveGuestMessage } = await import('../../assets/js/rsvp-persistence.js');
+    saveGuestMessage.mockResolvedValue(true);
+    window.CONFIG = structuredClone(baseConfig);
+
+    await import('../../assets/js/mensagem.js');
+
+    document.getElementById('mensagemNameInput').value = 'Ana';
+    document.getElementById('mensagemBodyInput').value = 'Parabéns ao casal!';
+    document.getElementById('mensagemForm').dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+    await flushAsync();
+
+    expect(saveGuestMessage).toHaveBeenCalledTimes(1);
+    expect(document.getElementById('mensagemFeedback').textContent).toContain('Mensagem enviada');
+    delete window.CONFIG;
+  });
+
   it('envia sugestão sem abrir WhatsApp', async () => {
     createMusicDom();
     const { saveSongSuggestion } = await import('../../assets/js/rsvp-persistence.js');
