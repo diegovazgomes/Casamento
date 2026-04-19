@@ -4,6 +4,7 @@ import { RSVP } from './rsvp.js';
 import { PresentPage } from './presente.js';
 import { AudioController } from './audio.js';
 import { cloneDeep, mergeDeep, setInputPlaceholder, setText } from './utils.js';
+import { markBootstrapComplete, hideLoadingScreen } from './loading-screen.js';
 
 const SITE_CONFIG_URL = 'assets/config/site.json';
 const TYPOGRAPHY_CONFIG_URL = 'assets/config/typography.json';
@@ -979,33 +980,6 @@ function resolveThemePath(activeTheme, layoutKey) {
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
-// Loading Screen Management
-// ──────────────────────────────────────────────────────────────────────────────
-
-let bootstrapComplete = false;
-
-async function hideLoadingScreen() {
-    const loadingScreen = document.getElementById('loadingScreen');
-    if (!loadingScreen) return;
-    
-    // Aguarda bootstrap completar (se não tiver completado)
-    while (!bootstrapComplete) {
-        await new Promise(r => setTimeout(r, 100));
-    }
-    
-    // Espera MAIS 1000ms mesmo que tudo pronto (delay mínimo obrigatório)
-    await new Promise(r => setTimeout(r, 1000));
-    
-    // Aí sim desaparece com fade-out de 600ms
-    loadingScreen.classList.add('fade-out');
-    setTimeout(() => {
-        if (loadingScreen.parentNode) {
-            loadingScreen.remove();
-        }
-    }, 600);
-}
-
-// ──────────────────────────────────────────────────────────────────────────────
 // Bootstrap & Initialization
 // ──────────────────────────────────────────────────────────────────────────────
 
@@ -1030,11 +1004,11 @@ async function bootstrap() {
         const experience = new InvitationExperience(config, effectiveTheme, navigationState);
         await experience.init();
         window.dispatchEvent(new CustomEvent('app:ready', { detail: { config, theme: effectiveTheme } }));
-        bootstrapComplete = true;
+        markBootstrapComplete();
         await hideLoadingScreen();
     } catch (error) {
         console.error('Falha ao carregar a configuracao da pagina.', error);
-        bootstrapComplete = true;
+        markBootstrapComplete();
         await hideLoadingScreen();
     }
 }

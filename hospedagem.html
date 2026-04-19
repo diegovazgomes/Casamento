@@ -6,77 +6,15 @@
     <meta name="description" content="Hospedagem e restaurantes para quem vem de fora.">
     <meta name="theme-color" content="#1a1714">
     <title>Para Quem Vem de Fora</title>
-    <script>
-        (function () {
-            // Carrega cores do tema antecipadamente para a loading screen
-            // Sem bloquear o bootstrap principal
-            async function applyLoadingScreenColors() {
-                try {
-                    // 1. Carrega site.json para descobrir qual tema usar
-                    const siteRes = await fetch('assets/config/site.json');
-                    if (!siteRes.ok) return;
-                    const siteConfig = await siteRes.json();
-
-                    // 2. Descobre o caminho do tema
-                    let themePath = siteConfig.activeTheme;
-                    if (!themePath) {
-                        themePath = 'assets/layouts/classic/themes/classic-silver-light.json';
-                    }
-
-                    // 3. Carrega o arquivo de tema
-                    const themeRes = await fetch(themePath);
-                    if (!themeRes.ok) {
-                        // Fallback para cores padrão se tema falhar
-                        applyDefaultLoadingColors();
-                        return;
-                    }
-                    const theme = await themeRes.json();
-
-                    // 4. Extrai cores do tema
-                    const bgColor = theme?.colors?.background || '#ffffff';
-                    const primaryColor = theme?.colors?.primary || '#d4a574';
-                    const heartColor = theme?.colors?.primary || '#d4a574';
-
-                    // 5. Aplica as cores na loading screen
-                    const root = document.documentElement;
-                    root.style.setProperty('--ls-bg-color', bgColor);
-                    root.style.setProperty('--ls-primary-color', primaryColor);
-                    root.style.setProperty('--ls-heart-color', heartColor);
-                } catch (error) {
-                    // Em caso de erro, usa cores padrão
-                    applyDefaultLoadingColors();
-                }
-            }
-
-            function applyDefaultLoadingColors() {
-                const root = document.documentElement;
-                root.style.setProperty('--ls-bg-color', '#ffffff');
-                root.style.setProperty('--ls-primary-color', '#d4a574');
-            }
-
-            // Inicializa cores padrão
-            applyDefaultLoadingColors();
-            // Carrega cores do tema em background (não bloqueia)
-            applyLoadingScreenColors();
-        })();
-    </script>
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="assets/css/animations.css">
+    <script type="module">
+        import { initLoadingScreen } from './assets/js/loading-screen.js';
+        initLoadingScreen();
+    </script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 </head>
 <body class="extra-page hospedagem-page">
-
-    <div class="loading-screen" id="loadingScreen" aria-hidden="true">
-        <div class="loading-backdrop"></div>
-        <div class="loading-content">
-            <div class="loading-hearts">
-                <span class="heart heart-1">💕</span>
-                <span class="heart heart-2">💕</span>
-                <span class="heart heart-3">💕</span>
-            </div>
-            <p class="loading-text">Carregando seu convite</p>
-        </div>
-    </div>
 
     <main class="extra-main">
         <section class="content-section extra-intro">
