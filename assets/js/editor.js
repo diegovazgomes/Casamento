@@ -841,10 +841,10 @@ const TYPOGRAPHY_LINKED_TEXTOS = [
   {
     title: 'Subtítulo do formulário RSVP',
     samplePath: 'texts.rsvpFormSubtitle',
-    sampleFallback: 'Preencha os dados para continuar no WhatsApp',
+    sampleFallback: 'Preencha os dados para registrar sua confirmação com a gente.',
     sampleHint: 'Linha de apoio acima dos inputs.',
     textLabel: 'Texto',
-    textPlaceholder: 'Preencha os dados para continuar no WhatsApp',
+    textPlaceholder: 'Preencha os dados para registrar sua confirmação com a gente.',
     textMultiline: true,
     sizePath: 'themeOverrides.typography.sizes.rsvpSubtitle',
     sizePlaceholder: '11px',
@@ -902,10 +902,35 @@ const TYPOGRAPHY_LINKED_TEXTOS = [
   {
     title: 'Botão enviar RSVP',
     samplePath: 'texts.rsvpSubmit',
-    sampleFallback: 'Continuar no WhatsApp',
+    sampleFallback: 'Enviar confirmação aos noivos',
     sampleHint: 'Texto do botão de envio do formulário.',
     textLabel: 'Texto',
-    textPlaceholder: 'Continuar no WhatsApp',
+    textPlaceholder: 'Enviar confirmação aos noivos',
+    sizePath: 'themeOverrides.typography.sizes.rsvpSubmit',
+    sizePlaceholder: '10px',
+    fontPath: 'themeOverrides.typography.fonts.primary',
+    fontPlaceholder: "'Jost', sans-serif",
+  },
+  {
+    title: 'Mensagem FAQ após confirmação',
+    samplePath: 'texts.rsvpSuccessFaqHint',
+    sampleFallback: 'Se ainda tiver dúvidas, a área de FAQ acima pode te ajudar. Se preferir falar diretamente com a gente, use o botão abaixo.',
+    sampleHint: 'Texto de apoio exibido após o RSVP salvo.',
+    textLabel: 'Texto',
+    textPlaceholder: 'Se ainda tiver dúvidas, a área de FAQ acima pode te ajudar. Se preferir falar diretamente com a gente, use o botão abaixo.',
+    textMultiline: true,
+    sizePath: 'themeOverrides.typography.sizes.rsvpSubtitle',
+    sizePlaceholder: '11px',
+    fontPath: 'themeOverrides.typography.fonts.primary',
+    fontPlaceholder: "'Jost', sans-serif",
+  },
+  {
+    title: 'Botão de contato após confirmação',
+    samplePath: 'texts.rsvpSuccessContactButton',
+    sampleFallback: 'Falar com os noivos no WhatsApp',
+    sampleHint: 'CTA secundário exibido depois que a confirmação é salva.',
+    textLabel: 'Texto',
+    textPlaceholder: 'Falar com os noivos no WhatsApp',
     sizePath: 'themeOverrides.typography.sizes.rsvpSubmit',
     sizePlaceholder: '10px',
     fontPath: 'themeOverrides.typography.fonts.primary',
@@ -1510,9 +1535,9 @@ function renderMensagem() {
     ${fieldInput({ label: 'Label da mensagem', path: 'pages.mensagem.content.messageLabel', placeholder: 'Sua mensagem' })}
     ${fieldInput({ label: 'Placeholder do nome', path: 'pages.mensagem.content.namePlaceholder', placeholder: 'Como podemos te chamar?' })}
     ${fieldTextarea({ label: 'Placeholder da mensagem', path: 'pages.mensagem.content.messagePlaceholder', placeholder: 'Escreva aqui sua mensagem de carinho...' })}
-    ${fieldInput({ label: 'Texto do botão', path: 'pages.mensagem.content.submitLabel', placeholder: 'Preparar envio no WhatsApp' })}
-    ${fieldTextarea({ label: 'Mensagem de sucesso', path: 'pages.mensagem.content.successMessage', placeholder: 'Mensagem preparada. Abrimos o WhatsApp para você finalizar o envio.' })}
-    ${fieldTextarea({ label: 'Mensagem de erro', path: 'pages.mensagem.content.errorMessage', placeholder: 'Não foi possível preparar o envio. Tente novamente.' })}
+    ${fieldInput({ label: 'Texto do botão', path: 'pages.mensagem.content.submitLabel', placeholder: 'Enviar mensagem aos noivos' })}
+    ${fieldTextarea({ label: 'Mensagem de sucesso', path: 'pages.mensagem.content.successMessage', placeholder: 'Mensagem enviada com carinho. Obrigado por deixar seu recado para nós.' })}
+    ${fieldTextarea({ label: 'Mensagem de erro', path: 'pages.mensagem.content.errorMessage', placeholder: 'Não foi possível enviar sua mensagem agora. Tente novamente.' })}
   `) + group('Navegação', `
     ${fieldInput({ label: 'Texto do botão voltar ao início', path: 'texts.backToHomeButton', placeholder: 'Voltar para o início' })}
     ${fieldInput({ label: 'Texto do botão voltar para extras', path: 'texts.backToExtrasButton', placeholder: 'Voltar para página principal' })}
@@ -1539,9 +1564,9 @@ function renderMusica() {
     ${fieldInput({ label: 'Placeholder da música', path: 'pages.musica.content.songPlaceholder', placeholder: 'Ex: Velha Infância' })}
     ${fieldInput({ label: 'Placeholder do artista', path: 'pages.musica.content.artistPlaceholder', placeholder: 'Ex: Tribalistas' })}
     ${fieldTextarea({ label: 'Placeholder de observações', path: 'pages.musica.content.notesPlaceholder', placeholder: 'Diga por que essa música é especial...' })}
-    ${fieldInput({ label: 'Texto do botão', path: 'pages.musica.content.submitLabel', placeholder: 'Preparar envio no WhatsApp' })}
-    ${fieldTextarea({ label: 'Mensagem de sucesso', path: 'pages.musica.content.successMessage', placeholder: 'Sugestão preparada. Abrimos o WhatsApp para você finalizar o envio.' })}
-    ${fieldTextarea({ label: 'Mensagem de erro', path: 'pages.musica.content.errorMessage', placeholder: 'Não foi possível preparar o envio. Tente novamente.' })}
+    ${fieldInput({ label: 'Texto do botão', path: 'pages.musica.content.submitLabel', placeholder: 'Enviar sugestão aos noivos' })}
+    ${fieldTextarea({ label: 'Mensagem de sucesso', path: 'pages.musica.content.successMessage', placeholder: 'Sugestão enviada com sucesso. Obrigado por ajudar a montar a trilha da nossa festa.' })}
+    ${fieldTextarea({ label: 'Mensagem de erro', path: 'pages.musica.content.errorMessage', placeholder: 'Não foi possível enviar sua sugestão agora. Tente novamente.' })}
   `) + group('Navegação', `
     ${fieldInput({ label: 'Texto do botão voltar ao início', path: 'texts.backToHomeButton', placeholder: 'Voltar para o início' })}
     ${fieldInput({ label: 'Texto do botão voltar para extras', path: 'texts.backToExtrasButton', placeholder: 'Voltar para página principal' })}

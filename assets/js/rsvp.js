@@ -27,8 +27,6 @@ export class RSVP {
         this.guestTokenData = guestTokenData;
         this.refreshSlots = refreshSlots;
         this.whatsapp = config.whatsapp ?? null;
-        this.redirectDelayMs = this.whatsapp?.redirectDelayMs ?? 2000;
-        this.redirectTimeoutId = null;
         this.isPending = false;
         this.section = document.getElementById('rsvpSection');
         this.flow = document.getElementById('rsvpFlow');
@@ -37,6 +35,8 @@ export class RSVP {
         this.successMsg = document.getElementById('successMsg');
         this.successSub = document.getElementById('successSub');
         this.successNote = document.getElementById('successNote');
+        this.successHint = document.getElementById('successHint');
+        this.successContactButton = document.getElementById('successContactButton');
         this.attendanceInput = document.getElementById('rsvp-attendance');
         this.nameError = document.getElementById('rsvp-name-error');
         this.phoneError = document.getElementById('rsvp-phone-error');
@@ -180,34 +180,45 @@ export class RSVP {
             return;
         }
 
-        const whatsappUrl = this.buildWhatsAppUrl();
+        this.isPending = true;
+        if (this.submitButton) {
+            this.submitButton.disabled = true;
+        }
 
-        if (!whatsappUrl) {
-            this.renderError();
+        const eventId = this.config?.rsvp?.eventId || 'wedding-event';
+        const marketingConsent = document.getElementById('rsvp-marketing-consent')?.checked ?? false;
+
+        if (this.config?.rsvp?.supabaseEnabled === false) {
+            this.renderError({
+                title: 'Confirmação temporariamente indisponível.',
+                subtitle: 'Não conseguimos registrar sua resposta agora. Tente novamente em instantes.',
+                note: ''
+            });
             return;
         }
 
-        // Salvar no Supabase sem bloquear o fluxo do WhatsApp
-        const eventId = window.CONFIG?.rsvp?.eventId || 'wedding-event';
-        const marketingConsent = document.getElementById('rsvp-marketing-consent')?.checked ?? false;
-        if (window.CONFIG?.rsvp?.supabaseEnabled !== false) {
-            saveRsvpConfirmation({
-                name:            this.fields.name.value.trim(),
-                phone:           this.fields.phone.value.trim(),
-                attendance:      this.attendanceInput.value,
-                eventId:         eventId,
-                tokenId:         this.guestTokenData?.token_id || null,
-                groupName:       this.guestTokenData?.group_name || null,
-                groupMaxConfirmations: this.guestTokenData?.max_confirmations || null,
-                marketingConsent,
-            }).catch(() => {
-                // Silencioso — não afeta a experiência do convidado
+        const saved = await saveRsvpConfirmation({
+            name:            this.fields.name.value.trim(),
+            phone:           this.fields.phone.value.trim(),
+            attendance:      this.attendanceInput.value,
+            eventId:         eventId,
+            tokenId:         this.guestTokenData?.token_id || null,
+            groupName:       this.guestTokenData?.group_name || null,
+            groupMaxConfirmations: this.guestTokenData?.max_confirmations || null,
+            marketingConsent,
+        }).catch(() => false);
+
+        if (!saved) {
+            this.renderError({
+                title: 'Não foi possível registrar sua confirmação.',
+                subtitle: 'Tivemos um problema ao salvar sua resposta. Tente novamente em instantes.',
+                note: ''
             });
+            return;
         }
 
         this.markSubmittedThisSession();
         this.renderSuccess();
-        this.scheduleRedirect(whatsappUrl);
     }
 
     validateForm() {
@@ -306,6 +317,22 @@ export class RSVP {
             : this.whatsapp.messages?.notAttending;
     }
 
+    getContactWhatsAppUrl() {
+        const template = this.getMessageTemplate();
+
+        if (!template || !this.whatsapp?.destinationPhone) {
+            return '';
+        }
+
+        const text = buildWhatsAppMessage(template, {
+            recipientName: this.whatsapp.recipientName ?? '',
+            name: this.fields.name.value.trim(),
+            phone: this.fields.phone.value.trim()
+        });
+
+        return buildWhatsAppUrl(this.whatsapp.destinationPhone, text);
+    }
+
     interpolate(template, values) {
         return interpolateTemplate(template, values);
     }
@@ -317,14 +344,9 @@ export class RSVP {
             ? this.whatsapp.feedback?.attending
             : this.whatsapp.feedback?.notAttending;
         const interpolationValues = {
-            firstName: firstName || 'querido convidado',
-            delaySeconds: String(Math.max(1, Math.round(this.redirectDelayMs / 1000)))
+            firstName: firstName || 'querido convidado'
         };
-
-        this.isPending = true;
-        if (this.submitButton) {
-            this.submitButton.disabled = true;
-        }
+        const contactUrl = this.getContactWhatsAppUrl();
 
         this.flow?.classList.add('is-hidden');
         this.section?.classList.add('is-feedback-visible');
@@ -336,13 +358,29 @@ export class RSVP {
             interpolationValues
         );
         this.successSub.textContent = this.interpolate(
-            feedback?.subtitle ?? 'Estamos preparando o redirecionamento para o WhatsApp.',
+            feedback?.subtitle ?? 'Sua resposta foi registrada com sucesso.',
             interpolationValues
         );
         this.successNote.textContent = this.interpolate(
             feedback?.note ?? '',
             interpolationValues
         );
+        if (this.successHint) {
+            this.successHint.textContent = this.config.texts?.rsvpSuccessFaqHint ?? 'Se ainda tiver dúvidas, a área de FAQ acima pode te ajudar. Se preferir falar diretamente com a gente, use o botão abaixo.';
+            this.successHint.hidden = false;
+        }
+        if (this.successContactButton) {
+            if (contactUrl) {
+                const label = this.config.texts?.rsvpSuccessContactButton ?? 'Falar com os noivos no WhatsApp';
+                this.successContactButton.textContent = label;
+                this.successContactButton.setAttribute('aria-label', label);
+                this.successContactButton.setAttribute('href', contactUrl);
+                this.successContactButton.hidden = false;
+            } else {
+                this.successContactButton.hidden = true;
+                this.successContactButton.removeAttribute('href');
+            }
+        }
 
         this.successBox.classList.add('show');
     }
@@ -357,13 +395,18 @@ export class RSVP {
         this.successMsg.textContent = effectiveFeedback.title ?? 'Não foi possível continuar.';
         this.successSub.textContent = effectiveFeedback.subtitle ?? 'Confira os dados informados e tente novamente em instantes.';
         this.successNote.textContent = effectiveFeedback.note ?? '';
+        if (this.successHint) {
+            this.successHint.textContent = '';
+            this.successHint.hidden = true;
+        }
+        if (this.successContactButton) {
+            this.successContactButton.hidden = true;
+            this.successContactButton.removeAttribute('href');
+        }
+        this.isPending = false;
+        if (this.submitButton) {
+            this.submitButton.disabled = false;
+        }
         this.successBox.classList.add('show');
-    }
-
-    scheduleRedirect(whatsappUrl) {
-        window.clearTimeout(this.redirectTimeoutId);
-        this.redirectTimeoutId = window.setTimeout(() => {
-            window.location.assign(whatsappUrl);
-        }, this.redirectDelayMs);
     }
 }

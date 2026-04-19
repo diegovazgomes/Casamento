@@ -908,6 +908,23 @@
     text-transform: uppercase;
 }
 
+.rsvp-success-hint {
+    margin-top: 16px;
+    color: var(--color-text-soft);
+    font-size: var(--rsvp-success-sub-size);
+    letter-spacing: 0.03em;
+    line-height: 1.8;
+}
+
+.rsvp-submit-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    margin-top: 16px;
+    text-decoration: none;
+}
+
 /* Extras section */
 
 .extras-section {

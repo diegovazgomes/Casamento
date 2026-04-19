@@ -44,12 +44,14 @@
         "rsvpTitle": "Esperamos voce.",
         "rsvpSubtitle": "Pedimos, por gentileza, que confirme sua presenca o quanto antes.",
         "rsvpFormTitle": "Confirmar Presenca",
-        "rsvpFormSubtitle": "Preencha os dados para continuar no WhatsApp",
+        "rsvpFormSubtitle": "Preencha os dados para registrar sua confirmacao com a gente.",
         "rsvpPlaceholderName": "Seu nome completo",
         "rsvpPlaceholderPhone": "Seu WhatsApp",
         "rsvpYesLabel": "Confirmo presenca",
         "rsvpNoLabel": "Nao poderei ir",
-        "rsvpSubmit": "Continuar no WhatsApp",
+        "rsvpSubmit": "Enviar confirmacao aos noivos",
+        "rsvpSuccessFaqHint": "Se ainda tiver duvidas, a area de FAQ acima pode te ajudar. Se preferir falar diretamente com a gente, use o botao abaixo.",
+        "rsvpSuccessContactButton": "Falar com os noivos no WhatsApp",
         "giftTag": "Presente",
         "giftTitle": "Para nos presentear",
         "giftIntro": "Sua presenca ja e o nosso maior presente.",
@@ -141,9 +143,9 @@
                 "messageLabel": "Sua mensagem",
                 "namePlaceholder": "Como podemos te chamar?",
                 "messagePlaceholder": "Escreva aqui sua mensagem de carinho...",
-                "submitLabel": "Preparar envio no WhatsApp",
-                "successMessage": "Mensagem preparada. Abrimos o WhatsApp para você finalizar o envio.",
-                "errorMessage": "Não foi possível preparar o envio. Tente novamente."
+                "submitLabel": "Enviar mensagem aos noivos",
+                "successMessage": "Mensagem enviada com carinho. Obrigado por deixar seu recado para nos.",
+                "errorMessage": "Nao foi possivel enviar sua mensagem agora. Tente novamente."
             }
         },
         "musica": {
@@ -164,9 +166,9 @@
                 "songPlaceholder": "Ex: Velha Infância",
                 "artistPlaceholder": "Ex: Tribalistas",
                 "notesPlaceholder": "Diga por que essa música é especial...",
-                "submitLabel": "Preparar envio no WhatsApp",
-                "successMessage": "Sugestão preparada. Abrimos o WhatsApp para você finalizar o envio.",
-                "errorMessage": "Não foi possível preparar o envio. Tente novamente."
+                "submitLabel": "Enviar sugestao aos noivos",
+                "successMessage": "Sugestao enviada com sucesso. Obrigado por ajudar a montar a trilha da nossa festa.",
+                "errorMessage": "Nao foi possivel enviar sua sugestao agora. Tente novamente."
             }
         },
         "presente": {
@@ -186,13 +188,13 @@
         "feedback": {
             "attending": {
                 "title": "Presenca confirmada, {firstName}.",
-                "subtitle": "Sua mensagem esta pronta e vamos te levar ao WhatsApp para finalizar o envio.",
-                "note": "Abrindo o WhatsApp em {delaySeconds} segundos"
+                "subtitle": "Sua confirmacao foi registrada com carinho. Estamos muito felizes em celebrar esse momento com voce.",
+                "note": ""
             },
             "notAttending": {
                 "title": "Obrigada pelo aviso, {firstName}.",
-                "subtitle": "Sua mensagem de ausencia esta pronta para seguir ao WhatsApp.",
-                "note": "Abrindo o WhatsApp em {delaySeconds} segundos"
+                "subtitle": "Seu retorno foi registrado com carinho. Agradecemos por nos avisar.",
+                "note": ""
             },
             "error": {
                 "title": "Faltam alguns dados para continuar.",

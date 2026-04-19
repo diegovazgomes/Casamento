@@ -144,6 +144,8 @@
         "rsvpYesLabel": { "type": "string" },
         "rsvpNoLabel": { "type": "string" },
         "rsvpSubmit": { "type": "string" },
+        "rsvpSuccessFaqHint": { "type": "string" },
+        "rsvpSuccessContactButton": { "type": "string" },
         "giftTag": { "type": "string" },
         "giftTitle": { "type": "string" },
         "giftIntro": { "type": "string" },

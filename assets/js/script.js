@@ -830,6 +830,8 @@ class InvitationExperience {
         setText('btn-yes', this.config.texts?.rsvpYesLabel);
         setText('btn-no', this.config.texts?.rsvpNoLabel);
         setText('rsvpSubmit', this.config.texts?.rsvpSubmit);
+        setText('successHint', this.config.texts?.rsvpSuccessFaqHint);
+        setText('successContactButton', this.config.texts?.rsvpSuccessContactButton);
         setText('backToHomeButton', this.config.texts?.backToHomeButton);
         setText('backToExtrasButton', this.config.texts?.backToExtrasButton);
 

@@ -2,18 +2,6 @@ import { initExtraPage } from './extra-page.js';
 import { setInputPlaceholder, setText } from './utils.js';
 import { saveGuestMessage } from './rsvp-persistence.js';
 
-function interpolate(template, values) {
-    return String(template ?? '').replace(/\{(\w+)\}/g, (_, key) => String(values[key] ?? ''));
-}
-
-function createWhatsAppUrl(destinationPhone, text) {
-    const phone = String(destinationPhone ?? '').trim();
-    if (!phone) return '';
-
-    const params = new URLSearchParams({ text: String(text ?? '') });
-    return `https://wa.me/${encodeURIComponent(phone)}?${params.toString()}`;
-}
-
 function setFieldValidity(field, isInvalid) {
     if (!field) return;
     field.classList.toggle('is-invalid', isInvalid);
@@ -34,18 +22,21 @@ function bindMessageForm(content, config) {
     const feedback = document.getElementById('mensagemFeedback');
     const nameField = document.getElementById('mensagemNameInput');
     const bodyField = document.getElementById('mensagemBodyInput');
+    const submitButton = document.getElementById('mensagemSubmitButton');
 
     if (!form || !feedback || !bodyField) {
         return;
     }
 
-    form.addEventListener('submit', (event) => {
+    form.addEventListener('submit', async (event) => {
         event.preventDefault();
+
+        if (submitButton?.disabled) {
+            return;
+        }
 
         const guestName = String(nameField?.value ?? '').trim();
         const messageBody = String(bodyField.value ?? '').trim();
-        const destinationPhone = config?.whatsapp?.destinationPhone;
-        const recipientName = config?.whatsapp?.recipientName ?? 'noivos';
 
         setFieldValidity(bodyField, false);
         feedback.classList.remove('is-error');
@@ -58,37 +49,40 @@ function bindMessageForm(content, config) {
             return;
         }
 
-        const template =
-            content?.whatsappTemplate ||
-            'Olá, {recipientName}!\n\n{guestName} deixou uma mensagem especial:\n\n"{messageBody}"';
+        if (submitButton) {
+            submitButton.disabled = true;
+        }
 
-        const whatsappMessage = interpolate(template, {
-            recipientName,
-            guestName: guestName || 'Um convidado',
-            messageBody,
-        });
-
-        const whatsappUrl = createWhatsAppUrl(destinationPhone, whatsappMessage);
-        if (!whatsappUrl) {
+        if (config?.rsvp?.supabaseEnabled === false) {
             feedback.classList.add('is-error');
-            feedback.textContent = content?.errorMessage || 'Não foi possível preparar o envio agora. Tente novamente.';
+            feedback.textContent = content?.errorMessage || 'Não foi possível enviar sua mensagem agora. Tente novamente.';
+            if (submitButton) {
+                submitButton.disabled = false;
+            }
             return;
         }
 
-        // Salvar no Supabase sem bloquear o fluxo do WhatsApp
-        console.log('[mensagem] supabaseEnabled:', window.CONFIG?.rsvp?.supabaseEnabled, '| eventId:', window.CONFIG?.rsvp?.eventId);
-        if (window.CONFIG?.rsvp?.supabaseEnabled !== false) {
-            saveGuestMessage({
-                guestName: guestName,
-                message:   messageBody,
-                eventId:   window.CONFIG?.rsvp?.eventId,
-            }).catch(() => {});
+        const saved = await saveGuestMessage({
+            guestName,
+            message: messageBody,
+            eventId: config?.rsvp?.eventId,
+        }).catch(() => false);
+
+        if (!saved) {
+            feedback.classList.add('is-error');
+            feedback.textContent = content?.errorMessage || 'Não foi possível enviar sua mensagem agora. Tente novamente.';
+            if (submitButton) {
+                submitButton.disabled = false;
+            }
+            return;
         }
 
-        window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
-        feedback.textContent = content?.successMessage || 'Mensagem preparada. Abra o WhatsApp para finalizar o envio.';
+        feedback.textContent = content?.successMessage || 'Mensagem enviada com carinho. Obrigado pelo seu recado.';
         form.reset();
         setFieldValidity(bodyField, false);
+        if (submitButton) {
+            submitButton.disabled = false;
+        }
     });
 }
 
