@@ -29,7 +29,7 @@ beforeEach(() => {
 });
 
 describe('rsvp persistence', () => {
-  it('salva mensagem em rsvp_confirmations com attendance message', async () => {
+  it('salva mensagem em guest_submissions com type message', async () => {
     global.fetch
       .mockResolvedValueOnce(createJsonResponse({
         supabaseUrl: 'https://demo.supabase.co',
@@ -46,22 +46,21 @@ describe('rsvp persistence', () => {
 
     expect(saved).toBe(true);
     expect(global.fetch).toHaveBeenCalledTimes(2);
-    expect(global.fetch).toHaveBeenNthCalledWith(2, 'https://demo.supabase.co/rest/v1/rsvp_confirmations', expect.objectContaining({
+    expect(global.fetch).toHaveBeenNthCalledWith(2, 'https://demo.supabase.co/rest/v1/guest_submissions', expect.objectContaining({
       method: 'POST',
     }));
 
     const payload = JSON.parse(global.fetch.mock.calls[1][1].body);
     expect(payload).toMatchObject({
-      name: 'Ana',
-      phone: '',
-      attendance: 'message',
+      type: 'message',
+      guest_name: 'Ana',
       message: 'Parabens ao casal',
       event_id: 'evento-teste',
       source: 'mensagem-page',
     });
   });
 
-  it('salva sugestao em rsvp_confirmations com attendance song', async () => {
+  it('salva sugestao em guest_submissions com type song', async () => {
     global.fetch
       .mockResolvedValueOnce(createJsonResponse({
         supabaseUrl: 'https://demo.supabase.co',
@@ -80,15 +79,14 @@ describe('rsvp persistence', () => {
 
     expect(saved).toBe(true);
     expect(global.fetch).toHaveBeenCalledTimes(2);
-    expect(global.fetch).toHaveBeenNthCalledWith(2, 'https://demo.supabase.co/rest/v1/rsvp_confirmations', expect.objectContaining({
+    expect(global.fetch).toHaveBeenNthCalledWith(2, 'https://demo.supabase.co/rest/v1/guest_submissions', expect.objectContaining({
       method: 'POST',
     }));
 
     const payload = JSON.parse(global.fetch.mock.calls[1][1].body);
     expect(payload).toMatchObject({
-      name: 'Ana',
-      phone: '',
-      attendance: 'song',
+      type: 'song',
+      guest_name: 'Ana',
       song_title: 'Velha Infancia',
       song_artist: 'Tribalistas',
       song_notes: 'Nossa cara',
@@ -169,159 +167,22 @@ describe('rsvp persistence', () => {
     expect(payload).not.toHaveProperty('group_max_confirmations');
   });
 
-  it('faz retry com payload minimo para mensagem quando houver erro de schema', async () => {
+  it('retorna false quando insert em guest_submissions falha', async () => {
     global.fetch
       .mockResolvedValueOnce(createJsonResponse({
         supabaseUrl: 'https://demo.supabase.co',
         supabaseAnonKey: 'anon-key',
       }))
-      .mockResolvedValueOnce(createTextResponse('{"code":"PGRST204","message":"Could not find the message column"}', false, 400))
-      .mockResolvedValueOnce(createTextResponse('', true, 201));
-
-    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      .mockResolvedValueOnce(createTextResponse('{"message":"insert failed"}', false, 400));
 
     const { saveGuestMessage } = await import('../../assets/js/rsvp-persistence.js');
     const saved = await saveGuestMessage({
       guestName: 'Ana',
-      message: 'Parabens ao casal',
+      message: 'Parabens',
       eventId: 'evento-teste',
-    });
-
-    expect(saved).toBe(true);
-    expect(global.fetch).toHaveBeenCalledTimes(3);
-    expect(warnSpy).toHaveBeenCalled();
-
-    const firstInsertPayload = JSON.parse(global.fetch.mock.calls[1][1].body);
-    const fallbackPayload = JSON.parse(global.fetch.mock.calls[2][1].body);
-
-    expect(firstInsertPayload).toHaveProperty('message');
-    expect(fallbackPayload).not.toHaveProperty('message');
-    expect(fallbackPayload).toMatchObject({
-      name: 'Ana',
-      phone: '',
-      attendance: 'message',
-      event_id: 'evento-teste',
-      source: 'mensagem-page',
-    });
-  });
-
-  it('faz retry com payload minimo para musica quando houver erro de schema', async () => {
-    global.fetch
-      .mockResolvedValueOnce(createJsonResponse({
-        supabaseUrl: 'https://demo.supabase.co',
-        supabaseAnonKey: 'anon-key',
-      }))
-      .mockResolvedValueOnce(createTextResponse('{"message":"column song_title does not exist"}', false, 400))
-      .mockResolvedValueOnce(createTextResponse('', true, 201));
-
-    const { saveSongSuggestion } = await import('../../assets/js/rsvp-persistence.js');
-    const saved = await saveSongSuggestion({
-      guestName: 'Ana',
-      songTitle: 'Velha Infancia',
-      songArtist: 'Tribalistas',
-      songNotes: 'Nossa cara',
-      eventId: 'evento-teste',
-    });
-
-    expect(saved).toBe(true);
-    expect(global.fetch).toHaveBeenCalledTimes(3);
-
-    const firstInsertPayload = JSON.parse(global.fetch.mock.calls[1][1].body);
-    const fallbackPayload = JSON.parse(global.fetch.mock.calls[2][1].body);
-
-    expect(firstInsertPayload).toHaveProperty('song_title');
-    expect(fallbackPayload).not.toHaveProperty('song_title');
-    expect(fallbackPayload).toMatchObject({
-      name: 'Ana',
-      phone: '',
-      attendance: 'song',
-      event_id: 'evento-teste',
-      source: 'musica-page',
-    });
-  });
-
-  it('nao faz retry de schema para RSVP', async () => {
-    global.fetch
-      .mockResolvedValueOnce(createJsonResponse({
-        supabaseUrl: 'https://demo.supabase.co',
-        supabaseAnonKey: 'anon-key',
-      }))
-      .mockResolvedValueOnce(createTextResponse('{"code":"PGRST204","message":"column marketing_consent_at does not exist"}', false, 400));
-
-    const { saveRsvpConfirmation } = await import('../../assets/js/rsvp-persistence.js');
-    const saved = await saveRsvpConfirmation({
-      name: 'Ana',
-      phone: '11999999999',
-      attendance: 'yes',
-      eventId: 'evento-teste',
-      marketingConsent: true,
     });
 
     expect(saved).toBe(false);
     expect(global.fetch).toHaveBeenCalledTimes(2);
-  });
-
-  it('faz fallback de attendance legado para mensagem quando constraint rejeita message', async () => {
-    global.fetch
-      .mockResolvedValueOnce(createJsonResponse({
-        supabaseUrl: 'https://demo.supabase.co',
-        supabaseAnonKey: 'anon-key',
-      }))
-      .mockResolvedValueOnce(createTextResponse('{"code":"23514","message":"new row violates check constraint rsvp_confirmations_attendance_check"}', false, 400))
-      .mockResolvedValueOnce(createTextResponse('', true, 201));
-
-    const { saveGuestMessage } = await import('../../assets/js/rsvp-persistence.js');
-    const saved = await saveGuestMessage({
-      guestName: 'Ana',
-      message: 'Parabens ao casal',
-      eventId: 'evento-teste',
-    });
-
-    expect(saved).toBe(true);
-    expect(global.fetch).toHaveBeenCalledTimes(3);
-
-    const firstInsertPayload = JSON.parse(global.fetch.mock.calls[1][1].body);
-    const fallbackPayload = JSON.parse(global.fetch.mock.calls[2][1].body);
-
-    expect(firstInsertPayload.attendance).toBe('message');
-    expect(firstInsertPayload.message).toBe('Parabens ao casal');
-    expect(fallbackPayload.attendance).toBe('no');
-    expect(fallbackPayload.message).toBe('Parabens ao casal');
-  });
-
-  it('encadeia fallback de schema e attendance legado para musica', async () => {
-    global.fetch
-      .mockResolvedValueOnce(createJsonResponse({
-        supabaseUrl: 'https://demo.supabase.co',
-        supabaseAnonKey: 'anon-key',
-      }))
-      .mockResolvedValueOnce(createTextResponse('{"message":"column song_title does not exist"}', false, 400))
-      .mockResolvedValueOnce(createTextResponse('{"code":"23514","message":"new row violates check constraint rsvp_confirmations_attendance_check"}', false, 400))
-      .mockResolvedValueOnce(createTextResponse('', true, 201));
-
-    const { saveSongSuggestion } = await import('../../assets/js/rsvp-persistence.js');
-    const saved = await saveSongSuggestion({
-      guestName: 'Ana',
-      songTitle: 'Velha Infancia',
-      songArtist: 'Tribalistas',
-      songNotes: 'Nossa cara',
-      eventId: 'evento-teste',
-    });
-
-    expect(saved).toBe(true);
-    expect(global.fetch).toHaveBeenCalledTimes(4);
-
-    const firstInsertPayload = JSON.parse(global.fetch.mock.calls[1][1].body);
-    const secondInsertPayload = JSON.parse(global.fetch.mock.calls[2][1].body);
-    const thirdInsertPayload = JSON.parse(global.fetch.mock.calls[3][1].body);
-
-    expect(firstInsertPayload.attendance).toBe('song');
-    expect(firstInsertPayload).toHaveProperty('song_title');
-
-    expect(secondInsertPayload.attendance).toBe('song');
-    expect(secondInsertPayload).not.toHaveProperty('song_title');
-
-    expect(thirdInsertPayload.attendance).toBe('no');
-    expect(thirdInsertPayload).not.toHaveProperty('song_title');
   });
 });

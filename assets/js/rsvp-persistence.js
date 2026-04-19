@@ -1,18 +1,14 @@
 /**
  * rsvp-persistence.js
- * Salva dados no Supabase na tabela rsvp_confirmations:
- *   - confirmações de presença (yes/no)
- *   - mensagens ao casal (message)
- *   - sugestões de música (song)
+ * Salva dados no Supabase em 2 tabelas separadas:
+ *   - rsvp_confirmations : confirmações de presença (yes/no)
+ *   - guest_submissions  : mensagens e sugestões de música
  *   - guest_tokens       : gerenciado via painel, não escrito aqui
  *
  * Retorna false quando não consegue persistir.
  */
 
 let _config = null;
-
-const SCHEMA_MISMATCH_PATTERN = /(pgrst204|schema cache|column|does not exist|could not find)/i;
-const ATTENDANCE_MISMATCH_PATTERN = /(23514|check constraint|violates check constraint|attendance|invalid input value)/i;
 
 async function getConfig() {
     if (_config) return _config;
@@ -61,70 +57,6 @@ function parseSupabaseError(errorText) {
     }
 }
 
-function isMessageOrSongPayload(payload) {
-    const attendance = String(payload?.attendance || '').toLowerCase();
-    return attendance === 'message' || attendance === 'song';
-}
-
-function shouldRetryWithSchemaFallback(status, parsedError, rawErrorText, payload) {
-    if (!isMessageOrSongPayload(payload)) {
-        return false;
-    }
-
-    if (status < 400 || status >= 500) {
-        return false;
-    }
-
-    const combinedError = [
-        parsedError?.code,
-        parsedError?.message,
-        parsedError?.details,
-        parsedError?.hint,
-        rawErrorText,
-    ].join(' | ');
-
-    return SCHEMA_MISMATCH_PATTERN.test(combinedError);
-}
-
-function buildSchemaFallbackPayload(payload) {
-    return {
-        name: String(payload?.name || '').trim(),
-        phone: String(payload?.phone || '').trim(),
-        attendance: String(payload?.attendance || '').trim() || 'message',
-        event_id: payload?.event_id || 'wedding-event',
-        source: payload?.source || 'website',
-        user_agent: payload?.user_agent || '',
-        referrer: payload?.referrer || null,
-    };
-}
-
-function shouldRetryWithLegacyAttendance(status, parsedError, rawErrorText, payload) {
-    if (!isMessageOrSongPayload(payload)) {
-        return false;
-    }
-
-    if (status < 400 || status >= 500) {
-        return false;
-    }
-
-    const combinedError = [
-        parsedError?.code,
-        parsedError?.message,
-        parsedError?.details,
-        parsedError?.hint,
-        rawErrorText,
-    ].join(' | ');
-
-    return ATTENDANCE_MISMATCH_PATTERN.test(combinedError);
-}
-
-function buildLegacyAttendancePayload(payload) {
-    return {
-        ...payload,
-        attendance: 'no',
-    };
-}
-
 /**
  * Salva uma confirmação de presença na tabela rsvp_confirmations.
  * Retorna true se salvou, false se falhou.
@@ -156,7 +88,7 @@ export async function saveRsvpConfirmation({ name, phone, attendance, eventId, t
 }
 
 /**
- * Salva uma mensagem de convidado para o casal na tabela rsvp_confirmations.
+ * Salva uma mensagem de convidado para o casal na tabela guest_submissions.
  *
  * @param {Object} data
  * @param {string} data.guestName - Nome do convidado (pode ser vazio)
@@ -165,10 +97,9 @@ export async function saveRsvpConfirmation({ name, phone, attendance, eventId, t
  * @returns {Promise<boolean>}
  */
 export async function saveGuestMessage({ guestName, message, eventId }) {
-    return postToSupabase('rsvp_confirmations', {
-        name:       String(guestName || '').trim(),
-        phone:      '',
-        attendance: 'message',
+    return postToSupabase('guest_submissions', {
+        type:       'message',
+        guest_name: String(guestName || '').trim(),
         message:    String(message || '').trim() || null,
         event_id:   eventId || 'wedding-event',
         source:     'mensagem-page',
@@ -178,7 +109,7 @@ export async function saveGuestMessage({ guestName, message, eventId }) {
 }
 
 /**
- * Salva uma sugestão de música na tabela rsvp_confirmations.
+ * Salva uma sugestão de música na tabela guest_submissions.
  *
  * @param {Object} data
  * @param {string} data.guestName  - Nome do convidado (pode ser vazio)
@@ -189,10 +120,9 @@ export async function saveGuestMessage({ guestName, message, eventId }) {
  * @returns {Promise<boolean>}
  */
 export async function saveSongSuggestion({ guestName, songTitle, songArtist, songNotes, eventId }) {
-    return postToSupabase('rsvp_confirmations', {
-        name:        String(guestName || '').trim(),
-        phone:       '',
-        attendance:  'song',
+    return postToSupabase('guest_submissions', {
+        type:        'song',
+        guest_name:  String(guestName || '').trim(),
         song_title:  String(songTitle || '').trim() || null,
         song_artist: String(songArtist || '').trim() || null,
         song_notes:  String(songNotes || '').trim() || null,
@@ -211,9 +141,7 @@ export async function saveSongSuggestion({ guestName, songTitle, songArtist, son
  * @param {Object} payload - Campos a inserir
  * @returns {Promise<boolean>}
  */
-async function postToSupabase(table, payload, options = {}) {
-    const { allowSchemaFallback = true, allowLegacyAttendanceFallback = true } = options;
-
+async function postToSupabase(table, payload) {
     try {
         const { supabaseUrl, supabaseAnonKey } = await getConfig();
 
@@ -245,45 +173,10 @@ async function postToSupabase(table, payload, options = {}) {
                     message: parsedError.message,
                     details: parsedError.details,
                     hint: parsedError.hint,
-                    attendance: payload?.attendance,
+                    type: payload?.type,
                     source: payload?.source,
                 }
             );
-
-            if (allowSchemaFallback && shouldRetryWithSchemaFallback(response.status, parsedError, errorText, payload)) {
-                const fallbackPayload = buildSchemaFallbackPayload(payload);
-
-                console.warn(
-                    `[rsvp-persistence] Tentando fallback de schema para ${table}.`,
-                    {
-                        attendance: payload?.attendance,
-                        source: payload?.source,
-                    }
-                );
-
-                return postToSupabase(table, fallbackPayload, {
-                    allowSchemaFallback: false,
-                    allowLegacyAttendanceFallback,
-                });
-            }
-
-            if (allowLegacyAttendanceFallback && shouldRetryWithLegacyAttendance(response.status, parsedError, errorText, payload)) {
-                const fallbackPayload = buildLegacyAttendancePayload(payload);
-
-                console.warn(
-                    `[rsvp-persistence] Tentando fallback legado de attendance para ${table}.`,
-                    {
-                        from: payload?.attendance,
-                        to: fallbackPayload.attendance,
-                        source: payload?.source,
-                    }
-                );
-
-                return postToSupabase(table, fallbackPayload, {
-                    allowSchemaFallback: false,
-                    allowLegacyAttendanceFallback: false,
-                });
-            }
 
             return false;
         }
