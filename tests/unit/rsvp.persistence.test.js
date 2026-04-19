@@ -168,4 +168,96 @@ describe('rsvp persistence', () => {
     expect(payload).not.toHaveProperty('group_name');
     expect(payload).not.toHaveProperty('group_max_confirmations');
   });
+
+  it('faz retry com payload minimo para mensagem quando houver erro de schema', async () => {
+    global.fetch
+      .mockResolvedValueOnce(createJsonResponse({
+        supabaseUrl: 'https://demo.supabase.co',
+        supabaseAnonKey: 'anon-key',
+      }))
+      .mockResolvedValueOnce(createTextResponse('{"code":"PGRST204","message":"Could not find the message column"}', false, 400))
+      .mockResolvedValueOnce(createTextResponse('', true, 201));
+
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+    const { saveGuestMessage } = await import('../../assets/js/rsvp-persistence.js');
+    const saved = await saveGuestMessage({
+      guestName: 'Ana',
+      message: 'Parabens ao casal',
+      eventId: 'evento-teste',
+    });
+
+    expect(saved).toBe(true);
+    expect(global.fetch).toHaveBeenCalledTimes(3);
+    expect(warnSpy).toHaveBeenCalled();
+
+    const firstInsertPayload = JSON.parse(global.fetch.mock.calls[1][1].body);
+    const fallbackPayload = JSON.parse(global.fetch.mock.calls[2][1].body);
+
+    expect(firstInsertPayload).toHaveProperty('message');
+    expect(fallbackPayload).not.toHaveProperty('message');
+    expect(fallbackPayload).toMatchObject({
+      name: 'Ana',
+      phone: '',
+      attendance: 'message',
+      event_id: 'evento-teste',
+      source: 'mensagem-page',
+    });
+  });
+
+  it('faz retry com payload minimo para musica quando houver erro de schema', async () => {
+    global.fetch
+      .mockResolvedValueOnce(createJsonResponse({
+        supabaseUrl: 'https://demo.supabase.co',
+        supabaseAnonKey: 'anon-key',
+      }))
+      .mockResolvedValueOnce(createTextResponse('{"message":"column song_title does not exist"}', false, 400))
+      .mockResolvedValueOnce(createTextResponse('', true, 201));
+
+    const { saveSongSuggestion } = await import('../../assets/js/rsvp-persistence.js');
+    const saved = await saveSongSuggestion({
+      guestName: 'Ana',
+      songTitle: 'Velha Infancia',
+      songArtist: 'Tribalistas',
+      songNotes: 'Nossa cara',
+      eventId: 'evento-teste',
+    });
+
+    expect(saved).toBe(true);
+    expect(global.fetch).toHaveBeenCalledTimes(3);
+
+    const firstInsertPayload = JSON.parse(global.fetch.mock.calls[1][1].body);
+    const fallbackPayload = JSON.parse(global.fetch.mock.calls[2][1].body);
+
+    expect(firstInsertPayload).toHaveProperty('song_title');
+    expect(fallbackPayload).not.toHaveProperty('song_title');
+    expect(fallbackPayload).toMatchObject({
+      name: 'Ana',
+      phone: '',
+      attendance: 'song',
+      event_id: 'evento-teste',
+      source: 'musica-page',
+    });
+  });
+
+  it('nao faz retry de schema para RSVP', async () => {
+    global.fetch
+      .mockResolvedValueOnce(createJsonResponse({
+        supabaseUrl: 'https://demo.supabase.co',
+        supabaseAnonKey: 'anon-key',
+      }))
+      .mockResolvedValueOnce(createTextResponse('{"code":"PGRST204","message":"column marketing_consent_at does not exist"}', false, 400));
+
+    const { saveRsvpConfirmation } = await import('../../assets/js/rsvp-persistence.js');
+    const saved = await saveRsvpConfirmation({
+      name: 'Ana',
+      phone: '11999999999',
+      attendance: 'yes',
+      eventId: 'evento-teste',
+      marketingConsent: true,
+    });
+
+    expect(saved).toBe(false);
+    expect(global.fetch).toHaveBeenCalledTimes(2);
+  });
 });

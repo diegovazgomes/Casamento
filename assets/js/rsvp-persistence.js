@@ -11,6 +11,8 @@
 
 let _config = null;
 
+const SCHEMA_MISMATCH_PATTERN = /(pgrst204|schema cache|column|does not exist|could not find)/i;
+
 async function getConfig() {
     if (_config) return _config;
 
@@ -33,6 +35,66 @@ async function getConfig() {
     }
 
     return _config;
+}
+
+function parseSupabaseError(errorText) {
+    if (!errorText) {
+        return { code: null, message: '', details: '', hint: '' };
+    }
+
+    try {
+        const parsed = JSON.parse(errorText);
+        return {
+            code: parsed?.code ?? null,
+            message: parsed?.message ?? '',
+            details: parsed?.details ?? '',
+            hint: parsed?.hint ?? '',
+        };
+    } catch {
+        return {
+            code: null,
+            message: String(errorText),
+            details: '',
+            hint: '',
+        };
+    }
+}
+
+function isMessageOrSongPayload(payload) {
+    const attendance = String(payload?.attendance || '').toLowerCase();
+    return attendance === 'message' || attendance === 'song';
+}
+
+function shouldRetryWithSchemaFallback(status, parsedError, rawErrorText, payload) {
+    if (!isMessageOrSongPayload(payload)) {
+        return false;
+    }
+
+    if (status < 400 || status >= 500) {
+        return false;
+    }
+
+    const combinedError = [
+        parsedError?.code,
+        parsedError?.message,
+        parsedError?.details,
+        parsedError?.hint,
+        rawErrorText,
+    ].join(' | ');
+
+    return SCHEMA_MISMATCH_PATTERN.test(combinedError);
+}
+
+function buildSchemaFallbackPayload(payload) {
+    return {
+        name: String(payload?.name || '').trim(),
+        phone: String(payload?.phone || '').trim(),
+        attendance: String(payload?.attendance || '').trim() || 'message',
+        event_id: payload?.event_id || 'wedding-event',
+        source: payload?.source || 'website',
+        user_agent: payload?.user_agent || '',
+        referrer: payload?.referrer || null,
+    };
 }
 
 /**
@@ -121,7 +183,9 @@ export async function saveSongSuggestion({ guestName, songTitle, songArtist, son
  * @param {Object} payload - Campos a inserir
  * @returns {Promise<boolean>}
  */
-async function postToSupabase(table, payload) {
+async function postToSupabase(table, payload, options = {}) {
+    const { allowSchemaFallback = true } = options;
+
     try {
         const { supabaseUrl, supabaseAnonKey } = await getConfig();
 
@@ -143,7 +207,35 @@ async function postToSupabase(table, payload) {
 
         if (!response.ok) {
             const errorText = await response.text();
-            console.warn(`[rsvp-persistence] Falha ao salvar em ${table}. status:`, response.status, '| erro:', errorText);
+            const parsedError = parseSupabaseError(errorText);
+
+            console.warn(
+                `[rsvp-persistence] Falha ao salvar em ${table}.`,
+                {
+                    status: response.status,
+                    code: parsedError.code,
+                    message: parsedError.message,
+                    details: parsedError.details,
+                    hint: parsedError.hint,
+                    attendance: payload?.attendance,
+                    source: payload?.source,
+                }
+            );
+
+            if (allowSchemaFallback && shouldRetryWithSchemaFallback(response.status, parsedError, errorText, payload)) {
+                const fallbackPayload = buildSchemaFallbackPayload(payload);
+
+                console.warn(
+                    `[rsvp-persistence] Tentando fallback de schema para ${table}.`,
+                    {
+                        attendance: payload?.attendance,
+                        source: payload?.source,
+                    }
+                );
+
+                return postToSupabase(table, fallbackPayload, { allowSchemaFallback: false });
+            }
+
             return false;
         }
 
