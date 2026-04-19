@@ -12,6 +12,7 @@
 let _config = null;
 
 const SCHEMA_MISMATCH_PATTERN = /(pgrst204|schema cache|column|does not exist|could not find)/i;
+const ATTENDANCE_MISMATCH_PATTERN = /(23514|check constraint|violates check constraint|attendance|invalid input value)/i;
 
 async function getConfig() {
     if (_config) return _config;
@@ -94,6 +95,33 @@ function buildSchemaFallbackPayload(payload) {
         source: payload?.source || 'website',
         user_agent: payload?.user_agent || '',
         referrer: payload?.referrer || null,
+    };
+}
+
+function shouldRetryWithLegacyAttendance(status, parsedError, rawErrorText, payload) {
+    if (!isMessageOrSongPayload(payload)) {
+        return false;
+    }
+
+    if (status < 400 || status >= 500) {
+        return false;
+    }
+
+    const combinedError = [
+        parsedError?.code,
+        parsedError?.message,
+        parsedError?.details,
+        parsedError?.hint,
+        rawErrorText,
+    ].join(' | ');
+
+    return ATTENDANCE_MISMATCH_PATTERN.test(combinedError);
+}
+
+function buildLegacyAttendancePayload(payload) {
+    return {
+        ...payload,
+        attendance: 'no',
     };
 }
 
@@ -184,7 +212,7 @@ export async function saveSongSuggestion({ guestName, songTitle, songArtist, son
  * @returns {Promise<boolean>}
  */
 async function postToSupabase(table, payload, options = {}) {
-    const { allowSchemaFallback = true } = options;
+    const { allowSchemaFallback = true, allowLegacyAttendanceFallback = true } = options;
 
     try {
         const { supabaseUrl, supabaseAnonKey } = await getConfig();
@@ -233,7 +261,28 @@ async function postToSupabase(table, payload, options = {}) {
                     }
                 );
 
-                return postToSupabase(table, fallbackPayload, { allowSchemaFallback: false });
+                return postToSupabase(table, fallbackPayload, {
+                    allowSchemaFallback: false,
+                    allowLegacyAttendanceFallback,
+                });
+            }
+
+            if (allowLegacyAttendanceFallback && shouldRetryWithLegacyAttendance(response.status, parsedError, errorText, payload)) {
+                const fallbackPayload = buildLegacyAttendancePayload(payload);
+
+                console.warn(
+                    `[rsvp-persistence] Tentando fallback legado de attendance para ${table}.`,
+                    {
+                        from: payload?.attendance,
+                        to: fallbackPayload.attendance,
+                        source: payload?.source,
+                    }
+                );
+
+                return postToSupabase(table, fallbackPayload, {
+                    allowSchemaFallback: false,
+                    allowLegacyAttendanceFallback: false,
+                });
             }
 
             return false;

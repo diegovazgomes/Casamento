@@ -260,4 +260,68 @@ describe('rsvp persistence', () => {
     expect(saved).toBe(false);
     expect(global.fetch).toHaveBeenCalledTimes(2);
   });
+
+  it('faz fallback de attendance legado para mensagem quando constraint rejeita message', async () => {
+    global.fetch
+      .mockResolvedValueOnce(createJsonResponse({
+        supabaseUrl: 'https://demo.supabase.co',
+        supabaseAnonKey: 'anon-key',
+      }))
+      .mockResolvedValueOnce(createTextResponse('{"code":"23514","message":"new row violates check constraint rsvp_confirmations_attendance_check"}', false, 400))
+      .mockResolvedValueOnce(createTextResponse('', true, 201));
+
+    const { saveGuestMessage } = await import('../../assets/js/rsvp-persistence.js');
+    const saved = await saveGuestMessage({
+      guestName: 'Ana',
+      message: 'Parabens ao casal',
+      eventId: 'evento-teste',
+    });
+
+    expect(saved).toBe(true);
+    expect(global.fetch).toHaveBeenCalledTimes(3);
+
+    const firstInsertPayload = JSON.parse(global.fetch.mock.calls[1][1].body);
+    const fallbackPayload = JSON.parse(global.fetch.mock.calls[2][1].body);
+
+    expect(firstInsertPayload.attendance).toBe('message');
+    expect(firstInsertPayload.message).toBe('Parabens ao casal');
+    expect(fallbackPayload.attendance).toBe('no');
+    expect(fallbackPayload.message).toBe('Parabens ao casal');
+  });
+
+  it('encadeia fallback de schema e attendance legado para musica', async () => {
+    global.fetch
+      .mockResolvedValueOnce(createJsonResponse({
+        supabaseUrl: 'https://demo.supabase.co',
+        supabaseAnonKey: 'anon-key',
+      }))
+      .mockResolvedValueOnce(createTextResponse('{"message":"column song_title does not exist"}', false, 400))
+      .mockResolvedValueOnce(createTextResponse('{"code":"23514","message":"new row violates check constraint rsvp_confirmations_attendance_check"}', false, 400))
+      .mockResolvedValueOnce(createTextResponse('', true, 201));
+
+    const { saveSongSuggestion } = await import('../../assets/js/rsvp-persistence.js');
+    const saved = await saveSongSuggestion({
+      guestName: 'Ana',
+      songTitle: 'Velha Infancia',
+      songArtist: 'Tribalistas',
+      songNotes: 'Nossa cara',
+      eventId: 'evento-teste',
+    });
+
+    expect(saved).toBe(true);
+    expect(global.fetch).toHaveBeenCalledTimes(4);
+
+    const firstInsertPayload = JSON.parse(global.fetch.mock.calls[1][1].body);
+    const secondInsertPayload = JSON.parse(global.fetch.mock.calls[2][1].body);
+    const thirdInsertPayload = JSON.parse(global.fetch.mock.calls[3][1].body);
+
+    expect(firstInsertPayload.attendance).toBe('song');
+    expect(firstInsertPayload).toHaveProperty('song_title');
+
+    expect(secondInsertPayload.attendance).toBe('song');
+    expect(secondInsertPayload).not.toHaveProperty('song_title');
+
+    expect(thirdInsertPayload.attendance).toBe('no');
+    expect(thirdInsertPayload).not.toHaveProperty('song_title');
+  });
 });
