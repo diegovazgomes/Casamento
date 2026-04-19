@@ -319,7 +319,7 @@
 
 | Decisão | Contexto | Urgência |
 |---------|----------|----------|
-| Infraestrutura de backend | Necessária para Fase 3 | Antes de iniciar Fase 3 |
+| Infraestrutura de backend | Necessária para Fase 3 | Antes de iniciar Fase 3 | a
 | ~~Modelo visual único vs. múltiplos layouts~~ | ✅ Resolvido em 2026-04-09: sistema de layouts implementado com `classic` e `modern` | — |
 
 ---
