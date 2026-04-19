@@ -1,4 +1,5 @@
 import { setText, revealElements } from './utils.js';
+import { markContentReady } from './loading-screen.js';
 
 /**
  * Initializes an extra page by listening for the app:ready event,
@@ -41,5 +42,8 @@ export function initExtraPage({ pageKey, idPrefix, onReady, onReveal }) {
         if (typeof onReveal === 'function') {
             onReveal(content, config);
         }
+
+        // Marca o conteúdo como pronto para que a loading screen desapareça
+        markContentReady();
     });
 }

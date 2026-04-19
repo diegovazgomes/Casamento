@@ -125,6 +125,20 @@ export function markBootstrapComplete() {
     bootstrapComplete = true;
 }
 
+/**
+ * Flag que indica quando o conteúdo foi renderizado
+ * Usado por páginas extras para indicar que estão prontas
+ */
+export let contentReady = false;
+
+/**
+ * Marca o conteúdo da página como pronto
+ * Chamada por páginas extras após renderizar seu conteúdo
+ */
+export function markContentReady() {
+    contentReady = true;
+}
+
 export async function hideLoadingScreen() {
     const loadingScreen = document.getElementById('loadingScreen');
     if (!loadingScreen) return;
@@ -134,8 +148,21 @@ export async function hideLoadingScreen() {
         await new Promise(r => setTimeout(r, 100));
     }
 
+    // Se for uma página extra, aguarda o conteúdo estar pronto
+    // Timeout de 5 segundos como failsafe para não ficar travado
+    const contentTimeout = new Promise(r => setTimeout(r, 5000));
+    const contentCheck = new Promise(r => {
+        const checkInterval = setInterval(() => {
+            if (contentReady || !document.body.classList.contains('extra-page')) {
+                clearInterval(checkInterval);
+                r();
+            }
+        }, 100);
+    });
+    await Promise.race([contentTimeout, contentCheck]);
+
     // Espera MAIS 1000ms mesmo que tudo pronto (delay mínimo obrigatório)
-    await new Promise(r => setTimeout(r, 1000));
+    await new Promise(r => setTimeout(r, 1500));
 
     // Aí sim desaparece com fade-out de 600ms
     loadingScreen.classList.add('fade-out');
