@@ -35,11 +35,13 @@
                     // 4. Extrai cores do tema
                     const bgColor = theme?.colors?.background || '#ffffff';
                     const primaryColor = theme?.colors?.primary || '#d4a574';
+                    const heartColor = theme?.colors?.primary || '#d4a574';
 
                     // 5. Aplica as cores na loading screen
                     const root = document.documentElement;
                     root.style.setProperty('--ls-bg-color', bgColor);
                     root.style.setProperty('--ls-primary-color', primaryColor);
+                    root.style.setProperty('--ls-heart-color', heartColor);
                 } catch (error) {
                     // Em caso de erro, usa cores padrão
                     applyDefaultLoadingColors();

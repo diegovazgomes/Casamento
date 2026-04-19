@@ -982,10 +982,21 @@ function resolveThemePath(activeTheme, layoutKey) {
 // Loading Screen Management
 // ──────────────────────────────────────────────────────────────────────────────
 
-function hideLoadingScreen() {
+let bootstrapComplete = false;
+
+async function hideLoadingScreen() {
     const loadingScreen = document.getElementById('loadingScreen');
     if (!loadingScreen) return;
     
+    // Aguarda bootstrap completar (se não tiver completado)
+    while (!bootstrapComplete) {
+        await new Promise(r => setTimeout(r, 100));
+    }
+    
+    // Espera MAIS 1000ms mesmo que tudo pronto (delay mínimo obrigatório)
+    await new Promise(r => setTimeout(r, 1000));
+    
+    // Aí sim desaparece com fade-out de 600ms
     loadingScreen.classList.add('fade-out');
     setTimeout(() => {
         if (loadingScreen.parentNode) {
@@ -1019,10 +1030,12 @@ async function bootstrap() {
         const experience = new InvitationExperience(config, effectiveTheme, navigationState);
         await experience.init();
         window.dispatchEvent(new CustomEvent('app:ready', { detail: { config, theme: effectiveTheme } }));
-        hideLoadingScreen();
+        bootstrapComplete = true;
+        await hideLoadingScreen();
     } catch (error) {
         console.error('Falha ao carregar a configuracao da pagina.', error);
-        hideLoadingScreen();
+        bootstrapComplete = true;
+        await hideLoadingScreen();
     }
 }
 
