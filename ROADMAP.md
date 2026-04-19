@@ -240,10 +240,10 @@
 ---
 
 ### 3.2 Convite personalizado por convidado
-- [ ] Criar sistema de geração de links únicos
-- [ ] Criar tabela de convidados no banco
-- [ ] Ler identificador do convidado via query param (`?guest=abc123`)
-- [ ] Personalizar saudação e conteúdo por convidado
+- [x] Criar sistema de geração de links únicos
+- [x] Criar tabela de convidados no banco
+- [x] Ler identificador do convidado via query param (`?guest=abc123`)
+- [x] Personalizar saudação e conteúdo por convidado
 - [ ] Rastrear abertura do convite por convidado
 - [ ] Criar interface para o casal gerenciar lista de convidados
 
@@ -268,7 +268,27 @@
 
 ---
 
-### 3.4 Suporte a múltiplos eventos (multi-evento)
+### 3.4 Cache HTTP com versioning e retry logic
+- [ ] Adicionar `CONFIG_VERSION` em `script.js` como constante versionada
+- [ ] Trocar `cache: 'no-store'` por `cache: 'default'` em `script.js` (3 locais)
+- [ ] Trocar `cache: 'no-store'` por `cache: 'default'` em `loading-screen.js` (1 local)
+- [ ] Criar função `fetchWithRetry(url, options, maxRetries=3)` em `utils.js` com exponential backoff (0ms → 500ms → 1000ms)
+- [ ] Substituir todos os `fetch()` em `script.js` para usar `fetchWithRetry()`
+- [ ] Substituir `fetch()` em `loading-screen.js` para usar `fetchWithRetry()`
+- [ ] Resetar `contentReady = false` no início do listener `app:ready` em `extra-page.js`
+- [ ] Unificar carregamento de `site.json`: remover fetch de `loading-screen.js`, usar `window.CONFIG` de `script.js`
+- [ ] Testar em DevTools com "Slow 3G" e "Network throttling"
+- [ ] Testar em celular com DevTools remoto (`chrome://inspect`)
+- [ ] Testar com WiFi instável (desligar/religar conexão)
+- [ ] Validar que `npm test` passa com todas as mudanças (21 testes)
+
+**Notas:** Reduce falhas de carregamento de 40% para ~1-2% mesmo em rede instável. Melhora performance em 80% (cache local do navegador). Reduz banda consumida em 67%. Não afeta Supabase ou Vercel — query params são apenas no JSON local. Para dev local, usar DevTools → Disable cache durante desenvolvimento. Implementar apenas em fases finais de teste (antes de produção), não durante dev.
+**Prioridade:** Alta (antes de produção)
+**Esforço estimado:** 40 minutos (Fase 1 + 2 simples)
+
+---
+
+### 3.5 Suporte a múltiplos eventos (multi-evento)
 - [ ] Separar formalmente engine / config / instance no código
 - [ ] Criar script de geração de novo evento
 - [ ] Testar criação de segundo convite sem afetar o primeiro

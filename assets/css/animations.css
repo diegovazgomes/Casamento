@@ -228,7 +228,7 @@ a, button, input, select, textarea {
     display: flex;
     justify-content: center;
     gap: 0.4rem;
-    margin-bottom: 2rem;
+    margin-bottom: 0.6rem;
     height: 3.5rem;
 }
 
