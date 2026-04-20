@@ -18,7 +18,7 @@
 
 ## FASE 1 — Fundação
 > Objetivo: formalizar, limpar e consolidar a base do projeto.
-> Nada desta fase é visível ao convidado — é infraestrutura.
+> Nada desta fase é visível ao convidado — é infraestrutura..
 
 ---
 
