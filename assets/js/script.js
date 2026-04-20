@@ -49,13 +49,54 @@ function isMobileViewport() {
     return window.matchMedia('(max-width: 767px)').matches;
 }
 
+export function readNavigationStateFromUrl(currentUrl = window.location.href) {
+    try {
+        const searchParams = new URL(currentUrl).searchParams;
+        const navigationTarget = searchParams.get(NAVIGATION_SECTION_PARAM);
+        const guestToken = searchParams.get('g') || null;
+
+        return {
+            navigationTarget,
+            guestToken,
+            shouldSkipIntro: Boolean(navigationTarget)
+        };
+    } catch {
+        return {
+            navigationTarget: null,
+            guestToken: null,
+            shouldSkipIntro: false
+        };
+    }
+}
+
+export function buildInternalUrl(path, guestToken = null, currentUrl = window.location.href) {
+    if (!path) {
+        return path;
+    }
+
+    try {
+        const url = new URL(path, currentUrl);
+
+        if (guestToken) {
+            url.searchParams.set('g', guestToken);
+        } else {
+            url.searchParams.delete('g');
+        }
+
+        return url.toString();
+    } catch {
+        return path;
+    }
+}
+
 function getBootstrapNavigationState() {
     const bootstrapState = window.__INVITATION_BOOTSTRAP__ ?? {};
+    const urlState = readNavigationStateFromUrl();
 
     return {
-        shouldSkipIntro: Boolean(bootstrapState.shouldSkipIntro),
-        navigationTarget: bootstrapState.navigationTarget || null,
-        guestToken: bootstrapState.guestToken || null
+        shouldSkipIntro: Boolean(bootstrapState.shouldSkipIntro ?? urlState.shouldSkipIntro),
+        navigationTarget: bootstrapState.navigationTarget || urlState.navigationTarget,
+        guestToken: bootstrapState.guestToken || urlState.guestToken
     };
 }
 
@@ -478,6 +519,7 @@ class InvitationExperience {
         this.setTexts();
         this.setGift();
         this.setPages();
+        this.applyNavigationLinks();
         this.presentPage.init();
         this.bindIntro();
         this.bindAudioToggle();
@@ -919,6 +961,23 @@ class InvitationExperience {
         cardPlaceholder.appendChild(cardAnchor);
     }
 
+    applyNavigationLinks() {
+        const backToHomeLink = document.getElementById('backToHomeButton');
+        if (backToHomeLink) {
+            backToHomeLink.setAttribute('href', buildInternalUrl('index.html', this.guestToken));
+        }
+
+        const backToExtrasLink = document.getElementById('backToExtrasButton');
+        if (backToExtrasLink) {
+            backToExtrasLink.setAttribute('href', buildInternalUrl('index.html?section=extras', this.guestToken));
+        }
+
+        const detailGiftLink = document.querySelector('.detail-card-gift');
+        if (detailGiftLink) {
+            detailGiftLink.setAttribute('href', buildInternalUrl('presente.html', this.guestToken));
+        }
+    }
+
     setPages() {
         const extrasSection = document.getElementById('extras');
         const extrasDivider = document.querySelector('.extras-divider');
@@ -952,7 +1011,7 @@ class InvitationExperience {
 
         grid.innerHTML = enabledPages.map((key) => {
             const page = pages[key];
-            const url = PAGE_URLS[key];
+            const url = buildInternalUrl(PAGE_URLS[key], this.guestToken);
             return `<a class="extras-card" href="${url}">
                 <span class="extras-card-label">${page.cardLabel ?? ''}</span>
                 <span class="extras-card-hint">${page.cardHint ?? ''}</span>

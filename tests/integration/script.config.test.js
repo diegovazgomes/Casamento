@@ -7,6 +7,26 @@ beforeEach(() => {
 });
 
 describe('script config/theme loaders', () => {
+  it('reads token and section directly from URL when bootstrap state is absent', async () => {
+    const { readNavigationStateFromUrl } = await import('../../assets/js/script.js');
+
+    const state = readNavigationStateFromUrl('https://example.com/index.html?section=extras&g=family-token');
+
+    expect(state).toEqual({
+      navigationTarget: 'extras',
+      guestToken: 'family-token',
+      shouldSkipIntro: true,
+    });
+  });
+
+  it('builds internal URLs preserving only g when token exists', async () => {
+    const { buildInternalUrl } = await import('../../assets/js/script.js');
+
+    expect(buildInternalUrl('faq.html', 'family-token', 'https://example.com/index.html')).toBe('https://example.com/faq.html?g=family-token');
+    expect(buildInternalUrl('index.html?section=extras', 'family-token', 'https://example.com/musica.html?g=old-token')).toBe('https://example.com/index.html?section=extras&g=family-token');
+    expect(buildInternalUrl('index.html?section=extras', null, 'https://example.com/musica.html?g=old-token')).toBe('https://example.com/index.html?section=extras');
+  });
+
   it('loadConfig merges site config with defaults', async () => {
     global.fetch = vi.fn().mockResolvedValue({
       ok: true,
