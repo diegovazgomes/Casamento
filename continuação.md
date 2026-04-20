@@ -374,3 +374,161 @@ Se precisar lembrar em 1 minuto onde parar:
 ## 14. Observação final
 
 Este arquivo foi criado para servir como handoff completo entre máquinas. Se for continuar a investigação em outro ambiente, usar este documento como ponto de entrada antes de abrir o histórico do git ou o chat antigo.
+
+###############################################################33
+
+Perfeito, vou corrigir para manter RSVP em rsvp_confirmations e direcionar apenas mensagem/música para guest_submissions, ajustando também os testes para refletir isso e evitar regressão. Primeiro vou mapear o schema real usado no projeto para essa tabela.
+
+Search complete: Mapear schema guest_submissions
+
+Semantic workspace search is not currently available
+
+Semantic workspace search is not currently available
+
+Searched for files matching `**/supabase-setup.sql`, 1 match
+
+Searched for text `guest_submissions`, 2 results
+
+Searched for regex `guest_submissions.*message|guest_submissions.*music|message.*music`, no results
+
+Searched for files matching `**/*guest*submission*.{js,ts,py,go,java,sql}`, 1 match
+
+Searched for regex `CREATE TABLE guest_submissions|CREATE TABLE" guest_submissions`, no results
+
+Searched for files matching `**/test*guest*submission*.{js,ts,py,go,java,sql}`, no matches
+
+Read [](file:///c%3A/Users/Latitude%205490/Desktop/Casamento/continua%C3%A7%C3%A3o.md#50-50), lines 50 to 120
+
+Searched for files matching `**/*guest*submission*.{js,ts,py,go,java}`, 1 match
+
+Searched for text `guest_submissions`, 2 results
+
+Searched for files matching `**/tests/**/*guest*submission*.{js,ts,py,go,java}`, 1 match
+
+Searched for regex `CREATE TABLE guest_submissions|CREATE TABLE\s*"guest_submissions"`, no results
+
+Searched for text `guest_submissions` (`**/*.js`), no results
+
+Searched for text `guest_submissions` (`**/*.ts`), no results
+
+Read [](file:///c%3A/Users/Latitude%205490/Desktop/Casamento/docs/supabase-setup.sql)
+
+Searched for text `guest_submissions` (`**/*.js`), no results
+
+Searched for regex `saveGuestMessage|saveSongSuggestion`, 31 results
+
+Searched for files matching `**/assets/**/*rsvp*.js`, 2 matches
+
+Searched for regex `persistir mensagem|persistir música|message and song`, no results
+
+Searched for text `rsvp_confirmations`, 34 results
+
+Searched for regex `attendance = 'message'|attendance = 'song'`, 4 results
+
+Searched for files matching `**/*integration*guest*submission*.{js,ts}`, no matches
+
+Read [](file:///c%3A/Users/Latitude%205490/Desktop/Casamento/tests/integration/guest-submissions.integration.test.js)
+
+Vou confirmar os campos da tabela guest_submissions no seu código (e no SQL, se houver) para não arriscar enviar colunas erradas após a troca de tabela.
+
+Search complete: Identificar contrato guest_submissions
+
+Semantic workspace search is not currently available
+
+Semantic workspace search is not currently available
+
+Searched for text `guest_submissions`, 2 results
+
+Searched for files matching `**/*guest_submissions*`, no matches
+
+Searched for regex `submission_type|message|song_title|song_title.*message|message.*song_title`, 181 results
+
+Searched for files matching `**/rsvp-persistence.js`, 1 match
+
+Searched for regex `payload.*guest.*submission|guest.*submission.*payload|submission.*payload`, no results
+
+Searched for files matching `**/*submission*.{js,ts,jsx,tsx,md,mdx,yml,yaml,xml,json}`, 1 match
+
+Read [](file:///c%3A/Users/Latitude%205490/Desktop/Casamento/assets/js/rsvp-persistence.js#1-1), lines 1 to 260
+
+Searched for files matching `**/*guest_submissions*`, no matches
+
+Searched for text `guest_submissions`, 2 results
+
+Searched for regex `saveGuestMessage\(|saveGuestMessage\(`, 6 results
+
+Searched for regex `firstInsertPayload|fallbackPayload|attendance:\s*'message'|song_title:`, 31 results
+
+Searched for files matching `**/tests/**/*guest-submissions*`, 1 match
+
+Searched for files matching `**/docs/**/*guest_submissions*`, no matches
+
+Searched for regex `message:\s*"Parabens ao casal"|song_title:\s*"Velha Infancia"`, no results
+
+Semantic workspace search is not currently available
+
+Read [](file:///c%3A/Users/Latitude%205490/Desktop/Casamento/docs/supabase-setup.sql)
+
+Searched for text `guest_submissions`, 2 results
+
+Searched for files matching `**/tests/**/*guest-submissions*`, 1 match
+
+Searched for text `rsvp_confirmations`, 34 results
+
+Searched for regex `message text not null|song_title text|attendance text not null`, 2 results
+
+Searched for files matching `**/docs/**/*supabase*`, 1 match
+
+Searched for text `guest_submissions`, 2 results
+
+Vou recuperar do histórico como era o payload antigo de guest_submissions para reaplicar com precisão de colunas, em vez de “chutar” schema.
+
+Ran terminal command: git log --oneline -- assets/js/rsvp-persistence.js; git log -S "guest_submissions" --oneline -- assets/js/rsvp-persistence.js; git show 4cd2d69:assets/js/rsvp-persistence.js
+
+Já identifiquei no histórico o contrato correto de guest_submissions (`type`, `guest_name`, etc.). Vou aplicar agora a correção direta no persistência e alinhar os testes unitários para esse contrato.
+
+Generating patch (200 lines) in [](file:///c%3A/Users/Latitude%205490/Desktop/Casamento/assets/js/rsvp-persistence.js)
+
+
+```
+
+```
+
+
+Generating patch (208 lines) in [](file:///c%3A/Users/Latitude%205490/Desktop/Casamento/tests/unit/rsvp.persistence.test.js)
+
+
+```
+
+```
+A correção de código já foi aplicada; agora vou validar com testes focados para garantir que mensagem/música vão para guest_submissions e que RSVP segue estável.
+
+Ran terminal command: npm test -- tests/unit/rsvp.persistence.test.js tests/integration/guest-submissions.integration.test.js tests/integration/rsvp.flow.integration.test.js
+
+Checked [](file:///c%3A/Users/Latitude%205490/Desktop/Casamento/assets/js/rsvp-persistence.js), [](file:///c%3A/Users/Latitude%205490/Desktop/Casamento/tests/unit/rsvp.persistence.test.js), no problems found
+
+Completed: *Corrigir destino mensagem/musica* (1/4)
+
+Correção aplicada com sucesso: mensagem e música agora são salvas em guest_submissions, enquanto RSVP continua em rsvp_confirmations.
+
+Alterações feitas:
+1. Troquei o destino de saveGuestMessage para guest_submissions em rsvp-persistence.js.
+2. Troquei o destino de saveSongSuggestion para guest_submissions em rsvp-persistence.js.
+3. Ajustei payload para o contrato histórico da tabela:
+4. mensagem: type='message', guest_name, message, event_id, source, user_agent, referrer
+5. música: type='song', guest_name, song_title, song_artist, song_notes, event_id, source, user_agent, referrer
+6. Mantive RSVP sem mudança funcional (continua em rsvp_confirmations).
+7. Removi a lógica de fallback baseada em attendance que só fazia sentido quando mensagem/música iam para rsvp_confirmations.
+
+Testes atualizados:
+1. Ajustei expectativas em rsvp.persistence.test.js para guest_submissions.
+2. Mantive teste de RSVP intacto no mesmo arquivo.
+
+Validação executada:
+1. Rodei: npm test -- rsvp.persistence.test.js guest-submissions.integration.test.js rsvp.flow.integration.test.js
+2. Resultado: 3 arquivos passando, 11 testes passando, 0 falhas.
+
+Próximo passo natural:
+1. Fazer deploy desta versão e testar novamente no ambiente real (se testar sem deploy, continuará enviando para a tabela antiga da versão anterior).
+
+Made changes.
