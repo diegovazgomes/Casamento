@@ -110,4 +110,31 @@ describe('RSVP flow integration', () => {
     expect(document.querySelector('.rsvp-submit').disabled).toBe(false);
     expect(document.getElementById('successContactButton').hidden).toBe(true);
   });
+
+  it('encaminha dados de grupo quando o RSVP vem de token', async () => {
+    const { saveRsvpConfirmation } = await import('../../assets/js/rsvp-persistence.js');
+    saveRsvpConfirmation.mockResolvedValue(true);
+
+    const { RSVP } = await import('../../assets/js/rsvp.js');
+
+    document.getElementById('rsvp-name').value = 'Ana Clara';
+    document.getElementById('rsvp-phone').value = '11999999999';
+    document.getElementById('rsvp-attendance').value = 'yes';
+
+    const guestTokenData = {
+      token_id: '2ff1c7ae-1111-4444-9999-99b2610fc11d',
+      group_name: 'Familia Silva',
+      max_confirmations: 4,
+      confirmation_count: 1,
+    };
+
+    const rsvp = new RSVP(baseConfig, guestTokenData);
+    await rsvp.handleSubmit({ preventDefault() {} });
+
+    expect(saveRsvpConfirmation).toHaveBeenCalledWith(expect.objectContaining({
+      tokenId: '2ff1c7ae-1111-4444-9999-99b2610fc11d',
+      groupName: 'Familia Silva',
+      groupMaxConfirmations: 4,
+    }));
+  });
 });

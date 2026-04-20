@@ -57,6 +57,20 @@ function parseSupabaseError(errorText) {
     }
 }
 
+function normalizeOptionalString(value) {
+    const normalized = String(value ?? '').trim();
+    return normalized || null;
+}
+
+function normalizeOptionalInteger(value) {
+    if (value === null || value === undefined || value === '') {
+        return null;
+    }
+
+    const parsed = Number.parseInt(value, 10);
+    return Number.isFinite(parsed) ? parsed : null;
+}
+
 /**
  * Salva uma confirmação de presença na tabela rsvp_confirmations.
  * Retorna true se salvou, false se falhou.
@@ -82,6 +96,8 @@ export async function saveRsvpConfirmation({ name, phone, attendance, eventId, t
         user_agent:               navigator.userAgent.slice(0, 200),
         referrer:                 document.referrer.slice(0, 200) || null,
         token_id:                 tokenId || null,
+        group_name:               normalizeOptionalString(groupName),
+        group_max_confirmations:  normalizeOptionalInteger(groupMaxConfirmations),
         marketing_consent:        marketingConsent,
         marketing_consent_at:     marketingConsent ? new Date().toISOString() : null,
     });

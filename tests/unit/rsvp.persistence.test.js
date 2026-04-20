@@ -132,7 +132,7 @@ describe('rsvp persistence', () => {
     expect(warnSpy).toHaveBeenCalled();
   });
 
-  it('nao envia colunas inexistentes no insert de RSVP', async () => {
+  it('envia colunas de grupo no insert de RSVP quando informadas', async () => {
     global.fetch
       .mockResolvedValueOnce(createJsonResponse({
         supabaseUrl: 'https://demo.supabase.co',
@@ -161,10 +161,36 @@ describe('rsvp persistence', () => {
       attendance: 'yes',
       event_id: 'evento-teste',
       token_id: 'token-1',
+      group_name: 'Familia Silva',
+      group_max_confirmations: 3,
       marketing_consent: true,
     });
-    expect(payload).not.toHaveProperty('group_name');
-    expect(payload).not.toHaveProperty('group_max_confirmations');
+  });
+
+  it('envia null para colunas de grupo quando RSVP nao e tokenizado', async () => {
+    global.fetch
+      .mockResolvedValueOnce(createJsonResponse({
+        supabaseUrl: 'https://demo.supabase.co',
+        supabaseAnonKey: 'anon-key',
+      }))
+      .mockResolvedValueOnce(createTextResponse('', true, 201));
+
+    const { saveRsvpConfirmation } = await import('../../assets/js/rsvp-persistence.js');
+    const saved = await saveRsvpConfirmation({
+      name: 'Ana',
+      phone: '11999999999',
+      attendance: 'no',
+      eventId: 'evento-teste',
+    });
+
+    expect(saved).toBe(true);
+
+    const payload = JSON.parse(global.fetch.mock.calls[1][1].body);
+    expect(payload).toMatchObject({
+      token_id: null,
+      group_name: null,
+      group_max_confirmations: null,
+    });
   });
 
   it('retorna false quando insert em guest_submissions falha', async () => {
