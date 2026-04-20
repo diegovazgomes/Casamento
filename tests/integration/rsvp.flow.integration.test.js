@@ -86,6 +86,9 @@ describe('RSVP flow integration', () => {
     await rsvp.handleSubmit({ preventDefault() {} });
 
     expect(saveRsvpConfirmation).toHaveBeenCalledTimes(1);
+    expect(saveRsvpConfirmation).toHaveBeenCalledWith(expect.objectContaining({
+      eventId: 'evento-teste',
+    }));
     expect(assignSpy).not.toHaveBeenCalled();
     expect(document.getElementById('rsvpSuccess').classList.contains('show')).toBe(true);
     expect(document.getElementById('successHint').hidden).toBe(false);

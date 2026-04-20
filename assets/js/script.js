@@ -579,7 +579,8 @@ class InvitationExperience {
             : null;
 
         this.rsvp = new RSVP({
-            whatsapp: this.config.whatsapp
+            whatsapp: this.config.whatsapp,
+            rsvp: this.config.rsvp
         }, this.guestTokenData, refreshSlots);
 
         this.weddingApp.init();
