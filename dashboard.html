@@ -352,9 +352,10 @@ body::before{
  
 /* ══ TABLE ════════════════════════════════════════════════════════════════ */
 .table-wrap{
+  position:relative;
   background:linear-gradient(180deg,var(--surface),var(--surface-2));
   border:1px solid var(--border);
-  overflow:hidden;
+  overflow-x:auto;
 }
 .table-wrap::before{
   content:'';position:absolute;top:0;left:0;right:0;height:1px;
@@ -461,7 +462,7 @@ body::before{
  
 /* ══ EMPTY / LOADING ═══════════════════════════════════════════════════════ */
 .empty{
-  padding:56px 24px;text-align:center;
+  padding:32px 24px;text-align:center;
   color:var(--text-dim);
 }
 .empty-icon{
@@ -627,6 +628,8 @@ body::before{
   .topbar-actions .btn-label{display:none}
   .topbar-actions .btn{padding:10px 14px}
   .table th:nth-child(2),.table td:nth-child(2){display:none}
+  .sidebar-brand{min-width:0;padding:8px 12px}
+  .sidebar-brand-names,.sidebar-brand-date{display:none}
 }
  
 /* Focus accessibility */
@@ -848,7 +851,7 @@ body::before{
             <div class="filter">
               <label class="filter-label" for="filterSearch">Buscar</label>
               <input class="filter-control" id="filterSearch" type="search"
-                     placeholder="Nome ou telefone" oninput="reloadConfirmacoes()">
+                     placeholder="Nome ou telefone">
             </div>
             <div class="filter filter-actions">
               <button class="btn btn-subtle btn-full" onclick="clearFilters()">Limpar</button>

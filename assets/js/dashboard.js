@@ -9,6 +9,7 @@ const state = {
   eventId: 'siannah-diego-2026', // Padrão — pode ser lido de config futuramente
   grupos: [],
   confirmacoes: [],
+  allConfirmacoes: [],
   currentPage: 1,
   editingGrupoId: null,
 };
@@ -69,6 +70,14 @@ async function initializeDashboard() {
   showAuthScreen();
 }
 
+function debounce(fn, delay) {
+  let timer;
+  return function (...args) {
+    clearTimeout(timer);
+    timer = setTimeout(() => fn.apply(this, args), delay);
+  };
+}
+
 function bindUiEvents() {
   authForm.addEventListener('submit', handleAuth);
   logoutButton.addEventListener('click', handleLogout);
@@ -84,6 +93,11 @@ function bindUiEvents() {
   document.getElementById('btnRefresh')?.addEventListener('click', () => {
     loadAllData();
   });
+  // Debounce busca por texto para evitar múltiplas requisições
+  const filterSearch = document.getElementById('filterSearch');
+  if (filterSearch) {
+    filterSearch.addEventListener('input', debounce(reloadConfirmacoes, 350));
+  }
 }
 
 function applySiteConfig(siteConfig) {
@@ -154,6 +168,7 @@ function handleLogout() {
   state.authToken = null;
   state.grupos = [];
   state.confirmacoes = [];
+  state.allConfirmacoes = [];
   showAuthScreen();
   authForm.reset();
 }
@@ -193,6 +208,7 @@ function handleTabSwitch(event) {
   tabButton.classList.add('is-active');
   document.getElementById(`tab-${tabName}`)?.classList.add('is-active');
   updateTopbar(tabName);
+  syncTabActions(tabName);
 
   // Carregar dados específicos se necessário
   if (tabName === 'confirmacoes') {
@@ -205,6 +221,7 @@ function handleTabSwitch(event) {
 function syncActiveTab() {
   const activeTab = document.querySelector('.nav-item.is-active')?.dataset.tab || 'overview';
   updateTopbar(activeTab);
+  syncTabActions(activeTab);
 }
 
 function updateTopbar(tabName) {
@@ -216,6 +233,11 @@ function updateTopbar(tabName) {
 
   if (topbarTag) topbarTag.textContent = cfg.tag;
   if (topbarTitle) topbarTitle.textContent = cfg.title;
+}
+
+function syncTabActions(tabName) {
+  const btnNewGroup = document.getElementById('btnNewGroup');
+  if (btnNewGroup) btnNewGroup.hidden = tabName !== 'grupos';
 }
 
 // ============================================================
@@ -396,6 +418,8 @@ async function loadConfirmacoes(page = 1, status = '', groupId = '', searchTerm 
   loading.style.display = 'block';
   container.hidden = true;
   empty.hidden = true;
+  const paginacaoEl = document.getElementById('paginacao');
+  if (paginacaoEl) paginacaoEl.innerHTML = '';
 
   try {
     let url = `/api/dashboard/confirmations?eventId=${state.eventId}&page=${page}`;
@@ -407,6 +431,7 @@ async function loadConfirmacoes(page = 1, status = '', groupId = '', searchTerm 
 
     const data = await response.json();
     const rawConfirmacoes = data.data || [];
+    state.allConfirmacoes = rawConfirmacoes;
     state.confirmacoes = searchTerm
       ? rawConfirmacoes.filter((conf) => {
           const haystack = `${conf.name || ''} ${conf.phone || ''}`.toLowerCase();
@@ -515,12 +540,12 @@ async function loadRelatorios() {
     const confirmacoes = data.data || [];
 
     // Calcular estatísticas
-    const total = confirmacoes.length;
+    // Total = soma das vagas máximas dos grupos (não número de respostas)
+    const total = state.grupos.reduce((sum, g) => sum + (Number(g.max_confirmations) || 0), 0);
     const confirmados = confirmacoes.filter(c => c.status === 'yes').length;
     const recusados = confirmacoes.filter(c => c.status === 'no').length;
     const pendentes = total - confirmados - recusados;
-
-    updateOverviewStats(total, confirmados, recusados, pendentes);
+    // updateOverviewStats é responsabilidade exclusiva de updateOverview()
 
     // Breakdown por grupo
     const breakdown = {};
@@ -697,8 +722,8 @@ function renderStatusBadge(status) {
 
 function updateOverview() {
   const totalConvidados = state.grupos.reduce((sum, grupo) => sum + (Number(grupo.max_confirmations) || 0), 0);
-  const confirmados = state.confirmacoes.filter((conf) => conf.status === 'yes').length;
-  const recusados = state.confirmacoes.filter((conf) => conf.status === 'no').length;
+  const confirmados = state.allConfirmacoes.filter((conf) => conf.status === 'yes').length;
+  const recusados = state.allConfirmacoes.filter((conf) => conf.status === 'no').length;
   const pendentes = Math.max(totalConvidados - confirmados - recusados, 0);
 
   updateOverviewStats(totalConvidados, confirmados, recusados, pendentes);
@@ -706,12 +731,12 @@ function updateOverview() {
   const recentActivityBody = document.getElementById('recentActivityBody');
   if (!recentActivityBody) return;
 
-  if (state.confirmacoes.length === 0) {
+  if (state.allConfirmacoes.length === 0) {
     recentActivityBody.innerHTML = '<tr><td colspan="4"><div class="empty"><div class="empty-title">Sem atividade recente</div><p class="empty-text">As confirmações mais recentes aparecerão aqui.</p></div></td></tr>';
     return;
   }
 
-  recentActivityBody.innerHTML = state.confirmacoes.slice(0, 5).map((conf) => `
+  recentActivityBody.innerHTML = state.allConfirmacoes.slice(0, 5).map((conf) => `
     <tr>
       <td>
         <div class="cell-name">${escapeHtml(conf.name)}</div>
