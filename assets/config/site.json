@@ -310,5 +310,14 @@
     "classic-purple": {},
     "classic-gold": {}
   },
-  "themeOverrides": {}
+  "themeOverrides": {},
+  "dashboard": {
+    "enabled": true,
+    "eventId": "siannah-diego-2026",
+    "reminderTemplates": {
+      "pending": "Olá! Ainda não recebemos sua confirmação para o casamento de Siannah & Diego. Por favor, confirme sua presença através do link que recebeu.",
+      "thankyou": "Obrigado por confirmar sua presença no casamento de Siannah & Diego! Fique atento para mais informações nos próximos dias.",
+      "announcement": "Oi! Temos uma informação importante sobre o casamento de Siannah & Diego. Verifique seu email ou o convite online."
+    }
+  }
 }

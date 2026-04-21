@@ -565,6 +565,38 @@
           }
         }
       }
+    },
+    "dashboard": {
+      "type": "object",
+      "description": "Configuração do painel de gerenciamento do casal",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Ativa ou desativa o painel de gerenciamento"
+        },
+        "eventId": {
+          "type": "string",
+          "description": "Identificador único do evento para agrupamento de dados"
+        },
+        "reminderTemplates": {
+          "type": "object",
+          "description": "Templates de mensagens para lembretes via WhatsApp",
+          "properties": {
+            "pending": {
+              "type": "string",
+              "description": "Template para convidados que ainda não confirmaram"
+            },
+            "thankyou": {
+              "type": "string",
+              "description": "Template de agradecimento para quem confirmou"
+            },
+            "announcement": {
+              "type": "string",
+              "description": "Template para anúncios gerais"
+            }
+          }
+        }
+      }
     }
   }
 }

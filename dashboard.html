@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard do Casal — Convite de Casamento</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: #f5f5f5;
+      color: #333;
+    }
+
+    .auth-screen {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    .auth-box {
+      background: white;
+      padding: 2rem;
+      border-radius: 8px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+      width: 100%;
+      max-width: 400px;
+    }
+
+    .auth-box h1 {
+      font-size: 1.5rem;
+      margin-bottom: 0.5rem;
+      text-align: center;
+    }
+
+    .auth-box p {
+      text-align: center;
+      color: #666;
+      margin-bottom: 2rem;
+    }
+
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 0.75rem;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 1rem;
+    }
+
+    .form-group input:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .btn {
+      width: 100%;
+      padding: 0.75rem;
+      border: none;
+      border-radius: 4px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .btn-primary {
+      background: #667eea;
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: #5568d3;
+    }
+
+    .btn-secondary {
+      background: #e0e0e0;
+      color: #333;
+      margin-top: 0.5rem;
+    }
+
+    .btn-secondary:hover {
+      background: #d0d0d0;
+    }
+
+    .error-message {
+      background: #fee;
+      color: #c33;
+      padding: 0.75rem;
+      border-radius: 4px;
+      margin-bottom: 1rem;
+      border-left: 4px solid #c33;
+    }
+
+    .success-message {
+      background: #efe;
+      color: #3c3;
+      padding: 0.75rem;
+      border-radius: 4px;
+      margin-bottom: 1rem;
+      border-left: 4px solid #3c3;
+    }
+
+    /* Dashboard */
+    .dashboard {
+      display: none;
+    }
+
+    .dashboard-header {
+      background: white;
+      border-bottom: 1px solid #e0e0e0;
+      padding: 1rem 2rem;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+
+    .dashboard-header h1 {
+      font-size: 1.75rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .dashboard-header .subtitle {
+      color: #666;
+      font-size: 0.95rem;
+    }
+
+    .dashboard-header .logout {
+      float: right;
+      margin-top: 0.5rem;
+    }
+
+    .dashboard-content {
+      max-width: 1200px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+    }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      gap: 0;
+      border-bottom: 2px solid #e0e0e0;
+      margin-bottom: 2rem;
+    }
+
+    .tab-button {
+      padding: 1rem 1.5rem;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 1rem;
+      color: #666;
+      border-bottom: 3px solid transparent;
+      margin-bottom: -2px;
+      transition: all 0.3s ease;
+    }
+
+    .tab-button:hover {
+      color: #333;
+    }
+
+    .tab-button.active {
+      color: #667eea;
+      border-bottom-color: #667eea;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    /* Seções */
+    .card {
+      background: white;
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+
+    .card h2 {
+      font-size: 1.25rem;
+      margin-bottom: 1rem;
+    }
+
+    /* Tabelas */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1rem 0;
+    }
+
+    th {
+      background: #f9f9f9;
+      padding: 0.75rem;
+      text-align: left;
+      font-weight: 600;
+      border-bottom: 2px solid #e0e0e0;
+    }
+
+    td {
+      padding: 0.75rem;
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    tbody tr:hover {
+      background: #f9f9f9;
+    }
+
+    /* Forms */
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .form-row.full {
+      grid-template-columns: 1fr;
+    }
+
+    /* Modais */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+    }
+
+    .modal.active {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-content {
+      background: white;
+      padding: 2rem;
+      border-radius: 8px;
+      max-width: 500px;
+      width: 100%;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .modal-header h2 {
+      font-size: 1.25rem;
+    }
+
+    .close-button {
+      background: none;
+      border: none;
+      font-size: 2rem;
+      cursor: pointer;
+      color: #999;
+    }
+
+    /* Filtros */
+    .filters {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+    }
+
+    .filter-group {
+      flex: 1;
+      min-width: 150px;
+    }
+
+    .filter-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+      font-size: 0.9rem;
+    }
+
+    .filter-group select,
+    .filter-group input {
+      width: 100%;
+      padding: 0.5rem;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+
+    /* Ações */
+    .actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .action-button {
+      padding: 0.5rem 1rem;
+      font-size: 0.85rem;
+      border: 1px solid #ddd;
+      background: white;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .action-button:hover {
+      background: #f5f5f5;
+    }
+
+    .action-button.danger {
+      color: #c33;
+      border-color: #c33;
+    }
+
+    .action-button.danger:hover {
+      background: #fee;
+    }
+
+    /* Stats */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .stat-box {
+      background: white;
+      padding: 1.5rem;
+      border-radius: 8px;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+
+    .stat-number {
+      font-size: 2.5rem;
+      font-weight: bold;
+      color: #667eea;
+    }
+
+    .stat-label {
+      color: #666;
+      font-size: 0.9rem;
+      margin-top: 0.5rem;
+    }
+
+    /* Charts placeholder */
+    .chart-placeholder {
+      background: #f5f5f5;
+      border: 2px dashed #ddd;
+      border-radius: 8px;
+      padding: 3rem;
+      text-align: center;
+      color: #999;
+    }
+
+    /* Loading */
+    .loading {
+      text-align: center;
+      color: #999;
+      padding: 2rem;
+    }
+
+    .spinner {
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #667eea;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 1rem;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Responsivo */
+    @media (max-width: 768px) {
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+
+      .tabs {
+        gap: 0.5rem;
+      }
+
+      .tab-button {
+        padding: 0.75rem 1rem;
+        font-size: 0.9rem;
+      }
+
+      table {
+        font-size: 0.9rem;
+      }
+
+      th, td {
+        padding: 0.5rem;
+      }
+
+      .stats {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Login Screen -->
+  <div id="authScreen" class="auth-screen">
+    <div class="auth-box">
+      <h1>Dashboard do Casal</h1>
+      <p>Gerenciar convidados e confirmações</p>
+      
+      <div id="authError" class="error-message" style="display: none;"></div>
+      
+      <form id="authForm" onsubmit="handleAuth(event)">
+        <div class="form-group">
+          <label for="password">Senha do Dashboard</label>
+          <input 
+            type="password" 
+            id="password" 
+            name="password" 
+            required 
+            placeholder="Digite sua senha"
+            autocomplete="current-password"
+          >
+        </div>
+        <button type="submit" class="btn btn-primary">Entrar</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Dashboard -->
+  <div id="dashboardScreen" class="dashboard">
+    <div class="dashboard-header">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <h1>Dashboard — Convite de Casamento</h1>
+          <p class="subtitle">Gerenciar convidados, confirmações e lembretes</p>
+        </div>
+        <button id="logoutButton" class="btn btn-secondary">Sair</button>
+      </div>
+    </div>
+
+    <div class="dashboard-content">
+      <!-- Tabs -->
+      <div class="tabs">
+        <button class="tab-button active" data-tab="grupos">Grupos de Convidados</button>
+        <button class="tab-button" data-tab="confirmacoes">Confirmações</button>
+        <button class="tab-button" data-tab="relatorios">Relatórios</button>
+        <button class="tab-button" data-tab="export">Export</button>
+      </div>
+
+      <!-- Tab: Grupos -->
+      <div id="grupos" class="tab-content active">
+        <div class="card">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+            <h2>Grupos de Convidados</h2>
+            <button id="btnNewGroup" class="btn btn-primary" style="width: auto;">+ Novo Grupo</button>
+          </div>
+          
+          <div id="gruposLoading" class="loading" style="display: none;">
+            <div class="spinner"></div>
+            Carregando grupos...
+          </div>
+
+          <div id="gruposContainer" style="display: none;">
+            <table id="gruposTable">
+              <thead>
+                <tr>
+                  <th>Grupo</th>
+                  <th>Token</th>
+                  <th>Confirmados</th>
+                  <th>Vagas</th>
+                  <th>Telefone</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+              <tbody id="gruposBody">
+              </tbody>
+            </table>
+          </div>
+
+          <div id="gruposEmpty" style="text-align: center; color: #999; padding: 2rem; display: none;">
+            Nenhum grupo criado ainda
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab: Confirmações -->
+      <div id="confirmacoes" class="tab-content">
+        <div class="card">
+          <h2>Confirmações de Presença</h2>
+          
+          <div class="filters">
+            <div class="filter-group">
+              <label>Status</label>
+              <select id="filterStatus" onchange="reloadConfirmacoes()">
+                <option value="">Todos</option>
+                <option value="yes">Confirmados</option>
+                <option value="no">Recusados</option>
+                <option value="pending">Pendentes</option>
+              </select>
+            </div>
+            <div class="filter-group">
+              <label>Grupo</label>
+              <select id="filterGrupo" onchange="reloadConfirmacoes()">
+                <option value="">Todos os grupos</option>
+              </select>
+            </div>
+            <div class="filter-group">
+              <label>&nbsp;</label>
+              <button class="btn btn-secondary" onclick="clearFilters()" style="width: 100%;">Limpar Filtros</button>
+            </div>
+          </div>
+
+          <div id="confirmacoesLoading" class="loading" style="display: none;">
+            <div class="spinner"></div>
+            Carregando confirmações...
+          </div>
+
+          <div id="confirmacoesContainer" style="display: none;">
+            <table>
+              <thead>
+                <tr>
+                  <th>Nome</th>
+                  <th>Telefone</th>
+                  <th>Grupo</th>
+                  <th>Status</th>
+                  <th>Data</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+              <tbody id="confirmacoesBody">
+              </tbody>
+            </table>
+            <div id="paginacao" style="text-align: center; margin-top: 1rem;"></div>
+          </div>
+
+          <div id="confirmacoesEmpty" style="text-align: center; color: #999; padding: 2rem; display: none;">
+            Nenhuma confirmação encontrada
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab: Relatórios -->
+      <div id="relatorios" class="tab-content">
+        <div class="card">
+          <h2>Relatórios & Estatísticas</h2>
+          
+          <div class="stats" id="statsContainer">
+            <div class="stat-box">
+              <div class="stat-number" id="statTotal">0</div>
+              <div class="stat-label">Total de Confirmações</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-number" id="statConfirmados">0</div>
+              <div class="stat-label">Confirmados</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-number" id="statRecusados">0</div>
+              <div class="stat-label">Recusados</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-number" id="statPendentes">0</div>
+              <div class="stat-label">Pendentes de Resposta</div>
+            </div>
+          </div>
+
+          <div class="card" style="margin-top: 2rem;">
+            <h3>Gráfico de Distribuição (em breve)</h3>
+            <div class="chart-placeholder">
+              Gráfico de pizza mostrando distribuição de respostas
+            </div>
+          </div>
+
+          <div class="card" style="margin-top: 2rem;">
+            <h3>Breakdown por Grupo</h3>
+            <table>
+              <thead>
+                <tr>
+                  <th>Grupo</th>
+                  <th>Total de Convidados</th>
+                  <th>Confirmados</th>
+                  <th>Recusados</th>
+                  <th>Pendentes</th>
+                </tr>
+              </thead>
+              <tbody id="breakdownBody">
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab: Export -->
+      <div id="export" class="tab-content">
+        <div class="card">
+          <h2>Export de Dados</h2>
+          
+          <div style="margin: 1.5rem 0;">
+            <label style="display: block; margin-bottom: 1rem; font-weight: 500;">
+              <input type="checkbox" id="exportAllStatuses" checked> Incluir todos os status
+            </label>
+            <label style="display: block; margin-bottom: 1rem; font-weight: 500;">
+              <input type="radio" name="exportFormat" value="csv" checked> CSV (Excel)
+            </label>
+          </div>
+
+          <button id="btnDownloadCsv" class="btn btn-primary" style="width: auto;">
+            ⬇ Baixar CSV
+          </button>
+          <p style="color: #999; margin-top: 1rem; font-size: 0.9rem;">
+            Export contém: Nome, Telefone, Status, Grupo, Data da Confirmação
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Novo/Editar Grupo -->
+  <div id="modalGrupo" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="modalGrupoTitle">Novo Grupo</h2>
+        <button class="close-button" onclick="closeModal('modalGrupo')">&times;</button>
+      </div>
+      
+      <form id="formGrupo" onsubmit="handleSaveGrupo(event)">
+        <div class="form-group">
+          <label for="grupoName">Nome do Grupo *</label>
+          <input type="text" id="grupoName" required placeholder="Ex: Família Silva">
+        </div>
+
+        <div class="form-group">
+          <label for="grupoMaxConfirmations">Vagas (max confirmações) *</label>
+          <input type="number" id="grupoMaxConfirmations" required min="1" placeholder="Ex: 2">
+        </div>
+
+        <div class="form-group">
+          <label for="grupoPhone">Telefone</label>
+          <input type="tel" id="grupoPhone" placeholder="(11) 99999-9999">
+        </div>
+
+        <div class="form-group">
+          <label for="grupoNotes">Notas</label>
+          <input type="text" id="grupoNotes" placeholder="Informações adicionais">
+        </div>
+
+        <button type="submit" class="btn btn-primary">Salvar Grupo</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Enviar Lembrete -->
+  <div id="modalLembrete" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Enviar Lembrete</h2>
+        <button class="close-button" onclick="closeModal('modalLembrete')">&times;</button>
+      </div>
+      
+      <form id="formLembrete" onsubmit="handleSendLembrete(event)">
+        <div class="form-group">
+          <label>Grupo</label>
+          <p id="lembreteGrupo" style="font-weight: 500;"></p>
+        </div>
+
+        <div class="form-group">
+          <label for="lembreteTemplate">Template de Mensagem</label>
+          <select id="lembreteTemplate" onchange="updateMensagemPreview()">
+            <option value="pending">Lembrete — Ainda não confirmou</option>
+            <option value="thankyou">Agradecimento — Já confirmou</option>
+            <option value="announcement">Anúncio — Informação importante</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="lembreteMensagem">Mensagem</label>
+          <textarea id="lembreteMensagem" rows="5" required style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px; font-family: monospace; font-size: 0.9rem;"></textarea>
+        </div>
+
+        <p style="color: #999; font-size: 0.85rem;">
+          ⚠️ A mensagem será enviada via WhatsApp para o telefone cadastrado do grupo.
+        </p>
+
+        <button type="submit" class="btn btn-primary">Enviar Lembrete</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="assets/js/dashboard.js"></script>
+</body>
+</html>

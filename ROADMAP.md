@@ -244,12 +244,27 @@
 - [x] Criar tabela de convidados no banco
 - [x] Ler identificador do convidado via query param (`?guest=abc123`)
 - [x] Personalizar saudação e conteúdo por convidado
-- [ ] Rastrear abertura do convite por convidado
-- [ ] Criar interface para o casal gerenciar lista de convidados
+- [~] Rastrear abertura do convite por convidado (Fase 2 — em andamento)
+- [~] Criar interface para o casal gerenciar lista de convidados (Fase 1 — em andamento)
 
-**Notas:** Depende de 3.1.
+**Notas:** 
+**Fase 1** (Painel do Casal — 90% concluído):
+- ✅ Schema estendido: tabelas `couple_credentials`, `guest_views`, `reminder_logs` adicionadas em `docs/supabase-setup.sql`
+- ✅ Endpoints criados: `/api/dashboard/auth` (autenticação), `/api/dashboard/guest-groups` (CRUD grupos), `/api/dashboard/confirmations` (listar + export CSV), `/api/dashboard/reminders` (enviar WhatsApp)
+- ✅ Interface criada: `dashboard.html` com 4 abas (Grupos, Confirmações, Relatórios, Export)
+- ✅ Lógica JS: `assets/js/dashboard.js` com autenticação, gerenciamento de grupos, filtros, paginação, gráficos (estrutura pronta para Chart.js), export CSV
+- ⏳ Pendente: adicionar configuração em `site.json`, schema em schemas/, testes, deploy Vercel
+
+**Fase 2** (Rastreamento — não iniciada):
+- [ ] Integração de rastreamento em `script.js`
+- [ ] Endpoint `/api/guest-view`
+- [ ] Colunas de data/hora na aba Confirmações do painel
+- [ ] Testes de rastreamento
+
 **Prioridade:** Alta (quando escalar)
-**Esforço estimado:** 5–7 dias
+**Esforço estimado:** 5–7 dias para Fase 1 + 1–2 dias para Fase 2
+**Data de início:** 2026-04-21
+**Status:** 🟡 Em andamento (Fase 1)
 
 ---
 

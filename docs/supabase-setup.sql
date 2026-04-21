@@ -29,11 +29,11 @@ create policy "public_read_tokens"
 
 create policy "service_insert_tokens"
   on guest_tokens for insert
-  using (auth.role() = 'service_role');
+  with check (auth.role() = 'service_role');
 
 create policy "service_update_tokens"
   on guest_tokens for update
-  using (auth.role() = 'service_role');
+  with check (auth.role() = 'service_role');
 
 -- ============================================================
 -- Tabela de confirmações de presença
@@ -95,3 +95,91 @@ create policy "Service role can read all"
 --   add column if not exists marketing_consent_at timestamp with time zone;
 --
 -- create index if not exists idx_rsvp_token_id on rsvp_confirmations(token_id);
+
+-- ============================================================
+-- Tabela de credenciais do casal (para dashboard)
+-- ============================================================
+
+create table couple_credentials (
+  id uuid default gen_random_uuid() primary key,
+  event_id text unique not null,
+  password_hash text not null,
+  created_at timestamp with time zone default now(),
+  updated_at timestamp with time zone default now()
+);
+
+-- RLS: service role only para todas as operações
+alter table couple_credentials enable row level security;
+
+create policy "Service role can read credentials"
+  on couple_credentials for select
+  using (auth.role() = 'service_role');
+
+create policy "Service role can write credentials"
+  on couple_credentials for insert
+  with check (auth.role() = 'service_role');
+
+create policy "Service role can update credentials"
+  on couple_credentials for update
+  with check (auth.role() = 'service_role');
+
+-- ============================================================
+-- Tabela de rastreamento de visualização do convite
+-- ============================================================
+
+create table guest_views (
+  id uuid default gen_random_uuid() primary key,
+  event_id text not null,
+  token_id uuid references guest_tokens(id) on delete cascade,
+  opened_at timestamp with time zone default now(),
+  user_agent text,
+  viewport_width int,
+  viewport_height int,
+  device_type varchar(20),
+  country_code varchar(2),
+  city text,
+  created_at timestamp with time zone default now()
+);
+
+create index idx_views_token_id on guest_views(token_id);
+create index idx_views_event_id on guest_views(event_id);
+create index idx_views_opened_at on guest_views(opened_at desc);
+
+-- RLS: leitura apenas com service role (dashboard)
+alter table guest_views enable row level security;
+
+create policy "Service role can read views"
+  on guest_views for select
+  using (auth.role() = 'service_role');
+
+-- ============================================================
+-- Tabela de auditoria de lembretes enviados
+-- ============================================================
+
+create table reminder_logs (
+  id uuid default gen_random_uuid() primary key,
+  event_id text not null,
+  token_id uuid references guest_tokens(id) on delete cascade,
+  phone text not null,
+  message text not null,
+  status text not null check (status in ('sent', 'failed', 'pending')),
+  error_message text,
+  sent_by text not null default 'system',
+  sent_at timestamp with time zone default now(),
+  created_at timestamp with time zone default now()
+);
+
+create index idx_reminders_event_id on reminder_logs(event_id);
+create index idx_reminders_token_id on reminder_logs(token_id);
+create index idx_reminders_sent_at on reminder_logs(sent_at desc);
+
+-- RLS: leitura apenas com service role (dashboard)
+alter table reminder_logs enable row level security;
+
+create policy "Service role can read reminders"
+  on reminder_logs for select
+  using (auth.role() = 'service_role');
+
+create policy "Service role can insert reminders"
+  on reminder_logs for insert
+  with check (auth.role() = 'service_role');
