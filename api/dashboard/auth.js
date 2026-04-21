@@ -12,12 +12,10 @@
  *   { "error": "Invalid credentials" }
  */
 
-import { randomUUID } from 'crypto';
+import { createHmac } from 'crypto';
 
-// Simples armazenamento em memória de tokens com TTL
-// Em produção, isso poderia ser Redis ou Supabase com check RLS
-const tokenStore = new Map();
 const TOKEN_TTL_MS = 60 * 60 * 1000; // 1 hora
+const TOKEN_SECRET_FALLBACK = 'dashboard-auth-fallback-secret-change-me';
 
 export default function handler(req, res) {
   // CORS
@@ -52,17 +50,9 @@ export default function handler(req, res) {
     return res.status(403).json({ error: 'Invalid credentials' });
   }
 
-  // Gerar token com TTL
-  const token = randomUUID();
+  // Gerar token stateless assinado (funciona em ambiente serverless)
   const expiresAt = Date.now() + TOKEN_TTL_MS;
-
-  tokenStore.set(token, {
-    expiresAt,
-    createdAt: Date.now(),
-  });
-
-  // Limpar tokens expirados periodicamente
-  cleanupExpiredTokens();
+  const token = generateSignedToken(expiresAt);
 
   return res.status(200).json({
     token,
@@ -76,30 +66,39 @@ export default function handler(req, res) {
  * Chamado por outros endpoints do dashboard
  */
 export function verifyDashboardToken(token) {
-  if (!token) return false;
+  if (!token || typeof token !== 'string') return false;
 
-  const tokenData = tokenStore.get(token);
-  if (!tokenData) return false;
+  const parts = token.split('.');
+  if (parts.length !== 2) return false;
 
-  const isExpired = Date.now() > tokenData.expiresAt;
-  if (isExpired) {
-    tokenStore.delete(token);
+  const [payloadEncoded, signature] = parts;
+  const expectedSignature = signPayload(payloadEncoded);
+  if (signature !== expectedSignature) return false;
+
+  try {
+    const payloadJson = Buffer.from(payloadEncoded, 'base64url').toString('utf-8');
+    const payload = JSON.parse(payloadJson);
+    if (!payload?.exp || Number.isNaN(payload.exp)) return false;
+    return Date.now() <= payload.exp;
+  } catch {
     return false;
   }
-
-  return true;
 }
 
-/**
- * Limpar tokens expirados da memória
- */
-function cleanupExpiredTokens() {
-  const now = Date.now();
-  for (const [token, data] of tokenStore.entries()) {
-    if (now > data.expiresAt) {
-      tokenStore.delete(token);
-    }
-  }
+function generateSignedToken(expiresAt) {
+  const payload = {
+    exp: expiresAt,
+    iat: Date.now(),
+  };
+
+  const payloadEncoded = Buffer.from(JSON.stringify(payload), 'utf-8').toString('base64url');
+  const signature = signPayload(payloadEncoded);
+  return `${payloadEncoded}.${signature}`;
+}
+
+function signPayload(payloadEncoded) {
+  const secret = process.env.DASHBOARD_AUTH_SECRET || process.env.DASHBOARD_PASSWORD || TOKEN_SECRET_FALLBACK;
+  return createHmac('sha256', secret).update(payloadEncoded).digest('base64url');
 }
 
 /**
