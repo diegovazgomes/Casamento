@@ -21,6 +21,16 @@ export function buildWhatsAppUrl(destinationPhone, text) {
     return `https://wa.me/${destinationPhone}?${params.toString()}`;
 }
 
+function normalizePhoneDigits(value) {
+    const digits = String(value ?? '').replace(/\D/g, '');
+
+    if ((digits.length === 12 || digits.length === 13) && digits.startsWith('55')) {
+        return digits.slice(2);
+    }
+
+    return digits;
+}
+
 export class RSVP {
     constructor(config = {}, guestTokenData = null, refreshSlots = null) {
         this.config = config;
@@ -202,7 +212,11 @@ export class RSVP {
 
             if (!saved) {
                 console.warn('[rsvp] Persistência falhou. Mantendo formulário liberado para nova tentativa.');
-                this.renderError();
+                this.renderError({
+                    title: 'Não foi possível registrar sua confirmação agora.',
+                    subtitle: 'Seus dados parecem corretos, mas tivemos um problema ao salvar sua resposta. Tente novamente em instantes.',
+                    note: ''
+                });
                 return;
             }
         } else {
@@ -253,7 +267,7 @@ export class RSVP {
             return false;
         }
 
-        const digits = value.replace(/\D/g, '');
+        const digits = normalizePhoneDigits(value);
         if (digits.length < 10 || digits.length > 11) {
             this.setFieldError('phone', this.validationMessages.phoneInvalid);
             return false;

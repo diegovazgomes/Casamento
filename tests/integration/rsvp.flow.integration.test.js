@@ -140,4 +140,23 @@ describe('RSVP flow integration', () => {
       groupMaxConfirmations: 4,
     }));
   });
+
+  it('aceita WhatsApp com codigo do pais 55', async () => {
+    const { saveRsvpConfirmation } = await import('../../assets/js/rsvp-persistence.js');
+    saveRsvpConfirmation.mockResolvedValue(true);
+
+    const { RSVP } = await import('../../assets/js/rsvp.js');
+
+    document.getElementById('rsvp-name').value = 'Ana Clara';
+    document.getElementById('rsvp-phone').value = '+55 (11) 99999-9999';
+    document.getElementById('rsvp-attendance').value = 'yes';
+
+    const rsvp = new RSVP(baseConfig);
+    await rsvp.handleSubmit({ preventDefault() {} });
+
+    expect(saveRsvpConfirmation).toHaveBeenCalledTimes(1);
+    expect(document.getElementById('rsvpSuccess').classList.contains('show')).toBe(true);
+    expect(document.getElementById('rsvp-name-error').hidden).toBe(true);
+    expect(document.getElementById('rsvp-phone-error').hidden).toBe(true);
+  });
 });

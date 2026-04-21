@@ -211,4 +211,33 @@ describe('rsvp persistence', () => {
     expect(saved).toBe(false);
     expect(global.fetch).toHaveBeenCalledTimes(2);
   });
+
+  it('reenvia o RSVP sem colunas opcionais quando o schema legado nao tem group_name', async () => {
+    global.fetch
+      .mockResolvedValueOnce(createJsonResponse({
+        supabaseUrl: 'https://demo.supabase.co',
+        supabaseAnonKey: 'anon-key',
+      }))
+      .mockResolvedValueOnce(createTextResponse('{"message":"Could not find the group_name column"}', false, 400))
+      .mockResolvedValueOnce(createTextResponse('', true, 201));
+
+    const { saveRsvpConfirmation } = await import('../../assets/js/rsvp-persistence.js');
+    const saved = await saveRsvpConfirmation({
+      name: 'Ana',
+      phone: '11999999999',
+      attendance: 'yes',
+      eventId: 'evento-teste',
+      tokenId: 'token-1',
+      groupName: 'Familia Silva',
+      groupMaxConfirmations: 3,
+    });
+
+    expect(saved).toBe(true);
+    expect(global.fetch).toHaveBeenCalledTimes(3);
+
+    const fallbackPayload = JSON.parse(global.fetch.mock.calls[2][1].body);
+    expect(fallbackPayload.token_id).toBe('token-1');
+    expect(fallbackPayload.group_name).toBeUndefined();
+    expect(fallbackPayload.group_max_confirmations).toBeUndefined();
+  });
 });

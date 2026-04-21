@@ -71,6 +71,15 @@ function normalizeOptionalInteger(value) {
     return Number.isFinite(parsed) ? parsed : null;
 }
 
+function isUnsupportedRsvpColumnError(parsedError) {
+    const haystack = [parsedError?.message, parsedError?.details, parsedError?.hint]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase();
+
+    return haystack.includes('group_name') || haystack.includes('group_max_confirmations');
+}
+
 /**
  * Salva uma confirmação de presença na tabela rsvp_confirmations.
  * Retorna true se salvou, false se falhou.
@@ -87,7 +96,7 @@ function normalizeOptionalInteger(value) {
  * @returns {Promise<boolean>}
  */
 export async function saveRsvpConfirmation({ name, phone, attendance, eventId, tokenId = null, groupName = null, groupMaxConfirmations = null, marketingConsent = false }) {
-    return postToSupabase('rsvp_confirmations', {
+    const payload = {
         name:                     name.trim(),
         phone:                    phone.trim(),
         attendance:               attendance,
@@ -100,7 +109,30 @@ export async function saveRsvpConfirmation({ name, phone, attendance, eventId, t
         group_max_confirmations:  normalizeOptionalInteger(groupMaxConfirmations),
         marketing_consent:        marketingConsent,
         marketing_consent_at:     marketingConsent ? new Date().toISOString() : null,
-    });
+    };
+
+    const firstAttempt = await postToSupabaseDetailed('rsvp_confirmations', payload);
+    if (firstAttempt.ok) {
+        return true;
+    }
+
+    if (!isUnsupportedRsvpColumnError(firstAttempt.error)) {
+        return false;
+    }
+
+    console.warn('[rsvp-persistence] Colunas opcionais de grupo ausentes no schema atual. Reenviando RSVP sem colunas desnormalizadas.');
+
+    const fallbackPayload = {
+        ...payload,
+        group_name: undefined,
+        group_max_confirmations: undefined,
+    };
+
+    delete fallbackPayload.group_name;
+    delete fallbackPayload.group_max_confirmations;
+
+    const fallbackAttempt = await postToSupabaseDetailed('rsvp_confirmations', fallbackPayload);
+    return fallbackAttempt.ok;
 }
 
 /**
@@ -158,12 +190,17 @@ export async function saveSongSuggestion({ guestName, songTitle, songArtist, son
  * @returns {Promise<boolean>}
  */
 async function postToSupabase(table, payload) {
+    const result = await postToSupabaseDetailed(table, payload);
+    return result.ok;
+}
+
+async function postToSupabaseDetailed(table, payload) {
     try {
         const { supabaseUrl, supabaseAnonKey } = await getConfig();
 
         if (!supabaseUrl || !supabaseAnonKey) {
             console.warn('[rsvp-persistence] Supabase não configurado. Pulando persistência.');
-            return false;
+            return { ok: false, error: { code: null, message: 'Supabase não configurado.', details: '', hint: '' } };
         }
 
         const response = await fetch(`${supabaseUrl}/rest/v1/${table}`, {
@@ -194,14 +231,22 @@ async function postToSupabase(table, payload) {
                 }
             );
 
-            return false;
+            return { ok: false, error: parsedError };
         }
 
         console.log(`[rsvp-persistence] Registro salvo em ${table}.`);
-        return true;
+        return { ok: true, error: null };
 
     } catch (error) {
         console.warn('[rsvp-persistence] Erro inesperado:', error.message);
-        return false;
+        return {
+            ok: false,
+            error: {
+                code: null,
+                message: error.message,
+                details: '',
+                hint: '',
+            }
+        };
     }
 }
