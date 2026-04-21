@@ -285,6 +285,9 @@ async function loadGrupos() {
         <td>${maskPhone(grupo.phone)}</td>
         <td>
           <div class="row-actions">
+            <button class="icon-btn" data-copy-token="${escapeHtmlAttribute(grupo.token)}" onclick="copyInviteLink('${escapeHtmlAttribute(grupo.token)}')" aria-label="Copiar link do grupo ${escapeHtml(grupo.group_name)}" title="Copiar link de convite">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            </button>
             <button class="icon-btn" onclick="editGrupo('${grupo.id}')" aria-label="Editar grupo ${escapeHtml(grupo.group_name)}" title="Editar">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 1 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
             </button>
@@ -774,6 +777,44 @@ function updateOverviewStats(total, confirmados, recusados, pendentes) {
   if (statPendentesPct) statPendentesPct.textContent = `${pendentesPct}% do total previsto`;
 }
 
+// ============================================================
+// COPIAR LINK DE CONVITE
+// ============================================================
+
+async function copyInviteLink(token) {
+  const link = `${window.location.origin}/index.html?g=${token}`;
+  try {
+    await navigator.clipboard.writeText(link);
+    showCopyFeedback(token);
+  } catch {
+    // fallback legado para ambientes sem clipboard API
+    const ta = document.createElement('textarea');
+    ta.value = link;
+    ta.style.cssText = 'position:fixed;opacity:0;top:0;left:0';
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    showCopyFeedback(token);
+  }
+}
+
+function showCopyFeedback(token) {
+  const btn = document.querySelector(`[data-copy-token="${CSS.escape(token)}"]`);
+  if (!btn) return;
+  const original = btn.innerHTML;
+  const originalBorder = btn.style.borderColor;
+  const originalColor = btn.style.color;
+  btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`;
+  btn.style.borderColor = 'var(--success)';
+  btn.style.color = 'var(--success)';
+  setTimeout(() => {
+    btn.innerHTML = original;
+    btn.style.borderColor = originalBorder;
+    btn.style.color = originalColor;
+  }, 2000);
+}
+
 function openModal(modalId, title = null) {
   document.getElementById(modalId).classList.add('is-active');
   if (title && modalId === 'modalGrupo') {
@@ -814,8 +855,13 @@ async function fetchWithAuth(url, options = {}) {
 // ============================================================
 
 async function loadAllData() {
-  await loadGrupos();
-  await populateGrupoFilter();
-  await reloadConfirmacoes();
-  await loadRelatorios();
+  // Grupos e confirmações em paralelo — reduz tempo total à metade
+  await Promise.all([
+    loadGrupos(),
+    reloadConfirmacoes(),
+  ]);
+  // populateGrupoFilter depende de state.grupos — roda após o Promise.all
+  populateGrupoFilter();
+  // Relatórios em background — não bloqueiam o overview
+  loadRelatorios();
 }
