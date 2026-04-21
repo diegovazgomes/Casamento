@@ -8,10 +8,12 @@
 import { createClient } from '@supabase/supabase-js';
 import { verifyDashboardToken } from './auth.js';
 
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-);
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+function getSupabaseClient() {
+  return createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+}
 
 export default function handler(req, res) {
   // CORS
@@ -24,6 +26,10 @@ export default function handler(req, res) {
 
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Content-Type', 'application/json');
+
+  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+    return res.status(503).json({ error: 'Supabase server configuration missing' });
+  }
 
   // Verificar token
   const authHeader = req.headers.authorization || '';
@@ -54,6 +60,7 @@ export default function handler(req, res) {
  */
 async function handleGetGroups(req, res) {
   const { eventId } = req.query;
+  const supabase = getSupabaseClient();
 
   if (!eventId) {
     return res.status(400).json({ error: 'eventId required' });
@@ -106,6 +113,7 @@ async function handleGetGroups(req, res) {
  */
 async function handleCreateGroup(req, res) {
   const { eventId, groupName, maxConfirmations, phone, notes } = req.body || {};
+  const supabase = getSupabaseClient();
 
   if (!eventId || !groupName || !maxConfirmations) {
     return res.status(400).json({ error: 'Missing required fields' });
@@ -159,6 +167,7 @@ async function handleCreateGroup(req, res) {
 async function handleUpdateGroup(req, res) {
   const { id: tokenId } = req.query;
   const { maxConfirmations, groupName, phone, notes } = req.body || {};
+  const supabase = getSupabaseClient();
 
   if (!tokenId) {
     return res.status(400).json({ error: 'tokenId required' });
@@ -211,6 +220,7 @@ async function handleUpdateGroup(req, res) {
  */
 async function handleDeleteGroup(req, res) {
   const { id: tokenId } = req.query;
+  const supabase = getSupabaseClient();
 
   if (!tokenId) {
     return res.status(400).json({ error: 'tokenId required' });

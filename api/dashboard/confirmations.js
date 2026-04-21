@@ -9,10 +9,12 @@
 import { createClient } from '@supabase/supabase-js';
 import { verifyDashboardToken } from './auth.js';
 
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-);
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+function getSupabaseClient() {
+  return createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+}
 
 export default function handler(req, res) {
   // CORS
@@ -24,6 +26,11 @@ export default function handler(req, res) {
   }
 
   res.setHeader('Access-Control-Allow-Origin', '*');
+
+  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+    res.setHeader('Content-Type', 'application/json');
+    return res.status(503).json({ error: 'Supabase server configuration missing' });
+  }
 
   // Verificar token
   const authHeader = req.headers.authorization || '';
@@ -60,6 +67,7 @@ export default function handler(req, res) {
  */
 async function handleListConfirmations(req, res) {
   const { eventId, status, groupId, page = '1', pageSize = '50' } = req.query;
+  const supabase = getSupabaseClient();
 
   if (!eventId) {
     res.setHeader('Content-Type', 'application/json');
@@ -140,6 +148,7 @@ async function handleListConfirmations(req, res) {
  */
 async function handleExportCsv(req, res) {
   const { eventId, status, groupId } = req.query;
+  const supabase = getSupabaseClient();
 
   if (!eventId) {
     res.setHeader('Content-Type', 'application/json');
