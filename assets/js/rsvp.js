@@ -188,33 +188,23 @@ export class RSVP {
         const eventId = this.config?.rsvp?.eventId || 'wedding-event';
         const marketingConsent = document.getElementById('rsvp-marketing-consent')?.checked ?? false;
 
-        if (this.config?.rsvp?.supabaseEnabled === false) {
-            this.renderError({
-                title: 'Confirmação temporariamente indisponível.',
-                subtitle: 'Não conseguimos registrar sua resposta agora. Tente novamente em instantes.',
-                note: ''
-            });
-            return;
-        }
+        if (this.config?.rsvp?.supabaseEnabled !== false) {
+            const saved = await saveRsvpConfirmation({
+                name: this.fields.name.value.trim(),
+                phone: this.fields.phone.value.trim(),
+                attendance: this.attendanceInput.value,
+                eventId,
+                tokenId: this.guestTokenData?.token_id || null,
+                groupName: this.guestTokenData?.group_name || null,
+                groupMaxConfirmations: this.guestTokenData?.max_confirmations || null,
+                marketingConsent,
+            }).catch(() => false);
 
-        const saved = await saveRsvpConfirmation({
-            name:            this.fields.name.value.trim(),
-            phone:           this.fields.phone.value.trim(),
-            attendance:      this.attendanceInput.value,
-            eventId:         eventId,
-            tokenId:         this.guestTokenData?.token_id || null,
-            groupName:       this.guestTokenData?.group_name || null,
-            groupMaxConfirmations: this.guestTokenData?.max_confirmations || null,
-            marketingConsent,
-        }).catch(() => false);
-
-        if (!saved) {
-            this.renderError({
-                title: 'Não foi possível registrar sua confirmação.',
-                subtitle: 'Tivemos um problema ao salvar sua resposta. Tente novamente em instantes.',
-                note: ''
-            });
-            return;
+            if (!saved) {
+                console.warn('[rsvp] Persistência falhou, seguindo fluxo sem bloquear usuário.');
+            }
+        } else {
+            console.warn('[rsvp] Persistência desativada, seguindo fluxo.');
         }
 
         this.markSubmittedThisSession();

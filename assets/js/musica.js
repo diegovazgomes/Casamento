@@ -1,6 +1,7 @@
 import { initExtraPage } from './extra-page.js';
 import { setInputPlaceholder, setText } from './utils.js';
 import { saveSongSuggestion } from './rsvp-persistence.js';
+import { buildWhatsAppMessage, buildWhatsAppUrl } from './rsvp.js';
 
 function setFieldValidity(field, isInvalid) {
     if (!field) return;
@@ -61,30 +62,36 @@ function bindMusicForm(content, config) {
             submitButton.disabled = true;
         }
 
-        if (config?.rsvp?.supabaseEnabled === false) {
-            feedback.classList.add('is-error');
-            feedback.textContent = content?.errorMessage || 'Não foi possível enviar sua sugestão agora. Tente novamente.';
-            if (submitButton) {
-                submitButton.disabled = false;
+        if (config?.rsvp?.supabaseEnabled !== false) {
+            const saved = await saveSongSuggestion({
+                guestName,
+                songTitle,
+                songArtist,
+                songNotes,
+                eventId: config?.rsvp?.eventId,
+            }).catch(() => false);
+
+            if (!saved) {
+                console.warn('[musica] Persistência falhou, seguindo fluxo sem bloquear usuário.');
             }
-            return;
         }
 
-        const saved = await saveSongSuggestion({
-            guestName,
-            songTitle,
-            songArtist,
-            songNotes,
-            eventId: config?.rsvp?.eventId,
-        }).catch(() => false);
+        const destinationPhone = config?.whatsapp?.destinationPhone;
+        if (destinationPhone) {
+            const template = content?.whatsappTemplate || 'Olá, {recipientName}!\n\nSugestão de {name}:\nMúsica: {songTitle}\nArtista: {songArtist}\nObservações: {songNotes}';
+            const text = buildWhatsAppMessage(template, {
+                recipientName: config?.whatsapp?.recipientName || 'noivos',
+                name: guestName || 'Convidado',
+                songTitle,
+                songArtist: songArtist || '-',
+                songNotes: songNotes || '-',
+            });
 
-        if (!saved) {
-            feedback.classList.add('is-error');
-            feedback.textContent = content?.errorMessage || 'Não foi possível enviar sua sugestão agora. Tente novamente.';
-            if (submitButton) {
-                submitButton.disabled = false;
+            const waUrl = buildWhatsAppUrl(destinationPhone, text);
+            const opened = window.open(waUrl, '_blank', 'noopener,noreferrer');
+            if (!opened) {
+                window.location.assign(waUrl);
             }
-            return;
         }
 
         feedback.textContent = content?.successMessage || 'Sugestão enviada com sucesso. Obrigado por participar da nossa festa.';
