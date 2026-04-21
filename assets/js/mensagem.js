@@ -1,7 +1,6 @@
 import { initExtraPage } from './extra-page.js';
 import { setInputPlaceholder, setText } from './utils.js';
 import { saveGuestMessage } from './rsvp-persistence.js';
-import { buildWhatsAppMessage, buildWhatsAppUrl } from './rsvp.js';
 
 function setFieldValidity(field, isInvalid) {
     if (!field) return;
@@ -62,23 +61,12 @@ function bindMessageForm(content, config) {
             }).catch(() => false);
 
             if (!saved) {
-                console.warn('[mensagem] Persistência falhou, seguindo fluxo sem bloquear usuário.');
-            }
-        }
-
-        const destinationPhone = config?.whatsapp?.destinationPhone;
-        if (destinationPhone) {
-            const template = content?.whatsappTemplate || 'Olá, {recipientName}!\n\nMensagem de {name}:\n{message}';
-            const text = buildWhatsAppMessage(template, {
-                recipientName: config?.whatsapp?.recipientName || 'noivos',
-                name: guestName || 'Convidado',
-                message: messageBody,
-            });
-
-            const waUrl = buildWhatsAppUrl(destinationPhone, text);
-            const opened = window.open(waUrl, '_blank', 'noopener,noreferrer');
-            if (!opened) {
-                window.location.assign(waUrl);
+                feedback.classList.add('is-error');
+                feedback.textContent = content?.errorMessage || 'Não foi possível enviar sua mensagem agora. Tente novamente.';
+                if (submitButton) {
+                    submitButton.disabled = false;
+                }
+                return;
             }
         }
 

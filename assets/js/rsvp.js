@@ -201,7 +201,9 @@ export class RSVP {
             }).catch(() => false);
 
             if (!saved) {
-                console.warn('[rsvp] Persistência falhou, seguindo fluxo sem bloquear usuário.');
+                console.warn('[rsvp] Persistência falhou. Mantendo formulário liberado para nova tentativa.');
+                this.renderError();
+                return;
             }
         } else {
             console.warn('[rsvp] Persistência desativada, seguindo fluxo.');

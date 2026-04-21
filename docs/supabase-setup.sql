@@ -83,6 +83,39 @@ create policy "Service role can read all"
   using (auth.role() = 'service_role');
 
 -- ============================================================
+-- Tabela de mensagens e sugestões enviadas pelos convidados
+-- ============================================================
+
+create table guest_submissions (
+  id uuid default gen_random_uuid() primary key,
+  created_at timestamp with time zone default timezone('America/Sao_Paulo', now()),
+  type text not null check (type in ('message', 'song')),
+  guest_name text not null default '',
+  event_id text not null default 'siannah-diego-2026',
+  source text default 'website',
+  user_agent text,
+  referrer text,
+  message text,
+  song_title text,
+  song_artist text,
+  song_notes text
+);
+
+create index idx_guest_submissions_event_id on guest_submissions(event_id);
+create index idx_guest_submissions_type on guest_submissions(type);
+create index idx_guest_submissions_created_at on guest_submissions(created_at desc);
+
+alter table guest_submissions enable row level security;
+
+create policy "Anyone can insert guest submissions"
+  on guest_submissions for insert
+  with check (true);
+
+create policy "Service role can read guest submissions"
+  on guest_submissions for select
+  using (auth.role() = 'service_role');
+
+-- ============================================================
 -- Se as tabelas já existem, use ALTER TABLE para adicionar colunas:
 -- ============================================================
 
