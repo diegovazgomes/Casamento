@@ -78,11 +78,13 @@ Write-Host "`nTESTE 1: Estrutura de Arquivos`n" -ForegroundColor Cyan
 $files = @(
     @{ Path = "dashboard.html"; Desc = "Pagina HTML do dashboard" },
     @{ Path = "assets/js/dashboard.js"; Desc = "Logica JavaScript do dashboard" },
+    @{ Path = "assets/js/dashboard-theme-config.js"; Desc = "Bootstrap de tema/config do dashboard" },
     @{ Path = "api/dashboard/auth.js"; Desc = "Endpoint de autenticacao" },
     @{ Path = "api/dashboard/guest-groups.js"; Desc = "CRUD de grupos" },
     @{ Path = "api/dashboard/confirmations.js"; Desc = "Listagem e export de confirmacoes" },
     @{ Path = "api/dashboard/reminders.js"; Desc = "Endpoint de lembretes" },
-    @{ Path = "tests/integration/dashboard.integration.test.js"; Desc = "Testes de integracao" }
+    @{ Path = "tests/integration/dashboard.integration.test.js"; Desc = "Testes de integracao" },
+    @{ Path = "tests/integration/dashboard-theme-config.test.js"; Desc = "Testes do bootstrap de tema/config" }
 )
 
 foreach ($file in $files) {
@@ -117,14 +119,14 @@ Write-Host "`nTESTE 3: Configuracao do Dashboard`n" -ForegroundColor Cyan
 $totalTests++
 try {
     $siteJson = Get-Content "assets/config/site.json" -Raw | ConvertFrom-Json
-    if ($siteJson.dashboard -and $siteJson.dashboard.enabled -and $siteJson.dashboard.eventId) {
-        Write-Status "Bloco 'dashboard' em site.json" 'OK'
+    if ($siteJson.activeTheme -and $siteJson.activeLayout -and $siteJson.rsvp.eventId -and $siteJson.couple.names) {
+        Write-Status "site.json contem tema/layout/eventId usados pelo dashboard" 'OK'
         $passedTests++
     } else {
-        Write-Status "Bloco 'dashboard' incompleto em site.json" 'FAIL'
+        Write-Status "site.json nao contem tema/layout/eventId suficientes" 'FAIL'
     }
 } catch {
-    Write-Status "Erro ao verificar dashboard em site.json" 'FAIL'
+    Write-Status "Erro ao verificar configuracao do dashboard em site.json" 'FAIL'
 }
 
 # ============================================================
@@ -135,11 +137,11 @@ Write-Host "`nTESTE 4: Schema de Validacao`n" -ForegroundColor Cyan
 
 $totalTests++
 $schemaContent = Get-Content "assets/config/schemas/site-schema.json" -Raw
-if ($schemaContent -match '"dashboard"') {
-    Write-Status "Schema contem propriedade 'dashboard'" 'OK'
+if ($schemaContent -match '"activeLayout"' -and $schemaContent -match '"activeTheme"' -and $schemaContent -match '"rsvp"') {
+    Write-Status "Schema cobre layout/tema/rsvp consumidos pelo dashboard" 'OK'
     $passedTests++
 } else {
-    Write-Status "Schema nao contem propriedade 'dashboard'" 'FAIL'
+    Write-Status "Schema nao cobre layout/tema/rsvp consumidos pelo dashboard" 'FAIL'
 }
 
 # ============================================================
@@ -188,13 +190,11 @@ if ($testFileContent -match 'describe.*Dashboard' -and $testFileContent -match '
 Write-Host "`nTESTE 7: Variaveis de Ambiente`n" -ForegroundColor Cyan
 
 $envFileExists = Test-Path ".env.local"
-$totalTests++
 
 if ($envFileExists) {
     Write-Status "Arquivo .env.local existe" 'OK'
-    $passedTests++
 } else {
-    Write-Status "Arquivo .env.local nao encontrado (criar manualmente)" 'FAIL'
+    Write-Status "Arquivo .env.local nao encontrado (necessario apenas para testes reais de API)" 'WARN'
     Write-Host "   Dica: Crie .env.local na raiz com SUPABASE_URL e DASHBOARD_PASSWORD" -ForegroundColor Yellow
 }
 
@@ -207,7 +207,7 @@ Write-Host "`nTESTE 8: Validacao de Conteudo`n" -ForegroundColor Cyan
 # Verificar se dashboard.html contem elementos principais
 $totalTests++
 $dashboardContent = Get-Content "dashboard.html" -Raw
-$requiredElements = @('authScreen', 'dashboardScreen', 'gruposBody', 'modalGrupo')
+$requiredElements = @('authScreen', 'dashboardScreen', 'tab-overview', 'gruposTable', 'confirmacoesTable', 'modalGrupo', 'modalLembrete')
 $foundElements = 0
 
 foreach ($elem in $requiredElements) {
@@ -216,17 +216,17 @@ foreach ($elem in $requiredElements) {
     }
 }
 
-if ($foundElements -eq 4) {
-    Write-Status "dashboard.html contem elementos principais" 'OK'
+if ($foundElements -eq $requiredElements.Count) {
+    Write-Status "dashboard.html contem elementos principais do layout atual" 'OK'
     $passedTests++
 } else {
-    Write-Status "dashboard.html faltam elementos ($foundElements/4)" 'FAIL'
+    Write-Status "dashboard.html faltam elementos ($foundElements/$($requiredElements.Count))" 'FAIL'
 }
 
 # Verificar se dashboard.js contem funcoes principais
 $totalTests++
 $jsContent = Get-Content "assets/js/dashboard.js" -Raw
-$requiredFunctions = @('handleAuth', 'loadGrupos', 'handleSaveGrupo', 'reloadConfirmacoes', 'handleDownloadCsv')
+$requiredFunctions = @('handleAuth', 'loadGrupos', 'handleSaveGrupo', 'reloadConfirmacoes', 'handleDownloadCsv', 'applySiteConfig', 'updateOverview')
 $foundFunctions = 0
 
 foreach ($func in $requiredFunctions) {
@@ -235,11 +235,11 @@ foreach ($func in $requiredFunctions) {
     }
 }
 
-if ($foundFunctions -eq 5) {
-    Write-Status "dashboard.js contem funcoes principais" 'OK'
+if ($foundFunctions -eq $requiredFunctions.Count) {
+    Write-Status "dashboard.js contem funcoes principais do contrato atual" 'OK'
     $passedTests++
 } else {
-    Write-Status "dashboard.js faltam funcoes ($foundFunctions/5)" 'FAIL'
+    Write-Status "dashboard.js faltam funcoes ($foundFunctions/$($requiredFunctions.Count))" 'FAIL'
 }
 
 # ============================================================

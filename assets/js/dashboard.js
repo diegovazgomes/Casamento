@@ -13,6 +13,14 @@ const state = {
   editingGrupoId: null,
 };
 
+const TAB_LABELS = {
+  overview: { tag: 'Visão Geral', title: 'Bem-vindos ao painel' },
+  grupos: { tag: 'Grupos', title: 'Gestão de convidados' },
+  confirmacoes: { tag: 'Confirmações', title: 'Respostas recebidas' },
+  relatorios: { tag: 'Relatórios', title: 'Estatísticas por grupo' },
+  export: { tag: 'Exportação', title: 'Baixar seus dados' },
+};
+
 // DOM Elements
 const authScreen = document.getElementById('authScreen');
 const dashboardScreen = document.getElementById('dashboardScreen');
@@ -22,32 +30,83 @@ const logoutButton = document.getElementById('logoutButton');
 
 // Inicialização
 document.addEventListener('DOMContentLoaded', () => {
+  initializeDashboard();
+
+  window.addEventListener('dashboard:config-ready', (event) => {
+    applySiteConfig(event.detail?.config);
+  });
+
+  const siteConfig = window.__SITE_CONFIG__;
+  if (siteConfig) {
+    applySiteConfig(siteConfig);
+  }
+
+  bindUiEvents();
+  setupModalListeners();
+  syncActiveTab();
+});
+
+async function initializeDashboard() {
+  const bootstrapPromise = window.__DASHBOARD_BOOTSTRAP_PROMISE__;
+  if (bootstrapPromise && typeof bootstrapPromise.then === 'function') {
+    try {
+      const bootstrap = await bootstrapPromise;
+      applySiteConfig(bootstrap?.config);
+    } catch (error) {
+      console.warn('[dashboard] Falha ao aguardar bootstrap de config.', error);
+    }
+  }
+
   // Carregar token do sessionStorage
   const savedToken = sessionStorage.getItem('dashboardToken');
   if (savedToken) {
     state.authToken = savedToken;
     showDashboard();
-    loadAllData();
-  } else {
-    showAuthScreen();
+    await loadAllData();
+    return;
   }
 
-  // Event Listeners
+  showAuthScreen();
+}
+
+function bindUiEvents() {
   authForm.addEventListener('submit', handleAuth);
   logoutButton.addEventListener('click', handleLogout);
   
   // Tab switching
-  document.querySelectorAll('.tab-button').forEach(button => {
+  document.querySelectorAll('.nav-item[data-tab]').forEach(button => {
     button.addEventListener('click', handleTabSwitch);
   });
 
   // Modais
   document.getElementById('btnNewGroup').addEventListener('click', () => openModal('modalGrupo', 'Novo Grupo'));
   document.getElementById('btnDownloadCsv').addEventListener('click', handleDownloadCsv);
+  document.getElementById('btnRefresh')?.addEventListener('click', () => {
+    loadAllData();
+  });
+}
 
-  // Listeners dos modais
-  setupModalListeners();
-});
+function applySiteConfig(siteConfig) {
+  if (!siteConfig || typeof siteConfig !== 'object') {
+    return;
+  }
+
+  const eventId = siteConfig?.rsvp?.eventId;
+  if (eventId) {
+    state.eventId = eventId;
+  }
+
+  const coupleNames = siteConfig?.couple?.names;
+  const heroDate = siteConfig?.event?.heroDate || siteConfig?.event?.displayDate || '';
+
+  const sidebarCouple = document.getElementById('sidebarCouple');
+  const sidebarDate = document.getElementById('sidebarDate');
+  const authCoupleTitle = document.getElementById('authCoupleTitle');
+
+  if (sidebarCouple && coupleNames) sidebarCouple.textContent = coupleNames;
+  if (sidebarDate && heroDate) sidebarDate.textContent = heroDate;
+  if (authCoupleTitle && coupleNames) authCoupleTitle.textContent = coupleNames;
+}
 
 // ============================================================
 // AUTENTICAÇÃO
@@ -101,17 +160,20 @@ function handleLogout() {
 
 function showAuthError(message) {
   authError.textContent = message;
+  authError.hidden = false;
   authError.style.display = 'block';
 }
 
 function showAuthScreen() {
   authScreen.style.display = 'flex';
   dashboardScreen.style.display = 'none';
+  dashboardScreen.classList.remove('is-active');
 }
 
 function showDashboard() {
   authScreen.style.display = 'none';
   dashboardScreen.style.display = 'block';
+  dashboardScreen.classList.add('is-active');
 }
 
 // ============================================================
@@ -119,15 +181,18 @@ function showDashboard() {
 // ============================================================
 
 function handleTabSwitch(event) {
-  const tabName = event.target.dataset.tab;
+  const tabButton = event.currentTarget ?? event.target.closest('.nav-item[data-tab]');
+  const tabName = tabButton?.dataset.tab;
+  if (!tabName) return;
   
   // Remover active de todos
-  document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
-  document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+  document.querySelectorAll('.nav-item[data-tab]').forEach(btn => btn.classList.remove('is-active'));
+  document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('is-active'));
   
   // Adicionar active
-  event.target.classList.add('active');
-  document.getElementById(tabName).classList.add('active');
+  tabButton.classList.add('is-active');
+  document.getElementById(`tab-${tabName}`)?.classList.add('is-active');
+  updateTopbar(tabName);
 
   // Carregar dados específicos se necessário
   if (tabName === 'confirmacoes') {
@@ -137,19 +202,35 @@ function handleTabSwitch(event) {
   }
 }
 
+function syncActiveTab() {
+  const activeTab = document.querySelector('.nav-item.is-active')?.dataset.tab || 'overview';
+  updateTopbar(activeTab);
+}
+
+function updateTopbar(tabName) {
+  const cfg = TAB_LABELS[tabName];
+  if (!cfg) return;
+
+  const topbarTag = document.getElementById('topbarTag');
+  const topbarTitle = document.getElementById('topbarTitle');
+
+  if (topbarTag) topbarTag.textContent = cfg.tag;
+  if (topbarTitle) topbarTitle.textContent = cfg.title;
+}
+
 // ============================================================
 // GRUPOS
 // ============================================================
 
 async function loadGrupos() {
-  const container = document.getElementById('gruposContainer');
+  const container = document.getElementById('gruposTable');
   const loading = document.getElementById('gruposLoading');
   const empty = document.getElementById('gruposEmpty');
   const body = document.getElementById('gruposBody');
 
   loading.style.display = 'block';
-  container.style.display = 'none';
-  empty.style.display = 'none';
+  container.hidden = true;
+  empty.hidden = true;
 
   try {
     const response = await fetchWithAuth(`/api/dashboard/guest-groups?eventId=${state.eventId}`);
@@ -159,29 +240,46 @@ async function loadGrupos() {
     state.grupos = data.data || [];
 
     if (state.grupos.length === 0) {
-      empty.style.display = 'block';
+      empty.hidden = false;
       loading.style.display = 'none';
+      updateOverview();
       return;
     }
 
     // Renderizar tabela
     body.innerHTML = state.grupos.map(grupo => `
       <tr>
-        <td><strong>${escapeHtml(grupo.group_name)}</strong></td>
-        <td><code style="background: #f5f5f5; padding: 0.25rem 0.5rem; border-radius: 3px;">${grupo.token.substring(0, 8)}...</code></td>
-        <td>${grupo.confirmationCount} / ${grupo.max_confirmations}</td>
-        <td>${grupo.slotsAvailable >= 0 ? grupo.slotsAvailable : '0'}</td>
+        <td>
+          <div class="cell-name">${escapeHtml(grupo.group_name)}</div>
+          <div class="cell-sub">Criado para compartilhar um único link</div>
+        </td>
+        <td><span class="cell-token">${escapeHtml(grupo.token.substring(0, 8))}...</span></td>
+        <td>
+          <span class="cell-count">${grupo.confirmationCount}</span>
+          <span class="cell-count-sep">/</span>
+          <span class="cell-count">${grupo.max_confirmations}</span>
+          <div class="cell-sub">${Math.max(grupo.slotsAvailable, 0)} vaga(s) restante(s)</div>
+        </td>
         <td>${maskPhone(grupo.phone)}</td>
-        <td class="actions">
-          <button class="action-button" onclick="editGrupo('${grupo.id}')">Editar</button>
-          <button class="action-button" onclick="sendLembrete('${grupo.id}', '${escapeHtml(grupo.group_name)}')">Lembrete</button>
-          <button class="action-button danger" onclick="deleteGrupo('${grupo.id}')">Deletar</button>
+        <td>
+          <div class="row-actions">
+            <button class="icon-btn" onclick="editGrupo('${grupo.id}')" aria-label="Editar grupo ${escapeHtml(grupo.group_name)}" title="Editar">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 1 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
+            </button>
+            <button class="icon-btn" onclick="sendLembrete('${grupo.id}', '${escapeHtmlAttribute(grupo.group_name)}')" aria-label="Enviar lembrete para ${escapeHtml(grupo.group_name)}" title="Lembrete">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22 11 13 2 9 22 2z"/></svg>
+            </button>
+            <button class="icon-btn danger" onclick="deleteGrupo('${grupo.id}')" aria-label="Excluir grupo ${escapeHtml(grupo.group_name)}" title="Excluir">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+            </button>
+          </div>
         </td>
       </tr>
     `).join('');
 
     loading.style.display = 'none';
-    container.style.display = 'block';
+    container.hidden = false;
+    updateOverview();
   } catch (error) {
     console.error('[loadGrupos]', error);
     loading.innerHTML = '<p style="color: #c33;">Erro ao carregar grupos</p>';
@@ -283,20 +381,21 @@ async function deleteGrupo(grupoId) {
 async function reloadConfirmacoes() {
   const status = document.getElementById('filterStatus').value;
   const groupId = document.getElementById('filterGrupo').value;
+  const searchTerm = document.getElementById('filterSearch')?.value.trim().toLowerCase() || '';
 
-  await loadConfirmacoes(1, status, groupId);
+  await loadConfirmacoes(1, status, groupId, searchTerm);
   await populateGrupoFilter();
 }
 
-async function loadConfirmacoes(page = 1, status = '', groupId = '') {
-  const container = document.getElementById('confirmacoesContainer');
+async function loadConfirmacoes(page = 1, status = '', groupId = '', searchTerm = '') {
+  const container = document.getElementById('confirmacoesTable');
   const loading = document.getElementById('confirmacoesLoading');
   const empty = document.getElementById('confirmacoesEmpty');
   const body = document.getElementById('confirmacoesBody');
 
   loading.style.display = 'block';
-  container.style.display = 'none';
-  empty.style.display = 'none';
+  container.hidden = true;
+  empty.hidden = true;
 
   try {
     let url = `/api/dashboard/confirmations?eventId=${state.eventId}&page=${page}`;
@@ -307,61 +406,76 @@ async function loadConfirmacoes(page = 1, status = '', groupId = '') {
     if (!response.ok) throw new Error(response.statusText);
 
     const data = await response.json();
-    state.confirmacoes = data.data || [];
+    const rawConfirmacoes = data.data || [];
+    state.confirmacoes = searchTerm
+      ? rawConfirmacoes.filter((conf) => {
+          const haystack = `${conf.name || ''} ${conf.phone || ''}`.toLowerCase();
+          return haystack.includes(searchTerm);
+        })
+      : rawConfirmacoes;
 
     if (state.confirmacoes.length === 0) {
-      empty.style.display = 'block';
+      empty.hidden = false;
       loading.style.display = 'none';
+      renderPaginacao(searchTerm ? { totalPages: 1 } : data.pagination, page, status, groupId, searchTerm);
+      updateOverview();
       return;
     }
 
     // Renderizar tabela
     body.innerHTML = state.confirmacoes.map(conf => `
       <tr>
-        <td><strong>${escapeHtml(conf.name)}</strong></td>
+        <td>
+          <div class="cell-name">${escapeHtml(conf.name)}</div>
+        </td>
         <td>${maskPhone(conf.phone)}</td>
         <td>${escapeHtml(conf.groupName)}</td>
         <td>
-          ${conf.status === 'yes' ? '✅ Confirmado' : conf.status === 'no' ? '❌ Recusado' : '⏳ Pendente'}
+          ${renderStatusBadge(conf.status)}
         </td>
         <td>${new Date(conf.confirmedAt).toLocaleDateString('pt-BR')}</td>
-        <td class="actions">
-          <button class="action-button" onclick="sendLembrete('${conf.groupId}', '${escapeHtml(conf.groupName)}')">Lembrete</button>
+        <td>
+          <div class="row-actions">
+            <button class="icon-btn" onclick="sendLembrete('${conf.groupId}', '${escapeHtmlAttribute(conf.groupName)}')" aria-label="Enviar lembrete para ${escapeHtml(conf.groupName)}" title="Lembrete">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22 11 13 2 9 22 2z"/></svg>
+            </button>
+          </div>
         </td>
       </tr>
     `).join('');
 
     // Paginação
-    renderPaginacao(data.pagination, page, status, groupId);
+    renderPaginacao(searchTerm ? { totalPages: 1 } : data.pagination, page, status, groupId, searchTerm);
 
     loading.style.display = 'none';
-    container.style.display = 'block';
+    container.hidden = false;
+    updateOverview();
   } catch (error) {
     console.error('[loadConfirmacoes]', error);
     loading.innerHTML = '<p style="color: #c33;">Erro ao carregar confirmações</p>';
   }
 }
 
-function renderPaginacao(pagination, currentPage, status, groupId) {
+function renderPaginacao(pagination, currentPage, status, groupId, searchTerm = '') {
   const paginacao = document.getElementById('paginacao');
   
-  if (pagination.totalPages <= 1) {
+  if (!pagination || pagination.totalPages <= 1 || searchTerm) {
     paginacao.innerHTML = '';
     return;
   }
 
-  let html = '<div style="display: flex; gap: 0.5rem; justify-content: center;">';
+  let html = '<div style="display: flex; gap: 0.5rem; justify-content: center; align-items: center;">';
   
   if (currentPage > 1) {
-    html += `<button class="action-button" onclick="loadConfirmacoes(${currentPage - 1}, '${status}', '${groupId}')">← Anterior</button>`;
+    html += `<button class="page-btn" onclick="loadConfirmacoes(${currentPage - 1}, '${status}', '${groupId}', '${escapeHtmlAttribute(searchTerm)}')">←</button>`;
   }
 
-  html += `<span style="padding: 0.5rem 1rem; background: #f5f5f5; border-radius: 4px;">
+  html += `<span style="padding: 0.5rem 1rem; border: 1px solid var(--border); color: var(--text-dim);">
     Página ${currentPage} de ${pagination.totalPages}
   </span>`;
 
   if (currentPage < pagination.totalPages) {
-    html += `<button class="action-button" onclick="loadConfirmacoes(${currentPage + 1}, '${status}', '${groupId}')">Próxima →</button>`;
+    html += `<button class="page-btn" onclick="loadConfirmacoes(${currentPage + 1}, '${status}', '${groupId}', '${escapeHtmlAttribute(searchTerm)}')">→</button>`;
   }
 
   html += '</div>';
@@ -383,6 +497,8 @@ async function populateGrupoFilter() {
 function clearFilters() {
   document.getElementById('filterStatus').value = '';
   document.getElementById('filterGrupo').value = '';
+  const filterSearch = document.getElementById('filterSearch');
+  if (filterSearch) filterSearch.value = '';
   reloadConfirmacoes();
 }
 
@@ -404,10 +520,7 @@ async function loadRelatorios() {
     const recusados = confirmacoes.filter(c => c.status === 'no').length;
     const pendentes = total - confirmados - recusados;
 
-    document.getElementById('statTotal').textContent = total;
-    document.getElementById('statConfirmados').textContent = confirmados;
-    document.getElementById('statRecusados').textContent = recusados;
-    document.getElementById('statPendentes').textContent = pendentes;
+    updateOverviewStats(total, confirmados, recusados, pendentes);
 
     // Breakdown por grupo
     const breakdown = {};
@@ -443,6 +556,7 @@ async function loadRelatorios() {
         <td>${group.confirmados}</td>
         <td>${group.recusados}</td>
         <td>${group.pendentes}</td>
+        <td>${group.total > 0 ? Math.round((group.confirmados / group.total) * 100) : 0}%</td>
       </tr>
     `).join('');
   } catch (error) {
@@ -496,10 +610,11 @@ function sendLembrete(grupoId, grupoName) {
 
 function updateMensagemPreview() {
   const template = document.getElementById('lembreteTemplate').value;
+  const coupleNames = window.__SITE_CONFIG__?.couple?.names || 'Siannah & Diego';
   const templates = {
-    pending: 'Olá! Ainda não recebemos sua confirmação para o casamento de Siannah & Diego. Por favor, confirme sua presença através do link que recebeu.',
-    thankyou: 'Obrigado por confirmar sua presença no casamento de Siannah & Diego! Fique atento para mais informações nos próximos dias.',
-    announcement: 'Oi! Temos uma informação importante sobre o casamento de Siannah & Diego. Verifique seu email ou o convite online.',
+    pending: `Olá! Ainda não recebemos sua confirmação para o casamento de ${coupleNames}. Por favor, confirme sua presença através do link que recebeu.`,
+    thankyou: `Obrigado por confirmar sua presença no casamento de ${coupleNames}! Fique atento para mais informações nos próximos dias.`,
+    announcement: `Oi! Temos uma informação importante sobre o casamento de ${coupleNames}. Verifique seu email ou o convite online.`,
   };
   
   document.getElementById('lembreteMensagem').value = templates[template] || '';
@@ -564,15 +679,85 @@ function escapeHtml(text) {
   return text.replace(/[&<>"']/g, m => map[m]);
 }
 
+function escapeHtmlAttribute(text) {
+  return escapeHtml(String(text ?? '')).replace(/`/g, '&#096;');
+}
+
+function renderStatusBadge(status) {
+  if (status === 'yes') {
+    return '<span class="badge badge-ok">Confirmado</span>';
+  }
+
+  if (status === 'no') {
+    return '<span class="badge badge-err">Recusado</span>';
+  }
+
+  return '<span class="badge badge-warn">Pendente</span>';
+}
+
+function updateOverview() {
+  const totalConvidados = state.grupos.reduce((sum, grupo) => sum + (Number(grupo.max_confirmations) || 0), 0);
+  const confirmados = state.confirmacoes.filter((conf) => conf.status === 'yes').length;
+  const recusados = state.confirmacoes.filter((conf) => conf.status === 'no').length;
+  const pendentes = Math.max(totalConvidados - confirmados - recusados, 0);
+
+  updateOverviewStats(totalConvidados, confirmados, recusados, pendentes);
+
+  const recentActivityBody = document.getElementById('recentActivityBody');
+  if (!recentActivityBody) return;
+
+  if (state.confirmacoes.length === 0) {
+    recentActivityBody.innerHTML = '<tr><td colspan="4"><div class="empty"><div class="empty-title">Sem atividade recente</div><p class="empty-text">As confirmações mais recentes aparecerão aqui.</p></div></td></tr>';
+    return;
+  }
+
+  recentActivityBody.innerHTML = state.confirmacoes.slice(0, 5).map((conf) => `
+    <tr>
+      <td>
+        <div class="cell-name">${escapeHtml(conf.name)}</div>
+      </td>
+      <td>${escapeHtml(conf.groupName)}</td>
+      <td>${renderStatusBadge(conf.status)}</td>
+      <td>${new Date(conf.confirmedAt).toLocaleDateString('pt-BR')}</td>
+    </tr>
+  `).join('');
+}
+
+function updateOverviewStats(total, confirmados, recusados, pendentes) {
+  const confirmadosPct = total > 0 ? Math.round((confirmados / total) * 100) : 0;
+  const recusadosPct = total > 0 ? Math.round((recusados / total) * 100) : 0;
+  const pendentesPct = total > 0 ? Math.round((pendentes / total) * 100) : 0;
+
+  const statTotalConvidados = document.getElementById('statTotalConvidados');
+  const statTotalConvidadosHint = document.getElementById('statTotalConvidadosHint');
+  const statConfirmados = document.getElementById('statConfirmados');
+  const statConfirmadosPct = document.getElementById('statConfirmadosPct');
+  const statConfirmadosBar = document.getElementById('statConfirmadosBar');
+  const statRecusados = document.getElementById('statRecusados');
+  const statRecusadosPct = document.getElementById('statRecusadosPct');
+  const statPendentes = document.getElementById('statPendentes');
+  const statPendentesPct = document.getElementById('statPendentesPct');
+
+  if (statTotalConvidados) statTotalConvidados.textContent = String(total);
+  if (statTotalConvidadosHint) statTotalConvidadosHint.textContent = `${state.grupos.length} grupo(s) cadastrados`;
+  if (statConfirmados) statConfirmados.textContent = String(confirmados);
+  if (statConfirmadosPct) statConfirmadosPct.textContent = `${confirmadosPct}% do total previsto`;
+  if (statConfirmadosBar) statConfirmadosBar.style.width = `${confirmadosPct}%`;
+  if (statRecusados) statRecusados.textContent = String(recusados);
+  if (statRecusadosPct) statRecusadosPct.textContent = `${recusadosPct}% do total previsto`;
+  if (statPendentes) statPendentes.textContent = String(pendentes);
+  if (statPendentesPct) statPendentesPct.textContent = `${pendentesPct}% do total previsto`;
+}
+
 function openModal(modalId, title = null) {
-  document.getElementById(modalId).classList.add('active');
+  document.getElementById(modalId).classList.add('is-active');
   if (title && modalId === 'modalGrupo') {
     document.getElementById('modalGrupoTitle').textContent = title;
   }
 }
 
 function closeModal(modalId) {
-  document.getElementById(modalId).classList.remove('active');
+  document.getElementById(modalId).classList.remove('is-active');
   if (modalId === 'modalGrupo') {
     state.editingGrupoId = null;
     document.getElementById('formGrupo').reset();
@@ -583,7 +768,7 @@ function setupModalListeners() {
   document.querySelectorAll('.modal').forEach(modal => {
     modal.addEventListener('click', (e) => {
       if (e.target === modal) {
-        modal.classList.remove('active');
+        modal.classList.remove('is-active');
       }
     });
   });
@@ -607,4 +792,5 @@ async function loadAllData() {
   await loadGrupos();
   await populateGrupoFilter();
   await reloadConfirmacoes();
+  await loadRelatorios();
 }

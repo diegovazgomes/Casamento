@@ -3,7 +3,7 @@
   "title": "Wedding Site Configuration",
   "description": "Schema de validação para assets/config/site.json",
   "type": "object",
-  "required": ["activeTheme", "couple", "event", "texts", "gift", "media", "pages", "whatsapp"],
+  "required": ["activeTheme", "couple", "event", "texts", "gift", "media", "pages", "whatsapp", "rsvp"],
   "properties": {
     "activeLayout": {
       "type": "string",
@@ -221,6 +221,21 @@
               }
             }
           }
+        }
+      }
+    },
+    "rsvp": {
+      "type": "object",
+      "description": "Configuração de RSVP e persistência",
+      "required": ["eventId", "supabaseEnabled"],
+      "properties": {
+        "eventId": {
+          "type": "string",
+          "description": "Identificador do evento usado pelo RSVP e dashboard"
+        },
+        "supabaseEnabled": {
+          "type": "boolean",
+          "description": "Habilita persistência em Supabase para RSVP"
         }
       }
     },

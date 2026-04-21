@@ -1041,27 +1041,22 @@ body::before{
 </div>
  
 <!-- ══ THEME LOADER ═══════════════════════════════════════════════════════ -->
-<script>
+<script type="module">
+import { loadDashboardThemeConfig } from './assets/js/dashboard-theme-config.js';
+
 /**
  * loadTheme.js - embutido
  * Lê o tema ativo do site.json e aplica os tokens no dashboard.
  * Fallback para o tema padrão silver se algo falhar.
  */
-(async function loadTheme() {
+window.__DASHBOARD_BOOTSTRAP_PROMISE__ = (async function loadTheme() {
   try {
-    // 1. Carrega site.json
-    const siteRes = await fetch('assets/config/site.json');
-    if (!siteRes.ok) throw new Error('site.json não encontrado');
-    const site = await siteRes.json();
- 
-    // 2. Carrega tema ativo
-    const themePath = site.activeTheme || 'assets/layouts/classic/themes/classic-silver.json';
-    const themeRes = await fetch(themePath);
-    if (!themeRes.ok) throw new Error('tema não encontrado');
-    const theme = await themeRes.json();
+    const { config: site, theme, themePath } = await loadDashboardThemeConfig();
  
     // 3. Mapeia tokens do tema para variáveis CSS do dashboard
     const colors = theme.colors || {};
+    const fonts = theme.typography?.fonts || {};
+    const families = theme.typography?.families || {};
     const root = document.documentElement;
  
     const map = {
@@ -1077,6 +1072,8 @@ body::before{
       '--border':        colors.border,
       '--border-strong': colors.borderStrong || colors.border,
       '--primary-glow':  colors.primaryGlow,
+      '--font-display':  fonts.serif || families.serif,
+      '--font-sans':     fonts.primary || families.body || families.primary,
     };
  
     Object.entries(map).forEach(([key, value]) => {
@@ -1097,40 +1094,18 @@ body::before{
  
     // 5. Expõe site para o dashboard.js usar
     window.__SITE_CONFIG__ = site;
+    window.__DASHBOARD_THEME__ = theme;
+    window.dispatchEvent(new CustomEvent('dashboard:config-ready', {
+      detail: { config: site, theme, themePath }
+    }));
  
     console.log('[dashboard] tema aplicado:', theme.meta?.name || themePath);
+    return { config: site, theme, themePath };
   } catch (err) {
     console.warn('[dashboard] erro carregando tema:', err.message, '- usando padrão');
+    return null;
   }
 })();
- 
-/* ── Tab switching (controle visual) ────────────────────────────────────── */
-document.addEventListener('click', (e) => {
-  const tabBtn = e.target.closest('.nav-item[data-tab]');
-  if (!tabBtn) return;
- 
-  const tabId = tabBtn.dataset.tab;
- 
-  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('is-active'));
-  tabBtn.classList.add('is-active');
- 
-  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('is-active'));
-  const target = document.getElementById(`tab-${tabId}`);
-  if (target) target.classList.add('is-active');
- 
-  const labels = {
-    overview: { tag: 'Visão Geral', title: 'Bem-vindos ao painel' },
-    grupos: { tag: 'Grupos', title: 'Gestão de convidados' },
-    confirmacoes: { tag: 'Confirmações', title: 'Respostas recebidas' },
-    relatorios: { tag: 'Relatórios', title: 'Estatísticas por grupo' },
-    export: { tag: 'Exportação', title: 'Baixar seus dados' }
-  };
-  const cfg = labels[tabId];
-  if (cfg) {
-    document.getElementById('topbarTag').textContent = cfg.tag;
-    document.getElementById('topbarTitle').textContent = cfg.title;
-  }
-});
 </script>
  
 <!-- Dashboard JS original -->
