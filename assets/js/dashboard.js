@@ -279,6 +279,7 @@ async function loadGrupos() {
           <div class="cell-name">${escapeHtml(grupo.group_name)}</div>
           <div class="cell-sub">Link gerado</div>
         </td>
+        <td><span class="cell-token">${escapeHtml(grupo.token)}</span></td>
         <td>
           <span class="cell-count">${grupo.confirmationCount}</span>
           <span class="cell-count-sep">/</span>
@@ -288,9 +289,6 @@ async function loadGrupos() {
         <td><span class="cell-sub">${escapeHtml(grupo.notes || '—')}</span></td>
         <td>
           <div class="row-actions">
-            <button class="icon-btn" data-copy-token="${escapeHtmlAttribute(grupo.token)}" onclick="copyInviteLink('${escapeHtmlAttribute(grupo.token)}')" aria-label="Copiar link do grupo ${escapeHtml(grupo.group_name)}" title="Copiar link de convite">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-            </button>
             <button class="icon-btn"${phoneDisabledAttr}${phoneDisabledClass} onclick="${hasPhone ? `sendInviteWhatsApp('${escapeHtmlAttribute(grupo.id)}')` : ''}" aria-label="Enviar convite para ${escapeHtml(grupo.group_name)}" title="${hasPhone ? 'Enviar convite por WhatsApp' : 'Telefone não cadastrado'}">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.79 19.79 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/><path d="M14.05 2a9 9 0 0 1 8 7.94"/><path d="M14.05 6A5 5 0 0 1 18 10"/></svg>
             </button>
