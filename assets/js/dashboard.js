@@ -187,7 +187,7 @@ function showAuthScreen() {
 
 function showDashboard() {
   authScreen.style.display = 'none';
-  dashboardScreen.style.display = 'block';
+  dashboardScreen.style.display = '';
   dashboardScreen.classList.add('is-active');
 }
 
