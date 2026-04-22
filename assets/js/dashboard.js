@@ -279,7 +279,6 @@ async function loadGrupos() {
           <div class="cell-name">${escapeHtml(grupo.group_name)}</div>
           <div class="cell-sub">Link gerado</div>
         </td>
-        <td><span class="cell-token">${escapeHtml(grupo.token)}</span></td>
         <td>
           <span class="cell-count">${grupo.confirmationCount}</span>
           <span class="cell-count-sep">/</span>
@@ -291,15 +290,19 @@ async function loadGrupos() {
           <div class="row-actions">
             <button class="icon-btn"${phoneDisabledAttr}${phoneDisabledClass} onclick="${hasPhone ? `sendInviteWhatsApp('${escapeHtmlAttribute(grupo.id)}')` : ''}" aria-label="Enviar convite para ${escapeHtml(grupo.group_name)}" title="${hasPhone ? 'Enviar convite por WhatsApp' : 'Telefone não cadastrado'}">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4 20-7z"/><path d="M22 2 11 13"/></svg>
+              <span class="icon-btn-label">Convidar</span>
             </button>
             <button class="icon-btn"${phoneDisabledAttr}${phoneDisabledClass} onclick="${hasPhone ? `openWhatsApp('${escapeHtmlAttribute(grupo.phone)}')` : ''}" aria-label="Abrir WhatsApp de ${escapeHtml(grupo.group_name)}" title="${hasPhone ? 'Abrir WhatsApp' : 'Telefone não cadastrado'}">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+              <span class="icon-btn-label">WhatsApp</span>
             </button>
             <button class="icon-btn" onclick="editGrupo('${grupo.id}')" aria-label="Editar grupo ${escapeHtml(grupo.group_name)}" title="Editar">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 1 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
+              <span class="icon-btn-label">Editar</span>
             </button>
             <button class="icon-btn danger" onclick="deleteGrupo('${grupo.id}')" aria-label="Excluir grupo ${escapeHtml(grupo.group_name)}" title="Excluir">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+              <span class="icon-btn-label">Excluir</span>
             </button>
           </div>
         </td>

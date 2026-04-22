@@ -424,16 +424,16 @@ body::before{
 /* Row actions */
 .row-actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
 .icon-btn{
-  display:inline-flex;align-items:center;justify-content:center;
-  width:30px;height:30px;
+  display:inline-flex;flex-direction:column;align-items:center;justify-content:center;
+  min-width:44px;padding:7px 8px;gap:4px;
   border:1px solid var(--border);
   background:transparent;color:var(--text-dim);
   transition:all 0.25s ease;
-  padding:0;
 }
 .icon-btn:hover{border-color:var(--primary);color:var(--primary-soft)}
 .icon-btn.danger:hover{border-color:var(--danger);color:var(--danger)}
 .icon-btn svg{width:14px;height:14px}
+.icon-btn-label{font-size:9px;letter-spacing:0.08em;text-transform:uppercase;line-height:1;color:inherit}
  
 /* ══ FILTERS ══════════════════════════════════════════════════════════════ */
 .filters{
@@ -627,7 +627,9 @@ body::before{
   .filters{grid-template-columns:1fr}
   .topbar-actions .btn-label{display:none}
   .topbar-actions .btn{padding:10px 14px}
-  .table th:nth-child(4),.table td:nth-child(4){display:none}
+  .table th:nth-child(3),.table td:nth-child(3){display:none}
+  .icon-btn-label{display:none}
+  .icon-btn{min-width:30px;padding:7px}
   .sidebar-brand{min-width:0;padding:16px 10px;display:flex;flex-direction:column;align-items:center;justify-content:center}
   .sidebar-brand-label{display:none}
   .sidebar-brand-names{font-size:13px;letter-spacing:0.01em;text-align:center}
@@ -807,7 +809,6 @@ body::before{
               <thead>
                 <tr>
                   <th>Grupo</th>
-                  <th>Token</th>
                   <th>Vagas</th>
                   <th>Observações</th>
                   <th style="text-align:right">Ações</th>
