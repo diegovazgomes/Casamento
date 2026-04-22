@@ -79,7 +79,7 @@ async function handleGetGroups(req, res) {
     // Para cada token, buscar contagem de confirmações
     const groupsWithCounts = await Promise.all(
       tokens.map(async (token) => {
-        const { data: confirmations } = await supabase
+        const { count: confirmationCount } = await supabase
           .from('rsvp_confirmations')
           .select('id', { count: 'exact', head: true })
           .eq('token_id', token.id)
@@ -87,8 +87,8 @@ async function handleGetGroups(req, res) {
 
         return {
           ...token,
-          confirmationCount: confirmations?.length || 0,
-          slotsAvailable: token.max_confirmations - (confirmations?.length || 0),
+          confirmationCount: confirmationCount || 0,
+          slotsAvailable: token.max_confirmations - (confirmationCount || 0),
         };
       })
     );
@@ -194,7 +194,7 @@ async function handleUpdateGroup(req, res) {
     if (error) throw error;
 
     // Buscar contagem de confirmações
-    const { data: confirmations } = await supabase
+    const { count: confirmationCount } = await supabase
       .from('rsvp_confirmations')
       .select('id', { count: 'exact', head: true })
       .eq('token_id', tokenId)
@@ -204,8 +204,8 @@ async function handleUpdateGroup(req, res) {
       success: true,
       data: {
         ...data,
-        confirmationCount: confirmations?.length || 0,
-        slotsAvailable: data.max_confirmations - (confirmations?.length || 0),
+        confirmationCount: confirmationCount || 0,
+        slotsAvailable: data.max_confirmations - (confirmationCount || 0),
       },
     });
   } catch (error) {
