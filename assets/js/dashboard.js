@@ -10,6 +10,8 @@ const state = {
   grupos: [],
   confirmacoes: [],
   allConfirmacoes: [],
+  mensagens: [],
+  musicas: [],
   currentPage: 1,
   editingGrupoId: null,
 };
@@ -18,6 +20,8 @@ const TAB_LABELS = {
   overview: { tag: 'Visão Geral', title: 'Bem-vindos ao painel' },
   grupos: { tag: 'Grupos', title: 'Gestão de convidados' },
   confirmacoes: { tag: 'Confirmações', title: 'Respostas recebidas' },
+  mensagens: { tag: 'Mensagens', title: 'Recados dos convidados' },
+  musicas: { tag: 'Músicas', title: 'Sugestões recebidas' },
   relatorios: { tag: 'Relatórios', title: 'Estatísticas por grupo' },
   export: { tag: 'Exportação', title: 'Baixar seus dados' },
 };
@@ -91,12 +95,22 @@ function bindUiEvents() {
   document.getElementById('btnNewGroup').addEventListener('click', () => openModal('modalGrupo', 'Novo Grupo'));
   document.getElementById('btnDownloadCsv').addEventListener('click', handleDownloadCsv);
   document.getElementById('btnRefresh')?.addEventListener('click', () => {
-    loadAllData();
+    refreshActiveTab();
   });
   // Debounce busca por texto para evitar múltiplas requisições
   const filterSearch = document.getElementById('filterSearch');
   if (filterSearch) {
     filterSearch.addEventListener('input', debounce(reloadConfirmacoes, 350));
+  }
+
+  const filterMensagemSearch = document.getElementById('filterMensagemSearch');
+  if (filterMensagemSearch) {
+    filterMensagemSearch.addEventListener('input', debounce(reloadMensagens, 350));
+  }
+
+  const filterMusicaSearch = document.getElementById('filterMusicaSearch');
+  if (filterMusicaSearch) {
+    filterMusicaSearch.addEventListener('input', debounce(reloadMusicas, 350));
   }
 }
 
@@ -213,9 +227,38 @@ function handleTabSwitch(event) {
   // Carregar dados específicos se necessário
   if (tabName === 'confirmacoes') {
     reloadConfirmacoes();
+  } else if (tabName === 'mensagens') {
+    reloadMensagens();
+  } else if (tabName === 'musicas') {
+    reloadMusicas();
   } else if (tabName === 'relatorios') {
     loadRelatorios();
   }
+}
+
+function refreshActiveTab() {
+  const activeTab = document.querySelector('.nav-item.is-active')?.dataset.tab || 'overview';
+  if (activeTab === 'confirmacoes') {
+    reloadConfirmacoes();
+    return;
+  }
+
+  if (activeTab === 'mensagens') {
+    reloadMensagens();
+    return;
+  }
+
+  if (activeTab === 'musicas') {
+    reloadMusicas();
+    return;
+  }
+
+  if (activeTab === 'relatorios') {
+    loadRelatorios();
+    return;
+  }
+
+  loadAllData();
 }
 
 function syncActiveTab() {
@@ -535,6 +578,161 @@ function clearFilters() {
   const filterSearch = document.getElementById('filterSearch');
   if (filterSearch) filterSearch.value = '';
   reloadConfirmacoes();
+}
+
+// ============================================================
+// MENSAGENS E MUSICAS
+// ============================================================
+
+async function reloadMensagens() {
+  const searchTerm = document.getElementById('filterMensagemSearch')?.value.trim() || '';
+  await loadMensagens(1, searchTerm);
+}
+
+async function loadMensagens(page = 1, searchTerm = '') {
+  const data = await loadSubmissions({
+    type: 'message',
+    page,
+    searchTerm,
+    tableId: 'mensagensTable',
+    loadingId: 'mensagensLoading',
+    emptyId: 'mensagensEmpty',
+    bodyId: 'mensagensBody',
+    paginationId: 'mensagensPaginacao',
+  });
+
+  if (!data) return;
+
+  state.mensagens = data.data;
+  const body = document.getElementById('mensagensBody');
+  body.innerHTML = data.data.map((item) => `
+    <tr>
+      <td><div class="cell-name">${escapeHtml(item.guestName || 'Anônimo')}</div></td>
+      <td><span class="cell-sub">${escapeHtml(item.message || '—')}</span></td>
+      <td>${escapeHtml(formatSubmissionSource(item.source))}</td>
+      <td>${new Date(item.submittedAt).toLocaleDateString('pt-BR')}</td>
+    </tr>
+  `).join('');
+
+  renderSubmissionPagination(data.pagination, page, 'mensagensPaginacao', 'loadMensagens', searchTerm);
+}
+
+async function reloadMusicas() {
+  const searchTerm = document.getElementById('filterMusicaSearch')?.value.trim() || '';
+  await loadMusicas(1, searchTerm);
+}
+
+async function loadMusicas(page = 1, searchTerm = '') {
+  const data = await loadSubmissions({
+    type: 'song',
+    page,
+    searchTerm,
+    tableId: 'musicasTable',
+    loadingId: 'musicasLoading',
+    emptyId: 'musicasEmpty',
+    bodyId: 'musicasBody',
+    paginationId: 'musicasPaginacao',
+  });
+
+  if (!data) return;
+
+  state.musicas = data.data;
+  const body = document.getElementById('musicasBody');
+  body.innerHTML = data.data.map((item) => `
+    <tr>
+      <td><div class="cell-name">${escapeHtml(item.guestName || 'Anônimo')}</div></td>
+      <td>${escapeHtml(item.songTitle || '—')}</td>
+      <td>${escapeHtml(item.songArtist || '—')}</td>
+      <td><span class="cell-sub">${escapeHtml(item.songNotes || '—')}</span></td>
+      <td>${new Date(item.submittedAt).toLocaleDateString('pt-BR')}</td>
+    </tr>
+  `).join('');
+
+  renderSubmissionPagination(data.pagination, page, 'musicasPaginacao', 'loadMusicas', searchTerm);
+}
+
+async function loadSubmissions({ type, page = 1, searchTerm = '', tableId, loadingId, emptyId, bodyId, paginationId }) {
+  const container = document.getElementById(tableId);
+  const loading = document.getElementById(loadingId);
+  const empty = document.getElementById(emptyId);
+  const body = document.getElementById(bodyId);
+  const pagination = document.getElementById(paginationId);
+
+  loading.style.display = 'block';
+  container.hidden = true;
+  empty.hidden = true;
+  body.innerHTML = '';
+  if (pagination) pagination.innerHTML = '';
+
+  try {
+    let url = `/api/dashboard/submissions?eventId=${encodeURIComponent(state.eventId)}&type=${encodeURIComponent(type)}&page=${page}&pageSize=20`;
+    if (searchTerm) {
+      url += `&search=${encodeURIComponent(searchTerm)}`;
+    }
+
+    const response = await fetchWithAuth(url);
+    if (!response.ok) throw new Error(response.statusText);
+
+    const data = await response.json();
+    const rows = data.data || [];
+    if (rows.length === 0) {
+      empty.hidden = false;
+      loading.style.display = 'none';
+      return { data: [], pagination: data.pagination || { totalPages: 0 } };
+    }
+
+    loading.style.display = 'none';
+    container.hidden = false;
+    return { data: rows, pagination: data.pagination || { totalPages: 1 } };
+  } catch (error) {
+    console.error('[loadSubmissions]', error);
+    loading.innerHTML = '<p style="color: #c33;">Erro ao carregar dados</p>';
+    return null;
+  }
+}
+
+function renderSubmissionPagination(pagination, currentPage, paginationId, callbackName, searchTerm = '') {
+  const paginacao = document.getElementById(paginationId);
+  if (!paginacao) return;
+
+  if (!pagination || pagination.totalPages <= 1) {
+    paginacao.innerHTML = '';
+    return;
+  }
+
+  const safeSearch = escapeHtmlAttribute(searchTerm || '');
+  let html = '<div style="display: flex; gap: 0.5rem; justify-content: center; align-items: center;">';
+
+  if (currentPage > 1) {
+    html += `<button class="page-btn" onclick="${callbackName}(${currentPage - 1}, '${safeSearch}')">←</button>`;
+  }
+
+  html += `<span style="padding: 0.5rem 1rem; border: 1px solid var(--border); color: var(--text-dim);">Página ${currentPage} de ${pagination.totalPages}</span>`;
+
+  if (currentPage < pagination.totalPages) {
+    html += `<button class="page-btn" onclick="${callbackName}(${currentPage + 1}, '${safeSearch}')">→</button>`;
+  }
+
+  html += '</div>';
+  paginacao.innerHTML = html;
+}
+
+function formatSubmissionSource(source) {
+  if (source === 'mensagem-page') return 'Página Mensagem';
+  if (source === 'musica-page') return 'Página Música';
+  return source || 'Site';
+}
+
+function clearMensagensFilters() {
+  const filter = document.getElementById('filterMensagemSearch');
+  if (filter) filter.value = '';
+  reloadMensagens();
+}
+
+function clearMusicasFilters() {
+  const filter = document.getElementById('filterMusicaSearch');
+  if (filter) filter.value = '';
+  reloadMusicas();
 }
 
 // ============================================================

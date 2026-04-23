@@ -696,6 +696,18 @@ body::before{
         </span>
         <span>Confirmações</span>
       </button>
+      <button class="nav-item" data-tab="mensagens" role="tab">
+        <span class="nav-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        </span>
+        <span>Mensagens</span>
+      </button>
+      <button class="nav-item" data-tab="musicas" role="tab">
+        <span class="nav-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+        </span>
+        <span>Músicas</span>
+      </button>
       <button class="nav-item" data-tab="relatorios" role="tab">
         <span class="nav-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
@@ -886,6 +898,93 @@ body::before{
         </section>
       </div>
  
+      <!-- TAB: MENSAGENS -->
+      <div class="tab-content" id="tab-mensagens" role="tabpanel">
+        <section class="section">
+          <div class="section-head">
+            <div>
+              <h2 class="section-title">Mensagens ao casal</h2>
+              <p class="section-sub">Recados enviados pelos convidados</p>
+            </div>
+          </div>
+
+          <div class="filters">
+            <div class="filter">
+              <label class="filter-label" for="filterMensagemSearch">Buscar</label>
+              <input class="filter-control" id="filterMensagemSearch" type="search" placeholder="Nome ou conteúdo da mensagem">
+            </div>
+            <div class="filter filter-actions">
+              <button class="btn btn-subtle btn-full" onclick="clearMensagensFilters()">Limpar</button>
+            </div>
+          </div>
+
+          <div class="table-wrap">
+            <div class="loading" id="mensagensLoading"><div class="spinner"></div>Carregando mensagens...</div>
+            <table class="table" id="mensagensTable" hidden>
+              <thead>
+                <tr>
+                  <th>Convidado</th>
+                  <th>Mensagem</th>
+                  <th>Origem</th>
+                  <th>Data</th>
+                </tr>
+              </thead>
+              <tbody id="mensagensBody"></tbody>
+            </table>
+            <div class="pagination" id="mensagensPaginacao"></div>
+            <div class="empty" id="mensagensEmpty" hidden>
+              <div class="empty-icon">✧</div>
+              <div class="empty-title">Nenhuma mensagem encontrada</div>
+              <p class="empty-text">Ajuste a busca ou aguarde novos recados dos convidados.</p>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- TAB: MUSICAS -->
+      <div class="tab-content" id="tab-musicas" role="tabpanel">
+        <section class="section">
+          <div class="section-head">
+            <div>
+              <h2 class="section-title">Sugestões de música</h2>
+              <p class="section-sub">Músicas enviadas pelos convidados</p>
+            </div>
+          </div>
+
+          <div class="filters">
+            <div class="filter">
+              <label class="filter-label" for="filterMusicaSearch">Buscar</label>
+              <input class="filter-control" id="filterMusicaSearch" type="search" placeholder="Convidado, música, artista ou observações">
+            </div>
+            <div class="filter filter-actions">
+              <button class="btn btn-subtle btn-full" onclick="clearMusicasFilters()">Limpar</button>
+            </div>
+          </div>
+
+          <div class="table-wrap">
+            <div class="loading" id="musicasLoading"><div class="spinner"></div>Carregando sugestões...</div>
+            <table class="table" id="musicasTable" hidden>
+              <thead>
+                <tr>
+                  <th>Convidado</th>
+                  <th>Música</th>
+                  <th>Artista</th>
+                  <th>Observações</th>
+                  <th>Data</th>
+                </tr>
+              </thead>
+              <tbody id="musicasBody"></tbody>
+            </table>
+            <div class="pagination" id="musicasPaginacao"></div>
+            <div class="empty" id="musicasEmpty" hidden>
+              <div class="empty-icon">✧</div>
+              <div class="empty-title">Nenhuma sugestão encontrada</div>
+              <p class="empty-text">Ajuste a busca ou aguarde novas músicas sugeridas pelos convidados.</p>
+            </div>
+          </div>
+        </section>
+      </div>
+
       <!-- TAB: RELATORIOS -->
       <div class="tab-content" id="tab-relatorios" role="tabpanel">
         <section class="section">
