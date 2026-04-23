@@ -39,7 +39,7 @@
  
 /* Reset */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth}
+html{scroll-behavior:smooth;overflow-x:hidden}
 body{
   min-height:100vh;
   background:var(--bg);
@@ -627,6 +627,8 @@ body::before{
   .filters{grid-template-columns:1fr}
   .topbar-actions .btn-label{display:none}
   .topbar-actions .btn{padding:10px 14px}
+  .topbar-left{overflow:hidden}
+  .topbar-title{font-size:18px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   #gruposTable th:nth-child(3),#gruposTable td:nth-child(3){display:none}
   .icon-btn-label{display:none}
   .icon-btn{min-width:30px;padding:7px}
@@ -866,7 +868,7 @@ body::before{
             <div class="filter">
               <label class="filter-label" for="filterSearch">Buscar</label>
               <input class="filter-control" id="filterSearch" type="search"
-                     placeholder="Nome ou telefone">
+                     placeholder="Nome do convidado">
             </div>
             <div class="filter filter-actions">
               <button class="btn btn-subtle btn-full" onclick="clearFilters()">Limpar</button>
@@ -879,11 +881,9 @@ body::before{
               <thead>
                 <tr>
                   <th>Convidado</th>
-                  <th>Telefone</th>
                   <th>Grupo</th>
                   <th>Status</th>
                   <th>Data</th>
-                  <th style="text-align:right">Ações</th>
                 </tr>
               </thead>
               <tbody id="confirmacoesBody"></tbody>

@@ -18,11 +18,9 @@
   - retorna paginação.
 
 ### Próximos passos (resumido)
-1. Testar manualmente as duas abas com dados reais do Supabase (produção/homologação).
-2. Ajustar detalhes de UX, se necessário (largura de colunas, truncamento de texto, labels).
-3. Adicionar testes automáticos para o novo endpoint `submissions`.
-4. Adicionar testes de integração do dashboard cobrindo troca de abas + render + paginação.
-5. Validar deploy (Vercel) e fazer smoke final de regressão nas abas existentes.
+- Ao abrir o dashboard no celular, na tela principal após fazer login, ela fica com uma especie de pequeno zoom, sendo necessário dar zoom out para ver melhor a tela, corrija isso.
+- Nas respostas recebidas na aba de confirmações, pode remover o telefone, o icone de enviar lembrete, mantendo apenas convidado - grupo - status - data, nessa ordem
+- A aba de mensagens precisa de ajuste de layout da página. precisa ser uma especie de mural de mensagens, nível premium, mantendo o padrão de design de todo o resto. Deverá ser uma especie de mural de mensagens, tendo o nome de quem mandou e a data de forma discreta, mantendo o destaque maior para a mensagem em si (A origem deverá ser removida)
 
 ### Observação
 - O erro no teste de integração do dashboard foi de ambiente local (conexão recusada no banco local), não de sintaxe da implementação nova.

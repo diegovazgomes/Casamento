@@ -506,19 +506,11 @@ async function loadConfirmacoes(page = 1, status = '', groupId = '', searchTerm 
         <td>
           <div class="cell-name">${escapeHtml(conf.name)}</div>
         </td>
-        <td>${maskPhone(conf.phone)}</td>
         <td>${escapeHtml(conf.groupName)}</td>
         <td>
           ${renderStatusBadge(conf.status)}
         </td>
         <td>${new Date(conf.confirmedAt).toLocaleDateString('pt-BR')}</td>
-        <td>
-          <div class="row-actions">
-            <button class="icon-btn" onclick="sendLembrete('${conf.groupId}', '${escapeHtmlAttribute(conf.groupName)}')" aria-label="Enviar lembrete para ${escapeHtml(conf.groupName)}" title="Lembrete">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22 11 13 2 9 22 2z"/></svg>
-            </button>
-          </div>
-        </td>
       </tr>
     `).join('');
 
@@ -892,13 +884,6 @@ async function handleSendLembrete(event) {
 // ============================================================
 // UTILITÁRIOS
 // ============================================================
-
-function maskPhone(phone) {
-  if (!phone) return 'N/A';
-  const digits = phone.replace(/\D/g, '');
-  if (digits.length < 4) return phone;
-  return digits.slice(0, -4).replace(/./g, '*') + digits.slice(-4);
-}
 
 function escapeHtml(text) {
   if (!text) return '';
