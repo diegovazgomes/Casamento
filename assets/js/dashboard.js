@@ -17,7 +17,7 @@ const state = {
 };
 
 const TAB_LABELS = {
-  overview: { tag: 'Visão Geral', title: 'Bem-vindos ao painel' },
+  overview: { tag: 'Visão Geral', title: 'Painel de controle' },
   grupos: { tag: 'Grupos', title: 'Gestão de convidados' },
   confirmacoes: { tag: 'Confirmações', title: 'Respostas recebidas' },
   mensagens: { tag: 'Mensagens', title: 'Recados dos convidados' },

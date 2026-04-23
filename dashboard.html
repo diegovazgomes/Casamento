@@ -598,11 +598,11 @@ body::before{
   position:relative;
 }
 .messages-mural{
-  padding:24px;
+  padding:0;
 }
 .messages-grid{
   display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
+  grid-template-columns:1fr;
   gap:20px;
   align-items:start;
 }
@@ -690,8 +690,8 @@ body::before{
   .stats{grid-template-columns:1fr 1fr}
   .filters{grid-template-columns:1fr 1fr}
   .form-row{grid-template-columns:1fr}
-  .messages-grid{grid-template-columns:1fr 1fr}
-  .messages-mural{padding:16px}
+  .messages-grid{grid-template-columns:1fr}
+  .messages-mural{padding:0}
 }
 @media (max-width:560px){
   .stats{grid-template-columns:1fr}
@@ -708,7 +708,7 @@ body::before{
   .sidebar-brand-names{font-size:13px;letter-spacing:0.01em;text-align:center}
   .sidebar-brand-date{display:none}
   .messages-grid{grid-template-columns:1fr}
-  .messages-mural{padding:12px}
+  .messages-mural{padding:0}
   .msg-card{padding:20px 20px 18px;gap:14px}
   .msg-text{font-size:14px}
 }
