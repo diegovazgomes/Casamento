@@ -12,7 +12,7 @@
 |------|-----------|--------|
 | Fase 1 — Fundação | 6/6 concluídas ✅ | ✅ Concluída |
 | Fase 2 — Evolução | 5/5 concluídas ✅ | ✅ Concluída |
-| Fase 3 — Escala | 1/4 | 🟡 Em andamento |
+| Fase 3 — Escala | 2/4 | 🟡 Em andamento |
 
 ---
 
@@ -351,4 +351,4 @@
 
 ---
 
-*Última atualização: fundação praticamente consolidada; editor expandido com mapa e galeria; galeria migrada para `site.json`; presentes consolidados em `presente.html`.*
+*Última atualização (2026-04-23): Fase 3 em andamento — persistência de RSVP concluída (3.1); painel do casal ~90% (3.2 — Fase 1); cache HTTP e multi-evento agendados (3.4-3.5).*
