@@ -597,14 +597,20 @@ async function loadMensagens(page = 1, searchTerm = '') {
 
   state.mensagens = data.data;
   const body = document.getElementById('mensagensBody');
-  body.innerHTML = data.data.map((item) => `
-    <tr>
-      <td><div class="cell-name">${escapeHtml(item.guestName || 'Anônimo')}</div></td>
-      <td><span class="cell-sub">${escapeHtml(item.message || '—')}</span></td>
-      <td>${escapeHtml(formatSubmissionSource(item.source))}</td>
-      <td>${new Date(item.submittedAt).toLocaleDateString('pt-BR')}</td>
-    </tr>
-  `).join('');
+  body.innerHTML = data.data.map((item) => {
+    const name = escapeHtml(item.guestName || 'Anônimo');
+    const message = escapeHtml(item.message || '—');
+    const date = new Date(item.submittedAt).toLocaleDateString('pt-BR');
+    return `
+    <div class="msg-card">
+      <span class="msg-quote">✦</span>
+      <p class="msg-text">${message}</p>
+      <div class="msg-meta">
+        <span class="msg-author">${name}</span>
+        <span class="msg-date">${date}</span>
+      </div>
+    </div>`;
+  }).join('');
 
   renderSubmissionPagination(data.pagination, page, 'mensagensPaginacao', 'loadMensagens', searchTerm);
 }
@@ -707,12 +713,6 @@ function renderSubmissionPagination(pagination, currentPage, paginationId, callb
 
   html += '</div>';
   paginacao.innerHTML = html;
-}
-
-function formatSubmissionSource(source) {
-  if (source === 'mensagem-page') return 'Página Mensagem';
-  if (source === 'musica-page') return 'Página Música';
-  return source || 'Site';
 }
 
 function clearMensagensFilters() {

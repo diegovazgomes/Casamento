@@ -593,6 +593,75 @@ body::before{
 }
 .opt-hint{font-size:11px;color:var(--text-dim);line-height:1.6;letter-spacing:0.02em}
  
+/* ══ MESSAGES MURAL ══════════════════════════════════════════════════════ */
+.messages-wrap{
+  position:relative;
+}
+.messages-mural{
+  padding:24px;
+}
+.messages-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
+  gap:20px;
+  align-items:start;
+}
+.msg-card{
+  position:relative;
+  background:linear-gradient(180deg,var(--surface),var(--surface-2));
+  border:1px solid var(--border);
+  padding:28px 28px 24px;
+  display:flex;
+  flex-direction:column;
+  gap:20px;
+  transition:border-color 0.25s ease, box-shadow 0.25s ease;
+}
+.msg-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(to right,transparent 10%,var(--primary) 50%,transparent 90%);
+  opacity:0.22;
+}
+.msg-card:hover{
+  border-color:var(--border-strong);
+  box-shadow:0 4px 24px rgba(0,0,0,0.18);
+}
+.msg-quote{
+  font-size:10px;letter-spacing:0.24em;text-transform:uppercase;
+  color:var(--primary-soft);opacity:0.55;
+  line-height:1;
+  margin-bottom:-4px;
+  user-select:none;
+}
+.msg-text{
+  font-family:var(--font-sans);
+  font-size:15px;font-weight:300;
+  line-height:1.75;
+  color:var(--text-soft);
+  letter-spacing:0.01em;
+  white-space:pre-wrap;
+  word-break:break-word;
+  flex:1;
+}
+.msg-meta{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding-top:16px;
+  border-top:1px solid rgba(192,192,192,0.07);
+}
+.msg-author{
+  font-family:var(--font-display);
+  font-size:13px;font-weight:500;
+  color:var(--text);letter-spacing:0.04em;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.msg-date{
+  font-size:10px;letter-spacing:0.12em;
+  color:var(--text-dim);
+  white-space:nowrap;flex-shrink:0;
+}
+
 /* ══ RESPONSIVE ══════════════════════════════════════════════════════════ */
 @media (max-width:960px){
   .dashboard.is-active{flex-direction:column}
@@ -621,6 +690,8 @@ body::before{
   .stats{grid-template-columns:1fr 1fr}
   .filters{grid-template-columns:1fr 1fr}
   .form-row{grid-template-columns:1fr}
+  .messages-grid{grid-template-columns:1fr 1fr}
+  .messages-mural{padding:16px}
 }
 @media (max-width:560px){
   .stats{grid-template-columns:1fr}
@@ -636,6 +707,10 @@ body::before{
   .sidebar-brand-label{display:none}
   .sidebar-brand-names{font-size:13px;letter-spacing:0.01em;text-align:center}
   .sidebar-brand-date{display:none}
+  .messages-grid{grid-template-columns:1fr}
+  .messages-mural{padding:12px}
+  .msg-card{padding:20px 20px 18px;gap:14px}
+  .msg-text{font-size:14px}
 }
  
 /* Focus accessibility */
@@ -918,24 +993,16 @@ body::before{
             </div>
           </div>
 
-          <div class="table-wrap">
+          <div class="messages-wrap">
             <div class="loading" id="mensagensLoading"><div class="spinner"></div>Carregando mensagens...</div>
-            <table class="table" id="mensagensTable" hidden>
-              <thead>
-                <tr>
-                  <th>Convidado</th>
-                  <th>Mensagem</th>
-                  <th>Origem</th>
-                  <th>Data</th>
-                </tr>
-              </thead>
-              <tbody id="mensagensBody"></tbody>
-            </table>
+            <div class="messages-mural" id="mensagensTable" hidden>
+              <div class="messages-grid" id="mensagensBody"></div>
+            </div>
             <div class="pagination" id="mensagensPaginacao"></div>
             <div class="empty" id="mensagensEmpty" hidden>
               <div class="empty-icon">✧</div>
-              <div class="empty-title">Nenhuma mensagem encontrada</div>
-              <p class="empty-text">Ajuste a busca ou aguarde novos recados dos convidados.</p>
+              <div class="empty-title">Nenhuma mensagem ainda</div>
+              <p class="empty-text">Os recados dos convidados aparecerão aqui.</p>
             </div>
           </div>
         </section>
