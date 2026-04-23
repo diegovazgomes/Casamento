@@ -1,10 +1,10 @@
 {
-  "activeLayout": "modern",
+  "activeLayout": "classic",
   "rsvp": {
     "eventId": "siannah-diego-2026",
     "supabaseEnabled": true
   },
-  "activeTheme": "assets/config/themes/classic-gold.json",
+  "activeTheme": "assets/layouts/classic/themes/classic-gold.json",
   "themeFiles": [
     "assets/config/themes/classic-gold.json",
     "assets/config/themes/classic-gold-light.json",
