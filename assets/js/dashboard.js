@@ -304,7 +304,7 @@ async function loadGrupos() {
   const empty = document.getElementById('gruposEmpty');
   const body = document.getElementById('gruposBody');
 
-  loading.style.display = 'block';
+  loading.style.display = 'flex';
   container.hidden = true;
   empty.hidden = true;
 
@@ -479,7 +479,7 @@ async function loadConfirmacoes(page = 1, status = '', groupId = '', searchTerm 
   const empty = document.getElementById('confirmacoesEmpty');
   const body = document.getElementById('confirmacoesBody');
 
-  loading.style.display = 'block';
+  loading.style.display = 'flex';
   container.hidden = true;
   empty.hidden = true;
   const paginacaoEl = document.getElementById('paginacao');
@@ -667,7 +667,7 @@ async function loadSubmissions({ type, page = 1, searchTerm = '', tableId, loadi
   const body = document.getElementById(bodyId);
   const pagination = document.getElementById(paginationId);
 
-  loading.style.display = 'block';
+  loading.style.display = 'flex';
   container.hidden = true;
   empty.hidden = true;
   body.innerHTML = '';
