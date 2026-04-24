@@ -24,6 +24,7 @@ const TAB_LABELS = {
   musicas: { tag: 'Músicas', title: 'Sugestões recebidas' },
   relatorios: { tag: 'Relatórios', title: 'Estatísticas por grupo' },
   export: { tag: 'Exportação', title: 'Baixar seus dados' },
+  editar: { tag: 'Configurações', title: 'Editar evento' },
 };
 
 // DOM Elements
@@ -233,6 +234,8 @@ function handleTabSwitch(event) {
     reloadMusicas();
   } else if (tabName === 'relatorios') {
     loadRelatorios();
+  } else if (tabName === 'editar') {
+    loadEditorTab();
   }
 }
 
@@ -255,6 +258,11 @@ function refreshActiveTab() {
 
   if (activeTab === 'relatorios') {
     loadRelatorios();
+    return;
+  }
+
+  if (activeTab === 'editar') {
+    loadEditorTab();
     return;
   }
 
@@ -281,6 +289,9 @@ function updateTopbar(tabName) {
 function syncTabActions(tabName) {
   const btnNewGroup = document.getElementById('btnNewGroup');
   if (btnNewGroup) btnNewGroup.hidden = tabName !== 'grupos';
+
+  const btnRefresh = document.getElementById('btnRefresh');
+  if (btnRefresh) btnRefresh.hidden = tabName === 'editar';
 }
 
 // ============================================================
@@ -1084,4 +1095,406 @@ async function loadAllData() {
   populateGrupoFilter();
   // Relatórios em background — não bloqueiam o overview
   loadRelatorios();
+}
+
+// ============================================================
+// EDITOR DE EVENTO
+// ============================================================
+
+const editorState = {
+  isDirty: false,
+  catalogItems: [],
+  originalConfig: null,
+};
+
+const PAGE_LABELS = {
+  historia:   'Nossa História',
+  faq:        'Perguntas Frequentes',
+  hospedagem: 'Hospedagem',
+  mensagem:   'Mensagem ao Casal',
+  musica:     'Sugestão de Música',
+  presente:   'Lista de Presentes',
+};
+
+const LAYOUT_THEMES = {
+  classic: [
+    { key: 'classic-gold',        label: 'Clássico Dourado' },
+    { key: 'classic-gold-light',  label: 'Clássico Dourado Claro' },
+    { key: 'classic-silver',      label: 'Clássico Prata' },
+    { key: 'classic-silver-light',label: 'Clássico Prata Claro' },
+    { key: 'classic-purple',      label: 'Clássico Roxo' },
+    { key: 'classic-blue',        label: 'Clássico Azul' },
+    { key: 'classic-green-light', label: 'Clássico Verde' },
+  ],
+  modern: [
+    { key: 'black-silver', label: 'Moderno Preto & Prata' },
+  ],
+};
+
+function loadEditorTab() {
+  const config = window.__SITE_CONFIG__;
+  if (!config) {
+    setEditorStatusText('Configuração não disponível — recarregue a página');
+    return;
+  }
+
+  editorState.originalConfig = JSON.parse(JSON.stringify(config));
+  editorState.isDirty = false;
+
+  // Casal & Evento
+  setVal('edCoupleNames',       config.couple?.names      ?? '');
+  setVal('edCoupleSubtitle',    config.couple?.subtitle   ?? '');
+  setVal('edEventDate',         config.event?.date        ?? '');
+  setVal('edEventTime',         config.event?.time        ?? '');
+  setVal('edEventHeroDate',     config.event?.heroDate    ?? '');
+  setVal('edEventDisplayDate',  config.event?.displayDate ?? '');
+  setVal('edEventWeekday',      config.event?.weekday     ?? '');
+  setVal('edEventLocation',     config.event?.locationName  ?? '');
+  setVal('edEventCity',         config.event?.locationCity  ?? '');
+  setVal('edEventMapsLink',     config.event?.mapsLink      ?? '');
+  setVal('edEventVenueAddress', config.event?.venueAddress  ?? '');
+  setVal('edEventLat', config.event?.venueCoordinates?.lat ?? '');
+  setVal('edEventLng', config.event?.venueCoordinates?.lng ?? '');
+  setChk('edEventMapEnabled', !!config.event?.mapEnabled);
+
+  // Tema
+  const layout = config.activeLayout || 'classic';
+  setVal('edActiveLayout', layout);
+  populateThemeSelect(layout, config.activeTheme || '');
+
+  // WhatsApp & RSVP
+  setVal('edWaPhone',           config.whatsapp?.destinationPhone   ?? '');
+  setVal('edWaRecipient',       config.whatsapp?.recipientName      ?? '');
+  setVal('edWaMsgAttending',    config.whatsapp?.messages?.attending    ?? '');
+  setVal('edWaMsgNotAttending', config.whatsapp?.messages?.notAttending ?? '');
+  setChk('edRsvpSupabase', !!config.rsvp?.supabaseEnabled);
+
+  // Presentes
+  const gift = config.gift || {};
+  const pixOn = gift.pixEnabled !== false && !!gift.pixKey;
+  setChk('edGiftPixEnabled', pixOn);
+  toggleGiftBlock('giftBlockPix', pixOn);
+  setVal('edGiftPixKey', gift.pixKey    ?? '');
+  setVal('edGiftPixQr',  gift.pixQrImage ?? '');
+
+  const cardOn = !!gift.cardPaymentEnabled;
+  setChk('edGiftCardEnabled', cardOn);
+  toggleGiftBlock('giftBlockCard', cardOn);
+  setVal('edGiftCardLink', gift.cardPaymentLink ?? '');
+
+  const cat = gift.catalog || {};
+  const catOn = gift.catalogEnabled !== false && (Array.isArray(cat.items) ? cat.items.length > 0 : false);
+  setChk('edGiftCatalogEnabled', catOn || !!gift.catalogEnabled);
+  toggleGiftBlock('giftBlockCatalog', catOn || !!gift.catalogEnabled);
+  setVal('edGiftCatalogTitle',    cat.title    ?? '');
+  setVal('edGiftCatalogSubtitle', cat.subtitle ?? '');
+  editorState.catalogItems = Array.isArray(cat.items)
+    ? cat.items.map(it => ({ ...it }))
+    : [];
+  renderCatalogItems();
+
+  // Fotos & Mídia
+  setVal('edMediaHero',       config.media?.heroImage             ?? '');
+  setVal('edTrackMainSrc',    config.media?.tracks?.main?.src     ?? '');
+  setVal('edTrackMainVolume', config.media?.tracks?.main?.volume  ?? '');
+  setVal('edTrackMainStart',  config.media?.tracks?.main?.startTime ?? '');
+  setVal('edTrackGiftSrc',    config.media?.tracks?.gift?.src     ?? '');
+  setVal('edTrackGiftVolume', config.media?.tracks?.gift?.volume  ?? '');
+  setVal('edTrackGiftStart',  config.media?.tracks?.gift?.startTime ?? '');
+
+  // Páginas extras
+  renderPagesGrid(config.pages || {});
+
+  updateEditorSaveStatus();
+}
+
+// ── Helpers de formulário ─────────────────────────────────────
+
+function setVal(id, value) {
+  const el = document.getElementById(id);
+  if (el) el.value = value;
+}
+
+function setChk(id, checked) {
+  const el = document.getElementById(id);
+  if (el) el.checked = checked;
+}
+
+function markEditorDirty() {
+  if (editorState.isDirty) return;
+  editorState.isDirty = true;
+  updateEditorSaveStatus();
+}
+
+function updateEditorSaveStatus(message) {
+  const statusEl = document.getElementById('editorSaveStatus');
+  const textEl   = document.getElementById('editorSaveStatusText');
+  if (!statusEl || !textEl) return;
+
+  if (message) {
+    textEl.textContent = message;
+    statusEl.className = 'editor-save-status is-saved';
+    return;
+  }
+
+  if (editorState.isDirty) {
+    textEl.textContent = 'Alterações não salvas';
+    statusEl.className = 'editor-save-status is-dirty';
+  } else {
+    textEl.textContent = 'Configurações carregadas';
+    statusEl.className = 'editor-save-status';
+  }
+}
+
+function setEditorStatusText(msg) {
+  const el = document.getElementById('editorSaveStatusText');
+  if (el) el.textContent = msg;
+}
+
+function reloadEditorTab() {
+  if (editorState.isDirty && !confirm('Descartar todas as alterações não salvas?')) return;
+  editorState.isDirty = false;
+  loadEditorTab();
+}
+
+function toggleEditorSection(id) {
+  const section = document.getElementById(id);
+  if (section) section.classList.toggle('is-open');
+}
+
+function toggleGiftBlock(blockId, isOpen) {
+  const block = document.getElementById(blockId);
+  if (block) block.classList.toggle('is-open', !!isOpen);
+}
+
+// ── Seletor de tema ───────────────────────────────────────────
+
+function populateThemeSelect(layout, currentPath) {
+  const select = document.getElementById('edActiveTheme');
+  if (!select) return;
+
+  const themes = LAYOUT_THEMES[layout] || LAYOUT_THEMES.classic;
+  select.innerHTML = themes.map(t => {
+    const path = `assets/layouts/${layout}/themes/${t.key}.json`;
+    const sel  = currentPath === path ? ' selected' : '';
+    return `<option value="${escapeHtml(path)}"${sel}>${escapeHtml(t.label)}</option>`;
+  }).join('');
+}
+
+function onLayoutChange() {
+  const layout = document.getElementById('edActiveLayout')?.value || 'classic';
+  populateThemeSelect(layout, '');
+}
+
+// ── Catálogo de presentes ─────────────────────────────────────
+
+function renderCatalogItems() {
+  const container = document.getElementById('catalogItemsList');
+  if (!container) return;
+
+  if (editorState.catalogItems.length === 0) {
+    container.innerHTML = `<p class="field-hint" style="text-align:center;padding:12px 0">
+      Nenhum item. Clique em "+ Adicionar item" para começar.</p>`;
+    return;
+  }
+
+  container.innerHTML = editorState.catalogItems.map((item, i) => `
+    <div class="catalog-item">
+      <input type="text" class="field-input sm" value="${escapeHtml(item.name || '')}"
+             placeholder="Descrição do presente"
+             oninput="updateCatalogItem(${i},'name',this.value)">
+      <input type="number" class="field-input sm" value="${item.amount ?? ''}"
+             min="0" step="10" placeholder="Valor (R$)"
+             oninput="updateCatalogItem(${i},'amount',Number(this.value))">
+      <button type="button" class="btn-icon-sm" onclick="removeCatalogItem(${i})" aria-label="Remover item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>`).join('');
+}
+
+function addCatalogItem() {
+  editorState.catalogItems.push({ name: '', amount: 0 });
+  renderCatalogItems();
+  markEditorDirty();
+  const rows = document.querySelectorAll('#catalogItemsList .catalog-item');
+  if (rows.length > 0) rows[rows.length - 1].querySelector('input')?.focus();
+}
+
+function removeCatalogItem(index) {
+  editorState.catalogItems.splice(index, 1);
+  renderCatalogItems();
+  markEditorDirty();
+}
+
+function updateCatalogItem(index, field, value) {
+  if (editorState.catalogItems[index]) {
+    editorState.catalogItems[index][field] = value;
+    markEditorDirty();
+  }
+}
+
+// ── Grid de páginas extras ────────────────────────────────────
+
+function renderPagesGrid(pages) {
+  const grid = document.getElementById('edPagesGrid');
+  if (!grid) return;
+
+  const keys = ['historia', 'faq', 'hospedagem', 'mensagem', 'musica', 'presente'];
+  grid.innerHTML = keys.map(key => {
+    const page    = pages[key] || {};
+    const enabled = !!page.enabled;
+    return `
+    <div class="page-card">
+      <div class="page-card-key">${escapeHtml(key)}</div>
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:14px">
+        <span class="page-card-name">${escapeHtml(PAGE_LABELS[key] || key)}</span>
+        <label class="toggle" style="flex-shrink:0" onclick="event.stopPropagation()">
+          <input type="checkbox" class="toggle-input" id="edPage_${key}_enabled"
+                 ${enabled ? 'checked' : ''} onchange="markEditorDirty()">
+          <span class="toggle-track"><span class="toggle-thumb"></span></span>
+        </label>
+      </div>
+      <div class="form-group" style="margin-bottom:10px">
+        <div class="field">
+          <label class="field-label" for="edPage_${key}_label">Label do card</label>
+          <input type="text" class="field-input sm" id="edPage_${key}_label"
+                 value="${escapeHtml(page.cardLabel || '')}"
+                 placeholder="ex: Nossa história" oninput="markEditorDirty()">
+        </div>
+      </div>
+      <div class="field">
+        <label class="field-label" for="edPage_${key}_hint">Descrição do card</label>
+        <input type="text" class="field-input sm" id="edPage_${key}_hint"
+               value="${escapeHtml(page.cardHint || '')}"
+               placeholder="Frase de convite" oninput="markEditorDirty()">
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── Coleta e salva ────────────────────────────────────────────
+
+function collectEditorValues() {
+  const config = JSON.parse(JSON.stringify(editorState.originalConfig || window.__SITE_CONFIG__ || {}));
+
+  // Casal & Evento
+  if (!config.couple) config.couple = {};
+  config.couple.names    = document.getElementById('edCoupleNames')?.value.trim()    || config.couple.names;
+  config.couple.subtitle = document.getElementById('edCoupleSubtitle')?.value.trim() || '';
+
+  if (!config.event) config.event = {};
+  config.event.date         = document.getElementById('edEventDate')?.value.trim()        || config.event.date;
+  config.event.time         = document.getElementById('edEventTime')?.value.trim()        || '';
+  config.event.heroDate     = document.getElementById('edEventHeroDate')?.value.trim()    || '';
+  config.event.displayDate  = document.getElementById('edEventDisplayDate')?.value.trim() || '';
+  config.event.detailDate   = config.event.displayDate;
+  config.event.weekday      = document.getElementById('edEventWeekday')?.value.trim()     || '';
+  config.event.locationName = document.getElementById('edEventLocation')?.value.trim()    || '';
+  config.event.locationCity = document.getElementById('edEventCity')?.value.trim()        || '';
+  config.event.mapsLink     = document.getElementById('edEventMapsLink')?.value.trim()    || '';
+  config.event.venueAddress = document.getElementById('edEventVenueAddress')?.value.trim() || '';
+  const lat = parseFloat(document.getElementById('edEventLat')?.value);
+  const lng = parseFloat(document.getElementById('edEventLng')?.value);
+  if (!isNaN(lat) && !isNaN(lng)) config.event.venueCoordinates = { lat, lng };
+  config.event.mapEnabled = document.getElementById('edEventMapEnabled')?.checked ?? false;
+
+  // Tema
+  config.activeLayout = document.getElementById('edActiveLayout')?.value || 'classic';
+  config.activeTheme  = document.getElementById('edActiveTheme')?.value  || config.activeTheme;
+
+  // WhatsApp & RSVP
+  if (!config.whatsapp) config.whatsapp = {};
+  config.whatsapp.destinationPhone = document.getElementById('edWaPhone')?.value.trim()     || '';
+  config.whatsapp.recipientName    = document.getElementById('edWaRecipient')?.value.trim() || '';
+  if (!config.whatsapp.messages) config.whatsapp.messages = {};
+  config.whatsapp.messages.attending    = document.getElementById('edWaMsgAttending')?.value    || '';
+  config.whatsapp.messages.notAttending = document.getElementById('edWaMsgNotAttending')?.value || '';
+  if (!config.rsvp) config.rsvp = {};
+  config.rsvp.supabaseEnabled = document.getElementById('edRsvpSupabase')?.checked ?? false;
+
+  // Presentes
+  if (!config.gift) config.gift = {};
+  config.gift.pixEnabled       = document.getElementById('edGiftPixEnabled')?.checked   ?? false;
+  config.gift.pixKey            = document.getElementById('edGiftPixKey')?.value.trim()  || '';
+  config.gift.pixQrImage        = document.getElementById('edGiftPixQr')?.value.trim()   || '';
+  config.gift.cardPaymentEnabled = document.getElementById('edGiftCardEnabled')?.checked ?? false;
+  config.gift.cardPaymentLink    = document.getElementById('edGiftCardLink')?.value.trim() || '';
+  config.gift.catalogEnabled     = document.getElementById('edGiftCatalogEnabled')?.checked ?? false;
+  if (!config.gift.catalog) config.gift.catalog = {};
+  config.gift.catalog.title    = document.getElementById('edGiftCatalogTitle')?.value.trim()    || '';
+  config.gift.catalog.subtitle = document.getElementById('edGiftCatalogSubtitle')?.value.trim() || '';
+  config.gift.catalog.items    = editorState.catalogItems
+    .filter(it => (it.name || '').trim())
+    .map((it, i) => ({ id: i + 1, name: it.name.trim(), amount: Number(it.amount) || 0 }));
+
+  // Fotos & Mídia
+  if (!config.media) config.media = {};
+  config.media.heroImage = document.getElementById('edMediaHero')?.value.trim() || '';
+  if (!config.media.tracks)      config.media.tracks      = {};
+  if (!config.media.tracks.main) config.media.tracks.main = {};
+  if (!config.media.tracks.gift) config.media.tracks.gift = {};
+  config.media.tracks.main.src       = document.getElementById('edTrackMainSrc')?.value.trim()    || '';
+  config.media.tracks.main.volume    = parseFloat(document.getElementById('edTrackMainVolume')?.value)  || 0.14;
+  config.media.tracks.main.startTime = parseInt(document.getElementById('edTrackMainStart')?.value)     || 0;
+  config.media.tracks.gift.src       = document.getElementById('edTrackGiftSrc')?.value.trim()    || '';
+  config.media.tracks.gift.volume    = parseFloat(document.getElementById('edTrackGiftVolume')?.value)  || 0.12;
+  config.media.tracks.gift.startTime = parseInt(document.getElementById('edTrackGiftStart')?.value)     || 0;
+
+  // Páginas extras
+  if (!config.pages) config.pages = {};
+  ['historia', 'faq', 'hospedagem', 'mensagem', 'musica', 'presente'].forEach(key => {
+    if (!config.pages[key]) config.pages[key] = {};
+    config.pages[key].enabled   = document.getElementById(`edPage_${key}_enabled`)?.checked ?? false;
+    config.pages[key].cardLabel = document.getElementById(`edPage_${key}_label`)?.value.trim() || '';
+    config.pages[key].cardHint  = document.getElementById(`edPage_${key}_hint`)?.value.trim()  || '';
+  });
+
+  return config;
+}
+
+async function saveEditorConfig() {
+  const config = collectEditorValues();
+
+  // 1. Tentar via API (disponível após migração Supabase)
+  try {
+    const response = await fetchWithAuth('/api/dashboard/event', {
+      method: 'PATCH',
+      body: JSON.stringify({ eventId: state.eventId, config }),
+    });
+    if (response.ok) {
+      window.__SITE_CONFIG__ = config;
+      editorState.isDirty = false;
+      editorState.originalConfig = JSON.parse(JSON.stringify(config));
+      applySiteConfig(config);
+      updateEditorSaveStatus('Salvo no servidor ✓');
+      return;
+    }
+  } catch {
+    // API ainda não disponível — usa fallback local
+  }
+
+  // 2. Fallback: baixar site.json atualizado
+  downloadConfigJson(config);
+}
+
+function downloadConfigJson(config) {
+  const json = JSON.stringify(config, null, 2);
+  const blob = new Blob([json], { type: 'application/json;charset=utf-8' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url;
+  a.download = 'site.json';
+  a.style.display = 'none';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+
+  window.__SITE_CONFIG__ = config;
+  editorState.isDirty = false;
+  editorState.originalConfig = JSON.parse(JSON.stringify(config));
+  applySiteConfig(config);
+  updateEditorSaveStatus('Arquivo baixado — substitua o assets/config/site.json');
 }

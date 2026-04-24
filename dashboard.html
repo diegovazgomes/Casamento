@@ -717,6 +717,134 @@ body::before{
 :where(button,a,input,select,textarea):focus-visible{
   outline:2px solid var(--primary);outline-offset:2px;
 }
+
+/* ══ EDITOR TAB ══════════════════════════════════════════════ */
+.editor-savebar{
+  position:sticky;top:0;z-index:8;
+  display:flex;align-items:center;justify-content:space-between;gap:16px;
+  padding:12px 0 18px;margin-bottom:28px;
+  border-bottom:1px solid var(--border);
+  background:var(--bg);
+}
+.editor-save-status{
+  display:flex;align-items:center;gap:8px;
+  font-size:11px;letter-spacing:0.08em;color:var(--text-dim);
+}
+.editor-save-dot{
+  width:6px;height:6px;border-radius:50%;
+  background:var(--text-faint);flex-shrink:0;
+  transition:background 0.3s ease;
+}
+.editor-save-status.is-dirty .editor-save-dot{background:var(--warning)}
+.editor-save-status.is-dirty{color:var(--warning)}
+.editor-save-status.is-saved .editor-save-dot{background:var(--success)}
+.editor-save-status.is-saved{color:var(--success)}
+.editor-save-actions{display:flex;gap:10px;align-items:center}
+
+.editor-section{
+  border:1px solid var(--border);
+  background:linear-gradient(180deg,var(--surface),var(--surface-2));
+  margin-bottom:12px;position:relative;overflow:hidden;
+}
+.editor-section::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(to right,transparent 10%,var(--primary) 50%,transparent 90%);
+  opacity:0.2;pointer-events:none;
+}
+.editor-section-header{
+  width:100%;display:flex;align-items:center;justify-content:space-between;gap:16px;
+  padding:18px 24px;text-align:left;cursor:pointer;
+  transition:background 0.2s ease;
+}
+.editor-section-header:hover{background:rgba(255,255,255,0.02)}
+.editor-section-tag{
+  font-size:8px;letter-spacing:0.36em;text-transform:uppercase;
+  color:var(--primary-soft);margin-bottom:4px;
+}
+.editor-section-title{
+  font-family:var(--font-display);font-size:18px;font-weight:500;color:var(--text);
+}
+.editor-chevron{
+  flex-shrink:0;width:16px;height:16px;color:var(--text-dim);
+  transition:transform 0.3s ease;
+}
+.editor-section.is-open .editor-chevron{transform:rotate(180deg)}
+.editor-section-body{
+  display:none;padding:20px 24px 24px;border-top:1px solid var(--border);
+}
+.editor-section.is-open .editor-section-body{display:block}
+
+.form-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.form-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:14px}
+.form-group{margin-bottom:14px}
+@media(max-width:760px){.form-grid-2,.form-grid-3{grid-template-columns:1fr}}
+.field-input.sm{padding:10px 12px;font-size:12px}
+textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.65}
+.field-hint{
+  font-size:10px;color:var(--text-faint);
+  margin-top:5px;letter-spacing:0.03em;line-height:1.6;
+}
+.editor-rule{height:1px;background:var(--border);margin:18px 0}
+.editor-sub-label{
+  font-size:9px;font-weight:400;letter-spacing:0.28em;text-transform:uppercase;
+  color:var(--text-dim);margin-bottom:12px;display:block;
+}
+
+/* Toggle switch */
+.toggle{display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none}
+.toggle-input{display:none}
+.toggle-track{
+  position:relative;width:36px;height:20px;flex-shrink:0;
+  background:rgba(255,255,255,0.08);border:1px solid var(--border);
+  border-radius:10px;transition:background 0.25s ease,border-color 0.25s ease;
+}
+.toggle-input:checked+.toggle-track{background:var(--primary);border-color:var(--primary)}
+.toggle-track .toggle-thumb{
+  position:absolute;top:2px;left:2px;
+  width:14px;height:14px;border-radius:50%;
+  background:var(--text-dim);
+  transition:transform 0.25s ease,background 0.25s ease;
+}
+.toggle-input:checked+.toggle-track .toggle-thumb{transform:translateX(16px);background:var(--bg)}
+.toggle-label{font-size:13px;color:var(--text-soft);letter-spacing:0.02em}
+
+/* Gift blocks */
+.gift-block{border:1px solid var(--border);background:rgba(0,0,0,0.12);margin-bottom:12px}
+.gift-block-head{
+  display:flex;align-items:center;justify-content:space-between;padding:14px 18px;
+}
+.gift-block-type{
+  font-size:8px;letter-spacing:0.3em;text-transform:uppercase;
+  color:var(--text-faint);margin-bottom:3px;
+}
+.gift-block-name{font-size:14px;font-weight:400;color:var(--text-soft)}
+.gift-block-body{display:none;padding:14px 18px;border-top:1px solid var(--border)}
+.gift-block.is-open .gift-block-body{display:block}
+
+/* Catalog item rows */
+.catalog-item{
+  display:grid;grid-template-columns:1fr 110px 34px;
+  gap:8px;margin-bottom:8px;align-items:center;
+}
+.btn-icon-sm{
+  width:34px;height:34px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  border:1px solid var(--border);background:transparent;
+  color:var(--text-dim);cursor:pointer;transition:all 0.2s ease;
+}
+.btn-icon-sm:hover{border-color:var(--danger);color:var(--danger)}
+.btn-icon-sm svg{width:11px;height:11px}
+
+/* Pages grid */
+.pages-grid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;
+}
+.page-card{border:1px solid var(--border);background:rgba(0,0,0,0.12);padding:16px}
+.page-card-key{
+  font-size:8px;letter-spacing:0.3em;text-transform:uppercase;
+  color:var(--text-faint);margin-bottom:8px;
+}
+.page-card-name{font-family:var(--font-display);font-size:15px;font-weight:500;color:var(--text)}
 </style>
 </head>
 <body>
@@ -796,6 +924,12 @@ body::before{
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         </span>
         <span>Exportar</span>
+      </button>
+      <button class="nav-item" data-tab="editar" role="tab">
+        <span class="nav-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 1 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
+        </span>
+        <span>Editar Evento</span>
       </button>
     </nav>
  
@@ -1122,10 +1256,388 @@ body::before{
         </section>
       </div>
  
+      <!-- TAB: EDITAR EVENTO -->
+      <div class="tab-content" id="tab-editar" role="tabpanel">
+
+        <!-- Barra de salvar (sticky) -->
+        <div class="editor-savebar">
+          <div class="editor-save-status" id="editorSaveStatus">
+            <span class="editor-save-dot"></span>
+            <span id="editorSaveStatusText">Carregando configurações…</span>
+          </div>
+          <div class="editor-save-actions">
+            <button type="button" class="btn btn-subtle" onclick="reloadEditorTab()">
+              <span>Descartar</span>
+            </button>
+            <button type="button" class="btn btn-primary" id="btnSaveConfig" onclick="saveEditorConfig()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+              <span>Salvar alterações</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- ── SEÇÃO 1: CASAL & EVENTO ──────────────────── -->
+        <div class="editor-section is-open" id="edSectionEvento">
+          <button class="editor-section-header" type="button" onclick="toggleEditorSection('edSectionEvento')">
+            <div>
+              <div class="editor-section-tag">Identidade</div>
+              <div class="editor-section-title">Casal &amp; Evento</div>
+            </div>
+            <svg class="editor-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="editor-section-body">
+
+            <div class="form-grid-2">
+              <div class="field">
+                <label class="field-label" for="edCoupleNames">Nomes do casal *</label>
+                <input type="text" class="field-input sm" id="edCoupleNames" placeholder="Noiva &amp; Noivo" oninput="markEditorDirty()">
+              </div>
+              <div class="field">
+                <label class="field-label" for="edCoupleSubtitle">Subtítulo</label>
+                <input type="text" class="field-input sm" id="edCoupleSubtitle" placeholder="Save the date…" oninput="markEditorDirty()">
+              </div>
+            </div>
+
+            <div class="editor-rule"></div>
+            <span class="editor-sub-label">Datas e horário</span>
+
+            <div class="form-grid-2">
+              <div class="field">
+                <label class="field-label" for="edEventDate">Data ISO 8601 *</label>
+                <input type="text" class="field-input sm" id="edEventDate" placeholder="2026-09-06T17:00:00-03:00" oninput="markEditorDirty()">
+                <div class="field-hint">Usada para calcular o contador regressivo.</div>
+              </div>
+              <div class="field">
+                <label class="field-label" for="edEventTime">Horário de exibição</label>
+                <input type="text" class="field-input sm" id="edEventTime" placeholder="17h" oninput="markEditorDirty()">
+              </div>
+            </div>
+            <div class="form-grid-3">
+              <div class="field">
+                <label class="field-label" for="edEventHeroDate">Data no hero</label>
+                <input type="text" class="field-input sm" id="edEventHeroDate" placeholder="06 . 09 . 2026" oninput="markEditorDirty()">
+              </div>
+              <div class="field">
+                <label class="field-label" for="edEventDisplayDate">Data de exibição</label>
+                <input type="text" class="field-input sm" id="edEventDisplayDate" placeholder="6 de setembro de 2026" oninput="markEditorDirty()">
+              </div>
+              <div class="field">
+                <label class="field-label" for="edEventWeekday">Dia da semana</label>
+                <input type="text" class="field-input sm" id="edEventWeekday" placeholder="Domingo" oninput="markEditorDirty()">
+              </div>
+            </div>
+
+            <div class="editor-rule"></div>
+            <span class="editor-sub-label">Local do evento</span>
+
+            <div class="form-grid-2">
+              <div class="field">
+                <label class="field-label" for="edEventLocation">Nome do local</label>
+                <input type="text" class="field-input sm" id="edEventLocation" placeholder="Mansão Ilha de Capri" oninput="markEditorDirty()">
+              </div>
+              <div class="field">
+                <label class="field-label" for="edEventCity">Cidade</label>
+                <input type="text" class="field-input sm" id="edEventCity" placeholder="São Bernardo do Campo, SP" oninput="markEditorDirty()">
+              </div>
+            </div>
+            <div class="form-group">
+              <div class="field">
+                <label class="field-label" for="edEventMapsLink">Link do Google Maps</label>
+                <input type="url" class="field-input sm" id="edEventMapsLink" placeholder="https://maps.google.com/…" oninput="markEditorDirty()">
+              </div>
+            </div>
+            <div class="form-group">
+              <div class="field">
+                <label class="field-label" for="edEventVenueAddress">Endereço completo</label>
+                <input type="text" class="field-input sm" id="edEventVenueAddress" placeholder="Rua…" oninput="markEditorDirty()">
+              </div>
+            </div>
+            <div class="form-grid-2">
+              <div class="field">
+                <label class="field-label" for="edEventLat">Latitude</label>
+                <input type="number" class="field-input sm" id="edEventLat" step="0.000001" placeholder="-23.710000" oninput="markEditorDirty()">
+              </div>
+              <div class="field">
+                <label class="field-label" for="edEventLng">Longitude</label>
+                <input type="number" class="field-input sm" id="edEventLng" step="0.000001" placeholder="-46.560000" oninput="markEditorDirty()">
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="toggle">
+                <input type="checkbox" class="toggle-input" id="edEventMapEnabled" onchange="markEditorDirty()">
+                <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                <span class="toggle-label">Exibir mapa interativo na página de hospedagem</span>
+              </label>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- ── SEÇÃO 2: TEMA & VISUAL ─────────────────── -->
+        <div class="editor-section is-open" id="edSectionTema">
+          <button class="editor-section-header" type="button" onclick="toggleEditorSection('edSectionTema')">
+            <div>
+              <div class="editor-section-tag">Aparência</div>
+              <div class="editor-section-title">Tema &amp; Visual</div>
+            </div>
+            <svg class="editor-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="editor-section-body">
+            <div class="form-grid-2">
+              <div class="field">
+                <label class="field-label" for="edActiveLayout">Layout</label>
+                <select class="field-input sm" id="edActiveLayout" onchange="onLayoutChange();markEditorDirty()">
+                  <option value="classic">Classic</option>
+                  <option value="modern">Modern</option>
+                </select>
+              </div>
+              <div class="field">
+                <label class="field-label" for="edActiveTheme">Tema</label>
+                <select class="field-input sm" id="edActiveTheme" onchange="markEditorDirty()"></select>
+              </div>
+            </div>
+            <div class="field-hint" style="margin-top:-6px">Após salvar e aplicar o arquivo, recarregue o convite para ver a mudança de tema.</div>
+          </div>
+        </div>
+
+        <!-- ── SEÇÃO 3: WHATSAPP ──────────────────────── -->
+        <div class="editor-section is-open" id="edSectionWhatsApp">
+          <button class="editor-section-header" type="button" onclick="toggleEditorSection('edSectionWhatsApp')">
+            <div>
+              <div class="editor-section-tag">Confirmação de presença</div>
+              <div class="editor-section-title">WhatsApp &amp; RSVP</div>
+            </div>
+            <svg class="editor-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="editor-section-body">
+            <div class="form-grid-2">
+              <div class="field">
+                <label class="field-label" for="edWaPhone">Número de destino *</label>
+                <input type="tel" class="field-input sm" id="edWaPhone" placeholder="5511999999999" oninput="markEditorDirty()">
+                <div class="field-hint">Código do país + DDD + número, sem espaços ou símbolos.</div>
+              </div>
+              <div class="field">
+                <label class="field-label" for="edWaRecipient">Nome do destinatário</label>
+                <input type="text" class="field-input sm" id="edWaRecipient" placeholder="Diego" oninput="markEditorDirty()">
+                <div class="field-hint">Aparece na saudação das mensagens automáticas.</div>
+              </div>
+            </div>
+
+            <div class="editor-rule"></div>
+            <span class="editor-sub-label">Mensagens automáticas</span>
+            <div class="form-group">
+              <div class="field">
+                <label class="field-label" for="edWaMsgAttending">Convidado vai comparecer</label>
+                <textarea class="field-input sm" id="edWaMsgAttending" rows="3" placeholder="Olá {name}…" oninput="markEditorDirty()"></textarea>
+                <div class="field-hint">Use {name}, {recipientName}, {date} como variáveis.</div>
+              </div>
+            </div>
+            <div class="form-group">
+              <div class="field">
+                <label class="field-label" for="edWaMsgNotAttending">Convidado não vai comparecer</label>
+                <textarea class="field-input sm" id="edWaMsgNotAttending" rows="3" placeholder="Entendemos, {name}…" oninput="markEditorDirty()"></textarea>
+              </div>
+            </div>
+
+            <div class="editor-rule"></div>
+            <div class="form-group">
+              <label class="toggle">
+                <input type="checkbox" class="toggle-input" id="edRsvpSupabase" onchange="markEditorDirty()">
+                <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                <span class="toggle-label">Salvar confirmações no Supabase</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── SEÇÃO 4: PRESENTES ─────────────────────── -->
+        <div class="editor-section is-open" id="edSectionPresentes">
+          <button class="editor-section-header" type="button" onclick="toggleEditorSection('edSectionPresentes')">
+            <div>
+              <div class="editor-section-tag">Página de presentes</div>
+              <div class="editor-section-title">Opções de presente</div>
+            </div>
+            <svg class="editor-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="editor-section-body">
+            <p class="field-hint" style="margin-bottom:18px">As três opções podem coexistir. Desabilite as que não deseja exibir.</p>
+
+            <!-- Pix -->
+            <div class="gift-block" id="giftBlockPix">
+              <div class="gift-block-head">
+                <div>
+                  <div class="gift-block-type">Opção 1</div>
+                  <div class="gift-block-name">Pix</div>
+                </div>
+                <label class="toggle" onclick="event.stopPropagation()">
+                  <input type="checkbox" class="toggle-input" id="edGiftPixEnabled"
+                         onchange="toggleGiftBlock('giftBlockPix',this.checked);markEditorDirty()">
+                  <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                </label>
+              </div>
+              <div class="gift-block-body">
+                <div class="form-grid-2">
+                  <div class="field">
+                    <label class="field-label" for="edGiftPixKey">Chave Pix *</label>
+                    <input type="text" class="field-input sm" id="edGiftPixKey"
+                           placeholder="CPF, e-mail, telefone ou chave aleatória" oninput="markEditorDirty()">
+                  </div>
+                  <div class="field">
+                    <label class="field-label" for="edGiftPixQr">Imagem QR Code</label>
+                    <input type="text" class="field-input sm" id="edGiftPixQr"
+                           placeholder="assets/images/icons/pix-qr.png" oninput="markEditorDirty()">
+                    <div class="field-hint">Caminho relativo ao projeto ou URL.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Cartão -->
+            <div class="gift-block" id="giftBlockCard">
+              <div class="gift-block-head">
+                <div>
+                  <div class="gift-block-type">Opção 2</div>
+                  <div class="gift-block-name">Cartão de crédito</div>
+                </div>
+                <label class="toggle" onclick="event.stopPropagation()">
+                  <input type="checkbox" class="toggle-input" id="edGiftCardEnabled"
+                         onchange="toggleGiftBlock('giftBlockCard',this.checked);markEditorDirty()">
+                  <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                </label>
+              </div>
+              <div class="gift-block-body">
+                <div class="field">
+                  <label class="field-label" for="edGiftCardLink">Link de pagamento *</label>
+                  <input type="url" class="field-input sm" id="edGiftCardLink"
+                         placeholder="https://link.mercadopago.com.br/…" oninput="markEditorDirty()">
+                  <div class="field-hint">Mercado Pago, PagSeguro, Stripe ou outra plataforma.</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Catálogo -->
+            <div class="gift-block" id="giftBlockCatalog">
+              <div class="gift-block-head">
+                <div>
+                  <div class="gift-block-type">Opção 3</div>
+                  <div class="gift-block-name">Lista de presentes</div>
+                </div>
+                <label class="toggle" onclick="event.stopPropagation()">
+                  <input type="checkbox" class="toggle-input" id="edGiftCatalogEnabled"
+                         onchange="toggleGiftBlock('giftBlockCatalog',this.checked);markEditorDirty()">
+                  <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                </label>
+              </div>
+              <div class="gift-block-body">
+                <div class="form-grid-2">
+                  <div class="field">
+                    <label class="field-label" for="edGiftCatalogTitle">Título da lista</label>
+                    <input type="text" class="field-input sm" id="edGiftCatalogTitle"
+                           placeholder="Lista de Presentes" oninput="markEditorDirty()">
+                  </div>
+                  <div class="field">
+                    <label class="field-label" for="edGiftCatalogSubtitle">Subtítulo</label>
+                    <input type="text" class="field-input sm" id="edGiftCatalogSubtitle"
+                           placeholder="Sugestões para a lua de mel" oninput="markEditorDirty()">
+                  </div>
+                </div>
+                <div class="editor-rule"></div>
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+                  <span class="editor-sub-label" style="margin-bottom:0">Itens da lista</span>
+                  <button type="button" class="btn btn-subtle" style="padding:6px 14px;font-size:10px" onclick="addCatalogItem()">
+                    + Adicionar item
+                  </button>
+                </div>
+                <div id="catalogItemsList"></div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- ── SEÇÃO 5: FOTOS & MÍDIA ─────────────────── -->
+        <div class="editor-section is-open" id="edSectionMidia">
+          <button class="editor-section-header" type="button" onclick="toggleEditorSection('edSectionMidia')">
+            <div>
+              <div class="editor-section-tag">Assets</div>
+              <div class="editor-section-title">Fotos &amp; Mídia</div>
+            </div>
+            <svg class="editor-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="editor-section-body">
+            <div class="form-group">
+              <div class="field">
+                <label class="field-label" for="edMediaHero">Foto do casal (hero)</label>
+                <input type="text" class="field-input sm" id="edMediaHero"
+                       placeholder="assets/images/couple/hero.jpg" oninput="markEditorDirty()">
+                <div class="field-hint">Caminho relativo ou URL da imagem principal exibida no convite.</div>
+              </div>
+            </div>
+
+            <div class="editor-rule"></div>
+            <span class="editor-sub-label">Trilha sonora principal</span>
+            <div class="form-grid-3">
+              <div class="field">
+                <label class="field-label" for="edTrackMainSrc">Arquivo</label>
+                <input type="text" class="field-input sm" id="edTrackMainSrc"
+                       placeholder="assets/audio/main-theme.mp3" oninput="markEditorDirty()">
+              </div>
+              <div class="field">
+                <label class="field-label" for="edTrackMainVolume">Volume (0–1)</label>
+                <input type="number" class="field-input sm" id="edTrackMainVolume"
+                       min="0" max="1" step="0.01" placeholder="0.14" oninput="markEditorDirty()">
+              </div>
+              <div class="field">
+                <label class="field-label" for="edTrackMainStart">Início (seg)</label>
+                <input type="number" class="field-input sm" id="edTrackMainStart"
+                       min="0" step="1" placeholder="8" oninput="markEditorDirty()">
+              </div>
+            </div>
+
+            <span class="editor-sub-label" style="margin-top:8px">Trilha da página de presentes</span>
+            <div class="form-grid-3">
+              <div class="field">
+                <label class="field-label" for="edTrackGiftSrc">Arquivo</label>
+                <input type="text" class="field-input sm" id="edTrackGiftSrc"
+                       placeholder="assets/audio/gift-theme.mp3" oninput="markEditorDirty()">
+              </div>
+              <div class="field">
+                <label class="field-label" for="edTrackGiftVolume">Volume (0–1)</label>
+                <input type="number" class="field-input sm" id="edTrackGiftVolume"
+                       min="0" max="1" step="0.01" placeholder="0.12" oninput="markEditorDirty()">
+              </div>
+              <div class="field">
+                <label class="field-label" for="edTrackGiftStart">Início (seg)</label>
+                <input type="number" class="field-input sm" id="edTrackGiftStart"
+                       min="0" step="1" placeholder="78" oninput="markEditorDirty()">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── SEÇÃO 6: PÁGINAS EXTRAS ────────────────── -->
+        <div class="editor-section is-open" id="edSectionPages">
+          <button class="editor-section-header" type="button" onclick="toggleEditorSection('edSectionPages')">
+            <div>
+              <div class="editor-section-tag">Navegação</div>
+              <div class="editor-section-title">Páginas extras</div>
+            </div>
+            <svg class="editor-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="editor-section-body">
+            <p style="font-size:11px;color:var(--text-dim);margin-bottom:16px;letter-spacing:0.03em;line-height:1.7">
+              Páginas desabilitadas não aparecem nos cards de navegação do convite.
+            </p>
+            <div class="pages-grid" id="edPagesGrid"></div>
+          </div>
+        </div>
+
+      </div><!-- /tab-editar -->
+
     </main>
   </div>
 </div>
- 
+
 <!-- ══ MODAL: GRUPO ═══════════════════════════════════════════════════════ -->
 <div class="modal" id="modalGrupo" role="dialog" aria-labelledby="modalGrupoTitle">
   <div class="modal-dialog">
