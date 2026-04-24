@@ -101,7 +101,7 @@
     "pixQrImage": "assets/images/icons/IMG_8732.jpeg",
     "cardPaymentEnabled": true,
     "cardPaymentLink": "https://link.mercadopago.com.br/diegovaz",
-    "activeCatalogKey": "honeymoon",
+    "activeCatalogKey": "home",
     "catalog": {
       "enabled": true,
       "title": "Lista de Lua de Mel",
@@ -217,7 +217,7 @@
       ]
     },
     "catalogs": {
-      "activeKey": "honeymoon",
+      "activeKey": "home",
       "lists": {
         "honeymoon": {
           "enabled": true,
