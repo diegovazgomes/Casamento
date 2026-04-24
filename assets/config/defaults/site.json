@@ -75,10 +75,28 @@
         "pixQrImage": "assets/images/icons/pix-placeholder.svg",
         "cardPaymentEnabled": false,
         "cardPaymentLink": "https://pagamento.exemplo.com/link-do-casal",
+        "activeCatalogKey": "honeymoon",
         "catalog": {
             "enabled": true,
             "title": "Lista de Lua de Mel",
             "items": []
+        },
+        "catalogs": {
+            "activeKey": "honeymoon",
+            "lists": {
+                "honeymoon": {
+                    "enabled": true,
+                    "title": "Lista de Lua de Mel",
+                    "subtitle": "",
+                    "items": []
+                },
+                "home": {
+                    "enabled": true,
+                    "title": "Lista para Casa",
+                    "subtitle": "",
+                    "items": []
+                }
+            }
         }
     },
     "media": {

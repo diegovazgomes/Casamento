@@ -621,7 +621,7 @@
     <!-- ── PANEL: LISTA ──────────────────────────────────────────────── -->
     <div class="gift-tab-panel is-active" id="panel-lista" role="tabpanel">
       <div class="gift-list-head reveal">
-        <p class="gift-list-subtitle">
+        <p class="gift-list-subtitle" id="giftListSubtitle">
           Escolha um item que queira nos presentear.
           Os valores são sugestões — qualquer contribuição é recebida com muita gratidão.
         </p>
@@ -727,7 +727,37 @@ const DEFAULT_HONEYMOON_ITEMS = [
   { id: 'cota-lua-de-mel-completa', name: 'Cota Lua de Mel Completa', desc: 'Contribuição para tornar essa viagem perfeita.', amount: 999.00, category: 'Lua de Mel', icon: '💛' },
 ];
 
+const DEFAULT_HOUSEHOLD_ITEMS = [
+  { id: 'jogo-panelas', name: 'Jogo de Panelas', desc: 'Para preparar muitas receitas no novo lar.', amount: 220.00, category: 'Casa', icon: '🍳' },
+  { id: 'airfryer', name: 'Airfryer', desc: 'Praticidade para o dia a dia da casa.', amount: 380.00, category: 'Casa', icon: '🍟' },
+  { id: 'liquidificador', name: 'Liquidificador', desc: 'Essencial para sucos, vitaminas e receitas.', amount: 190.00, category: 'Casa', icon: '🥤' },
+  { id: 'cafeteira', name: 'Cafeteira', desc: 'Para começar o dia com energia e carinho.', amount: 260.00, category: 'Casa', icon: '☕' },
+  { id: 'jogo-cama', name: 'Jogo de Cama', desc: 'Conforto para noites ainda mais especiais.', amount: 210.00, category: 'Casa', icon: '🛏️' },
+  { id: 'jogo-toalhas', name: 'Jogo de Toalhas', desc: 'Um mimo útil para o enxoval.', amount: 130.00, category: 'Casa', icon: '🧺' },
+  { id: 'faqueiro', name: 'Faqueiro', desc: 'Para receber visitas com elegância.', amount: 170.00, category: 'Casa', icon: '🍴' },
+  { id: 'aparelho-jantar', name: 'Aparelho de Jantar', desc: 'Para celebrar refeições em família.', amount: 320.00, category: 'Casa', icon: '🍽️' },
+  { id: 'aspirador', name: 'Aspirador de Pó', desc: 'Mais praticidade na rotina da limpeza.', amount: 450.00, category: 'Casa', icon: '🧹' },
+  { id: 'microondas', name: 'Micro-ondas', desc: 'Agilidade para refeições e aquecimentos.', amount: 590.00, category: 'Casa', icon: '🔥' },
+  { id: 'rack-sala', name: 'Rack para Sala', desc: 'Um toque especial para o cantinho da sala.', amount: 720.00, category: 'Casa', icon: '🛋️' },
+  { id: 'geladeira', name: 'Cota Geladeira', desc: 'Contribuição para um item essencial da casa.', amount: 990.00, category: 'Casa', icon: '🧊' },
+];
+
+const DEFAULT_CATALOGS = {
+  honeymoon: {
+    title: 'Lista de Lua de Mel',
+    subtitle: 'Sugestoes para celebrar nossa primeira viagem como casados.',
+    items: DEFAULT_HONEYMOON_ITEMS,
+  },
+  home: {
+    title: 'Lista para Casa',
+    subtitle: 'Sugestoes para montar e deixar nosso novo lar ainda mais especial.',
+    items: DEFAULT_HOUSEHOLD_ITEMS,
+  },
+};
+
 let GIFT_ITEMS = DEFAULT_HONEYMOON_ITEMS;
+let ACTIVE_CATALOG_TITLE = 'Lista de Lua de Mel';
+let ACTIVE_CATALOG_SUBTITLE = '';
 
 function formatBRL(amount) {
   const value = Number(amount);
@@ -745,7 +775,7 @@ function formatAmountForMercadoPagoParam(amount) {
   return value.toFixed(2).replace('.', ',');
 }
 
-function sanitizeCatalogItems(items = []) {
+function sanitizeCatalogItems(items = [], fallbackCategory = 'Lua de Mel') {
   return items
     .filter((item) => item && item.enabled !== false)
     .map((item, index) => {
@@ -757,10 +787,34 @@ function sanitizeCatalogItems(items = []) {
         desc: String(item.desc ?? item.description ?? ''),
         amount: normalizedAmount,
         price: formatBRL(normalizedAmount),
-        category: String(item.category ?? 'Lua de Mel'),
+        category: String(item.category ?? fallbackCategory),
         icon: String(item.icon ?? '💛')
       };
     });
+}
+
+function resolveActiveCatalog(giftConfig = {}) {
+  const catalogsRoot = giftConfig?.catalogs;
+  const lists = catalogsRoot?.lists;
+  const configuredActiveKey = giftConfig?.activeCatalogKey || catalogsRoot?.activeKey;
+
+  if (lists && typeof lists === 'object' && !Array.isArray(lists)) {
+    const entries = Object.entries(lists).filter(([, value]) => value && typeof value === 'object');
+
+    if (entries.length > 0) {
+      const byKey = configuredActiveKey && lists[configuredActiveKey] ? [configuredActiveKey, lists[configuredActiveKey]] : null;
+      const enabledEntry = entries.find(([, value]) => value.enabled !== false);
+      const selectedEntry = byKey || enabledEntry || entries[0];
+      const [catalogKey, catalog] = selectedEntry;
+      return { catalog, catalogKey };
+    }
+  }
+
+  if (giftConfig?.catalog && typeof giftConfig.catalog === 'object') {
+    return { catalog: giftConfig.catalog, catalogKey: configuredActiveKey || 'honeymoon' };
+  }
+
+  return { catalog: DEFAULT_CATALOGS.honeymoon, catalogKey: 'honeymoon' };
 }
 
 function buildMercadoPagoUrl(baseUrl, amount) {
@@ -900,11 +954,17 @@ window.addEventListener('app:ready', ({ detail: { config } }) => {
   const qrSrc  = config?.gift?.pixQrImage || 'assets/images/icons/pix-placeholder.svg';
   const cardLink = config?.gift?.cardPaymentLink || '';
   const cardEnabled = config?.gift?.cardPaymentEnabled !== false;
-  const rawCatalog = config?.gift?.catalog?.items;
-  const normalizedCatalog = sanitizeCatalogItems(rawCatalog);
+  const { catalog: activeCatalog, catalogKey } = resolveActiveCatalog(config?.gift || {});
+  const categoryFallback = catalogKey === 'home' ? 'Casa' : 'Lua de Mel';
+  const normalizedCatalog = sanitizeCatalogItems(activeCatalog?.items, categoryFallback);
+
+  ACTIVE_CATALOG_TITLE = activeCatalog?.title || DEFAULT_CATALOGS[catalogKey]?.title || DEFAULT_CATALOGS.honeymoon.title;
+  ACTIVE_CATALOG_SUBTITLE = activeCatalog?.subtitle || DEFAULT_CATALOGS[catalogKey]?.subtitle || '';
 
   if (normalizedCatalog.length) {
     GIFT_ITEMS = normalizedCatalog;
+  } else {
+    GIFT_ITEMS = catalogKey === 'home' ? DEFAULT_HOUSEHOLD_ITEMS : DEFAULT_HONEYMOON_ITEMS;
   }
 
   /* Preenche textos */
@@ -922,6 +982,11 @@ window.addEventListener('app:ready', ({ detail: { config } }) => {
   setText('mainFooterNames',    config?.couple?.names);
   setText('mainFooterNote',     config?.texts?.footerNote);
   setText('pixCode',            pixKey);
+
+  const listSubtitleEl = document.getElementById('giftListSubtitle');
+  if (listSubtitleEl && ACTIVE_CATALOG_SUBTITLE) {
+    listSubtitleEl.textContent = ACTIVE_CATALOG_SUBTITLE;
+  }
 
   setSrc('giftPixQr',  qrSrc);
 

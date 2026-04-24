@@ -101,6 +101,7 @@
     "pixQrImage": "assets/images/icons/IMG_8732.jpeg",
     "cardPaymentEnabled": true,
     "cardPaymentLink": "https://link.mercadopago.com.br/diegovaz",
+    "activeCatalogKey": "honeymoon",
     "catalog": {
       "enabled": true,
       "title": "Lista de Lua de Mel",
@@ -214,6 +215,241 @@
           "enabled": true
         }
       ]
+    },
+    "catalogs": {
+      "activeKey": "honeymoon",
+      "lists": {
+        "honeymoon": {
+          "enabled": true,
+          "title": "Lista de Lua de Mel",
+          "subtitle": "Sugestões para celebrar nossa primeira viagem como casados.",
+          "items": [
+            {
+              "id": "taxas-embarque",
+              "name": "Taxas de Embarque",
+              "description": "Ajuda com taxas e bagagens da viagem.",
+              "amount": 140,
+              "category": "Lua de Mel",
+              "icon": "🧳",
+              "enabled": true
+            },
+            {
+              "id": "traslado-aeroporto",
+              "name": "Traslado Aeroporto-Hotel",
+              "description": "Transporte seguro na chegada e saída.",
+              "amount": 200,
+              "category": "Lua de Mel",
+              "icon": "🚕",
+              "enabled": true
+            },
+            {
+              "id": "jantar-romantico",
+              "name": "Jantar Romântico",
+              "description": "Um jantar especial a dois na viagem.",
+              "amount": 299,
+              "category": "Lua de Mel",
+              "icon": "🍽️",
+              "enabled": true
+            },
+            {
+              "id": "passeio-barco",
+              "name": "Passeio de Barco",
+              "description": "Experiência inesquecível em alto-mar.",
+              "amount": 317,
+              "category": "Lua de Mel",
+              "icon": "⛵",
+              "enabled": true
+            },
+            {
+              "id": "jantar-celebracao",
+              "name": "Jantar de Celebração",
+              "description": "Noite especial para celebrar esse momento.",
+              "amount": 390,
+              "category": "Lua de Mel",
+              "icon": "🥂",
+              "enabled": true
+            },
+            {
+              "id": "spa-casal",
+              "name": "Spa para o Casal",
+              "description": "Momento de relaxamento durante a lua de mel.",
+              "amount": 470,
+              "category": "Lua de Mel",
+              "icon": "🧖",
+              "enabled": true
+            },
+            {
+              "id": "hospedagem-1-noite",
+              "name": "Hospedagem de 1 Noite",
+              "description": "Contribuição para uma noite no hotel.",
+              "amount": 560,
+              "category": "Lua de Mel",
+              "icon": "🏨",
+              "enabled": true
+            },
+            {
+              "id": "tour-privativo",
+              "name": "Tour Privativo",
+              "description": "Um dia de passeio com guia local.",
+              "amount": 650,
+              "category": "Lua de Mel",
+              "icon": "🗺️",
+              "enabled": true
+            },
+            {
+              "id": "ensaio-fotografico",
+              "name": "Ensaio Fotográfico",
+              "description": "Registro do nosso começo em viagem.",
+              "amount": 740,
+              "category": "Lua de Mel",
+              "icon": "📸",
+              "enabled": true
+            },
+            {
+              "id": "experiencia-premium",
+              "name": "Experiência Premium",
+              "description": "Uma experiência única na viagem.",
+              "amount": 820,
+              "category": "Lua de Mel",
+              "icon": "✨",
+              "enabled": true
+            },
+            {
+              "id": "passagem-aerea-casal",
+              "name": "Passagem Aérea do Casal",
+              "description": "Contribuição para nossas passagens de ida.",
+              "amount": 849,
+              "category": "Lua de Mel",
+              "icon": "✈️",
+              "enabled": true
+            },
+            {
+              "id": "cota-lua-de-mel-completa",
+              "name": "Cota Lua de Mel Completa",
+              "description": "Contribuição para tornar essa viagem perfeita.",
+              "amount": 999,
+              "category": "Lua de Mel",
+              "icon": "💛",
+              "enabled": true
+            }
+          ]
+        },
+        "home": {
+          "enabled": true,
+          "title": "Lista para Casa",
+          "subtitle": "Sugestões para montar e deixar nosso novo lar ainda mais especial.",
+          "items": [
+            {
+              "id": "jogo-panelas",
+              "name": "Jogo de Panelas",
+              "description": "Para preparar muitas receitas no novo lar.",
+              "amount": 220,
+              "category": "Casa",
+              "icon": "🍳",
+              "enabled": true
+            },
+            {
+              "id": "airfryer",
+              "name": "Airfryer",
+              "description": "Praticidade para o dia a dia da casa.",
+              "amount": 380,
+              "category": "Casa",
+              "icon": "🍟",
+              "enabled": true
+            },
+            {
+              "id": "liquidificador",
+              "name": "Liquidificador",
+              "description": "Essencial para sucos, vitaminas e receitas.",
+              "amount": 190,
+              "category": "Casa",
+              "icon": "🥤",
+              "enabled": true
+            },
+            {
+              "id": "cafeteira",
+              "name": "Cafeteira",
+              "description": "Para começar o dia com energia e carinho.",
+              "amount": 260,
+              "category": "Casa",
+              "icon": "☕",
+              "enabled": true
+            },
+            {
+              "id": "jogo-cama",
+              "name": "Jogo de Cama",
+              "description": "Conforto para noites ainda mais especiais.",
+              "amount": 210,
+              "category": "Casa",
+              "icon": "🛏️",
+              "enabled": true
+            },
+            {
+              "id": "jogo-toalhas",
+              "name": "Jogo de Toalhas",
+              "description": "Um mimo útil para o enxoval.",
+              "amount": 130,
+              "category": "Casa",
+              "icon": "🧺",
+              "enabled": true
+            },
+            {
+              "id": "faqueiro",
+              "name": "Faqueiro",
+              "description": "Para receber visitas com elegância.",
+              "amount": 170,
+              "category": "Casa",
+              "icon": "🍴",
+              "enabled": true
+            },
+            {
+              "id": "aparelho-jantar",
+              "name": "Aparelho de Jantar",
+              "description": "Para celebrar refeições em família.",
+              "amount": 320,
+              "category": "Casa",
+              "icon": "🍽️",
+              "enabled": true
+            },
+            {
+              "id": "aspirador",
+              "name": "Aspirador de Pó",
+              "description": "Mais praticidade na rotina da limpeza.",
+              "amount": 450,
+              "category": "Casa",
+              "icon": "🧹",
+              "enabled": true
+            },
+            {
+              "id": "microondas",
+              "name": "Micro-ondas",
+              "description": "Agilidade para refeições e aquecimentos.",
+              "amount": 590,
+              "category": "Casa",
+              "icon": "🔥",
+              "enabled": true
+            },
+            {
+              "id": "rack-sala",
+              "name": "Rack para Sala",
+              "description": "Um toque especial para o cantinho da sala.",
+              "amount": 720,
+              "category": "Casa",
+              "icon": "🛋️",
+              "enabled": true
+            },
+            {
+              "id": "geladeira",
+              "name": "Cota Geladeira",
+              "description": "Contribuição para um item essencial da casa.",
+              "amount": 990,
+              "category": "Casa",
+              "icon": "🧊",
+              "enabled": true
+            }
+          ]
+        }
+      }
     }
   },
   "media": {

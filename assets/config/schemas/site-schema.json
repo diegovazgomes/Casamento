@@ -187,6 +187,10 @@
           "format": "uri",
           "description": "Link da plataforma de pagamento por cartão"
         },
+        "activeCatalogKey": {
+          "type": "string",
+          "description": "Chave da lista ativa de presentes (ex: honeymoon, home)"
+        },
         "catalog": {
           "type": "object",
           "description": "Catalogo de presentes para selecao por item",
@@ -212,6 +216,74 @@
                   "amount": {
                     "type": "number",
                     "minimum": 0
+                  }
+                }
+              }
+            }
+          }
+        },
+        "catalogs": {
+          "type": "object",
+          "description": "Conjunto de listas de presentes com selecao de lista ativa",
+          "properties": {
+            "activeKey": {
+              "type": "string"
+            },
+            "lists": {
+              "type": "object",
+              "properties": {
+                "honeymoon": {
+                  "type": "object",
+                  "properties": {
+                    "enabled": { "type": "boolean" },
+                    "title": { "type": "string" },
+                    "subtitle": { "type": "string" },
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": ["id", "name", "amount"],
+                        "properties": {
+                          "id": { "type": "string" },
+                          "name": { "type": "string" },
+                          "description": { "type": "string" },
+                          "category": { "type": "string" },
+                          "icon": { "type": "string" },
+                          "enabled": { "type": "boolean" },
+                          "amount": {
+                            "type": "number",
+                            "minimum": 0
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "home": {
+                  "type": "object",
+                  "properties": {
+                    "enabled": { "type": "boolean" },
+                    "title": { "type": "string" },
+                    "subtitle": { "type": "string" },
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": ["id", "name", "amount"],
+                        "properties": {
+                          "id": { "type": "string" },
+                          "name": { "type": "string" },
+                          "description": { "type": "string" },
+                          "category": { "type": "string" },
+                          "icon": { "type": "string" },
+                          "enabled": { "type": "boolean" },
+                          "amount": {
+                            "type": "number",
+                            "minimum": 0
+                          }
+                        }
+                      }
+                    }
                   }
                 }
               }
