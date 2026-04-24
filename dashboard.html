@@ -178,7 +178,7 @@ body::before{
   position:sticky;top:0;height:100vh;
 }
 .sidebar-brand{
-  padding:28px 24px 24px;
+  padding:22px 22px 18px;
   border-bottom:1px solid var(--border);
   text-align:center;
 }
@@ -186,16 +186,16 @@ body::before{
   display:block;
   font-size:8px;letter-spacing:0.42em;text-transform:uppercase;
   color:var(--primary-soft);
-  margin-bottom:8px;
+  margin-bottom:6px;
 }
 .sidebar-brand-names{
   font-family:var(--font-display);
-  font-size:22px;font-weight:400;font-style:italic;
-  color:var(--text);line-height:1.2;
+  font-size:21px;font-weight:400;font-style:italic;
+  color:var(--text);line-height:1.1;
 }
 .sidebar-brand-date{
   font-size:9px;letter-spacing:0.28em;text-transform:uppercase;
-  color:var(--text-dim);margin-top:8px;
+  color:var(--text-dim);margin-top:6px;
 }
  
 .sidebar-nav{
@@ -251,7 +251,7 @@ body::before{
   display:flex;flex-direction:column;
 }
 .topbar{
-  padding:24px 40px;
+  padding:26px 40px 22px;
   border-bottom:1px solid var(--border);
   background:var(--surface);
   display:flex;align-items:center;justify-content:space-between;gap:24px;
@@ -261,12 +261,12 @@ body::before{
 .topbar-left{min-width:0}
 .topbar-tag{
   font-size:9px;letter-spacing:0.3em;text-transform:uppercase;
-  color:var(--primary-soft);margin-bottom:4px;
+  color:var(--primary-soft);margin-bottom:6px;
 }
 .topbar-title{
   font-family:var(--font-display);
-  font-size:28px;font-weight:400;font-style:italic;
-  color:var(--text);line-height:1.2;
+  font-size:27px;font-weight:400;font-style:italic;
+  color:var(--text);line-height:1.15;
 }
 .topbar-actions{display:flex;align-items:center;gap:10px;flex-shrink:0}
  
@@ -475,16 +475,24 @@ body::before{
 .empty-text{font-size:12px;letter-spacing:0.04em;max-width:360px;margin:0 auto;line-height:1.7}
  
 .loading{
-  padding:32px 24px;text-align:center;color:var(--text-dim);
+  padding:32px 24px;
+  color:var(--text-dim);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  text-align:center;
 }
 .spinner{
-  display:inline-block;
+  display:block;
   width:32px;height:32px;
   border:2px solid var(--border);
   border-top-color:var(--primary);
   border-radius:50%;
   animation:spin 1s linear infinite;
-  margin-bottom:14px;
+  margin:0;
+  flex-shrink:0;
 }
 @keyframes spin{to{transform:rotate(360deg)}}
  
