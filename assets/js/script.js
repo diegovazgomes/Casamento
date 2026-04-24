@@ -923,6 +923,7 @@ class InvitationExperience {
         const cardPanel = document.getElementById('giftCardPanel');
         const cardPlaceholder = document.getElementById('giftCardPlaceholder');
         const cardBody = document.getElementById('giftCardBody');
+        const cardLinkElement = document.getElementById('giftCardLink');
 
         if (!cardPanel || !cardPlaceholder) {
             return;
@@ -949,8 +950,15 @@ class InvitationExperience {
         }
 
         const linkLabel = this.config.texts?.giftCardPlaceholder || 'Pagar com cartão';
-        cardPlaceholder.innerHTML = '';
 
+        if (cardLinkElement) {
+            cardLinkElement.href = cardLink;
+            cardLinkElement.setAttribute('aria-label', `${linkLabel} em nova aba`);
+            cardPlaceholder.textContent = linkLabel;
+            return;
+        }
+
+        cardPlaceholder.innerHTML = '';
         const cardAnchor = document.createElement('a');
         cardAnchor.className = 'gift-card-link';
         cardAnchor.href = cardLink;
@@ -958,7 +966,6 @@ class InvitationExperience {
         cardAnchor.rel = 'noopener noreferrer';
         cardAnchor.textContent = linkLabel;
         cardAnchor.setAttribute('aria-label', `${linkLabel} em nova aba`);
-
         cardPlaceholder.appendChild(cardAnchor);
     }
 

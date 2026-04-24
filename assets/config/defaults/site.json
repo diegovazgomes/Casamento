@@ -74,7 +74,12 @@
         "pixKey": "CHAVE_PIX_OU_CODIGO_COPIA_E_COLA_AQUI",
         "pixQrImage": "assets/images/icons/pix-placeholder.svg",
         "cardPaymentEnabled": false,
-        "cardPaymentLink": "https://pagamento.exemplo.com/link-do-casal"
+        "cardPaymentLink": "https://pagamento.exemplo.com/link-do-casal",
+        "catalog": {
+            "enabled": true,
+            "title": "Lista de Lua de Mel",
+            "items": []
+        }
     },
     "media": {
         "heroImage": "assets/images/couple/casal.png",

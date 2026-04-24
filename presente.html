@@ -712,108 +712,72 @@
 <script type="module" src="assets/js/presente.js"></script>
 
 <script>
-/* ══════════════════════════════════════════════════════════════════════════
-   LISTA DE PRESENTES — dados genéricos
-   Em produção, esses itens virão do site.json ou do Supabase.
-   Por enquanto são fixos aqui como demonstração.
-══════════════════════════════════════════════════════════════════════════ */
-const GIFT_ITEMS = [
-  {
-    id: 'jogo-jantar',
-    name: 'Jogo de Jantar',
-    desc: 'Conjunto completo para receber em casa com elegância.',
-    price: 'R$ 380',
-    category: 'Casa',
-    icon: '🍽️',
-    hasPix: true,
-    hasLink: false,
-  },
-  {
-    id: 'jogo-cama',
-    name: 'Jogo de Cama',
-    desc: 'Lençóis de algodão egípcio, toque macio e sofisticado.',
-    price: 'R$ 290',
-    category: 'Quarto',
-    icon: '🛏️',
-    hasPix: true,
-    hasLink: true,
-    linkUrl: 'https://www.amazon.com.br',
-    linkLabel: 'Ver na Amazon',
-    linkHint: 'Parcelável no cartão',
-  },
-  {
-    id: 'airfryer',
-    name: 'Air Fryer',
-    desc: 'Praticidade e saúde para o dia a dia do casal.',
-    price: 'R$ 450',
-    category: 'Cozinha',
-    icon: '🍳',
-    hasPix: true,
-    hasLink: true,
-    linkUrl: 'https://www.mercadolivre.com.br',
-    linkLabel: 'Ver no Mercado Livre',
-    linkHint: 'Parcelável no cartão',
-  },
-  {
-    id: 'lua-de-mel',
-    name: 'Lua de Mel',
-    desc: 'Contribua para a viagem dos nossos sonhos.',
-    price: 'R$ 200',
-    category: 'Viagem',
-    icon: '✈️',
-    hasPix: true,
-    hasLink: false,
-  },
-  {
-    id: 'jogo-panelas',
-    name: 'Jogo de Panelas',
-    desc: 'Conjunto antiaderente completo para equipar a cozinha.',
-    price: 'R$ 320',
-    category: 'Cozinha',
-    icon: '🥘',
-    hasPix: true,
-    hasLink: true,
-    linkUrl: 'https://www.amazon.com.br',
-    linkLabel: 'Ver na Amazon',
-    linkHint: 'Parcelável no cartão',
-  },
-  {
-    id: 'espresso',
-    name: 'Cafeteira Espresso',
-    desc: 'Para os momentos de café da manhã juntos.',
-    price: 'R$ 280',
-    category: 'Cozinha',
-    icon: '☕',
-    hasPix: true,
-    hasLink: false,
-  },
-  {
-    id: 'talheres',
-    name: 'Jogo de Talheres',
-    desc: 'Conjunto completo em aço inox para receber com estilo.',
-    price: 'R$ 180',
-    category: 'Casa',
-    icon: '🥄',
-    hasPix: true,
-    hasLink: false,
-  },
-  {
-    id: 'adega',
-    name: 'Adega Climatizada',
-    desc: 'Para guardar os melhores momentos — e vinhos.',
-    price: 'R$ 650',
-    category: 'Casa',
-    icon: '🍷',
-    hasPix: true,
-    hasLink: true,
-    linkUrl: 'https://www.mercadolivre.com.br',
-    linkLabel: 'Ver no Mercado Livre',
-    linkHint: 'Parcelável no cartão',
-  },
+const DEFAULT_HONEYMOON_ITEMS = [
+  { id: 'passagem-aerea-casal', name: 'Passagem Aérea do Casal', desc: 'Contribuição para nossas passagens de ida.', amount: 140.00, category: 'Lua de Mel', icon: '✈️' },
+  { id: 'taxas-embarque', name: 'Taxas de Embarque', desc: 'Ajuda com taxas e bagagens da viagem.', amount: 190.00, category: 'Lua de Mel', icon: '🧳' },
+  { id: 'traslado-aeroporto', name: 'Traslado Aeroporto-Hotel', desc: 'Transporte seguro na chegada e saída.', amount: 250.00, category: 'Lua de Mel', icon: '🚕' },
+  { id: 'jantar-romantico', name: 'Jantar Romântico', desc: 'Um jantar especial a dois na viagem.', amount: 320.00, category: 'Lua de Mel', icon: '🍽️' },
+  { id: 'passeio-barco', name: 'Passeio de Barco', desc: 'Experiência inesquecível em alto-mar.', amount: 390.00, category: 'Lua de Mel', icon: '⛵' },
+  { id: 'spa-casal', name: 'Spa para o Casal', desc: 'Momento de relaxamento durante a lua de mel.', amount: 470.00, category: 'Lua de Mel', icon: '🧖' },
+  { id: 'hospedagem-1-noite', name: 'Hospedagem de 1 Noite', desc: 'Contribuição para uma noite no hotel.', amount: 560.00, category: 'Lua de Mel', icon: '🏨' },
+  { id: 'tour-privativo', name: 'Tour Privativo', desc: 'Um dia de passeio com guia local.', amount: 650.00, category: 'Lua de Mel', icon: '🗺️' },
+  { id: 'ensaio-fotografico', name: 'Ensaio Fotográfico', desc: 'Registro do nosso começo em viagem.', amount: 740.00, category: 'Lua de Mel', icon: '📸' },
+  { id: 'jantar-celebracao', name: 'Jantar de Celebração', desc: 'Noite especial para celebrar esse momento.', amount: 840.00, category: 'Lua de Mel', icon: '🥂' },
+  { id: 'experiencia-premium', name: 'Experiência Premium', desc: 'Uma experiência única na viagem.', amount: 920.00, category: 'Lua de Mel', icon: '✨' },
+  { id: 'cota-lua-de-mel-completa', name: 'Cota Lua de Mel Completa', desc: 'Contribuição para tornar essa viagem perfeita.', amount: 999.00, category: 'Lua de Mel', icon: '💛' },
 ];
 
+let GIFT_ITEMS = DEFAULT_HONEYMOON_ITEMS;
+
+function formatBRL(amount) {
+  const value = Number(amount);
+  if (!Number.isFinite(value)) {
+    return 'R$ 0,00';
+  }
+  return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+}
+
+function formatAmountForMercadoPagoParam(amount) {
+  const value = Number(amount);
+  if (!Number.isFinite(value)) {
+    return '0,00';
+  }
+  return value.toFixed(2).replace('.', ',');
+}
+
+function sanitizeCatalogItems(items = []) {
+  return items
+    .filter((item) => item && item.enabled !== false)
+    .map((item, index) => {
+      const amount = Number(item.amount ?? item.suggestedAmount ?? 0);
+      const normalizedAmount = Number.isFinite(amount) ? amount : 0;
+      return {
+        id: String(item.id ?? `item-${index + 1}`),
+        name: String(item.name ?? item.title ?? `Presente ${index + 1}`),
+        desc: String(item.desc ?? item.description ?? ''),
+        amount: normalizedAmount,
+        price: formatBRL(normalizedAmount),
+        category: String(item.category ?? 'Lua de Mel'),
+        icon: String(item.icon ?? '💛')
+      };
+    });
+}
+
+function buildMercadoPagoUrl(baseUrl, amount) {
+  const fallbackUrl = '#';
+  if (!baseUrl) return fallbackUrl;
+
+  try {
+    const url = new URL(baseUrl, window.location.href);
+    url.searchParams.set('amount', formatAmountForMercadoPagoParam(amount));
+    return url.toString();
+  } catch {
+    return fallbackUrl;
+  }
+}
+
 /* ── Renderiza os cards ──────────────────────────────────────────────── */
-function renderGiftList(pixKey, qrSrc) {
+function renderGiftList(pixKey, qrSrc, paymentBaseUrl) {
   const grid = document.getElementById('giftGridList');
   if (!grid) return;
 
@@ -822,7 +786,7 @@ function renderGiftList(pixKey, qrSrc) {
       class="gift-item"
       role="button"
       tabindex="0"
-      aria-label="Presentear com ${item.name} — ${item.price}"
+      aria-label="Presentear com ${item.name} — ${item.price || formatBRL(item.amount)}"
       data-id="${item.id}"
     >
       <div class="gift-item-img-wrap">
@@ -832,7 +796,7 @@ function renderGiftList(pixKey, qrSrc) {
       <div class="gift-item-body">
         <div class="gift-item-name">${item.name}</div>
         <div class="gift-item-desc">${item.desc}</div>
-        <div class="gift-item-price">${item.price}</div>
+        <div class="gift-item-price">${item.price || formatBRL(item.amount)}</div>
         <div class="gift-item-price-hint">valor sugerido</div>
         <div class="gift-item-btn">
           <span class="gift-item-btn-label">Presentear</span>
@@ -844,7 +808,7 @@ function renderGiftList(pixKey, qrSrc) {
 
   /* Eventos nos cards */
   grid.querySelectorAll('.gift-item').forEach(card => {
-    const open = () => openModal(card.dataset.id, pixKey, qrSrc);
+    const open = () => openModal(card.dataset.id, pixKey, qrSrc, paymentBaseUrl);
     card.addEventListener('click', open);
     card.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') open(); });
   });
@@ -854,7 +818,7 @@ function renderGiftList(pixKey, qrSrc) {
 let _pixKey = '';
 let _qrSrc  = '';
 
-function openModal(itemId, pixKey, qrSrc) {
+function openModal(itemId, pixKey, qrSrc, paymentBaseUrl) {
   const item = GIFT_ITEMS.find(i => i.id === itemId);
   if (!item) return;
 
@@ -862,20 +826,18 @@ function openModal(itemId, pixKey, qrSrc) {
   _qrSrc  = qrSrc;
 
   document.getElementById('giftModalItemName').textContent  = item.name;
-  document.getElementById('giftModalItemPrice').textContent = item.price + ' (sugerido)';
+  document.getElementById('giftModalItemPrice').textContent = `${item.price || formatBRL(item.amount)} (sugerido)`;
   document.getElementById('giftModalPixKey').textContent    = pixKey || 'Chave Pix não configurada';
   document.getElementById('giftModalQrImg').src = qrSrc || 'assets/images/icons/pix-placeholder.svg';
 
-  /* Pix */
-  document.getElementById('giftOptPix').style.display = item.hasPix ? '' : 'none';
-
-  /* Link externo */
+  /* Link Mercado Pago com valor sugerido */
   const linkBtn = document.getElementById('giftOptLink');
-  if (item.hasLink && item.linkUrl) {
+  const paymentUrl = buildMercadoPagoUrl(paymentBaseUrl, item.amount);
+  if (paymentUrl !== '#') {
     linkBtn.style.display = '';
-    linkBtn.href = item.linkUrl;
-    document.getElementById('giftOptLinkLabel').textContent = item.linkLabel || 'Ver na loja';
-    document.getElementById('giftOptLinkHint').textContent  = item.linkHint  || 'Parcelável no cartão';
+    linkBtn.href = paymentUrl;
+    document.getElementById('giftOptLinkLabel').textContent = 'Pagar no Mercado Pago';
+    document.getElementById('giftOptLinkHint').textContent  = `Valor sugerido: ${item.price || formatBRL(item.amount)}`;
   } else {
     linkBtn.style.display = 'none';
   }
@@ -936,8 +898,14 @@ function showToast(msg) {
 window.addEventListener('app:ready', ({ detail: { config } }) => {
   const pixKey = config?.gift?.pixKey || '';
   const qrSrc  = config?.gift?.pixQrImage || 'assets/images/icons/pix-placeholder.svg';
-  const cardLink = config?.gift?.cardPaymentLink || '#';
+  const cardLink = config?.gift?.cardPaymentLink || '';
   const cardEnabled = config?.gift?.cardPaymentEnabled !== false;
+  const rawCatalog = config?.gift?.catalog?.items;
+  const normalizedCatalog = sanitizeCatalogItems(rawCatalog);
+
+  if (normalizedCatalog.length) {
+    GIFT_ITEMS = normalizedCatalog;
+  }
 
   /* Preenche textos */
   const setText = (id, val) => { if (val && document.getElementById(id)) document.getElementById(id).textContent = val; };
@@ -970,13 +938,13 @@ window.addEventListener('app:ready', ({ detail: { config } }) => {
   }
 
   /* Renderiza lista com chave Pix carregada */
-  renderGiftList(pixKey, qrSrc);
+  renderGiftList(pixKey, qrSrc, cardLink);
 });
 
 /* Fallback — renderiza lista mesmo sem app:ready */
 setTimeout(() => {
   const grid = document.getElementById('giftGridList');
-  if (grid && !grid.children.length) renderGiftList('', '');
+  if (grid && !grid.children.length) renderGiftList('', '', '');
 }, 3000);
 </script>
 </body>

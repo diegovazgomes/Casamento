@@ -100,7 +100,121 @@
     "pixKey": "c7806bc8-831c-4a41-8bd5-80862fe13584",
     "pixQrImage": "assets/images/icons/IMG_8732.jpeg",
     "cardPaymentEnabled": true,
-    "cardPaymentLink": "https://link.mercadopago.com.br/diegovaz"
+    "cardPaymentLink": "https://link.mercadopago.com.br/diegovaz",
+    "catalog": {
+      "enabled": true,
+      "title": "Lista de Lua de Mel",
+      "items": [
+        {
+          "id": "passagem-aerea-casal",
+          "name": "Passagem Aérea do Casal",
+          "description": "Contribuição para nossas passagens de ida.",
+          "amount": 140,
+          "category": "Lua de Mel",
+          "icon": "✈️",
+          "enabled": true
+        },
+        {
+          "id": "taxas-embarque",
+          "name": "Taxas de Embarque",
+          "description": "Ajuda com taxas e bagagens da viagem.",
+          "amount": 190,
+          "category": "Lua de Mel",
+          "icon": "🧳",
+          "enabled": true
+        },
+        {
+          "id": "traslado-aeroporto",
+          "name": "Traslado Aeroporto-Hotel",
+          "description": "Transporte seguro na chegada e saída.",
+          "amount": 250,
+          "category": "Lua de Mel",
+          "icon": "🚕",
+          "enabled": true
+        },
+        {
+          "id": "jantar-romantico",
+          "name": "Jantar Romântico",
+          "description": "Um jantar especial a dois na viagem.",
+          "amount": 320,
+          "category": "Lua de Mel",
+          "icon": "🍽️",
+          "enabled": true
+        },
+        {
+          "id": "passeio-barco",
+          "name": "Passeio de Barco",
+          "description": "Experiência inesquecível em alto-mar.",
+          "amount": 390,
+          "category": "Lua de Mel",
+          "icon": "⛵",
+          "enabled": true
+        },
+        {
+          "id": "spa-casal",
+          "name": "Spa para o Casal",
+          "description": "Momento de relaxamento durante a lua de mel.",
+          "amount": 470,
+          "category": "Lua de Mel",
+          "icon": "🧖",
+          "enabled": true
+        },
+        {
+          "id": "hospedagem-1-noite",
+          "name": "Hospedagem de 1 Noite",
+          "description": "Contribuição para uma noite no hotel.",
+          "amount": 560,
+          "category": "Lua de Mel",
+          "icon": "🏨",
+          "enabled": true
+        },
+        {
+          "id": "tour-privativo",
+          "name": "Tour Privativo",
+          "description": "Um dia de passeio com guia local.",
+          "amount": 650,
+          "category": "Lua de Mel",
+          "icon": "🗺️",
+          "enabled": true
+        },
+        {
+          "id": "ensaio-fotografico",
+          "name": "Ensaio Fotográfico",
+          "description": "Registro do nosso começo em viagem.",
+          "amount": 740,
+          "category": "Lua de Mel",
+          "icon": "📸",
+          "enabled": true
+        },
+        {
+          "id": "jantar-celebracao",
+          "name": "Jantar de Celebração",
+          "description": "Noite especial para celebrar esse momento.",
+          "amount": 840,
+          "category": "Lua de Mel",
+          "icon": "🥂",
+          "enabled": true
+        },
+        {
+          "id": "experiencia-premium",
+          "name": "Experiência Premium",
+          "description": "Uma experiência única na viagem.",
+          "amount": 920,
+          "category": "Lua de Mel",
+          "icon": "✨",
+          "enabled": true
+        },
+        {
+          "id": "cota-lua-de-mel-completa",
+          "name": "Cota Lua de Mel Completa",
+          "description": "Contribuição para tornar essa viagem perfeita.",
+          "amount": 999,
+          "category": "Lua de Mel",
+          "icon": "💛",
+          "enabled": true
+        }
+      ]
+    }
   },
   "media": {
     "heroImage": "assets/images/couple/casal.png",
