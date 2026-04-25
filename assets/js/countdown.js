@@ -1,3 +1,25 @@
+export function calculateCountdown(targetDateTs, nowTs = Date.now()) {
+    const distance = targetDateTs - nowTs;
+
+    if (distance <= 0) {
+        return {
+            isFinished: true,
+            days: 0,
+            hours: 0,
+            minutes: 0,
+            seconds: 0
+        };
+    }
+
+    return {
+        isFinished: false,
+        days: Math.floor(distance / 86400000),
+        hours: Math.floor((distance % 86400000) / 3600000),
+        minutes: Math.floor((distance % 3600000) / 60000),
+        seconds: Math.floor((distance % 60000) / 1000)
+    };
+}
+
 export class Countdown {
     constructor(targetDate, config = {}) {
         this.targetDate = new Date(targetDate).getTime();
@@ -25,24 +47,18 @@ export class Countdown {
     }
 
     update() {
-        const now = Date.now();
-        const distance = this.targetDate - now;
+        const result = calculateCountdown(this.targetDate, Date.now());
 
-        if (distance <= 0) {
+        if (result.isFinished) {
             this.stop();
             this.displayFinished();
             return;
         }
 
-        const days = Math.floor(distance / 86400000);
-        const hours = Math.floor((distance % 86400000) / 3600000);
-        const minutes = Math.floor((distance % 3600000) / 60000);
-        const seconds = Math.floor((distance % 60000) / 1000);
-
-        this.elements.days.textContent = this.formatNumber(days);
-        this.elements.hours.textContent = this.formatNumber(hours);
-        this.elements.minutes.textContent = this.formatNumber(minutes);
-        this.elements.seconds.textContent = this.formatNumber(seconds);
+        this.elements.days.textContent = this.formatNumber(result.days);
+        this.elements.hours.textContent = this.formatNumber(result.hours);
+        this.elements.minutes.textContent = this.formatNumber(result.minutes);
+        this.elements.seconds.textContent = this.formatNumber(result.seconds);
     }
 
     displayFinished() {
@@ -53,7 +69,7 @@ export class Countdown {
 
         const message = document.createElement('p');
         message.className = 'countdown-finished';
-        message.textContent = 'O grande dia chegou.';
+        message.textContent = this.config.texts?.countdownFinished || 'O grande dia chegou.';
         this.container.appendChild(message);
     }
 

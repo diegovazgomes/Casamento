@@ -1,0 +1,154 @@
+# Regras de Implementação — Convite de Casamento Siannah & Diego
+# Leia este arquivo inteiro antes de qualquer implementação.
+
+---
+
+## IDENTIDADE DO PROJETO
+
+Este é um site estático de convite de casamento sem framework, sem build step e sem gerenciador de dependências.
+Toda a lógica roda no navegador com HTML, CSS, JavaScript (ES Modules) e JSON de configuração.
+
+Arquivos centrais:
+- `assets/js/script.js` → entry point e orquestrador principal
+- `assets/config/site.json` → fonte de verdade de todo conteúdo
+- `assets/config/themes/*.json` → definição visual por tema
+- `assets/config/typography.json` → famílias tipográficas disponíveis
+- `editor.html` + `assets/js/editor.js` → painel de edição visual do site.json
+- `ROADMAP.md` → checklist de progresso do projeto
+
+---
+
+## REGRA PRINCIPAL — OBRIGATÓRIA EM TODA IMPLEMENTAÇÃO
+
+Antes de escrever qualquer linha de código, responda mentalmente:
+
+1. O conteúdo que estou adicionando vem do `site.json`?
+2. O campo correspondente existe no editor visual (`editor.html` + `assets/js/editor.js`)?
+3. O padrão segue a convenção já existente no projeto?
+4. Um segundo casal poderia usar isso sem reescrever o código?
+5. Os espaçamentos estão corretos e consistentes com o restante da UI?
+
+Se qualquer resposta for NÃO, ajuste antes de implementar.
+
+---
+
+## 1. ESCALABILIDADE — SEMPRE
+
+- NUNCA hardcode conteúdo no HTML. Nomes, datas, textos, links, imagens → tudo via `site.json`.
+- NUNCA use valores mágicos no CSS sem variável CSS correspondente.
+- SEMPRE pense: "Se outro casal usar este projeto, o que precisaria mudar?" — essa mudança deve ser apenas no `site.json`, não no código.
+- SEMPRE use o sistema de merge existente (`mergeDeep`) para sobrescritas de tema.
+- SEMPRE que adicionar um novo tipo de página extra, seguir o padrão de `historia.js`, `faq.js` e `hospedagem.js`.
+- SEMPRE que adicionar configuração nova, incluir valor padrão sensato em `assets/config/defaults/site.json` e garantir compatibilidade com o fallback mínimo de `script.js`.
+
+---
+
+## 2. EDITABILIDADE — PAINEL EDITOR
+
+Toda funcionalidade nova DEVE ter campo correspondente no editor visual (`editor.html` + `assets/js/editor.js`).
+
+Checklist obrigatório ao adicionar qualquer campo novo ao `site.json`:
+
+- [ ] Campo adicionado ao `site.json` com valor padrão
+- [ ] Campo adicionado ao `assets/config/defaults/site.json`
+- [ ] Campo renderizado na aba correta do editor visual (`editor.html` + `assets/js/editor.js`)
+- [ ] Campo tem label claro e descritivo (não o nome técnico da chave)
+- [ ] Campo tem placeholder explicativo quando aplicável
+- [ ] Campo tem validação básica (vazio, tipo, formato de URL, etc.)
+
+Exemplos de como nomear labels no editor:
+- `pixKey` → "Chave Pix do casal"
+- `heroImage` → "Foto principal do casal (URL)"
+- `cardPaymentLink` → "Link de pagamento por cartão (Mercado Pago)"
+- `gallery[].src` → "URL da foto"
+- `gallery[].alt` → "Descrição acessível da foto"
+
+---
+
+## 3. ESPAÇAMENTO E UI — ATENÇÃO REDOBRADA
+
+Este é um ponto crítico. Erros de espaçamento destroem a experiência premium do convite.
+
+### Regras de espaçamento:
+
+- Seções principais: `padding-top: 88px` e `padding-inline: 24px` no desktop; em telas pequenas o projeto reduz para `padding-top: 40px` e `padding-inline: 20px`
+- Entre tag e título de seção: `margin-bottom: 30px`
+- Entre título e corpo de seção: `margin-bottom: 22px`
+- Entre divisor e próxima seção/bloco: `margin-top: 56px`
+- Entre itens de lista ou cards: usar `gap: 12px`, `16px`, `22px` ou `40px` conforme o componente; o mínimo recorrente hoje é `12px` e o valor base mais comum é `16px`
+- Padding interno de cards padrão: `padding: 28px`; exceção importante: card de RSVP usa `padding-block: 48px` e `padding-inline: 32px`
+- Padding interno de botões principais: `padding-block: 16px` e `padding-inline: 32px`; inputs do RSVP usam `padding-block: 14px` e `padding-inline: 18px`
+
+### Regras tipográficas:
+
+- Tags de seção (ex: "PRESENTE", "FAQ"): no tema atual a role `eyebrow` usa `font-family: 'Jost'`, `font-size: 12px`, `font-weight: 300`, `letter-spacing: 0.05em`, `text-transform: uppercase`, `line-height: 1.2`
+- Títulos de seção: `font-family: 'Cormorant Garamond'`, `font-size: clamp(34px, 7vw, 56px)`, `font-weight: 300`, `line-height: 1.2`
+- Corpo de texto: `font-family: 'Jost'`, `font-size: 13px`, `line-height: 1.6`, `font-weight: 300`
+- Subtítulos/apoio de seção: `font-family: 'Jost'`, `font-size: 13px`, `line-height: 1.5`, `font-weight: 300`
+- Labels de card: os tamanhos pequenos reais do projeto variam entre `8px` e `10px`; para labels de detalhe use `8px`, para botões/choices use `10px`
+- Evite `font-size` abaixo de `9px` em componentes novos; exceção: o projeto atual já usa `8px` em alguns labels de detalhe legados
+- Nunca use `line-height` abaixo de `1.4` em textos corridos
+
+
+## 4. CONVENÇÕES DE CÓDIGO
+
+### JavaScript:
+- SEMPRE usar ES Modules (`import`/`export`) — sem CommonJS
+- NUNCA usar `var` — usar `const` e `let`
+- Funções utilitárias repetidas (ex: `setText()`) DEVEM vir de `assets/js/utils.js`
+- NUNCA duplicar funções que já existem em outro arquivo
+- Novos módulos de página DEVEM seguir o padrão: esperar `app:ready`, ler `detail.config`, preencher DOM
+- SEMPRE adicionar `try/catch` em operações de `fetch()` e `localStorage`/`sessionStorage`
+
+### CSS:
+- SEMPRE usar variáveis CSS (`var(--gold)`, `var(--cream)`, etc.) — nunca valores hardcoded de cor
+- NUNCA usar `!important` sem justificativa explícita em comentário
+- Classes de estado: `.is-open`, `.is-visible`, `.is-active`, `.is-loaded`
+- Classes de animação: `.reveal`, `.visible`, `.fade-in`
+- SEMPRE usar `transition` em elementos interativos (hover, focus)
+- SEMPRE incluir `outline` acessível em elementos focáveis
+
+### HTML:
+- SEMPRE incluir `aria-label` em botões sem texto descritivo
+- SEMPRE incluir `alt` em imagens
+- NUNCA usar `<table>` para layout
+- IDs são para JavaScript (`#rsvp-name`), classes são para CSS (`.rsvp-input`)
+- Seguir nomenclatura existente: `section-tag`, `section-title`, `section-body`
+
+---
+
+
+
+## 8. APÓS CADA IMPLEMENTAÇÃO — OBRIGATÓRIO
+
+1. Atualizar `ROADMAP.md`:
+   - Marcar item como `[x]` se concluído
+   - Adicionar nota com o que foi feito e data
+   - Se surgiram novos itens durante a implementação, adicionar em "Descobertas"
+
+2. Verificar:
+   - O `site.json` tem o novo campo com valor padrão?
+  - O editor visual (`editor.html` + `assets/js/editor.js`) tem o campo correspondente?
+  - O `assets/config/defaults/site.json` foi atualizado?
+   - Os espaçamentos estão consistentes com o restante da UI?
+   - Funciona em mobile (viewport 375px)?
+
+3. Nunca deixar `console.log()` de debug no código final. Usar `console.warn()` para avisos reais.
+
+4. Sempre evitar quebrar código ou fazer alterações de algo que não tenha sido solicitado para aquela modificação
+
+5. Sempre que implementar uma alteração, seja sucinto mas preciso com ao informar o que foi feito, por último sempre explane como essa modificalção pode ser percebida e como testá-la.
+
+6. Sempre que fizer uma alteração que seja de frontend e que seja texto que apareça ao usuário, SEMPRE verifique ortografia e pontuação.
+
+---
+
+## 9. O QUE NUNCA FAZER
+
+- NUNCA reescrever `script.js` inteiro — é o coração do sistema
+- NUNCA remover o sistema de fallback (`assets/config/defaults/theme.json`, `assets/config/defaults/site.json` e a rede de segurança mínima em `script.js`)
+- NUNCA quebrar o evento `app:ready` — todas as páginas extras dependem dele
+- NUNCA usar `document.write()`
+- NUNCA usar `innerHTML` com conteúdo vindo diretamente do usuário sem sanitização
+- NUNCA criar dependência de biblioteca externa sem discutir primeiro
+- NUNCA hardcodar textos em português dentro do JavaScript — sempre via `site.json`

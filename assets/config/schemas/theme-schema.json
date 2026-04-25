@@ -1,0 +1,278 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Wedding Theme Configuration",
+  "description": "Schema de validação para arquivos de tema em assets/config/themes/*.json",
+  "type": "object",
+  "required": ["meta", "colors", "typography", "spacing", "layout", "components", "radius", "effects", "animation", "countdown"],
+  "properties": {
+    "meta": {
+      "type": "object",
+      "description": "Metadados do tema",
+      "required": ["name", "description"],
+      "properties": {
+        "name": { "type": "string", "description": "Nome do tema" },
+        "description": { "type": "string", "description": "Descrição do tema" }
+      }
+    },
+    "colors": {
+      "type": "object",
+      "description": "Paleta de cores do tema",
+      "required": [
+        "background", "surface", "surfaceSoft",
+        "primary", "primarySoft",
+        "text", "textMuted", "textSoft", "textDim", "textFaint", "textPlaceholder",
+        "border", "borderSoft", "borderStrong",
+        "overlayBackdrop", "audioPanelBg", "audioPanelHoverBg", "audioPanelBorder",
+        "pulseRing", "pulseRingSpread", "inputFocusBg"
+      ],
+      "properties": {
+        "background": { "type": "string" },
+        "surface": { "type": "string" },
+        "surfaceSoft": { "type": "string" },
+        "primary": { "type": "string" },
+        "primarySoft": { "type": "string" },
+        "primaryGlow": { "type": "string" },
+        "text": { "type": "string" },
+        "textMuted": { "type": "string" },
+        "textSoft": { "type": "string" },
+        "textDim": { "type": "string" },
+        "textFaint": { "type": "string" },
+        "textPlaceholder": { "type": "string" },
+        "border": { "type": "string" },
+        "borderSoft": { "type": "string" },
+        "borderStrong": { "type": "string" },
+        "goldSurfaceSoft": { "type": "string" },
+        "goldSurface": { "type": "string" },
+        "goldSurfaceStrong": { "type": "string" },
+        "pageGridLine": { "type": "string" },
+        "overlayBackdrop": { "type": "string" },
+        "audioPanelBg": { "type": "string" },
+        "audioPanelHoverBg": { "type": "string" },
+        "audioPanelBorder": { "type": "string" },
+        "pulseRing": { "type": "string" },
+        "pulseRingSpread": { "type": "string" },
+        "inputFocusBg": { "type": "string" }
+      }
+    },
+    "typography": {
+      "type": "object",
+      "description": "Configuração tipográfica",
+      "required": ["fonts", "sizes", "roles"],
+      "properties": {
+        "fonts": {
+          "type": "object",
+          "required": ["primary", "serif", "accent"],
+          "properties": {
+            "primary": { "type": "string", "description": "Font-family principal (ex: 'Jost', sans-serif)" },
+            "serif": { "type": "string", "description": "Font-family serif" },
+            "accent": { "type": "string", "description": "Font-family de destaque/script" }
+          }
+        },
+        "sizes": {
+          "type": "object",
+          "description": "Tamanhos tipográficos por elemento",
+          "properties": {
+            "base": { "type": "string" },
+            "heroLabel": { "type": "string" },
+            "heroDate": { "type": "string" },
+            "heroNames": {},
+            "scrollHint": { "type": "string" },
+            "sectionTag": { "type": "string" },
+            "sectionTitle": {},
+            "sectionBody": { "type": "string" },
+            "countdownNumber": { "type": "string" },
+            "countdownLabel": { "type": "string" },
+            "countdownFinished": { "type": "string" },
+            "detailIcon": { "type": "string" },
+            "detailTitle": { "type": "string" },
+            "detailValue": { "type": "string" },
+            "detailSub": { "type": "string" },
+            "rsvpTitle": { "type": "string" },
+            "rsvpSubtitle": { "type": "string" },
+            "rsvpInput": { "type": "string" },
+            "rsvpChoice": { "type": "string" },
+            "rsvpSubmit": { "type": "string" },
+            "rsvpSuccessText": { "type": "string" },
+            "rsvpSuccessSub": { "type": "string" },
+            "footerNames": { "type": "string" },
+            "footerNote": { "type": "string" }
+          }
+        },
+        "roles": {
+          "type": "object",
+          "description": "Papéis tipográficos semânticos",
+          "properties": {
+            "heroTitle": { "$ref": "#/definitions/typographyRole" },
+            "heroSubtitle": { "$ref": "#/definitions/typographyRole" },
+            "eyebrow": { "$ref": "#/definitions/typographyRole" },
+            "sectionTitle": { "$ref": "#/definitions/typographyRole" },
+            "sectionSubtitle": { "$ref": "#/definitions/typographyRole" },
+            "body": { "$ref": "#/definitions/typographyRole" },
+            "formLabel": { "$ref": "#/definitions/typographyRole" },
+            "button": { "$ref": "#/definitions/typographyRole" },
+            "countdownNumber": { "$ref": "#/definitions/typographyRole" },
+            "footer": { "$ref": "#/definitions/typographyRole" }
+          }
+        }
+      }
+    },
+    "spacing": {
+      "type": "object",
+      "description": "Espaçamentos macro e micro",
+      "required": ["containerWidth", "sectionPaddingTop", "sectionPaddingInline"],
+      "properties": {
+        "containerWidth": { "type": "string" },
+        "cardPadding": { "type": "string" },
+        "sectionPaddingTop": { "type": "string" },
+        "sectionPaddingInline": { "type": "string" },
+        "detailsSectionPaddingTop": { "type": "string" },
+        "sectionTagGap": { "type": "string" },
+        "sectionTitleGap": { "type": "string" },
+        "heroLabelGap": { "type": "string" },
+        "heroDateGap": { "type": "string" },
+        "scrollHintBottom": { "type": "string" },
+        "scrollHintGap": { "type": "string" },
+        "dividerMarginTop": { "type": "string" },
+        "countdownMarginTop": { "type": "string" },
+        "countdownGap": { "type": "string" },
+        "detailsMarginTop": { "type": "string" },
+        "detailsGridGap": { "type": "string" },
+        "detailCardPaddingBlock": { "type": "string" },
+        "detailCardPaddingInline": { "type": "string" },
+        "rsvpShellPaddingBottom": { "type": "string" },
+        "rsvpCardMarginTop": { "type": "string" },
+        "rsvpCardPaddingBlock": { "type": "string" },
+        "rsvpCardPaddingInline": { "type": "string" },
+        "rsvpSubtitleGap": { "type": "string" },
+        "rsvpFormGap": { "type": "string" },
+        "rsvpChoiceGap": { "type": "string" },
+        "rsvpSubmitMarginTop": { "type": "string" },
+        "footerPaddingBottom": { "type": "string" }
+      }
+    },
+    "layout": {
+      "type": "object",
+      "description": "Dimensões e layout macro",
+      "required": ["heroHeight", "contentMaxWidth"],
+      "properties": {
+        "heroHeight": { "type": "string" },
+        "heroPadding": { "type": "string" },
+        "heroContentWidth": { "type": "string" },
+        "heroContentPaddingBottom": { "type": "string" },
+        "heroFadeOffset": { "type": "string" },
+        "contentMaxWidth": { "type": "string" }
+      }
+    },
+    "components": {
+      "type": "object",
+      "description": "Dimensões de componentes específicos",
+      "properties": {
+        "dividerWidth": { "type": "string" },
+        "dividerDiamond": { "type": "string" },
+        "scrollArrowWidth": { "type": "string" },
+        "scrollArrowHeight": { "type": "string" },
+        "scrollArrowStemHeight": { "type": "string" },
+        "scrollArrowHeadSize": { "type": "string" },
+        "countdownCardPaddingTop": { "type": "string" },
+        "countdownCardPaddingInline": { "type": "string" },
+        "countdownCardPaddingBottom": { "type": "string" },
+        "rsvpInputPaddingBlock": { "type": "string" },
+        "rsvpInputPaddingInline": { "type": "string" },
+        "rsvpChoiceMinHeight": { "type": "string" },
+        "rsvpChoicePadding": { "type": "string" },
+        "rsvpSubmitPaddingBlock": { "type": "string" },
+        "rsvpSubmitPaddingInline": { "type": "string" },
+        "rsvpSuccessIcon": { "type": "string" }
+      }
+    },
+    "radius": {
+      "type": "object",
+      "description": "Arredondamento de bordas",
+      "properties": {
+        "card": { "type": "string" },
+        "button": { "type": "string" }
+      }
+    },
+    "effects": {
+      "type": "object",
+      "description": "Sombras, gradientes e transições",
+      "required": ["transition"],
+      "properties": {
+        "shadowSoft": { "type": "string" },
+        "shadowHover": { "type": "string" },
+        "textShadowStrong": { "type": "string" },
+        "textShadowSoft": { "type": "string" },
+        "focusRing": { "type": "string" },
+        "transition": { "type": "string" },
+        "pageGradient": { "type": "string" },
+        "introBackdropGradient": { "type": "string" },
+        "introCardGradient": { "type": "string" },
+        "buttonFillGradient": { "type": "string" },
+        "heroOverlayGradient": { "type": "string" },
+        "overlayPanelGradient": { "type": "string" },
+        "overlayCloseGradient": { "type": "string" },
+        "rsvpPanelGradient": { "type": "string" },
+        "giftPanelGradient": { "type": "string" }
+      }
+    },
+    "animation": {
+      "type": "object",
+      "description": "Configurações de animação",
+      "required": ["fadeDuration", "staggerDelay"],
+      "properties": {
+        "fadeDuration": { "type": "string" },
+        "staggerDelay": { "type": "string" },
+        "heroFadeDuration": { "type": "string" },
+        "heroRevealDelayMs": { "type": "number", "minimum": 0 }
+      }
+    },
+    "countdown": {
+      "type": "object",
+      "description": "Configuração do contador regressivo",
+      "required": ["format", "updateInterval"],
+      "properties": {
+        "format": {
+          "type": "string",
+          "enum": ["two-digits", "single"],
+          "description": "Formato dos números do contador"
+        },
+        "updateInterval": {
+          "type": "number",
+          "minimum": 100,
+          "description": "Intervalo de atualização em milissegundos"
+        }
+      }
+    },
+    "responsive": {
+      "type": "object",
+      "description": "Sobreposições responsivas",
+      "properties": {
+        "mobile": {
+          "type": "object",
+          "description": "Sobreposições para viewport mobile (max-width: 767px)",
+          "properties": {
+            "typography": { "type": "object" },
+            "spacing": { "type": "object" },
+            "layout": { "type": "object" },
+            "animation": { "type": "object" }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "typographyRole": {
+      "type": "object",
+      "required": ["family", "weight", "lineHeight", "style"],
+      "properties": {
+        "family": { "type": "string", "description": "Chave da família tipográfica (ex: jost, cormorant_garamond)" },
+        "size": { "description": "Tamanho da fonte (string px ou objeto {min, fluid, max})" },
+        "weight": { "type": "number", "description": "Peso da fonte" },
+        "lineHeight": { "type": "number", "description": "Altura de linha" },
+        "style": { "type": "string", "enum": ["normal", "italic"], "description": "Estilo da fonte" },
+        "textTransform": { "type": "string" },
+        "letterSpacing": { "type": "string" }
+      }
+    }
+  }
+}

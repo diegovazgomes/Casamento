@@ -3,12 +3,51 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <meta name="description" content="Siannah e Diego convidam você para celebrar o casamento em uma noite elegante e inesquecível.">
+    <meta name="description" content="">
     <meta name="theme-color" content="#1a1714">
-    <title>Siannah & Diego - Casamento</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond&family=Jost&family=Great+Vibes&family=Allura&family=Parisienne&family=Pinyon+Script&family=Rouge+Script&family=Tangerine:wght@400;700&display=swap" rel="stylesheet">
+    <title></title>
+    <script>
+        (function () {
+            var invitationStarted = false;
+            var navigationTarget = null;
+
+            try {
+                invitationStarted = window.sessionStorage.getItem('wedding-invitation-started') === 'true';
+            } catch (error) {
+                invitationStarted = false;
+            }
+
+            var guestToken = null;
+
+            try {
+                var searchParams = new URL(window.location.href).searchParams;
+                navigationTarget = searchParams.get('section');
+                guestToken = searchParams.get('g') || null;
+            } catch (error) {
+                navigationTarget = null;
+                guestToken = null;
+            }
+
+            if ('scrollRestoration' in window.history) {
+                window.history.scrollRestoration = 'manual';
+            }
+
+            window.__INVITATION_BOOTSTRAP__ = {
+                navigationTarget: navigationTarget,
+                guestToken: guestToken,
+                shouldSkipIntro: invitationStarted || Boolean(navigationTarget)
+            };
+
+            if (window.__INVITATION_BOOTSTRAP__.shouldSkipIntro) {
+                document.documentElement.classList.add('skip-intro');
+            }
+        })();
+    </script>
+    <script type="module">
+        // Inicializa loading screen de forma centralizada
+        import { initLoadingScreen } from './assets/js/loading-screen.js';
+        initLoadingScreen();
+    </script>
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="assets/css/animations.css">
 </head>
@@ -16,9 +55,9 @@
     <div class="intro-screen" id="introScreen" aria-labelledby="introScreenTitle">
         <div class="intro-screen__backdrop" aria-hidden="true"></div>
         <div class="intro-screen__content">
-            <p class="intro-screen__label">Convite</p>
-            <h1 class="intro-screen__names" id="introScreenTitle">Siannah <span>&</span> Diego</h1>
-            <p class="intro-screen__note">Seguimos escolhendo um ao outro, agora para todo sempre.</p>
+            <p class="intro-screen__label" id="introLabel"></p>
+            <h1 class="intro-screen__names" id="introScreenTitle"></h1>
+            <p class="intro-screen__note" id="introNote"></p>
             <button class="intro-screen__open" id="openInviteButton" type="button">Abrir convite</button>
         </div>
     </div>
@@ -30,18 +69,19 @@
                 id="couplePhoto"
                 class="hero-photo"
                 src="assets/images/couple/casal.png"
-                alt="Siannah e Diego em retrato do casal"
+                alt=""
             >
             <div class="hero-overlay" aria-hidden="true"></div>
 
             <div class="hero-content">
-                <p class="hero-label">Você foi convidado para o casamento de</p>
-                <h1 class="hero-names">
-                    <em>Siannah</em>
+                <p class="guest-greeting" id="guestGreeting" hidden></p>
+                <p class="hero-label" id="heroLabel"></p>
+                <h1 class="hero-names" id="heroNames">
+                    <em id="heroName1"></em>
                     <span class="hero-ampersand">&</span>
-                    <em>Diego</em>
+                    <em id="heroName2"></em>
                 </h1>
-                <p class="hero-date">06 . 09 . 2026</p>
+                <p class="hero-date" id="heroDate"></p>
             </div>
 
             <button class="scroll-hint" type="button" data-scroll-target="#countdown" aria-label="Ir para a contagem regressiva">
@@ -51,8 +91,8 @@
         </section>
 
         <section id="countdown" class="content-section">
-            <span class="section-tag reveal">Contagem Regressiva</span>
-            <h2 class="section-title reveal">O grande dia se aproxima!</h2>
+            <span class="section-tag reveal" id="countdownTag">Contagem Regressiva</span>
+            <h2 class="section-title reveal" id="countdownTitle">O grande dia se aproxima!</h2>
             <div class="countdown-wrap reveal" id="countdownWrap" aria-live="polite">
                 <div class="countdown-block">
                     <span class="countdown-num" id="cd-days">--</span>
@@ -80,49 +120,50 @@
         </div>
 
         <section id="details" class="content-section">
-            <span class="section-tag reveal">Detalhes da Cerimônia</span>
-            <h2 class="section-title reveal">O início de tudo o que queremos viver juntos.</h2>
-            <p class="section-body reveal">
+            <span class="section-tag reveal" id="detailsTag">Detalhes da Cerimônia</span>
+            <h2 class="section-title reveal" id="detailsTitle">O início de tudo o que queremos viver juntos.</h2>
+            <p class="section-body reveal" id="detailsIntro">
                 Uma celebração íntima, pensada para compartilhar esse momento com quem faz parte da nossa história.
             </p>
             <div class="details-grid reveal" id="detailsGrid">
                 <article class="detail-card">
-                    <span class="detail-icon" aria-hidden="true">📅</span>
-                    <span class="detail-title">Data</span>
-                    <div class="detail-value">06 Set 2026</div>
-                    <span class="detail-sub">Domingo</span>
+                    <span class="detail-icon" aria-hidden="true" id="detailDateIcon">📅</span>
+                    <span class="detail-title" id="detailDateTitle"></span>
+                    <div class="detail-value" id="detailDateValue"></div>
+                    <span class="detail-sub" id="detailDateSub"></span>
                 </article>
                 <article class="detail-card">
-                    <span class="detail-icon" aria-hidden="true">🕔</span>
-                    <span class="detail-title">Horário</span>
-                    <div class="detail-value">17:00</div>
-                    <span class="detail-sub">Horário de Brasília</span>
+                    <span class="detail-icon" aria-hidden="true" id="detailTimeIcon">🕔</span>
+                    <span class="detail-title" id="detailTimeTitle"></span>
+                    <div class="detail-value" id="detailTimeValue"></div>
+                    <span class="detail-sub" id="detailTimeSub"></span>
                 </article>
                 <a
+                    id="detailLocationLink"
                     class="detail-card detail-card-link"
-                    href="https://share.google/7Qt15gWSb3IAGGofM"
+                    href=""
                     target="_blank"
                     rel="noopener noreferrer"
-                    aria-label="Abrir localização da Mansão Ilha de Capri no mapa"
+                    aria-label=""
                 >
-                    <span class="detail-icon" aria-hidden="true">🏛️</span>
-                    <span class="detail-title">Local</span>
-                    <div class="detail-value">Mansão Ilha de Capri</div>
-                    <span class="detail-sub">São Bernardo do Campo</span>
-                    <span class="detail-link-hint">📍 Abrir no mapa</span>
+                    <span class="detail-icon" aria-hidden="true" id="detailLocationIcon">🏛️</span>
+                    <span class="detail-title" id="detailLocationTitle"></span>
+                    <div class="detail-value" id="detailLocationName"></div>
+                    <span class="detail-sub" id="detailLocationCity"></span>
+                    <span class="detail-link-hint" id="detailLocationHint"></span>
                 </a>
                 <article class="detail-card">
-                    <span class="detail-icon" aria-hidden="true">💍</span>
-                    <span class="detail-title">Ocasião</span>
-                    <div class="detail-value">Cerimônia & Recepção</div>
-                    <span class="detail-sub">Traje esporte fino</span>
+                    <span class="detail-icon" aria-hidden="true" id="detailOccasionIcon">💍</span>
+                    <span class="detail-title" id="detailOccasionTitle"></span>
+                    <div class="detail-value" id="detailOccasionValue"></div>
+                    <span class="detail-sub" id="detailOccasionSub"></span>
                 </article>
-                <button class="detail-card detail-card-link detail-card-gift" type="button" data-open-gift-overlay aria-label="Abrir área de presentes">
-                    <span class="detail-icon" aria-hidden="true">🎁</span>
-                    <span class="detail-title">Presente</span>
-                    <div class="detail-value">Para nos presentear</div>
-                    <span class="detail-sub">Abrir opções</span>
-                </button>
+                <a class="detail-card detail-card-link detail-card-gift" href="presente.html" aria-label="Abrir área de presentes">
+                    <span class="detail-icon" aria-hidden="true" id="detailGiftIcon">🎁</span>
+                    <span class="detail-title" id="detailGiftTitle">Presente</span>
+                    <div class="detail-value" id="detailGiftValue">Para nos presentear</div>
+                    <span class="detail-sub" id="detailGiftSub">Abrir opções</span>
+                </a>
             </div>
         </section>
 
@@ -132,117 +173,76 @@
             <div class="divider-line"></div>
         </div>
 
+        <section id="extras" class="content-section extras-section" hidden>
+            <span class="section-tag reveal" id="extrasTag">Explore</span>
+            <h2 class="section-title reveal" id="extrasTitle">Tem mais para você.</h2>
+            <div class="extras-grid reveal" id="extrasGrid"></div>
+        </section>
+
+        <div class="divider extras-divider reveal" aria-hidden="true" hidden>
+            <div class="divider-line"></div>
+            <div class="divider-diamond"></div>
+            <div class="divider-line"></div>
+        </div>
+
         <section id="rsvp" class="content-section rsvp-shell">
-            <span class="section-tag reveal">Confirmação de Presença</span>
-            <h2 class="section-title reveal">Esperamos você.</h2>
-            <p class="section-body reveal">
+            <span class="section-tag reveal" id="rsvpTag">Confirmação de Presença</span>
+            <h2 class="section-title reveal" id="rsvpSectionTitle">Esperamos você.</h2>
+            <p class="section-body reveal" id="rsvpSectionBody">
                 Pedimos, por gentileza, que confirme sua presença o quanto antes.
                 Sua presença tornará este momento ainda mais especial para nós.
             </p>
 
             <div class="rsvp-section reveal" id="rsvpSection">
                 <div class="rsvp-flow" id="rsvpFlow">
-                    <p class="rsvp-title">Confirmar Presença</p>
-                    <p class="rsvp-subtitle">Preencha os dados para continuar no WhatsApp</p>
+                    <p class="rsvp-title" id="rsvpFormTitle">Confirmar Presença</p>
+                    <p class="rsvp-subtitle" id="rsvpFormSubtitle">Preencha os dados para continuar no WhatsApp</p>
 
-                    <form class="rsvp-form" id="rsvpForm">
-                        <input class="rsvp-input" type="text" placeholder="Seu nome completo" required id="rsvp-name" name="name">
-                        <input class="rsvp-input" type="tel" placeholder="Seu WhatsApp" required id="rsvp-phone" name="phone">
+                    <p class="rsvp-slot-counter" id="rsvpSlotCounter" hidden></p>
+
+                    <form class="rsvp-form" id="rsvpForm" novalidate>
+                        <input class="rsvp-input" type="text" placeholder="Seu nome completo" required id="rsvp-name" name="name" autocomplete="name" aria-required="true" aria-label="Nome completo" aria-describedby="rsvp-name-error">
+                        <p class="rsvp-field-error" id="rsvp-name-error" hidden></p>
+                        <input class="rsvp-input" type="tel" placeholder="Seu WhatsApp" required id="rsvp-phone" name="phone" autocomplete="tel" inputmode="tel" aria-required="true" aria-label="WhatsApp" aria-describedby="rsvp-phone-error">
+                        <p class="rsvp-field-error" id="rsvp-phone-error" hidden></p>
                         <input type="hidden" id="rsvp-attendance" name="attendance" value="yes">
 
                         <div class="rsvp-btns" role="group" aria-label="Escolha de presença">
-                            <button type="button" class="rsvp-btn-choice active" id="btn-yes" data-attend="yes">Confirmo presença</button>
-                            <button type="button" class="rsvp-btn-choice" id="btn-no" data-attend="no">Não poderei ir</button>
+                            <button type="button" class="rsvp-btn-choice active" id="btn-yes" data-attend="yes" aria-label="Confirmo presença">Confirmo presença</button>
+                            <button type="button" class="rsvp-btn-choice" id="btn-no" data-attend="no" aria-label="Não poderei ir">Não poderei ir</button>
                         </div>
 
-                        <button class="rsvp-submit" type="submit">Continuar no WhatsApp</button>
+                        <div class="rsvp-consent" id="rsvpConsentWrap">
+                            <label class="rsvp-consent-label">
+                                <input type="checkbox" id="rsvp-marketing-consent" name="marketing_consent">
+                                <span>Quero receber novidades sobre convites digitais da plataforma que criou este convite</span>
+                            </label>
+                        </div>
+
+                        <button class="rsvp-submit" id="rsvpSubmit" type="submit" aria-label="Enviar confirmação aos noivos">Enviar confirmação aos noivos</button>
                     </form>
+
+                    <div class="rsvp-blocked" id="rsvpBlocked" hidden role="status">
+                        <p>Este convite já atingiu o limite de confirmações. Entre em contato com os noivos.</p>
+                    </div>
                 </div>
 
-                <div class="rsvp-success" id="rsvpSuccess" aria-live="polite">
+                <div class="rsvp-success" id="rsvpSuccess" role="status" aria-live="polite" aria-atomic="true">
                     <div class="rsvp-success-icon">&#10084;</div>
                     <div class="rsvp-success-text" id="successMsg">Até lá!</div>
                     <p class="rsvp-success-sub" id="successSub"></p>
                     <p class="rsvp-success-note" id="successNote"></p>
+                    <p class="rsvp-success-hint" id="successHint" hidden></p>
+                    <a class="rsvp-submit rsvp-submit-secondary" id="successContactButton" href="#" target="_blank" rel="noopener noreferrer" hidden>Falar com os noivos no WhatsApp</a>
                 </div>
             </div>
         </section>
 
-        <div class="gift-overlay-shell" id="giftOverlay" hidden aria-hidden="true">
-            <div class="gift-overlay-backdrop" data-close-gift-overlay aria-hidden="true"></div>
-            <section class="gift-overlay-panel" role="dialog" aria-modal="true" aria-labelledby="giftOverlayTitle">
-                <button class="gift-overlay-close" type="button" data-close-gift-overlay aria-label="Fechar área de presentes">Fechar</button>
-
-                <section class="content-section gift-intro gift-overlay-intro">
-                    <span class="section-tag">Presente</span>
-                    <h2 class="section-title" id="giftOverlayTitle">Para nos presentear</h2>
-                    <p class="section-body">
-                        Sua presença já é o nosso maior presente. Mas, se desejar nos presentear de outra forma,
-                        deixamos abaixo algumas opções com carinho.
-                    </p>
-                </section>
-
-                <div class="divider gift-overlay-divider" aria-hidden="true">
-                    <div class="divider-line"></div>
-                    <div class="divider-diamond"></div>
-                    <div class="divider-line"></div>
-                </div>
-
-                <section class="content-section gift-shell gift-overlay-content">
-                    <div class="gift-grid">
-                        <article class="gift-panel gift-panel-pix">
-                            <span class="gift-panel-tag">Pix</span>
-                            <h3 class="gift-panel-title">Pix do casal</h3>
-                            <p class="gift-panel-body">
-                                Se preferir, você pode nos presentear por Pix usando o QR Code ou o código abaixo.
-                            </p>
-
-                            <div class="gift-qr-frame">
-                                <img src="assets/images/icons/pix-placeholder.svg" alt="Placeholder do QR Code para pagamento via Pix">
-                            </div>
-
-                            <p class="gift-copy-label">Pix copia e cola</p>
-                            <code class="gift-copy-code" id="pixCode">CHAVE_PIX_OU_CODIGO_COPIA_E_COLA_AQUI</code>
-
-                            <button
-                                class="gift-copy-button"
-                                type="button"
-                                data-copy-value="CHAVE_PIX_OU_CODIGO_COPIA_E_COLA_AQUI"
-                                data-copy-feedback-target="pixCopyFeedback"
-                            >
-                                Copiar código Pix
-                            </button>
-                            <p class="gift-feedback" id="pixCopyFeedback" aria-live="polite"></p>
-                        </article>
-
-                        <article class="gift-panel gift-panel-card">
-                            <span class="gift-panel-tag">Pagamento por cartão</span>
-                            <h3 class="gift-panel-title">Pagamento por cartão</h3>
-                            <p class="gift-panel-body">
-                                Em breve, esta opção estará disponível.
-                            </p>
-                            <div class="gift-card-placeholder">
-                                Espaço reservado para inserir o link ou a plataforma de pagamento por cartão.
-                            </div>
-                        </article>
-                    </div>
-
-                    <div class="gift-back-wrap">
-                        <button class="gift-back-link" type="button" data-close-gift-overlay data-scroll-target="#rsvp">Voltar para confirmação</button>
-                    </div>
-
-                    <footer class="gift-overlay-footer">
-                        <div class="footer-names">Siannah & Diego</div>
-                        <p class="footer-note">06 . 09 . 2026 | São Bernardo do Campo</p>
-                    </footer>
-                </section>
-            </section>
-        </div>
     </main>
 
     <footer>
-        <div class="footer-names">Siannah & Diego</div>
-        <p class="footer-note">06 . 09 . 2026 | São Bernardo do Campo</p>
+        <div class="footer-names" id="mainFooterNames"></div>
+        <p class="footer-note" id="mainFooterNote"></p>
     </footer>
     </div>
 

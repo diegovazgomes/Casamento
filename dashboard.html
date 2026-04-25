@@ -1,0 +1,1806 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard — Convite de Casamento</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Jost:wght@200;300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ══════════════════════════════════════════════════════════════════════════
+   TOKENS — padrão clássico silver
+   Valores sobrescritos em runtime pelo site.json via loadTheme()
+══════════════════════════════════════════════════════════════════════════ */
+:root {
+  --bg:            #0f0d0b;
+  --surface:       #1a1714;
+  --surface-2:     #201c18;
+  --surface-3:     #2a2520;
+  --primary:       #c0c0c0;
+  --primary-soft:  #e0e0e0;
+  --primary-glow:  rgba(192,192,192,0.08);
+  --text:          #faf7f2;
+  --text-soft:     rgba(250,247,242,0.75);
+  --text-dim:      rgba(250,247,242,0.50);
+  --text-faint:    rgba(250,247,242,0.30);
+  --border:        rgba(192,192,192,0.15);
+  --border-strong: rgba(192,192,192,0.30);
+  --success:       #7fb88f;
+  --danger:        #c97878;
+  --warning:       #e0b674;
+  --font-display:  'Cormorant Garamond', serif;
+  --font-sans:     'Jost', sans-serif;
+  --ease:          cubic-bezier(0.25,0.46,0.45,0.94);
+  --radius:        4px;
+  --shadow:        0 12px 40px rgba(0,0,0,0.35);
+  --shadow-soft:   0 4px 16px rgba(0,0,0,0.25);
+}
+ 
+/* Reset */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;overflow-x:hidden}
+body{
+  min-height:100vh;
+  background:var(--bg);
+  color:var(--text);
+  font-family:var(--font-sans);
+  font-weight:300;
+  font-size:14px;
+  line-height:1.5;
+  overflow-x:hidden;
+}
+img{display:block;max-width:100%}
+button{font:inherit;border:0;cursor:pointer;background:none;color:inherit}
+a{color:inherit;text-decoration:none}
+input,select,textarea{font:inherit;color:inherit}
+[hidden]{display:none!important}
+ 
+/* Grid de fundo sutil */
+body::before{
+  content:'';
+  position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:
+    linear-gradient(rgba(255,255,255,.01) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.01) 1px,transparent 1px);
+  background-size:48px 48px;opacity:.4;
+}
+ 
+/* ══ AUTH SCREEN ═══════════════════════════════════════════════════════════ */
+.auth-screen{
+  position:fixed;inset:0;z-index:100;
+  display:flex;align-items:center;justify-content:center;
+  padding:24px;
+  background:
+    radial-gradient(circle at 50% 20%,var(--primary-glow),transparent 40%),
+    linear-gradient(180deg,rgba(0,0,0,0.95) 0%,var(--bg) 100%);
+}
+.auth-card{
+  position:relative;z-index:1;
+  width:min(100%,420px);
+  padding:48px 36px;
+  background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(192,192,192,0.03));
+  border:1px solid var(--border);
+  box-shadow:var(--shadow);
+  text-align:center;
+}
+.auth-card::before,.auth-card::after{
+  content:'';position:absolute;left:24px;right:24px;height:1px;
+  background:linear-gradient(to right,transparent,var(--primary),transparent);
+  opacity:0.5;
+}
+.auth-card::before{top:0}.auth-card::after{bottom:0}
+ 
+.auth-label{
+  color:var(--primary-soft);
+  font-size:9px;letter-spacing:0.42em;text-transform:uppercase;font-weight:400;
+  margin-bottom:18px;
+}
+.auth-title{
+  font-family:var(--font-display);
+  font-size:36px;font-weight:400;font-style:italic;
+  color:var(--text);line-height:1.1;
+  margin-bottom:8px;
+}
+.auth-subtitle{
+  font-size:11px;letter-spacing:0.2em;text-transform:uppercase;
+  color:var(--text-dim);margin-bottom:32px;
+}
+.auth-form{display:flex;flex-direction:column;gap:16px}
+ 
+.field{display:flex;flex-direction:column;gap:8px;text-align:left}
+.field-label{
+  font-size:9px;font-weight:400;
+  letter-spacing:0.25em;text-transform:uppercase;color:var(--text-dim);
+}
+.field-input{
+  width:100%;
+  background:rgba(0,0,0,0.3);
+  border:1px solid var(--border);
+  color:var(--text);
+  padding:14px 16px;
+  font-size:13px;font-weight:300;
+  outline:none;transition:border-color 0.3s ease,background 0.3s ease;
+}
+.field-input::placeholder{color:var(--text-dim);font-style:italic}
+.field-input:focus{border-color:var(--primary);background:rgba(192,192,192,0.04)}
+ 
+.btn{
+  position:relative;overflow:hidden;
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  padding:14px 28px;
+  border:1px solid var(--border-strong);
+  background:transparent;color:var(--text);
+  font-size:10px;font-weight:400;
+  letter-spacing:0.3em;text-transform:uppercase;
+  transition:color 0.4s ease,border-color 0.4s ease;
+  white-space:nowrap;
+}
+.btn::before{
+  content:'';position:absolute;inset:0;
+  background:var(--primary);
+  transform:scaleX(0);transform-origin:left;
+  transition:transform 0.45s cubic-bezier(0.76,0,0.24,1);
+}
+.btn:hover::before{transform:scaleX(1)}
+.btn:hover{color:var(--bg);border-color:var(--primary)}
+.btn>*{position:relative;z-index:1}
+.btn-primary{border-color:var(--primary)}
+.btn-subtle{
+  padding:8px 16px;font-size:10px;letter-spacing:0.2em;
+  border-color:var(--border);
+}
+.btn-full{width:100%;margin-top:8px}
+.btn-danger{border-color:var(--danger);color:var(--danger)}
+.btn-danger::before{background:var(--danger)}
+.btn-danger:hover{color:var(--bg);border-color:var(--danger)}
+ 
+.alert{
+  padding:12px 16px;
+  border:1px solid var(--danger);
+  background:rgba(201,120,120,0.06);
+  color:var(--danger);
+  font-size:12px;letter-spacing:0.04em;
+  margin-bottom:16px;
+  text-align:left;
+}
+ 
+/* ══ DASHBOARD LAYOUT ══════════════════════════════════════════════════════ */
+.dashboard{display:none;position:relative;z-index:1}
+.dashboard.is-active{display:flex;min-height:100vh}
+ 
+/* Sidebar */
+.sidebar{
+  width:240px;flex-shrink:0;
+  background:var(--surface);
+  border-right:1px solid var(--border);
+  display:flex;flex-direction:column;
+  position:sticky;top:0;height:100vh;
+}
+.sidebar-brand{
+  padding:22px 22px 18px;
+  border-bottom:1px solid var(--border);
+  text-align:center;
+}
+.sidebar-brand-label{
+  display:block;
+  font-size:8px;letter-spacing:0.42em;text-transform:uppercase;
+  color:var(--primary-soft);
+  margin-bottom:6px;
+}
+.sidebar-brand-names{
+  font-family:var(--font-display);
+  font-size:21px;font-weight:400;font-style:italic;
+  color:var(--text);line-height:1.1;
+}
+.sidebar-brand-date{
+  font-size:9px;letter-spacing:0.28em;text-transform:uppercase;
+  color:var(--text-dim);margin-top:6px;
+}
+ 
+.sidebar-nav{
+  flex:1;padding:16px 0;
+  display:flex;flex-direction:column;gap:2px;
+  overflow-y:auto;
+}
+.nav-item{
+  display:flex;align-items:center;gap:12px;
+  padding:12px 24px;
+  border-left:2px solid transparent;
+  color:var(--text-dim);
+  font-size:12px;font-weight:400;
+  letter-spacing:0.14em;text-transform:uppercase;
+  transition:all 0.25s ease;
+  text-align:left;width:100%;
+}
+.nav-item:hover{color:var(--text-soft);background:rgba(255,255,255,0.02)}
+.nav-item.is-active{
+  color:var(--primary-soft);
+  border-left-color:var(--primary);
+  background:rgba(192,192,192,0.04);
+}
+.nav-icon{
+  width:16px;height:16px;flex-shrink:0;opacity:0.7;
+  display:flex;align-items:center;justify-content:center;
+}
+.nav-icon svg{width:100%;height:100%}
+ 
+.sidebar-footer{
+  padding:20px 24px;
+  border-top:1px solid var(--border);
+}
+.sidebar-status{
+  display:flex;align-items:center;gap:8px;
+  margin-bottom:14px;
+  font-size:10px;letter-spacing:0.18em;text-transform:uppercase;
+  color:var(--text-dim);
+}
+.sidebar-status-dot{
+  width:6px;height:6px;border-radius:50%;
+  background:var(--success);
+  animation:pulse 2.4s ease infinite;
+}
+@keyframes pulse{
+  0%,100%{opacity:1;transform:scale(1)}
+  50%{opacity:0.5;transform:scale(0.9)}
+}
+ 
+/* Main Content */
+.main{
+  flex:1;min-width:0;
+  display:flex;flex-direction:column;
+}
+.topbar{
+  padding:26px 40px 22px;
+  border-bottom:1px solid var(--border);
+  background:var(--surface);
+  display:flex;align-items:center;justify-content:space-between;gap:24px;
+  position:sticky;top:0;z-index:10;
+  backdrop-filter:blur(12px);
+}
+.topbar-left{min-width:0}
+.topbar-tag{
+  font-size:9px;letter-spacing:0.3em;text-transform:uppercase;
+  color:var(--primary-soft);margin-bottom:6px;
+}
+.topbar-title{
+  font-family:var(--font-display);
+  font-size:27px;font-weight:400;font-style:italic;
+  color:var(--text);line-height:1.15;
+}
+.topbar-actions{display:flex;align-items:center;gap:10px;flex-shrink:0}
+ 
+/* Content container */
+.content{
+  flex:1;padding:32px 40px 56px;
+  max-width:1400px;width:100%;
+}
+ 
+/* Tab content */
+.tab-content{display:none}
+.tab-content.is-active{display:block;animation:fadeIn 0.4s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+ 
+/* ══ SECTION ═══════════════════════════════════════════════════════════════ */
+.section{margin-bottom:40px}
+.section-head{
+  display:flex;justify-content:space-between;align-items:center;gap:16px;
+  margin-bottom:20px;flex-wrap:wrap;
+}
+.section-title{
+  font-family:var(--font-display);
+  font-size:20px;font-weight:500;
+  color:var(--text);letter-spacing:0.01em;
+}
+.section-sub{
+  font-size:12px;color:var(--text-dim);letter-spacing:0.04em;
+  margin-top:2px;
+}
+ 
+/* ══ CARDS ════════════════════════════════════════════════════════════════ */
+.card{
+  background:linear-gradient(180deg,var(--surface),var(--surface-2));
+  border:1px solid var(--border);
+  padding:28px;
+  box-shadow:var(--shadow-soft);
+  position:relative;overflow:hidden;
+  margin-bottom:20px;
+}
+.card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(to right,transparent 10%,var(--primary) 50%,transparent 90%);
+  opacity:0.3;
+}
+ 
+/* ══ STATS (KPI Cards) ═════════════════════════════════════════════════════ */
+.stats{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+  gap:1px;
+  background:var(--border);
+  border:1px solid var(--border);
+  margin-bottom:32px;
+}
+.stat{
+  padding:24px 28px;
+  background:linear-gradient(180deg,var(--surface),var(--surface-2));
+  position:relative;
+}
+.stat-label{
+  font-size:9px;font-weight:400;
+  letter-spacing:0.28em;text-transform:uppercase;
+  color:var(--text-dim);margin-bottom:12px;
+}
+.stat-value{
+  font-family:var(--font-display);
+  font-size:42px;font-weight:500;
+  color:var(--text);line-height:1;letter-spacing:-0.01em;
+}
+.stat-value.ok{color:var(--success)}
+.stat-value.warn{color:var(--warning)}
+.stat-value.err{color:var(--danger)}
+.stat-hint{
+  font-size:11px;color:var(--text-dim);margin-top:8px;letter-spacing:0.04em;
+}
+.stat-progress{
+  margin-top:14px;height:2px;background:rgba(255,255,255,0.05);overflow:hidden;
+}
+.stat-progress-bar{
+  height:100%;background:linear-gradient(to right,var(--primary),var(--primary-soft));
+  transition:width 0.6s ease;
+}
+ 
+/* ══ TABLE ════════════════════════════════════════════════════════════════ */
+.table-wrap{
+  position:relative;
+  background:linear-gradient(180deg,var(--surface),var(--surface-2));
+  border:1px solid var(--border);
+  overflow-x:auto;
+}
+.table-wrap::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(to right,transparent,var(--primary) 50%,transparent);
+  opacity:0.25;
+}
+.table{
+  width:100%;border-collapse:collapse;
+  font-size:13px;
+}
+.table th{
+  padding:16px 20px;text-align:left;
+  font-weight:400;font-size:9px;
+  letter-spacing:0.28em;text-transform:uppercase;
+  color:var(--text-dim);
+  background:rgba(0,0,0,0.2);
+  border-bottom:1px solid var(--border);
+  white-space:nowrap;
+}
+.table td{
+  padding:16px 20px;
+  border-bottom:1px solid rgba(192,192,192,0.06);
+  color:var(--text-soft);
+  vertical-align:middle;
+}
+.table tbody tr{transition:background 0.2s ease}
+.table tbody tr:hover{background:rgba(192,192,192,0.03)}
+.table tbody tr:last-child td{border-bottom:none}
+ 
+.cell-name{
+  font-family:var(--font-display);
+  font-size:16px;font-weight:500;
+  color:var(--text);letter-spacing:0.01em;
+}
+.cell-sub{font-size:11px;color:var(--text-dim);margin-top:2px;letter-spacing:0.04em}
+.cell-token{
+  font-family:monospace;font-size:11px;
+  background:rgba(0,0,0,0.3);padding:4px 8px;
+  border:1px solid var(--border);
+  color:var(--primary-soft);
+  letter-spacing:0.04em;
+}
+.cell-count{
+  font-family:var(--font-display);font-size:18px;font-weight:500;
+  color:var(--text);letter-spacing:0.01em;
+}
+.cell-count-sep{color:var(--text-dim);margin:0 4px;font-weight:300}
+ 
+/* Status badges */
+.badge{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:4px 10px;
+  font-size:9px;font-weight:400;
+  letter-spacing:0.2em;text-transform:uppercase;
+  border:1px solid transparent;
+}
+.badge::before{
+  content:'';width:5px;height:5px;border-radius:50%;
+  background:currentColor;flex-shrink:0;
+}
+.badge-ok{color:var(--success);border-color:rgba(127,184,143,0.35);background:rgba(127,184,143,0.06)}
+.badge-err{color:var(--danger);border-color:rgba(201,120,120,0.35);background:rgba(201,120,120,0.06)}
+.badge-warn{color:var(--warning);border-color:rgba(224,182,116,0.35);background:rgba(224,182,116,0.06)}
+.badge-neutral{color:var(--text-dim);border-color:var(--border);background:rgba(0,0,0,0.2)}
+ 
+/* Row actions */
+.row-actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.icon-btn{
+  display:inline-flex;flex-direction:column;align-items:center;justify-content:center;
+  min-width:44px;padding:7px 8px;gap:4px;
+  border:1px solid var(--border);
+  background:transparent;color:var(--text-dim);
+  transition:all 0.25s ease;
+}
+.icon-btn:hover{border-color:var(--primary);color:var(--primary-soft)}
+.icon-btn.danger:hover{border-color:var(--danger);color:var(--danger)}
+.icon-btn svg{width:14px;height:14px}
+.icon-btn-label{font-size:9px;letter-spacing:0.08em;text-transform:uppercase;line-height:1;color:inherit}
+ 
+/* ══ FILTERS ══════════════════════════════════════════════════════════════ */
+.filters{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+  gap:14px;
+  margin-bottom:20px;padding:20px;
+  background:var(--surface);
+  border:1px solid var(--border);
+}
+.filter{display:flex;flex-direction:column;gap:6px}
+.filter-label{
+  font-size:9px;font-weight:400;
+  letter-spacing:0.24em;text-transform:uppercase;color:var(--text-dim);
+}
+.filter-control{
+  background:rgba(0,0,0,0.3);
+  border:1px solid var(--border);
+  color:var(--text);
+  padding:10px 12px;
+  font-size:12px;font-weight:300;
+  outline:none;transition:border-color 0.25s ease;
+}
+.filter-control:focus{border-color:var(--primary)}
+.filter-actions{display:flex;align-items:flex-end}
+ 
+/* ══ EMPTY / LOADING ═══════════════════════════════════════════════════════ */
+.empty{
+  padding:32px 24px;text-align:center;
+  color:var(--text-dim);
+}
+.empty-icon{
+  font-size:32px;margin-bottom:16px;opacity:0.5;
+}
+.empty-title{
+  font-family:var(--font-display);
+  font-size:20px;font-style:italic;color:var(--text-soft);margin-bottom:8px;
+}
+.empty-text{font-size:12px;letter-spacing:0.04em;max-width:360px;margin:0 auto;line-height:1.7}
+ 
+.loading{
+  padding:32px 24px;
+  color:var(--text-dim);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  text-align:center;
+}
+.spinner{
+  display:block;
+  width:32px;height:32px;
+  border:2px solid var(--border);
+  border-top-color:var(--primary);
+  border-radius:50%;
+  animation:spin 1s linear infinite;
+  margin:0;
+  flex-shrink:0;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+ 
+/* ══ PAGINATION ═══════════════════════════════════════════════════════════ */
+.pagination{
+  display:flex;justify-content:center;align-items:center;gap:6px;
+  padding:20px;
+  border-top:1px solid var(--border);
+}
+.page-btn{
+  min-width:32px;padding:6px 10px;
+  border:1px solid var(--border);
+  background:transparent;color:var(--text-dim);
+  font-size:11px;letter-spacing:0.04em;
+  transition:all 0.25s ease;
+}
+.page-btn:hover{border-color:var(--primary);color:var(--primary-soft)}
+.page-btn.is-active{
+  border-color:var(--primary);background:var(--primary);color:var(--bg);
+}
+ 
+/* ══ MODAL ════════════════════════════════════════════════════════════════ */
+.modal{
+  display:none;
+  position:fixed;inset:0;z-index:1000;
+  background:rgba(0,0,0,0.75);
+  backdrop-filter:blur(8px);
+  align-items:center;justify-content:center;
+  padding:24px;
+  animation:fadeIn 0.3s ease;
+}
+.modal.is-active{display:flex}
+.modal-dialog{
+  position:relative;
+  background:linear-gradient(180deg,var(--surface),var(--surface-2));
+  border:1px solid var(--border);
+  box-shadow:var(--shadow);
+  max-width:520px;width:100%;max-height:90vh;
+  overflow-y:auto;
+  animation:slideUp 0.4s var(--ease);
+}
+@keyframes slideUp{from{transform:translateY(20px);opacity:0}to{transform:none;opacity:1}}
+.modal-dialog::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(to right,transparent,var(--primary) 50%,transparent);
+}
+ 
+.modal-head{
+  padding:24px 28px 20px;
+  border-bottom:1px solid var(--border);
+  display:flex;justify-content:space-between;align-items:center;gap:16px;
+}
+.modal-tag{
+  font-size:9px;letter-spacing:0.3em;text-transform:uppercase;
+  color:var(--primary-soft);margin-bottom:4px;
+}
+.modal-title{
+  font-family:var(--font-display);
+  font-size:24px;font-weight:400;font-style:italic;
+  color:var(--text);line-height:1.2;
+}
+.modal-close{
+  width:32px;height:32px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  border:1px solid var(--border);color:var(--text-dim);
+  transition:all 0.25s ease;
+}
+.modal-close:hover{border-color:var(--danger);color:var(--danger)}
+.modal-close svg{width:12px;height:12px}
+ 
+.modal-body{padding:24px 28px}
+.modal-body .field{margin-bottom:16px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.modal-body textarea.field-input{
+  min-height:120px;font-family:var(--font-sans);resize:vertical;line-height:1.65;
+}
+.form-hint{
+  display:flex;gap:8px;align-items:flex-start;
+  padding:12px 14px;margin-top:16px;
+  background:rgba(224,182,116,0.05);
+  border-left:2px solid var(--warning);
+  color:var(--text-dim);
+  font-size:11px;line-height:1.65;letter-spacing:0.02em;
+}
+ 
+.modal-foot{
+  padding:20px 28px;
+  border-top:1px solid var(--border);
+  display:flex;justify-content:flex-end;gap:10px;
+}
+ 
+/* ══ EXPORT PAGE ══════════════════════════════════════════════════════════ */
+.export-opts{display:flex;flex-direction:column;gap:14px;margin:20px 0 24px}
+.opt{
+  display:flex;align-items:flex-start;gap:12px;
+  padding:16px;
+  border:1px solid var(--border);
+  background:rgba(0,0,0,0.2);
+  cursor:pointer;transition:border-color 0.25s ease,background 0.25s ease;
+}
+.opt:hover{border-color:var(--border-strong)}
+.opt input{margin-top:3px;accent-color:var(--primary)}
+.opt-label{
+  font-size:12px;font-weight:500;letter-spacing:0.08em;
+  color:var(--text);text-transform:uppercase;margin-bottom:4px;
+}
+.opt-hint{font-size:11px;color:var(--text-dim);line-height:1.6;letter-spacing:0.02em}
+ 
+/* ══ MESSAGES MURAL ══════════════════════════════════════════════════════ */
+.messages-wrap{
+  position:relative;
+}
+.messages-mural{
+  padding:0;
+}
+.messages-grid{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:20px;
+  align-items:start;
+}
+.msg-card{
+  position:relative;
+  background:linear-gradient(180deg,var(--surface),var(--surface-2));
+  border:1px solid var(--border);
+  padding:28px 28px 24px;
+  display:flex;
+  flex-direction:column;
+  gap:20px;
+  transition:border-color 0.25s ease, box-shadow 0.25s ease;
+}
+.msg-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(to right,transparent 10%,var(--primary) 50%,transparent 90%);
+  opacity:0.22;
+}
+.msg-card:hover{
+  border-color:var(--border-strong);
+  box-shadow:0 4px 24px rgba(0,0,0,0.18);
+}
+.msg-quote{
+  font-size:10px;letter-spacing:0.24em;text-transform:uppercase;
+  color:var(--primary-soft);opacity:0.55;
+  line-height:1;
+  margin-bottom:-4px;
+  user-select:none;
+}
+.msg-text{
+  font-family:var(--font-sans);
+  font-size:15px;font-weight:300;
+  line-height:1.75;
+  color:var(--text-soft);
+  letter-spacing:0.01em;
+  white-space:pre-wrap;
+  word-break:break-word;
+  flex:1;
+}
+.msg-meta{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding-top:16px;
+  border-top:1px solid rgba(192,192,192,0.07);
+}
+.msg-author{
+  font-family:var(--font-display);
+  font-size:13px;font-weight:500;
+  color:var(--text);letter-spacing:0.04em;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.msg-date{
+  font-size:10px;letter-spacing:0.12em;
+  color:var(--text-dim);
+  white-space:nowrap;flex-shrink:0;
+}
+
+/* ══ RESPONSIVE ══════════════════════════════════════════════════════════ */
+@media (max-width:960px){
+  .dashboard.is-active{flex-direction:column}
+  .sidebar{
+    position:static;width:100%;height:auto;flex-direction:row;
+    border-right:none;border-bottom:1px solid var(--border);
+  }
+  .sidebar-brand{
+    border-bottom:none;border-right:1px solid var(--border);
+    padding:16px;flex-shrink:0;min-width:180px;
+  }
+  .sidebar-brand-names{font-size:18px}
+  .sidebar-brand-date{display:none}
+  .sidebar-nav{
+    flex-direction:row;overflow-x:auto;padding:0;flex:1;
+  }
+  .nav-item{
+    border-left:none;border-bottom:2px solid transparent;
+    padding:16px 18px;white-space:nowrap;font-size:11px;
+  }
+  .nav-item.is-active{border-left-color:transparent;border-bottom-color:var(--primary)}
+  .sidebar-footer{display:none}
+  .topbar{padding:16px 20px}
+  .topbar-title{font-size:22px}
+  .content{padding:20px 20px 40px}
+  .stats{grid-template-columns:1fr 1fr}
+  .filters{grid-template-columns:1fr 1fr}
+  .form-row{grid-template-columns:1fr}
+  .messages-grid{grid-template-columns:1fr}
+  .messages-mural{padding:0}
+}
+@media (max-width:560px){
+  .stats{grid-template-columns:1fr}
+  .filters{grid-template-columns:1fr}
+  .topbar-actions .btn-label{display:none}
+  .topbar-actions .btn{padding:10px 14px}
+  .topbar-left{overflow:hidden}
+  .topbar-title{font-size:18px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  #gruposTable th:nth-child(3),#gruposTable td:nth-child(3){display:none}
+  .icon-btn-label{display:none}
+  .icon-btn{min-width:30px;padding:7px}
+  .sidebar-brand{min-width:0;padding:16px 10px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+  .sidebar-brand-label{display:none}
+  .sidebar-brand-names{font-size:13px;letter-spacing:0.01em;text-align:center}
+  .sidebar-brand-date{display:none}
+  .messages-grid{grid-template-columns:1fr}
+  .messages-mural{padding:0}
+  .msg-card{padding:20px 20px 18px;gap:14px}
+  .msg-text{font-size:14px}
+}
+ 
+/* Focus accessibility */
+:where(button,a,input,select,textarea):focus-visible{
+  outline:2px solid var(--primary);outline-offset:2px;
+}
+
+/* ══ EDITOR TAB ══════════════════════════════════════════════ */
+.editor-savebar{
+  position:sticky;top:0;z-index:8;
+  display:flex;align-items:center;justify-content:space-between;gap:16px;
+  padding:12px 0 18px;margin-bottom:28px;
+  border-bottom:1px solid var(--border);
+  background:var(--bg);
+}
+.editor-save-status{
+  display:flex;align-items:center;gap:8px;
+  font-size:11px;letter-spacing:0.08em;color:var(--text-dim);
+}
+.editor-save-dot{
+  width:6px;height:6px;border-radius:50%;
+  background:var(--text-faint);flex-shrink:0;
+  transition:background 0.3s ease;
+}
+.editor-save-status.is-dirty .editor-save-dot{background:var(--warning)}
+.editor-save-status.is-dirty{color:var(--warning)}
+.editor-save-status.is-saved .editor-save-dot{background:var(--success)}
+.editor-save-status.is-saved{color:var(--success)}
+.editor-save-actions{display:flex;gap:10px;align-items:center}
+
+.editor-section{
+  border:1px solid var(--border);
+  background:linear-gradient(180deg,var(--surface),var(--surface-2));
+  margin-bottom:12px;position:relative;overflow:hidden;
+}
+.editor-section::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(to right,transparent 10%,var(--primary) 50%,transparent 90%);
+  opacity:0.2;pointer-events:none;
+}
+.editor-section-header{
+  width:100%;display:flex;align-items:center;justify-content:space-between;gap:16px;
+  padding:18px 24px;text-align:left;cursor:pointer;
+  transition:background 0.2s ease;
+}
+.editor-section-header:hover{background:rgba(255,255,255,0.02)}
+.editor-section-tag{
+  font-size:8px;letter-spacing:0.36em;text-transform:uppercase;
+  color:var(--primary-soft);margin-bottom:4px;
+}
+.editor-section-title{
+  font-family:var(--font-display);font-size:18px;font-weight:500;color:var(--text);
+}
+.editor-chevron{
+  flex-shrink:0;width:16px;height:16px;color:var(--text-dim);
+  transition:transform 0.3s ease;
+}
+.editor-section.is-open .editor-chevron{transform:rotate(180deg)}
+.editor-section-body{
+  display:none;padding:20px 24px 24px;border-top:1px solid var(--border);
+}
+.editor-section.is-open .editor-section-body{display:block}
+
+.form-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.form-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:14px}
+.form-group{margin-bottom:14px}
+@media(max-width:760px){.form-grid-2,.form-grid-3{grid-template-columns:1fr}}
+.field-input.sm{padding:10px 12px;font-size:12px}
+textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.65}
+.field-hint{
+  font-size:10px;color:var(--text-faint);
+  margin-top:5px;letter-spacing:0.03em;line-height:1.6;
+}
+.editor-rule{height:1px;background:var(--border);margin:18px 0}
+.editor-sub-label{
+  font-size:9px;font-weight:400;letter-spacing:0.28em;text-transform:uppercase;
+  color:var(--text-dim);margin-bottom:12px;display:block;
+}
+
+/* Toggle switch */
+.toggle{display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none}
+.toggle-input{display:none}
+.toggle-track{
+  position:relative;width:36px;height:20px;flex-shrink:0;
+  background:rgba(255,255,255,0.08);border:1px solid var(--border);
+  border-radius:10px;transition:background 0.25s ease,border-color 0.25s ease;
+}
+.toggle-input:checked+.toggle-track{background:var(--primary);border-color:var(--primary)}
+.toggle-track .toggle-thumb{
+  position:absolute;top:2px;left:2px;
+  width:14px;height:14px;border-radius:50%;
+  background:var(--text-dim);
+  transition:transform 0.25s ease,background 0.25s ease;
+}
+.toggle-input:checked+.toggle-track .toggle-thumb{transform:translateX(16px);background:var(--bg)}
+.toggle-label{font-size:13px;color:var(--text-soft);letter-spacing:0.02em}
+
+/* Gift blocks */
+.gift-block{border:1px solid var(--border);background:rgba(0,0,0,0.12);margin-bottom:12px}
+.gift-block-head{
+  display:flex;align-items:center;justify-content:space-between;padding:14px 18px;
+}
+.gift-block-type{
+  font-size:8px;letter-spacing:0.3em;text-transform:uppercase;
+  color:var(--text-faint);margin-bottom:3px;
+}
+.gift-block-name{font-size:14px;font-weight:400;color:var(--text-soft)}
+.gift-block-body{display:none;padding:14px 18px;border-top:1px solid var(--border)}
+.gift-block.is-open .gift-block-body{display:block}
+
+/* Catalog item rows */
+.catalog-item{
+  display:grid;grid-template-columns:1fr 110px 34px;
+  gap:8px;margin-bottom:8px;align-items:center;
+}
+.btn-icon-sm{
+  width:34px;height:34px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  border:1px solid var(--border);background:transparent;
+  color:var(--text-dim);cursor:pointer;transition:all 0.2s ease;
+}
+.btn-icon-sm:hover{border-color:var(--danger);color:var(--danger)}
+.btn-icon-sm svg{width:11px;height:11px}
+
+/* Pages grid */
+.pages-grid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;
+}
+.page-card{border:1px solid var(--border);background:rgba(0,0,0,0.12);padding:16px}
+.page-card-key{
+  font-size:8px;letter-spacing:0.3em;text-transform:uppercase;
+  color:var(--text-faint);margin-bottom:8px;
+}
+.page-card-name{font-family:var(--font-display);font-size:15px;font-weight:500;color:var(--text)}
+</style>
+</head>
+<body>
+ 
+<!-- ══ AUTH ═══════════════════════════════════════════════════════════════ -->
+<div class="auth-screen" id="authScreen">
+  <div class="auth-card">
+    <div class="auth-label">Acesso Restrito</div>
+    <h1 class="auth-title" id="authCoupleTitle">Dashboard do Casal</h1>
+    <p class="auth-subtitle">Gerenciar convidados &amp; confirmações</p>
+ 
+    <div class="alert" id="authError" hidden></div>
+ 
+    <form class="auth-form" id="authForm" onsubmit="handleAuth(event)">
+      <div class="field">
+        <label class="field-label" for="password">Senha do painel</label>
+        <input type="password" class="field-input" id="password" name="password"
+               placeholder="Digite sua senha" autocomplete="current-password" required>
+      </div>
+      <button type="submit" class="btn btn-primary btn-full">
+        <span>Entrar</span>
+      </button>
+    </form>
+  </div>
+</div>
+ 
+<!-- ══ DASHBOARD ══════════════════════════════════════════════════════════ -->
+<div class="dashboard" id="dashboardScreen">
+ 
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <span class="sidebar-brand-label">Dashboard</span>
+      <div class="sidebar-brand-names" id="sidebarCouple">Siannah &amp; Diego</div>
+      <div class="sidebar-brand-date" id="sidebarDate">06 . 09 . 2026</div>
+    </div>
+ 
+    <nav class="sidebar-nav" role="tablist">
+      <button class="nav-item is-active" data-tab="overview" role="tab">
+        <span class="nav-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
+        </span>
+        <span>Visão Geral</span>
+      </button>
+      <button class="nav-item" data-tab="grupos" role="tab">
+        <span class="nav-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        </span>
+        <span>Grupos</span>
+      </button>
+      <button class="nav-item" data-tab="confirmacoes" role="tab">
+        <span class="nav-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        </span>
+        <span>Confirmações</span>
+      </button>
+      <button class="nav-item" data-tab="mensagens" role="tab">
+        <span class="nav-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        </span>
+        <span>Mensagens</span>
+      </button>
+      <button class="nav-item" data-tab="musicas" role="tab">
+        <span class="nav-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+        </span>
+        <span>Músicas</span>
+      </button>
+      <button class="nav-item" data-tab="relatorios" role="tab">
+        <span class="nav-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        </span>
+        <span>Relatórios</span>
+      </button>
+      <button class="nav-item" data-tab="export" role="tab">
+        <span class="nav-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        </span>
+        <span>Exportar</span>
+      </button>
+      <button class="nav-item" data-tab="editar" role="tab">
+        <span class="nav-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 1 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
+        </span>
+        <span>Editar Evento</span>
+      </button>
+    </nav>
+ 
+    <div class="sidebar-footer">
+      <div class="sidebar-status">
+        <span class="sidebar-status-dot"></span>
+        <span>Sincronizado</span>
+      </div>
+      <button class="btn btn-subtle btn-full" id="logoutButton">
+        <span>Sair do painel</span>
+      </button>
+    </div>
+  </aside>
+ 
+  <!-- MAIN -->
+  <div class="main">
+    <header class="topbar">
+      <div class="topbar-left">
+        <div class="topbar-tag" id="topbarTag">Visão Geral</div>
+        <h1 class="topbar-title" id="topbarTitle">Bem-vindos ao painel</h1>
+      </div>
+      <div class="topbar-actions">
+        <button class="btn btn-subtle" id="btnRefresh" title="Atualizar dados">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+          <span class="btn-label">Atualizar</span>
+        </button>
+        <button class="btn btn-primary" id="btnNewGroup">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          <span class="btn-label">Novo grupo</span>
+        </button>
+      </div>
+    </header>
+ 
+    <main class="content">
+ 
+      <!-- TAB: OVERVIEW -->
+      <div class="tab-content is-active" id="tab-overview" role="tabpanel">
+        <div class="stats" id="overviewStats">
+          <div class="stat">
+            <div class="stat-label">Total de convidados</div>
+            <div class="stat-value" id="statTotalConvidados">0</div>
+            <div class="stat-hint" id="statTotalConvidadosHint">Entre todos os grupos</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">Confirmados</div>
+            <div class="stat-value ok" id="statConfirmados">0</div>
+            <div class="stat-hint" id="statConfirmadosPct">—</div>
+            <div class="stat-progress"><div class="stat-progress-bar" id="statConfirmadosBar" style="width:0%"></div></div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">Recusaram</div>
+            <div class="stat-value err" id="statRecusados">0</div>
+            <div class="stat-hint" id="statRecusadosPct">—</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">Pendentes</div>
+            <div class="stat-value warn" id="statPendentes">0</div>
+            <div class="stat-hint" id="statPendentesPct">—</div>
+          </div>
+        </div>
+ 
+        <section class="section">
+          <div class="section-head">
+            <div>
+              <h2 class="section-title">Atividade recente</h2>
+              <p class="section-sub">Últimas confirmações registradas</p>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Convidado</th>
+                  <th>Grupo</th>
+                  <th>Status</th>
+                  <th>Data</th>
+                </tr>
+              </thead>
+              <tbody id="recentActivityBody">
+                <tr><td colspan="4"><div class="loading"><div class="spinner"></div>Carregando...</div></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+ 
+      <!-- TAB: GRUPOS -->
+      <div class="tab-content" id="tab-grupos" role="tabpanel">
+        <section class="section">
+          <div class="section-head">
+            <div>
+              <h2 class="section-title">Grupos de convidados</h2>
+              <p class="section-sub">Cada grupo recebe um link único compartilhado entre seus membros</p>
+            </div>
+          </div>
+ 
+          <div class="table-wrap">
+            <div class="loading" id="gruposLoading"><div class="spinner"></div>Carregando grupos...</div>
+            <table class="table" id="gruposTable" hidden>
+              <thead>
+                <tr>
+                  <th>Grupo</th>
+                  <th>Vagas</th>
+                  <th>Observações</th>
+                  <th style="text-align:right">Ações</th>
+                </tr>
+              </thead>
+              <tbody id="gruposBody"></tbody>
+            </table>
+            <div class="empty" id="gruposEmpty" hidden>
+              <div class="empty-icon">✧</div>
+              <div class="empty-title">Nenhum grupo cadastrado</div>
+              <p class="empty-text">Comece cadastrando os primeiros grupos. Cada grupo terá um link único para compartilhar com os convidados.</p>
+            </div>
+          </div>
+        </section>
+      </div>
+ 
+      <!-- TAB: CONFIRMACOES -->
+      <div class="tab-content" id="tab-confirmacoes" role="tabpanel">
+        <section class="section">
+          <div class="section-head">
+            <div>
+              <h2 class="section-title">Confirmações</h2>
+              <p class="section-sub">Todas as respostas recebidas pelo convite</p>
+            </div>
+          </div>
+ 
+          <div class="filters">
+            <div class="filter">
+              <label class="filter-label" for="filterStatus">Status</label>
+              <select class="filter-control" id="filterStatus" onchange="reloadConfirmacoes()">
+                <option value="">Todos</option>
+                <option value="yes">Confirmados</option>
+                <option value="no">Recusados</option>
+                <option value="pending">Pendentes</option>
+              </select>
+            </div>
+            <div class="filter">
+              <label class="filter-label" for="filterGrupo">Grupo</label>
+              <select class="filter-control" id="filterGrupo" onchange="reloadConfirmacoes()">
+                <option value="">Todos os grupos</option>
+              </select>
+            </div>
+            <div class="filter">
+              <label class="filter-label" for="filterSearch">Buscar</label>
+              <input class="filter-control" id="filterSearch" type="search"
+                     placeholder="Nome do convidado">
+            </div>
+            <div class="filter filter-actions">
+              <button class="btn btn-subtle btn-full" onclick="clearFilters()">Limpar</button>
+            </div>
+          </div>
+ 
+          <div class="table-wrap">
+            <div class="loading" id="confirmacoesLoading"><div class="spinner"></div>Carregando...</div>
+            <table class="table" id="confirmacoesTable" hidden>
+              <thead>
+                <tr>
+                  <th>Convidado</th>
+                  <th>Grupo</th>
+                  <th>Status</th>
+                  <th>Data</th>
+                </tr>
+              </thead>
+              <tbody id="confirmacoesBody"></tbody>
+            </table>
+            <div class="pagination" id="paginacao"></div>
+            <div class="empty" id="confirmacoesEmpty" hidden>
+              <div class="empty-icon">✧</div>
+              <div class="empty-title">Nenhuma confirmação encontrada</div>
+              <p class="empty-text">Ajuste os filtros ou aguarde os primeiros convidados responderem.</p>
+            </div>
+          </div>
+        </section>
+      </div>
+ 
+      <!-- TAB: MENSAGENS -->
+      <div class="tab-content" id="tab-mensagens" role="tabpanel">
+        <section class="section">
+          <div class="section-head">
+            <div>
+              <h2 class="section-title">Mensagens ao casal</h2>
+              <p class="section-sub">Recados enviados pelos convidados</p>
+            </div>
+          </div>
+
+          <div class="filters">
+            <div class="filter">
+              <label class="filter-label" for="filterMensagemSearch">Buscar</label>
+              <input class="filter-control" id="filterMensagemSearch" type="search" placeholder="Nome ou conteúdo da mensagem">
+            </div>
+            <div class="filter filter-actions">
+              <button class="btn btn-subtle btn-full" onclick="clearMensagensFilters()">Limpar</button>
+            </div>
+          </div>
+
+          <div class="messages-wrap">
+            <div class="loading" id="mensagensLoading"><div class="spinner"></div>Carregando mensagens...</div>
+            <div class="messages-mural" id="mensagensTable" hidden>
+              <div class="messages-grid" id="mensagensBody"></div>
+            </div>
+            <div class="pagination" id="mensagensPaginacao"></div>
+            <div class="empty" id="mensagensEmpty" hidden>
+              <div class="empty-icon">✧</div>
+              <div class="empty-title">Nenhuma mensagem ainda</div>
+              <p class="empty-text">Os recados dos convidados aparecerão aqui.</p>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- TAB: MUSICAS -->
+      <div class="tab-content" id="tab-musicas" role="tabpanel">
+        <section class="section">
+          <div class="section-head">
+            <div>
+              <h2 class="section-title">Sugestões de música</h2>
+              <p class="section-sub">Músicas enviadas pelos convidados</p>
+            </div>
+          </div>
+
+          <div class="filters">
+            <div class="filter">
+              <label class="filter-label" for="filterMusicaSearch">Buscar</label>
+              <input class="filter-control" id="filterMusicaSearch" type="search" placeholder="Convidado, música, artista ou observações">
+            </div>
+            <div class="filter filter-actions">
+              <button class="btn btn-subtle btn-full" onclick="clearMusicasFilters()">Limpar</button>
+            </div>
+          </div>
+
+          <div class="table-wrap">
+            <div class="loading" id="musicasLoading"><div class="spinner"></div>Carregando sugestões...</div>
+            <table class="table" id="musicasTable" hidden>
+              <thead>
+                <tr>
+                  <th>Convidado</th>
+                  <th>Música</th>
+                  <th>Artista</th>
+                  <th>Observações</th>
+                  <th>Data</th>
+                </tr>
+              </thead>
+              <tbody id="musicasBody"></tbody>
+            </table>
+            <div class="pagination" id="musicasPaginacao"></div>
+            <div class="empty" id="musicasEmpty" hidden>
+              <div class="empty-icon">✧</div>
+              <div class="empty-title">Nenhuma sugestão encontrada</div>
+              <p class="empty-text">Ajuste a busca ou aguarde novas músicas sugeridas pelos convidados.</p>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- TAB: RELATORIOS -->
+      <div class="tab-content" id="tab-relatorios" role="tabpanel">
+        <section class="section">
+          <div class="section-head">
+            <div>
+              <h2 class="section-title">Relatórios &amp; Estatísticas</h2>
+              <p class="section-sub">Visão detalhada das confirmações por grupo</p>
+            </div>
+          </div>
+ 
+          <div class="table-wrap">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Grupo</th>
+                  <th>Total</th>
+                  <th>Confirmados</th>
+                  <th>Recusados</th>
+                  <th>Pendentes</th>
+                  <th>Taxa</th>
+                </tr>
+              </thead>
+              <tbody id="breakdownBody">
+                <tr><td colspan="6"><div class="loading"><div class="spinner"></div>Carregando breakdown...</div></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+ 
+      <!-- TAB: EXPORT -->
+      <div class="tab-content" id="tab-export" role="tabpanel">
+        <section class="section">
+          <div class="section-head">
+            <div>
+              <h2 class="section-title">Exportar dados</h2>
+              <p class="section-sub">Baixe a lista completa de confirmações</p>
+            </div>
+          </div>
+ 
+          <div class="card">
+            <div class="export-opts">
+              <label class="opt">
+                <input type="checkbox" id="exportAllStatuses" checked>
+                <div>
+                  <div class="opt-label">Incluir todos os status</div>
+                  <div class="opt-hint">Exporta confirmados, recusados e pendentes. Desmarque para exportar somente confirmados.</div>
+                </div>
+              </label>
+              <label class="opt">
+                <input type="radio" name="exportFormat" value="csv" checked>
+                <div>
+                  <div class="opt-label">CSV (Excel)</div>
+                  <div class="opt-hint">Formato compatível com Excel, Google Sheets e ferramentas de planilha.</div>
+                </div>
+              </label>
+            </div>
+ 
+            <button class="btn btn-primary" id="btnDownloadCsv">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              <span>Baixar CSV</span>
+            </button>
+ 
+            <p style="color:var(--text-dim);margin-top:16px;font-size:11px;letter-spacing:0.04em;line-height:1.7">
+              Inclui: Nome, Telefone, Status, Grupo, Data da confirmação, Mensagem e Sugestão de música.
+            </p>
+          </div>
+        </section>
+      </div>
+ 
+      <!-- TAB: EDITAR EVENTO -->
+      <div class="tab-content" id="tab-editar" role="tabpanel">
+
+        <!-- Barra de salvar (sticky) -->
+        <div class="editor-savebar">
+          <div class="editor-save-status" id="editorSaveStatus">
+            <span class="editor-save-dot"></span>
+            <span id="editorSaveStatusText">Carregando configurações…</span>
+          </div>
+          <div class="editor-save-actions">
+            <button type="button" class="btn btn-subtle" onclick="reloadEditorTab()">
+              <span>Descartar</span>
+            </button>
+            <button type="button" class="btn btn-primary" id="btnSaveConfig" onclick="saveEditorConfig()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+              <span>Salvar alterações</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- ── SEÇÃO 1: CASAL & EVENTO ──────────────────── -->
+        <div class="editor-section is-open" id="edSectionEvento">
+          <button class="editor-section-header" type="button" onclick="toggleEditorSection('edSectionEvento')">
+            <div>
+              <div class="editor-section-tag">Identidade</div>
+              <div class="editor-section-title">Casal &amp; Evento</div>
+            </div>
+            <svg class="editor-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="editor-section-body">
+
+            <div class="form-grid-2">
+              <div class="field">
+                <label class="field-label" for="edCoupleNames">Nomes do casal *</label>
+                <input type="text" class="field-input sm" id="edCoupleNames" placeholder="Noiva &amp; Noivo" oninput="markEditorDirty()">
+              </div>
+              <div class="field">
+                <label class="field-label" for="edCoupleSubtitle">Subtítulo</label>
+                <input type="text" class="field-input sm" id="edCoupleSubtitle" placeholder="Save the date…" oninput="markEditorDirty()">
+              </div>
+            </div>
+
+            <div class="editor-rule"></div>
+            <span class="editor-sub-label">Datas e horário</span>
+
+            <div class="form-grid-2">
+              <div class="field">
+                <label class="field-label" for="edEventDate">Data ISO 8601 *</label>
+                <input type="text" class="field-input sm" id="edEventDate" placeholder="2026-09-06T17:00:00-03:00" oninput="markEditorDirty()">
+                <div class="field-hint">Usada para calcular o contador regressivo.</div>
+              </div>
+              <div class="field">
+                <label class="field-label" for="edEventTime">Horário de exibição</label>
+                <input type="text" class="field-input sm" id="edEventTime" placeholder="17h" oninput="markEditorDirty()">
+              </div>
+            </div>
+            <div class="form-grid-3">
+              <div class="field">
+                <label class="field-label" for="edEventHeroDate">Data no hero</label>
+                <input type="text" class="field-input sm" id="edEventHeroDate" placeholder="06 . 09 . 2026" oninput="markEditorDirty()">
+              </div>
+              <div class="field">
+                <label class="field-label" for="edEventDisplayDate">Data de exibição</label>
+                <input type="text" class="field-input sm" id="edEventDisplayDate" placeholder="6 de setembro de 2026" oninput="markEditorDirty()">
+              </div>
+              <div class="field">
+                <label class="field-label" for="edEventWeekday">Dia da semana</label>
+                <input type="text" class="field-input sm" id="edEventWeekday" placeholder="Domingo" oninput="markEditorDirty()">
+              </div>
+            </div>
+
+            <div class="editor-rule"></div>
+            <span class="editor-sub-label">Local do evento</span>
+
+            <div class="form-grid-2">
+              <div class="field">
+                <label class="field-label" for="edEventLocation">Nome do local</label>
+                <input type="text" class="field-input sm" id="edEventLocation" placeholder="Mansão Ilha de Capri" oninput="markEditorDirty()">
+              </div>
+              <div class="field">
+                <label class="field-label" for="edEventCity">Cidade</label>
+                <input type="text" class="field-input sm" id="edEventCity" placeholder="São Bernardo do Campo, SP" oninput="markEditorDirty()">
+              </div>
+            </div>
+            <div class="form-group">
+              <div class="field">
+                <label class="field-label" for="edEventMapsLink">Link do Google Maps</label>
+                <input type="url" class="field-input sm" id="edEventMapsLink" placeholder="https://maps.google.com/…" oninput="markEditorDirty()">
+              </div>
+            </div>
+            <div class="form-group">
+              <div class="field">
+                <label class="field-label" for="edEventVenueAddress">Endereço completo</label>
+                <input type="text" class="field-input sm" id="edEventVenueAddress" placeholder="Rua…" oninput="markEditorDirty()">
+              </div>
+            </div>
+            <div class="form-grid-2">
+              <div class="field">
+                <label class="field-label" for="edEventLat">Latitude</label>
+                <input type="number" class="field-input sm" id="edEventLat" step="0.000001" placeholder="-23.710000" oninput="markEditorDirty()">
+              </div>
+              <div class="field">
+                <label class="field-label" for="edEventLng">Longitude</label>
+                <input type="number" class="field-input sm" id="edEventLng" step="0.000001" placeholder="-46.560000" oninput="markEditorDirty()">
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="toggle">
+                <input type="checkbox" class="toggle-input" id="edEventMapEnabled" onchange="markEditorDirty()">
+                <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                <span class="toggle-label">Exibir mapa interativo na página de hospedagem</span>
+              </label>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- ── SEÇÃO 2: TEMA & VISUAL ─────────────────── -->
+        <div class="editor-section is-open" id="edSectionTema">
+          <button class="editor-section-header" type="button" onclick="toggleEditorSection('edSectionTema')">
+            <div>
+              <div class="editor-section-tag">Aparência</div>
+              <div class="editor-section-title">Tema &amp; Visual</div>
+            </div>
+            <svg class="editor-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="editor-section-body">
+            <div class="form-grid-2">
+              <div class="field">
+                <label class="field-label" for="edActiveLayout">Layout</label>
+                <select class="field-input sm" id="edActiveLayout" onchange="onLayoutChange();markEditorDirty()">
+                  <option value="classic">Classic</option>
+                  <option value="modern">Modern</option>
+                </select>
+              </div>
+              <div class="field">
+                <label class="field-label" for="edActiveTheme">Tema</label>
+                <select class="field-input sm" id="edActiveTheme" onchange="markEditorDirty()"></select>
+              </div>
+            </div>
+            <div class="field-hint" style="margin-top:-6px">Após salvar e aplicar o arquivo, recarregue o convite para ver a mudança de tema.</div>
+          </div>
+        </div>
+
+        <!-- ── SEÇÃO 3: WHATSAPP ──────────────────────── -->
+        <div class="editor-section is-open" id="edSectionWhatsApp">
+          <button class="editor-section-header" type="button" onclick="toggleEditorSection('edSectionWhatsApp')">
+            <div>
+              <div class="editor-section-tag">Confirmação de presença</div>
+              <div class="editor-section-title">WhatsApp &amp; RSVP</div>
+            </div>
+            <svg class="editor-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="editor-section-body">
+            <div class="form-grid-2">
+              <div class="field">
+                <label class="field-label" for="edWaPhone">Número de destino *</label>
+                <input type="tel" class="field-input sm" id="edWaPhone" placeholder="5511999999999" oninput="markEditorDirty()">
+                <div class="field-hint">Código do país + DDD + número, sem espaços ou símbolos.</div>
+              </div>
+              <div class="field">
+                <label class="field-label" for="edWaRecipient">Nome do destinatário</label>
+                <input type="text" class="field-input sm" id="edWaRecipient" placeholder="Diego" oninput="markEditorDirty()">
+                <div class="field-hint">Aparece na saudação das mensagens automáticas.</div>
+              </div>
+            </div>
+
+            <div class="editor-rule"></div>
+            <span class="editor-sub-label">Mensagens automáticas</span>
+            <div class="form-group">
+              <div class="field">
+                <label class="field-label" for="edWaMsgAttending">Convidado vai comparecer</label>
+                <textarea class="field-input sm" id="edWaMsgAttending" rows="3" placeholder="Olá {name}…" oninput="markEditorDirty()"></textarea>
+                <div class="field-hint">Use {name}, {recipientName}, {date} como variáveis.</div>
+              </div>
+            </div>
+            <div class="form-group">
+              <div class="field">
+                <label class="field-label" for="edWaMsgNotAttending">Convidado não vai comparecer</label>
+                <textarea class="field-input sm" id="edWaMsgNotAttending" rows="3" placeholder="Entendemos, {name}…" oninput="markEditorDirty()"></textarea>
+              </div>
+            </div>
+
+            <div class="editor-rule"></div>
+            <div class="form-group">
+              <label class="toggle">
+                <input type="checkbox" class="toggle-input" id="edRsvpSupabase" onchange="markEditorDirty()">
+                <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                <span class="toggle-label">Salvar confirmações no Supabase</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── SEÇÃO 4: PRESENTES ─────────────────────── -->
+        <div class="editor-section is-open" id="edSectionPresentes">
+          <button class="editor-section-header" type="button" onclick="toggleEditorSection('edSectionPresentes')">
+            <div>
+              <div class="editor-section-tag">Página de presentes</div>
+              <div class="editor-section-title">Opções de presente</div>
+            </div>
+            <svg class="editor-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="editor-section-body">
+            <p class="field-hint" style="margin-bottom:18px">As três opções podem coexistir. Desabilite as que não deseja exibir.</p>
+
+            <!-- Pix -->
+            <div class="gift-block" id="giftBlockPix">
+              <div class="gift-block-head">
+                <div>
+                  <div class="gift-block-type">Opção 1</div>
+                  <div class="gift-block-name">Pix</div>
+                </div>
+                <label class="toggle" onclick="event.stopPropagation()">
+                  <input type="checkbox" class="toggle-input" id="edGiftPixEnabled"
+                         onchange="toggleGiftBlock('giftBlockPix',this.checked);markEditorDirty()">
+                  <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                </label>
+              </div>
+              <div class="gift-block-body">
+                <div class="form-grid-2">
+                  <div class="field">
+                    <label class="field-label" for="edGiftPixKey">Chave Pix *</label>
+                    <input type="text" class="field-input sm" id="edGiftPixKey"
+                           placeholder="CPF, e-mail, telefone ou chave aleatória" oninput="markEditorDirty()">
+                  </div>
+                  <div class="field">
+                    <label class="field-label" for="edGiftPixQr">Imagem QR Code</label>
+                    <input type="text" class="field-input sm" id="edGiftPixQr"
+                           placeholder="assets/images/icons/pix-qr.png" oninput="markEditorDirty()">
+                    <div class="field-hint">Caminho relativo ao projeto ou URL.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Cartão -->
+            <div class="gift-block" id="giftBlockCard">
+              <div class="gift-block-head">
+                <div>
+                  <div class="gift-block-type">Opção 2</div>
+                  <div class="gift-block-name">Cartão de crédito</div>
+                </div>
+                <label class="toggle" onclick="event.stopPropagation()">
+                  <input type="checkbox" class="toggle-input" id="edGiftCardEnabled"
+                         onchange="toggleGiftBlock('giftBlockCard',this.checked);markEditorDirty()">
+                  <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                </label>
+              </div>
+              <div class="gift-block-body">
+                <div class="field">
+                  <label class="field-label" for="edGiftCardLink">Link de pagamento *</label>
+                  <input type="url" class="field-input sm" id="edGiftCardLink"
+                         placeholder="https://link.mercadopago.com.br/…" oninput="markEditorDirty()">
+                  <div class="field-hint">Mercado Pago, PagSeguro, Stripe ou outra plataforma.</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Catálogo -->
+            <div class="gift-block" id="giftBlockCatalog">
+              <div class="gift-block-head">
+                <div>
+                  <div class="gift-block-type">Opção 3</div>
+                  <div class="gift-block-name">Lista de presentes</div>
+                </div>
+                <label class="toggle" onclick="event.stopPropagation()">
+                  <input type="checkbox" class="toggle-input" id="edGiftCatalogEnabled"
+                         onchange="toggleGiftBlock('giftBlockCatalog',this.checked);markEditorDirty()">
+                  <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                </label>
+              </div>
+              <div class="gift-block-body">
+                <div class="form-grid-2">
+                  <div class="field">
+                    <label class="field-label" for="edGiftCatalogTitle">Título da lista</label>
+                    <input type="text" class="field-input sm" id="edGiftCatalogTitle"
+                           placeholder="Lista de Presentes" oninput="markEditorDirty()">
+                  </div>
+                  <div class="field">
+                    <label class="field-label" for="edGiftCatalogSubtitle">Subtítulo</label>
+                    <input type="text" class="field-input sm" id="edGiftCatalogSubtitle"
+                           placeholder="Sugestões para a lua de mel" oninput="markEditorDirty()">
+                  </div>
+                </div>
+                <div class="editor-rule"></div>
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+                  <span class="editor-sub-label" style="margin-bottom:0">Itens da lista</span>
+                  <button type="button" class="btn btn-subtle" style="padding:6px 14px;font-size:10px" onclick="addCatalogItem()">
+                    + Adicionar item
+                  </button>
+                </div>
+                <div id="catalogItemsList"></div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- ── SEÇÃO 5: FOTOS & MÍDIA ─────────────────── -->
+        <div class="editor-section is-open" id="edSectionMidia">
+          <button class="editor-section-header" type="button" onclick="toggleEditorSection('edSectionMidia')">
+            <div>
+              <div class="editor-section-tag">Assets</div>
+              <div class="editor-section-title">Fotos &amp; Mídia</div>
+            </div>
+            <svg class="editor-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="editor-section-body">
+            <div class="form-group">
+              <div class="field">
+                <label class="field-label" for="edMediaHero">Foto do casal (hero)</label>
+                <input type="text" class="field-input sm" id="edMediaHero"
+                       placeholder="assets/images/couple/hero.jpg" oninput="markEditorDirty()">
+                <div class="field-hint">Caminho relativo ou URL da imagem principal exibida no convite.</div>
+              </div>
+            </div>
+
+            <div class="editor-rule"></div>
+            <span class="editor-sub-label">Trilha sonora principal</span>
+            <div class="form-grid-3">
+              <div class="field">
+                <label class="field-label" for="edTrackMainSrc">Arquivo</label>
+                <input type="text" class="field-input sm" id="edTrackMainSrc"
+                       placeholder="assets/audio/main-theme.mp3" oninput="markEditorDirty()">
+              </div>
+              <div class="field">
+                <label class="field-label" for="edTrackMainVolume">Volume (0–1)</label>
+                <input type="number" class="field-input sm" id="edTrackMainVolume"
+                       min="0" max="1" step="0.01" placeholder="0.14" oninput="markEditorDirty()">
+              </div>
+              <div class="field">
+                <label class="field-label" for="edTrackMainStart">Início (seg)</label>
+                <input type="number" class="field-input sm" id="edTrackMainStart"
+                       min="0" step="1" placeholder="8" oninput="markEditorDirty()">
+              </div>
+            </div>
+
+            <span class="editor-sub-label" style="margin-top:8px">Trilha da página de presentes</span>
+            <div class="form-grid-3">
+              <div class="field">
+                <label class="field-label" for="edTrackGiftSrc">Arquivo</label>
+                <input type="text" class="field-input sm" id="edTrackGiftSrc"
+                       placeholder="assets/audio/gift-theme.mp3" oninput="markEditorDirty()">
+              </div>
+              <div class="field">
+                <label class="field-label" for="edTrackGiftVolume">Volume (0–1)</label>
+                <input type="number" class="field-input sm" id="edTrackGiftVolume"
+                       min="0" max="1" step="0.01" placeholder="0.12" oninput="markEditorDirty()">
+              </div>
+              <div class="field">
+                <label class="field-label" for="edTrackGiftStart">Início (seg)</label>
+                <input type="number" class="field-input sm" id="edTrackGiftStart"
+                       min="0" step="1" placeholder="78" oninput="markEditorDirty()">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── SEÇÃO 6: PÁGINAS EXTRAS ────────────────── -->
+        <div class="editor-section is-open" id="edSectionPages">
+          <button class="editor-section-header" type="button" onclick="toggleEditorSection('edSectionPages')">
+            <div>
+              <div class="editor-section-tag">Navegação</div>
+              <div class="editor-section-title">Páginas extras</div>
+            </div>
+            <svg class="editor-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="editor-section-body">
+            <p style="font-size:11px;color:var(--text-dim);margin-bottom:16px;letter-spacing:0.03em;line-height:1.7">
+              Páginas desabilitadas não aparecem nos cards de navegação do convite.
+            </p>
+            <div class="pages-grid" id="edPagesGrid"></div>
+          </div>
+        </div>
+
+      </div><!-- /tab-editar -->
+
+    </main>
+  </div>
+</div>
+
+<!-- ══ MODAL: GRUPO ═══════════════════════════════════════════════════════ -->
+<div class="modal" id="modalGrupo" role="dialog" aria-labelledby="modalGrupoTitle">
+  <div class="modal-dialog">
+    <div class="modal-head">
+      <div>
+        <div class="modal-tag">Grupo de convidados</div>
+        <h3 class="modal-title" id="modalGrupoTitle">Novo grupo</h3>
+      </div>
+      <button class="modal-close" onclick="closeModal('modalGrupo')" aria-label="Fechar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <form id="formGrupo" onsubmit="handleSaveGrupo(event)">
+      <div class="modal-body">
+        <div class="field">
+          <label class="field-label" for="grupoName">Nome do grupo *</label>
+          <input class="field-input" type="text" id="grupoName" required placeholder="Ex: Família Silva">
+        </div>
+        <div class="form-row">
+          <div class="field">
+            <label class="field-label" for="grupoMaxConfirmations">Vagas *</label>
+            <input class="field-input" type="number" id="grupoMaxConfirmations" required min="1" placeholder="Ex: 3">
+          </div>
+          <div class="field">
+            <label class="field-label" for="grupoPhone">Telefone</label>
+            <input class="field-input" type="tel" id="grupoPhone" placeholder="(11) 99999-9999">
+          </div>
+        </div>
+        <div class="field">
+          <label class="field-label" for="grupoNotes">Observações</label>
+          <input class="field-input" type="text" id="grupoNotes" placeholder="Ex: criança de 8 anos, vegetariana">
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button type="button" class="btn btn-subtle" onclick="closeModal('modalGrupo')"><span>Cancelar</span></button>
+        <button type="submit" class="btn btn-primary"><span>Salvar grupo</span></button>
+      </div>
+    </form>
+  </div>
+</div>
+ 
+<!-- ══ MODAL: LEMBRETE ════════════════════════════════════════════════════ -->
+<div class="modal" id="modalLembrete" role="dialog" aria-labelledby="modalLembreteTitle">
+  <div class="modal-dialog">
+    <div class="modal-head">
+      <div>
+        <div class="modal-tag">Comunicação</div>
+        <h3 class="modal-title" id="modalLembreteTitle">Enviar lembrete</h3>
+      </div>
+      <button class="modal-close" onclick="closeModal('modalLembrete')" aria-label="Fechar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <form id="formLembrete" onsubmit="handleSendLembrete(event)">
+      <div class="modal-body">
+        <div class="field">
+          <span class="field-label">Grupo destinatário</span>
+          <p style="font-family:var(--font-display);font-size:18px;font-style:italic;color:var(--text);padding:10px 0" id="lembreteGrupo">—</p>
+        </div>
+        <div class="field">
+          <label class="field-label" for="lembreteTemplate">Template</label>
+          <select class="filter-control" id="lembreteTemplate" onchange="updateMensagemPreview()">
+            <option value="pending">Lembrete — ainda não confirmou</option>
+            <option value="thankyou">Agradecimento — já confirmou</option>
+            <option value="announcement">Anúncio — informação importante</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="field-label" for="lembreteMensagem">Mensagem</label>
+          <textarea class="field-input" id="lembreteMensagem" rows="6" required></textarea>
+        </div>
+        <div class="form-hint">
+          A mensagem abrirá o WhatsApp do telefone cadastrado para envio manual. Revise antes de enviar.
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button type="button" class="btn btn-subtle" onclick="closeModal('modalLembrete')"><span>Cancelar</span></button>
+        <button type="submit" class="btn btn-primary">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          <span>Abrir no WhatsApp</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+ 
+<!-- ══ THEME LOADER ═══════════════════════════════════════════════════════ -->
+<script type="module">
+import { loadDashboardThemeConfig } from './assets/js/dashboard-theme-config.js';
+
+/**
+ * loadTheme.js - embutido
+ * Lê o tema ativo do site.json e aplica os tokens no dashboard.
+ * Fallback para o tema padrão silver se algo falhar.
+ */
+window.__DASHBOARD_BOOTSTRAP_PROMISE__ = (async function loadTheme() {
+  try {
+    const { config: site, theme, themePath } = await loadDashboardThemeConfig();
+ 
+    // 3. Mapeia tokens do tema para variáveis CSS do dashboard
+    const colors = theme.colors || {};
+    const fonts = theme.typography?.fonts || {};
+    const families = theme.typography?.families || {};
+    const root = document.documentElement;
+ 
+    const map = {
+      '--bg':            colors.background,
+      '--surface':       colors.surface,
+      '--surface-2':     colors.surface || colors.background,
+      '--primary':       colors.primary,
+      '--primary-soft':  colors.primarySoft || colors.primary,
+      '--text':          colors.text,
+      '--text-soft':     colors.textSoft || colors.text,
+      '--text-dim':      colors.textDim || colors.textMuted,
+      '--text-faint':    colors.textFaint || colors.textDim,
+      '--border':        colors.border,
+      '--border-strong': colors.borderStrong || colors.border,
+      '--primary-glow':  colors.primaryGlow,
+      '--font-display':  fonts.serif || families.serif,
+      '--font-sans':     fonts.primary || families.body || families.primary,
+    };
+ 
+    Object.entries(map).forEach(([key, value]) => {
+      if (value) root.style.setProperty(key, value);
+    });
+ 
+    // 4. Aplica nomes do casal e data
+    const coupleNames = site.couple?.names || 'Casal';
+    const heroDate = site.event?.heroDate || site.event?.displayDate || '';
+ 
+    const sidebarCouple = document.getElementById('sidebarCouple');
+    const sidebarDate = document.getElementById('sidebarDate');
+    const authCoupleTitle = document.getElementById('authCoupleTitle');
+ 
+    if (sidebarCouple) sidebarCouple.textContent = coupleNames;
+    if (sidebarDate) sidebarDate.textContent = heroDate;
+    if (authCoupleTitle) authCoupleTitle.textContent = coupleNames;
+ 
+    // 5. Expõe site para o dashboard.js usar
+    window.__SITE_CONFIG__ = site;
+    window.__DASHBOARD_THEME__ = theme;
+    window.dispatchEvent(new CustomEvent('dashboard:config-ready', {
+      detail: { config: site, theme, themePath }
+    }));
+ 
+    console.log('[dashboard] tema aplicado:', theme.meta?.name || themePath);
+    return { config: site, theme, themePath };
+  } catch (err) {
+    console.warn('[dashboard] erro carregando tema:', err.message, '- usando padrão');
+    return null;
+  }
+})();
+</script>
+ 
+<!-- Dashboard JS original -->
+<script src="assets/js/dashboard.js"></script>
+</body>
+</html>
