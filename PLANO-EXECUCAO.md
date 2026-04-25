@@ -25,6 +25,11 @@ Transformar o convite — atualmente configurado via `site.json` para um único 
 | 4 — Dashboard | Painel de edição completo para o casal (4 abas) | dashboard.html | Experiência do casal |
 | 5 — Roteamento | `vercel.json` com rewrites por slug | vercel.json | Multi-casal no ar |
 
+### Status atual (25/04/2026)
+
+- Fase 1 concluída e validada no Supabase.
+- Próximo passo ao retomar: iniciar Fase 2 pelo endpoint `GET /api/event-config?slug=`.
+
 ---
 
 ## Fase 1 — Banco de Dados (Supabase)
@@ -91,11 +96,19 @@ Bucket: `event-media` (público para leitura, autenticado para escrita)
 
 ### 1.5 Migração — Siannah & Diego
 
-- [ ] Confirmar usuário no Supabase Auth (`ddiego533@gmail.com`)
-- [ ] Inserir linha em `events` com `slug = 'siannah-diego-2026'` e `user_id` correto
-- [ ] Inserir registros em `event_gifts` (Lua de Mel + Lista para Casa)
-- [ ] Fazer upload das fotos para `event-media/{event_id}/`
-- [ ] Validar: `GET /api/event-config?slug=siannah-diego-2026` retorna dados idênticos ao `site.json` atual
+- [x] Confirmar usuário no Supabase Auth (`ddiego533@gmail.com`)
+- [x] Inserir linha em `events` com `slug = 'siannah-diego-2026'` e `user_id` correto
+- [x] Inserir registros em `event_gifts` (Lua de Mel + Lista para Casa)
+- [x] Fazer upload das fotos para `event-media/{event_id}/`
+- [x] Validar integridade da migração via queries SQL (evento, presentes, vínculos `event_uuid`, bucket, `hero_image_url`)
+
+Resultado da validação executada:
+- `events`: 1 evento ativo com slug `siannah-diego-2026`
+- `event_gifts`: 3 tipos (`pix`, `card`, `catalog`)
+- `rsvp_confirmations`: 8 registros vinculados em `event_uuid`
+- `guest_tokens`: 6 registros vinculados em `event_uuid`
+- `storage.buckets`: `event-media` público
+- Auth: usuário `ddiego533@gmail.com` confirmado e com login
 
 ---
 
