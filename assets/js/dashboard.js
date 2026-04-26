@@ -30,7 +30,6 @@ const TAB_LABELS = {
   musicas: { tag: 'Músicas', title: 'Sugestões recebidas' },
   relatorios: { tag: 'Relatórios', title: 'Estatísticas por grupo' },
   export: { tag: 'Exportação', title: 'Baixar seus dados' },
-  fotos: { tag: 'Fotos', title: 'Foto principal e galeria' },
   editar: { tag: 'Configurações', title: 'Editar evento' },
 };
 
@@ -302,6 +301,16 @@ async function ensureDashboardAccessToken() {
   return accessToken;
 }
 
+async function getDashboardAccessToken() {
+  const token = state.authToken || await ensureDashboardAccessToken();
+
+  if (!token) {
+    throw new Error('Sessão expirada. Faça login novamente no dashboard.');
+  }
+
+  return token;
+}
+
 async function clearDashboardSession() {
   state.authToken = null;
   sessionStorage.removeItem(LEGACY_DASHBOARD_TOKEN_STORAGE_KEY);
@@ -361,8 +370,6 @@ function handleTabSwitch(event) {
     reloadMusicas();
   } else if (tabName === 'relatorios') {
     loadRelatorios();
-  } else if (tabName === 'fotos') {
-    loadFotosTab();
   } else if (tabName === 'editar') {
     loadEditorTab();
   }
@@ -387,11 +394,6 @@ function refreshActiveTab() {
 
   if (activeTab === 'relatorios') {
     loadRelatorios();
-    return;
-  }
-
-  if (activeTab === 'fotos') {
-    loadFotosTab();
     return;
   }
 
@@ -1206,12 +1208,15 @@ function setupModalListeners() {
 }
 
 async function fetchWithAuth(url, options = {}) {
-  const token = state.authToken || await ensureDashboardAccessToken();
+  const token = await getDashboardAccessToken();
   const headers = {
-    'Content-Type': 'application/json',
-    'Authorization': token ? `Bearer ${token}` : '',
     ...options.headers,
+    Authorization: `Bearer ${token}`,
   };
+
+  if (!(options.body instanceof FormData) && !headers['Content-Type'] && !headers['content-type']) {
+    headers['Content-Type'] = 'application/json';
+  }
 
   return fetch(url, { ...options, headers });
 }
@@ -1340,6 +1345,9 @@ function loadEditorTab() {
   setVal('edTrackGiftSrc',    config.media?.tracks?.gift?.src     ?? '');
   setVal('edTrackGiftVolume', config.media?.tracks?.gift?.volume  ?? '');
   setVal('edTrackGiftStart',  config.media?.tracks?.gift?.startTime ?? '');
+  renderMediaHeroPreview(config.media?.heroImage || '');
+  renderMediaGalleryGrid(config.pages?.historia?.content?.gallery || []);
+  setMediaUploadStatus('');
 
   // Páginas extras
   renderPagesGrid(config.pages || {});
@@ -1408,11 +1416,8 @@ async function uploadMediaFile(type, file) {
   formData.append('type', type);
   formData.append('file', file);
 
-  const response = await fetch('/api/dashboard/media', {
+  const response = await fetchWithAuth('/api/dashboard/media', {
     method: 'POST',
-    headers: {
-      Authorization: `Bearer ${state.authToken || await ensureDashboardAccessToken()}`,
-    },
     body: formData,
   });
 
@@ -1423,6 +1428,56 @@ async function uploadMediaFile(type, file) {
   }
 
   return data;
+}
+
+function renderMediaHeroPreview(url) {
+  const previewWrap = document.getElementById('edMediaHeroPreviewWrap');
+  const previewImg = document.getElementById('edMediaHeroPreview');
+  const previewUrl = document.getElementById('edMediaHeroPreviewUrl');
+  const emptyEl = document.getElementById('edMediaHeroEmpty');
+
+  if (!previewWrap || !previewImg || !emptyEl) {
+    return;
+  }
+
+  if (url) {
+    previewImg.src = url;
+    if (previewUrl) {
+      previewUrl.textContent = url;
+    }
+    previewWrap.style.display = '';
+    emptyEl.style.display = 'none';
+    return;
+  }
+
+  previewImg.removeAttribute('src');
+  if (previewUrl) {
+    previewUrl.textContent = '';
+  }
+  previewWrap.style.display = 'none';
+  emptyEl.style.display = '';
+}
+
+function renderMediaGalleryGrid(images) {
+  const grid = document.getElementById('edMediaGalleryGrid');
+  const emptyEl = document.getElementById('edMediaGalleryEmpty');
+
+  if (!grid || !emptyEl) {
+    return;
+  }
+
+  if (!Array.isArray(images) || images.length === 0) {
+    grid.innerHTML = '';
+    emptyEl.style.display = '';
+    return;
+  }
+
+  emptyEl.style.display = 'none';
+  grid.innerHTML = images.map((image, index) => {
+    const src = escapeHtml(image?.src || '');
+    const alt = escapeHtml(image?.alt || `Foto ${index + 1}`);
+    return `<div class="media-gallery-card"><img src="${src}" alt="${alt}" onerror="this.style.opacity=0.3"></div>`;
+  }).join('');
 }
 
 function ensureHistoriaGalleryArray(config) {
@@ -1439,6 +1494,7 @@ function ensureHistoriaGalleryArray(config) {
 async function uploadHeroMedia() {
   const input = document.getElementById('edMediaHeroFile');
   const file = input?.files?.[0];
+  const button = document.getElementById('btnEdMediaHeroUpload');
 
   if (!file) {
     setMediaUploadStatus('Selecione uma imagem para a foto principal.', true);
@@ -1446,6 +1502,9 @@ async function uploadHeroMedia() {
   }
 
   setMediaUploadStatus('Enviando foto principal...');
+  if (button) {
+    button.disabled = true;
+  }
 
   try {
     const result = await uploadMediaFile('hero', file);
@@ -1456,6 +1515,8 @@ async function uploadHeroMedia() {
       window.__SITE_CONFIG__.media.heroImage = result.url || '';
     }
 
+    renderMediaHeroPreview(result.url || '');
+
     markEditorDirty();
     setMediaUploadStatus('Foto principal enviada. Lembre-se de salvar as alterações.');
 
@@ -1465,12 +1526,17 @@ async function uploadHeroMedia() {
   } catch (error) {
     console.error('[uploadHeroMedia]', error);
     setMediaUploadStatus(error.message || 'Erro ao enviar foto principal.', true);
+  } finally {
+    if (button) {
+      button.disabled = false;
+    }
   }
 }
 
 async function uploadGalleryMedia() {
   const input = document.getElementById('edMediaGalleryFiles');
   const files = Array.from(input?.files || []);
+  const button = document.getElementById('btnEdMediaGalleryUpload');
 
   if (!files.length) {
     setMediaUploadStatus('Selecione ao menos uma imagem para a galeria.', true);
@@ -1478,11 +1544,16 @@ async function uploadGalleryMedia() {
   }
 
   setMediaUploadStatus(`Enviando ${files.length} imagem(ns) para a galeria...`);
+  if (button) {
+    button.disabled = true;
+  }
 
   try {
     const uploadedItems = [];
 
-    for (const file of files) {
+    for (let index = 0; index < files.length; index += 1) {
+      const file = files[index];
+      setMediaUploadStatus(`Enviando ${index + 1}/${files.length}: ${file.name}...`);
       const result = await uploadMediaFile('gallery', file);
       uploadedItems.push({
         src: result.url || '',
@@ -1497,6 +1568,8 @@ async function uploadGalleryMedia() {
           gallery.push(item);
         }
       });
+
+      renderMediaGalleryGrid(gallery);
     }
 
     markEditorDirty();
@@ -1508,159 +1581,10 @@ async function uploadGalleryMedia() {
   } catch (error) {
     console.error('[uploadGalleryMedia]', error);
     setMediaUploadStatus(error.message || 'Erro ao enviar imagens da galeria.', true);
-  }
-}
-
-// ============================================================
-// ABA FOTOS — preview + upload hero + upload galeria
-// ============================================================
-
-function loadFotosTab() {
-  const config = window.__SITE_CONFIG__ || {};
-  renderFotosHeroPreview(config.media?.heroImage || '');
-  renderFotosGaleriaGrid(config.pages?.historia?.content?.gallery || []);
-}
-
-function renderFotosHeroPreview(url) {
-  const previewWrap = document.getElementById('fotosHeroPreviewWrap');
-  const previewImg  = document.getElementById('fotosHeroPreview');
-  const previewUrl  = document.getElementById('fotosHeroUrl');
-  const emptyEl     = document.getElementById('fotosHeroEmpty');
-
-  if (!previewWrap || !previewImg || !emptyEl) return;
-
-  if (url) {
-    previewImg.src = url;
-    if (previewUrl) previewUrl.textContent = url;
-    previewWrap.style.display = '';
-    emptyEl.style.display = 'none';
-  } else {
-    previewWrap.style.display = 'none';
-    emptyEl.style.display = '';
-  }
-}
-
-function renderFotosGaleriaGrid(images) {
-  const grid     = document.getElementById('fotosGaleriaGrid');
-  const emptyEl  = document.getElementById('fotosGaleriaEmpty');
-
-  if (!grid) return;
-
-  if (!Array.isArray(images) || images.length === 0) {
-    grid.innerHTML = '';
-    if (emptyEl) emptyEl.style.display = '';
-    return;
-  }
-
-  if (emptyEl) emptyEl.style.display = 'none';
-
-  grid.innerHTML = images.map((img, i) => {
-    const src = escapeHtml(img.src || '');
-    const alt = escapeHtml(img.alt || `Foto ${i + 1}`);
-    return `<div style="position:relative;aspect-ratio:1;overflow:hidden;border:1px solid var(--border)">
-      <img src="${src}" alt="${alt}"
-           style="width:100%;height:100%;object-fit:cover;display:block"
-           onerror="this.style.opacity=0.3">
-    </div>`;
-  }).join('');
-}
-
-function setFotosStatus(elId, message, isError = false) {
-  const el = document.getElementById(elId);
-  if (!el) return;
-  el.textContent = message || '';
-  el.style.color = isError ? 'var(--danger)' : 'var(--text-dim)';
-}
-
-async function handleFotosHeroUpload() {
-  const input = document.getElementById('fotosHeroFile');
-  const file  = input?.files?.[0];
-  const btn   = document.getElementById('btnFotosHeroUpload');
-
-  if (!file) {
-    setFotosStatus('fotosHeroStatus', 'Selecione uma imagem antes de enviar.', true);
-    return;
-  }
-
-  setFotosStatus('fotosHeroStatus', 'Enviando foto principal…');
-  if (btn) btn.disabled = true;
-
-  try {
-    const result = await uploadMediaFile('hero', file);
-    const url = result.url || '';
-
-    // Atualiza config em memória
-    if (window.__SITE_CONFIG__) {
-      if (!window.__SITE_CONFIG__.media) window.__SITE_CONFIG__.media = {};
-      window.__SITE_CONFIG__.media.heroImage = url;
-    }
-
-    // Atualiza preview imediatamente
-    renderFotosHeroPreview(url);
-
-    // Sincroniza campo do editor se estiver preenchido
-    const edHero = document.getElementById('edMediaHero');
-    if (edHero) edHero.value = url;
-
-    markEditorDirty();
-    setFotosStatus('fotosHeroStatus', 'Foto enviada! Clique em "Salvar configurações" para persistir.');
-
-    if (input) input.value = '';
-  } catch (error) {
-    console.error('[handleFotosHeroUpload]', error);
-    setFotosStatus('fotosHeroStatus', error.message || 'Erro ao enviar foto principal.', true);
   } finally {
-    if (btn) btn.disabled = false;
-  }
-}
-
-async function handleFotosGaleriaUpload() {
-  const input = document.getElementById('fotosGaleriaFiles');
-  const files = Array.from(input?.files || []);
-  const btn   = document.getElementById('btnFotosGaleriaUpload');
-
-  if (!files.length) {
-    setFotosStatus('fotosGaleriaStatus', 'Selecione ao menos uma imagem antes de enviar.', true);
-    return;
-  }
-
-  setFotosStatus('fotosGaleriaStatus', `Enviando ${files.length} imagem(ns)…`);
-  if (btn) btn.disabled = true;
-
-  try {
-    const uploadedItems = [];
-
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-      setFotosStatus('fotosGaleriaStatus', `Enviando ${i + 1}/${files.length}: ${file.name}…`);
-      const result = await uploadMediaFile('gallery', file);
-      uploadedItems.push({
-        src: result.url || '',
-        alt: file.name.replace(/\.[^.]+$/, ''),
-      });
+    if (button) {
+      button.disabled = false;
     }
-
-    // Atualiza config em memória
-    if (window.__SITE_CONFIG__) {
-      const gallery = ensureHistoriaGalleryArray(window.__SITE_CONFIG__);
-      uploadedItems.forEach((item) => {
-        if (item.src) gallery.push(item);
-      });
-    }
-
-    // Atualiza grade de thumbnails
-    const currentGallery = window.__SITE_CONFIG__?.pages?.historia?.content?.gallery || [];
-    renderFotosGaleriaGrid(currentGallery);
-
-    markEditorDirty();
-    setFotosStatus('fotosGaleriaStatus', `${uploadedItems.length} foto(s) adicionada(s). Clique em "Salvar configurações" para persistir.`);
-
-    if (input) input.value = '';
-  } catch (error) {
-    console.error('[handleFotosGaleriaUpload]', error);
-    setFotosStatus('fotosGaleriaStatus', error.message || 'Erro ao enviar imagens da galeria.', true);
-  } finally {
-    if (btn) btn.disabled = false;
   }
 }
 
