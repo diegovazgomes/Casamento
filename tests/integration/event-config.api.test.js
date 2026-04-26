@@ -43,6 +43,17 @@ function createQueryBuilder(result) {
   };
 }
 
+function createStorageMock({ listData = [], listError = null } = {}) {
+  return {
+    from: vi.fn(() => ({
+      list: vi.fn().mockResolvedValue({ data: listData, error: listError }),
+      getPublicUrl: vi.fn((path) => ({
+        data: { publicUrl: `https://cdn.example.com/${path}` },
+      })),
+    })),
+  };
+}
+
 describe('GET /api/event-config', () => {
   beforeEach(() => {
     vi.resetModules();
@@ -54,6 +65,7 @@ describe('GET /api/event-config', () => {
   it('returns a mapped public config with cache headers', async () => {
     const queryBuilder = createQueryBuilder({
       data: {
+        id: 'event-1',
         slug: 'ana-leo-2026',
         couple_names: 'Ana & Leo',
         bride_name: 'Ana',
@@ -80,6 +92,12 @@ describe('GET /api/event-config', () => {
     });
     createClientMock.mockReturnValue({
       from: vi.fn(() => queryBuilder),
+      storage: createStorageMock({
+        listData: [
+          { name: '1712400012345-foto-cerimonia.jpg' },
+          { name: '1712400012350-foto-festa.png' },
+        ],
+      }),
     });
 
     const { default: handler } = await import('../../api/event-config.js');
@@ -111,6 +129,22 @@ describe('GET /api/event-config', () => {
           title: 'Lua de Mel',
         },
       },
+      pages: {
+        historia: {
+          content: {
+            gallery: [
+              {
+                src: 'https://cdn.example.com/event-1/gallery/1712400012345-foto-cerimonia.jpg',
+                alt: 'Foto cerimonia',
+              },
+              {
+                src: 'https://cdn.example.com/event-1/gallery/1712400012350-foto-festa.png',
+                alt: 'Foto festa',
+              },
+            ],
+          },
+        },
+      },
       rsvp: {
         eventId: 'ana-leo-2026',
         supabaseEnabled: true,
@@ -132,6 +166,7 @@ describe('GET /api/event-config', () => {
     const queryBuilder = createQueryBuilder({ data: null, error: null });
     createClientMock.mockReturnValue({
       from: vi.fn(() => queryBuilder),
+      storage: createStorageMock(),
     });
 
     const { default: handler } = await import('../../api/event-config.js');
@@ -142,5 +177,41 @@ describe('GET /api/event-config', () => {
     expect(res.statusCode).toBe(404);
     expect(res.headers['Cache-Control']).toBe('no-store');
     expect(res.body).toEqual({ error: 'Event not found' });
+  });
+
+  it('returns empty gallery when storage has no files', async () => {
+    const queryBuilder = createQueryBuilder({
+      data: {
+        id: 'event-2',
+        slug: 'empty-gallery-event',
+        couple_names: 'Ana & Leo',
+        config: {
+          pages: {
+            historia: {
+              content: {
+                gallery: [
+                  { src: 'assets/images/gallery/foto1.png', alt: 'Foto antiga' },
+                ],
+              },
+            },
+          },
+        },
+        event_gifts: [],
+      },
+      error: null,
+    });
+
+    createClientMock.mockReturnValue({
+      from: vi.fn(() => queryBuilder),
+      storage: createStorageMock({ listData: [] }),
+    });
+
+    const { default: handler } = await import('../../api/event-config.js');
+    const res = createMockResponse();
+
+    await handler({ method: 'GET', query: { slug: 'empty-gallery-event' } }, res);
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body?.pages?.historia?.content?.gallery).toEqual([]);
   });
 });

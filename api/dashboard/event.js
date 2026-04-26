@@ -1,4 +1,10 @@
-import { buildEventConfigResponse, mergeDeep } from '../_lib/event-config.js';
+import {
+  applyGalleryToHistoriaConfig,
+  buildEventConfigResponse,
+  mergeDeep,
+  resolveEventGalleryFromStorage,
+  stripHistoriaGalleryFromConfig,
+} from '../_lib/event-config.js';
 import {
   getDashboardEventLookup,
   requireOwnedEvent,
@@ -106,6 +112,10 @@ export default async function handler(req, res) {
         return res.status(ownedEvent.status).json({ error: ownedEvent.error });
       }
 
+      const mappedConfig = buildEventConfigResponse(ownedEvent.event);
+      const galleryImages = await resolveEventGalleryFromStorage(ownedEvent.supabase, ownedEvent.event.id);
+      const finalConfig = applyGalleryToHistoriaConfig(mappedConfig, galleryImages);
+
       return res.status(200).json({
         event: {
           id: ownedEvent.event.id,
@@ -115,7 +125,7 @@ export default async function handler(req, res) {
           active_layout: ownedEvent.event.active_layout,
           updated_at: ownedEvent.event.updated_at,
         },
-        config: buildEventConfigResponse(ownedEvent.event),
+        config: finalConfig,
       });
     }
 
@@ -137,18 +147,20 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'config must be a valid object' });
     }
 
+    const sanitizedIncomingConfig = stripHistoriaGalleryFromConfig(body.config);
+
     console.log('[dashboard/event] PATCH received:', {
       eventId: ownedEvent.event.id,
       slug: ownedEvent.event.slug,
-      configKeys: Object.keys(body.config),
+      configKeys: Object.keys(sanitizedIncomingConfig),
     });
 
     // 1. Extrair campos que vão direto na tabela
-    const tableFields = extractEventTableFields(body.config);
+    const tableFields = extractEventTableFields(sanitizedIncomingConfig);
 
     // 2. Fazer merge profundo do config com o existente
     const existingConfig = ownedEvent.event.config || {};
-    const newConfig = mergeDeep(existingConfig, body.config);
+    const newConfig = mergeDeep(existingConfig, sanitizedIncomingConfig);
 
     // 3. Montar payload de update
     const updateData = {
@@ -185,6 +197,10 @@ export default async function handler(req, res) {
     });
 
     // 5. Retornar evento atualizado
+    const mappedConfig = buildEventConfigResponse(data);
+    const galleryImages = await resolveEventGalleryFromStorage(ownedEvent.supabase, data.id);
+    const finalConfig = applyGalleryToHistoriaConfig(mappedConfig, galleryImages);
+
     return res.status(200).json({
       event: {
         id: data.id,
@@ -202,7 +218,7 @@ export default async function handler(req, res) {
         active_layout: data.active_layout,
         updated_at: data.updated_at,
       },
-      config: buildEventConfigResponse(data),
+      config: finalConfig,
     });
   } catch (error) {
     console.error('[dashboard/event] Failed to update event', error);

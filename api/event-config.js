@@ -1,4 +1,8 @@
-import { buildEventConfigResponse } from './_lib/event-config.js';
+import {
+  applyGalleryToHistoriaConfig,
+  buildEventConfigResponse,
+  resolveEventGalleryFromStorage,
+} from './_lib/event-config.js';
 import { createSupabaseServerClient } from './_lib/supabase-server.js';
 
 const CACHE_CONTROL_HEADER = 'no-store, no-cache, must-revalidate';
@@ -69,8 +73,12 @@ export default async function handler(req, res) {
       return res.status(404).json({ error: 'Event not found' });
     }
 
+    const mappedConfig = buildEventConfigResponse(data);
+    const galleryImages = await resolveEventGalleryFromStorage(supabase, data.id);
+    const finalConfig = applyGalleryToHistoriaConfig(mappedConfig, galleryImages);
+
     res.setHeader('Cache-Control', CACHE_CONTROL_HEADER);
-    return res.status(200).json(buildEventConfigResponse(data));
+    return res.status(200).json(finalConfig);
   } catch (error) {
     console.error('[event-config] Failed to load event config', error);
     return res.status(500).json({ error: 'Internal server error' });

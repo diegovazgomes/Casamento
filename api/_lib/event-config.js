@@ -140,6 +140,89 @@ function mapGiftConfig(giftRecords, baseGiftConfig) {
   return gift;
 }
 
+const GALLERY_IMAGE_EXTENSION_PATTERN = /\.(jpe?g|png|webp)$/i;
+
+function buildGalleryAltFromName(fileName, index) {
+  const fallback = `Foto ${index + 1}`;
+  const raw = String(fileName || '').trim();
+
+  if (!raw) {
+    return fallback;
+  }
+
+  const withoutExtension = raw.replace(/\.[^.]+$/, '');
+  const withoutTimestampPrefix = withoutExtension.replace(/^\d+-/, '');
+  const normalized = withoutTimestampPrefix
+    .replace(/[-_]+/g, ' ')
+    .trim();
+
+  if (!normalized) {
+    return fallback;
+  }
+
+  return normalized.charAt(0).toUpperCase() + normalized.slice(1);
+}
+
+export async function resolveEventGalleryFromStorage(supabase, eventId) {
+  const normalizedEventId = String(eventId || '').trim();
+
+  if (!supabase || !normalizedEventId) {
+    return [];
+  }
+
+  const storage = supabase.storage.from('event-media');
+  const { data, error } = await storage.list(`${normalizedEventId}/gallery`, {
+    limit: 200,
+    sortBy: { column: 'name', order: 'asc' },
+  });
+
+  if (error) {
+    console.warn('[event-config] Failed to list gallery from Storage', error);
+    return [];
+  }
+
+  const imageEntries = (Array.isArray(data) ? data : [])
+    .filter((entry) => {
+      const name = String(entry?.name || '').trim();
+      return Boolean(name) && GALLERY_IMAGE_EXTENSION_PATTERN.test(name);
+    });
+
+  return imageEntries.map((entry, index) => {
+    const fileName = String(entry.name || '').trim();
+    const path = `${normalizedEventId}/gallery/${fileName}`;
+    const { data: publicUrlData } = storage.getPublicUrl(path);
+
+    return {
+      src: publicUrlData?.publicUrl || '',
+      alt: buildGalleryAltFromName(fileName, index),
+    };
+  }).filter((image) => Boolean(image.src));
+}
+
+export function applyGalleryToHistoriaConfig(config, galleryImages) {
+  const nextConfig = isPlainObject(config) ? cloneValue(config) : {};
+
+  if (!nextConfig.pages) nextConfig.pages = {};
+  if (!nextConfig.pages.historia) nextConfig.pages.historia = {};
+  if (!nextConfig.pages.historia.content) nextConfig.pages.historia.content = {};
+
+  nextConfig.pages.historia.content.gallery = Array.isArray(galleryImages)
+    ? galleryImages.map((image) => ({ src: image?.src || '', alt: image?.alt || '' }))
+    : [];
+
+  return nextConfig;
+}
+
+export function stripHistoriaGalleryFromConfig(config) {
+  const nextConfig = isPlainObject(config) ? cloneValue(config) : {};
+
+  if (nextConfig.pages?.historia?.content && 'gallery' in nextConfig.pages.historia.content) {
+    delete nextConfig.pages.historia.content.gallery;
+  }
+
+  return nextConfig;
+}
+
 export function buildEventConfigResponse(eventRecord) {
   const sourceConfig = isPlainObject(eventRecord?.config) ? cloneValue(eventRecord.config) : {};
   const nextConfig = mergeDeep(sourceConfig, {});

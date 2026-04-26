@@ -60,6 +60,17 @@ function createUpdateBuilder(result) {
   };
 }
 
+function createStorageMock({ listData = [], listError = null } = {}) {
+  return {
+    from: vi.fn(() => ({
+      list: vi.fn().mockResolvedValue({ data: listData, error: listError }),
+      getPublicUrl: vi.fn((path) => ({
+        data: { publicUrl: `https://cdn.example.com/${path}` },
+      })),
+    })),
+  };
+}
+
 describe('/api/dashboard/event', () => {
   beforeEach(() => {
     vi.resetModules();
@@ -99,6 +110,11 @@ describe('/api/dashboard/event', () => {
         getUser: vi.fn().mockResolvedValue({ data: { user: { id: 'user-1' } }, error: null }),
       },
       from: vi.fn(() => currentEventBuilder),
+      storage: createStorageMock({
+        listData: [
+          { name: '1712400012345-foto-1.jpg' },
+        ],
+      }),
     });
 
     const { default: handler } = await import('../../api/dashboard/event.js');
@@ -119,6 +135,18 @@ describe('/api/dashboard/event', () => {
       config: {
         couple: { names: 'Ana & Leo' },
         rsvp: { eventId: 'ana-leo-2026', supabaseEnabled: true },
+        pages: {
+          historia: {
+            content: {
+              gallery: [
+                {
+                  src: 'https://cdn.example.com/event-1/gallery/1712400012345-foto-1.jpg',
+                  alt: 'Foto 1',
+                },
+              ],
+            },
+          },
+        },
       },
     });
   });
@@ -167,6 +195,11 @@ describe('/api/dashboard/event', () => {
         getUser: vi.fn().mockResolvedValue({ data: { user: { id: 'user-1' } }, error: null }),
       },
       from: fromMock,
+      storage: createStorageMock({
+        listData: [
+          { name: '1712400012345-foto-1.jpg' },
+        ],
+      }),
     });
 
     const { default: handler } = await import('../../api/dashboard/event.js');
@@ -194,7 +227,7 @@ describe('/api/dashboard/event', () => {
         pages: { faq: { enabled: true }, historia: { enabled: true } },
       },
     });
-    expect(res.body).toEqual({
+    expect(res.body).toMatchObject({
       event: {
         id: 'event-1',
         slug: 'test-event',
@@ -211,7 +244,95 @@ describe('/api/dashboard/event', () => {
         active_layout: 'classic',
         updated_at: '2026-04-26T10:00:00Z',
       },
-      config: expect.any(Object),
+      config: {
+        pages: {
+          historia: {
+            content: {
+              gallery: [
+                {
+                  src: 'https://cdn.example.com/event-1/gallery/1712400012345-foto-1.jpg',
+                  alt: 'Foto 1',
+                },
+              ],
+            },
+          },
+        },
+      },
+    });
+  });
+
+  it('ignores gallery entries sent by PATCH payload', async () => {
+    const currentEventBuilder = createSelectBuilder({
+      data: {
+        id: 'event-1',
+        user_id: 'user-1',
+        config: {
+          pages: {
+            faq: { enabled: true },
+          },
+        },
+      },
+      error: null,
+    });
+    const updatedEventBuilder = createUpdateBuilder({
+      data: {
+        id: 'event-1',
+        user_id: 'user-1',
+        slug: 'test-event',
+        updated_at: '2026-04-26T10:00:00Z',
+        config: {
+          pages: {
+            faq: { enabled: true },
+          },
+        },
+      },
+      error: null,
+    });
+
+    const fromMock = vi.fn()
+      .mockReturnValueOnce(currentEventBuilder)
+      .mockReturnValueOnce(updatedEventBuilder);
+
+    createClientMock.mockReturnValue({
+      auth: {
+        getUser: vi.fn().mockResolvedValue({ data: { user: { id: 'user-1' } }, error: null }),
+      },
+      from: fromMock,
+      storage: createStorageMock(),
+    });
+
+    const { default: handler } = await import('../../api/dashboard/event.js');
+    const res = createMockResponse();
+
+    await handler({
+      method: 'PATCH',
+      headers: { authorization: 'Bearer valid-token' },
+      body: {
+        eventId: 'event-1',
+        config: {
+          pages: {
+            historia: {
+              content: {
+                gallery: [
+                  { src: 'assets/images/gallery/foto1.png', alt: 'Antiga' },
+                ],
+              },
+            },
+          },
+        },
+      },
+    }, res);
+
+    expect(res.statusCode).toBe(200);
+    expect(updatedEventBuilder.update).toHaveBeenCalledWith({
+      config: {
+        pages: {
+          faq: { enabled: true },
+          historia: {
+            content: {},
+          },
+        },
+      },
     });
   });
 
@@ -221,6 +342,7 @@ describe('/api/dashboard/event', () => {
         getUser: vi.fn(),
       },
       from: vi.fn(),
+      storage: createStorageMock(),
     });
 
     const { default: handler } = await import('../../api/dashboard/event.js');

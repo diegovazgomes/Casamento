@@ -1933,10 +1933,11 @@ async function saveEditorConfig() {
       return;
     }
 
-    window.__SITE_CONFIG__ = config;
+    const savedConfig = data?.config && typeof data.config === 'object' ? data.config : config;
+    window.__SITE_CONFIG__ = savedConfig;
     editorState.isDirty = false;
-    editorState.originalConfig = JSON.parse(JSON.stringify(config));
-    applySiteConfig(config);
+    editorState.originalConfig = JSON.parse(JSON.stringify(savedConfig));
+    applySiteConfig(savedConfig);
     updateEditorSaveStatus('Salvo no servidor ✓');
   } catch (error) {
     console.error('[saveEditorConfig]', error);
