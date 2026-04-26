@@ -1900,6 +1900,15 @@ function collectEditorValues() {
     config.pages[key].cardHint  = document.getElementById(`edPage_${key}_hint`)?.value.trim()  || '';
   });
 
+  // Imagens da galeria não têm campo de formulário — vivem em window.__SITE_CONFIG__
+  // (modificado pelos uploads). Preserva o estado vivo para não descartar ao salvar.
+  const liveGallery = window.__SITE_CONFIG__?.pages?.historia?.content?.gallery;
+  if (Array.isArray(liveGallery)) {
+    if (!config.pages.historia) config.pages.historia = {};
+    if (!config.pages.historia.content) config.pages.historia.content = {};
+    config.pages.historia.content.gallery = liveGallery;
+  }
+
   return config;
 }
 
