@@ -1,7 +1,7 @@
 import { buildEventConfigResponse } from './_lib/event-config.js';
 import { createSupabaseServerClient } from './_lib/supabase-server.js';
 
-const CACHE_CONTROL_HEADER = 's-maxage=60, stale-while-revalidate=300';
+const CACHE_CONTROL_HEADER = 'no-store, no-cache, must-revalidate';
 const EVENT_SELECT = [
   'id',
   'slug',

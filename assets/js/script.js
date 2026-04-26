@@ -1130,7 +1130,7 @@ async function bootstrap() {
         // 3. Carregar config final (pode ser diferente se usarmos API)
         const config = finalConfigUrl === configSource.url 
             ? initialConfig 
-            : await loadConfig(finalConfigUrl, DEFAULT_SITE_CONTENT, { fallbackToDefaults: true });
+            : await loadConfig(finalConfigUrl, initialConfig, { fallbackToDefaults: true });
 
         const layoutKey = config.activeLayout || ACTIVE_LAYOUT_KEY;
         await loadLayout(layoutKey);
