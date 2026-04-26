@@ -846,8 +846,8 @@ body::before{
 .editor-save-status.is-saved .editor-save-dot{background:var(--success)}
 .editor-save-status.is-saved{color:var(--success)}
 .editor-save-actions{display:flex;gap:10px;align-items:center}
-.media-upload-action{display:flex;align-items:flex-end}
-.media-upload-action .btn{width:100%;min-height:48px}
+.media-upload-action{display:flex;align-items:stretch;height:100%}
+.media-upload-action .btn{width:100%;min-height:40px;height:100%}
 .media-preview-wrap{margin-bottom:16px}
 .media-preview-box{max-width:100%;max-height:320px;object-fit:cover;border:1px solid var(--border);display:block}
 .media-preview-empty{display:none;padding:24px;border:1px dashed var(--border);text-align:center;color:var(--text-dim);font-size:12px;margin-bottom:16px}
@@ -891,7 +891,7 @@ body::before{
 .form-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
 .form-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:14px}
 .form-group{margin-bottom:14px}
-@media(max-width:760px){.form-grid-2,.form-grid-3{grid-template-columns:1fr}}
+@media(max-width:760px){.form-grid-2,.form-grid-3{grid-template-columns:1fr}.media-upload-action .btn{min-height:44px}}
 .field-input.sm{padding:10px 12px;font-size:12px}
 textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.65}
 .field-hint{
@@ -1698,7 +1698,7 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
               <div class="field">
                 <label class="field-label" for="edMediaHero">Foto do casal (hero)</label>
                 <input type="text" class="field-input sm" id="edMediaHero"
-                       placeholder="assets/images/couple/hero.jpg" oninput="markEditorDirty()">
+                    placeholder="assets/images/couple/hero.jpg" oninput="markEditorDirty();renderMediaHeroPreview(this.value)">
                 <div class="field-hint">Caminho relativo ou URL da imagem principal exibida no convite.</div>
               </div>
             </div>

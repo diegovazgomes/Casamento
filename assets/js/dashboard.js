@@ -19,6 +19,7 @@ const state = {
 
 const LEGACY_DASHBOARD_TOKEN_STORAGE_KEY = 'dashboardToken';
 const DASHBOARD_SUPABASE_STORAGE_KEY = 'dashboard-supabase-auth';
+const DASHBOARD_ACCESS_TOKEN_STORAGE_KEY = 'dashboard-access-token';
 
 let dashboardSupabaseClientPromise = null;
 
@@ -230,6 +231,7 @@ async function handleAuth(event) {
     }
 
     state.authToken = data.session.access_token;
+    sessionStorage.setItem(DASHBOARD_ACCESS_TOKEN_STORAGE_KEY, state.authToken);
 
     // Limpar form
     authForm.reset();
@@ -296,8 +298,27 @@ async function ensureDashboardAccessToken() {
     throw error;
   }
 
-  const accessToken = data?.session?.access_token || null;
+  let accessToken = data?.session?.access_token || null;
+
+  if (!accessToken) {
+    const { data: refreshedData, error: refreshError } = await supabase.auth.refreshSession();
+    if (refreshError) {
+      throw refreshError;
+    }
+
+    accessToken = refreshedData?.session?.access_token || null;
+  }
+
+  if (!accessToken) {
+    accessToken = sessionStorage.getItem(DASHBOARD_ACCESS_TOKEN_STORAGE_KEY) || null;
+  }
+
   state.authToken = accessToken;
+
+  if (accessToken) {
+    sessionStorage.setItem(DASHBOARD_ACCESS_TOKEN_STORAGE_KEY, accessToken);
+  }
+
   return accessToken;
 }
 
@@ -315,6 +336,7 @@ async function clearDashboardSession() {
   state.authToken = null;
   sessionStorage.removeItem(LEGACY_DASHBOARD_TOKEN_STORAGE_KEY);
   sessionStorage.removeItem(DASHBOARD_SUPABASE_STORAGE_KEY);
+  sessionStorage.removeItem(DASHBOARD_ACCESS_TOKEN_STORAGE_KEY);
 
   try {
     const supabase = await getDashboardSupabaseClient();
@@ -1207,18 +1229,58 @@ function setupModalListeners() {
   });
 }
 
-async function fetchWithAuth(url, options = {}) {
-  const token = await getDashboardAccessToken();
+function buildAuthHeaders(token, incomingHeaders = {}) {
   const headers = {
-    ...options.headers,
+    ...incomingHeaders,
     Authorization: `Bearer ${token}`,
   };
 
-  if (!(options.body instanceof FormData) && !headers['Content-Type'] && !headers['content-type']) {
+  return headers;
+}
+
+function withDefaultContentType(headers, body) {
+  if (!(body instanceof FormData) && !headers['Content-Type'] && !headers['content-type']) {
     headers['Content-Type'] = 'application/json';
   }
 
-  return fetch(url, { ...options, headers });
+  return headers;
+}
+
+async function refreshDashboardAccessToken() {
+  const supabase = await getDashboardSupabaseClient();
+  const { data, error } = await supabase.auth.refreshSession();
+
+  if (error) {
+    throw error;
+  }
+
+  const token = data?.session?.access_token || null;
+  state.authToken = token;
+
+  if (token) {
+    sessionStorage.setItem(DASHBOARD_ACCESS_TOKEN_STORAGE_KEY, token);
+  }
+
+  return token;
+}
+
+async function fetchWithAuth(url, options = {}) {
+  let token = await getDashboardAccessToken();
+  let headers = withDefaultContentType(buildAuthHeaders(token, options.headers), options.body);
+  let response = await fetch(url, { ...options, headers });
+
+  if (response.status !== 401) {
+    return response;
+  }
+
+  token = await refreshDashboardAccessToken();
+  if (!token) {
+    return response;
+  }
+
+  headers = withDefaultContentType(buildAuthHeaders(token, options.headers), options.body);
+  response = await fetch(url, { ...options, headers });
+  return response;
 }
 
 // ============================================================
@@ -1440,10 +1502,20 @@ function renderMediaHeroPreview(url) {
     return;
   }
 
-  if (url) {
-    previewImg.src = url;
+  const source = String(url || document.getElementById('edMediaHero')?.value || '').trim();
+
+  if (source) {
+    let resolvedSource = source;
+
+    try {
+      resolvedSource = new URL(source, window.location.href).href;
+    } catch (error) {
+      resolvedSource = source;
+    }
+
+    previewImg.src = resolvedSource;
     if (previewUrl) {
-      previewUrl.textContent = url;
+      previewUrl.textContent = source;
     }
     previewWrap.style.display = '';
     emptyEl.style.display = 'none';
