@@ -1497,14 +1497,30 @@ async function uploadMediaFile(type, file) {
     throw new Error('Evento não carregado no dashboard. Recarregue a página.');
   }
 
+  // Força token fresco diretamente do cliente Supabase para evitar token expirado
+  const supabase = await getDashboardSupabaseClient();
+  const { data: freshSession } = await supabase.auth.getSession();
+  const freshToken = freshSession?.session?.access_token || null;
+  if (freshToken) {
+    state.authToken = freshToken;
+    sessionStorage.setItem(DASHBOARD_ACCESS_TOKEN_STORAGE_KEY, freshToken);
+  }
+
+  if (!state.authToken) {
+    throw new Error('Sessão expirada. Faça login novamente no dashboard.');
+  }
+
   const formData = new FormData();
   formData.append('eventId', state.eventId);
   formData.append('type', type);
   formData.append('file', file);
 
-  const response = await fetchWithAuth('/api/dashboard/media', {
+  const response = await fetch('/api/dashboard/media', {
     method: 'POST',
     body: formData,
+    headers: {
+      Authorization: `Bearer ${state.authToken}`,
+    },
   });
 
   const data = await response.json().catch(() => ({}));
