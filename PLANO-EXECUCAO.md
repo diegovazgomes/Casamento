@@ -37,7 +37,11 @@ Transformar o convite — atualmente configurado via `site.json` para um único 
   - fallback local para `assets/config/site.json` continua ativo em rotas estáticas/root
   - loading screen usa a mesma fonte de config e o mesmo resolve de tema
   - estado de erro explícito para slug/config inválido
-- Próximo passo ao retomar: iniciar Fase 4 no dashboard, conectando o painel às rotas `PATCH /api/dashboard/event` e `POST /api/dashboard/media`.
+- Fase 4 iniciada:
+  - dashboard autentica, resolve o evento pelo `slug` atual e passa a hidratar o `id` real do registro
+  - aba de edição salva no servidor via `PATCH /api/dashboard/event` sem fallback para download de `site.json`
+  - `GET /api/dashboard/event` agora suporta lookup por `slug` para o painel
+- Próximo passo ao retomar: continuar a Fase 4 com upload real de mídia no dashboard e migração do login do painel para o fluxo definitivo de autenticação.
 
 ---
 

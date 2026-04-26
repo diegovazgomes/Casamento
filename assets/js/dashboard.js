@@ -6,7 +6,8 @@
 // Estado
 const state = {
   authToken: null,
-  eventId: 'siannah-diego-2026', // Padrão — pode ser lido de config futuramente
+  eventId: '',
+  eventSlug: 'siannah-diego-2026',
   grupos: [],
   confirmacoes: [],
   allConfirmacoes: [],
@@ -68,6 +69,7 @@ async function initializeDashboard() {
   if (savedToken) {
     state.authToken = savedToken;
     showDashboard();
+    await hydrateDashboardEventContext();
     await loadAllData();
     return;
   }
@@ -120,9 +122,9 @@ function applySiteConfig(siteConfig) {
     return;
   }
 
-  const eventId = siteConfig?.rsvp?.eventId;
-  if (eventId) {
-    state.eventId = eventId;
+  const eventSlug = siteConfig?.rsvp?.eventId;
+  if (eventSlug) {
+    state.eventSlug = eventSlug;
   }
 
   const coupleNames = siteConfig?.couple?.names;
@@ -135,6 +137,36 @@ function applySiteConfig(siteConfig) {
   if (sidebarCouple && coupleNames) sidebarCouple.textContent = coupleNames;
   if (sidebarDate && heroDate) sidebarDate.textContent = heroDate;
   if (authCoupleTitle && coupleNames) authCoupleTitle.textContent = coupleNames;
+}
+
+async function hydrateDashboardEventContext() {
+  const lookupSlug = state.eventSlug || window.__SITE_CONFIG__?.rsvp?.eventId;
+
+  if (!lookupSlug) {
+    throw new Error('Slug do evento não disponível para o dashboard');
+  }
+
+  const response = await fetchWithAuth(`/api/dashboard/event?slug=${encodeURIComponent(lookupSlug)}`);
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.error || 'Não foi possível carregar o evento do dashboard');
+  }
+
+  if (data?.event?.id) {
+    state.eventId = data.event.id;
+  }
+
+  if (data?.event?.slug) {
+    state.eventSlug = data.event.slug;
+  }
+
+  if (data?.config) {
+    window.__SITE_CONFIG__ = data.config;
+    applySiteConfig(data.config);
+  }
+
+  return data;
 }
 
 // ============================================================
@@ -171,7 +203,8 @@ async function handleAuth(event) {
 
     // Mostrar dashboard
     showDashboard();
-    loadAllData();
+    await hydrateDashboardEventContext();
+    await loadAllData();
   } catch (error) {
     console.error('[auth]', error);
     showAuthError('Erro ao conectar ao servidor');
@@ -1086,6 +1119,10 @@ async function fetchWithAuth(url, options = {}) {
 // ============================================================
 
 async function loadAllData() {
+  if (!state.eventId) {
+    return;
+  }
+
   // Grupos e confirmações em paralelo — reduz tempo total à metade
   await Promise.all([
     loadGrupos(),
@@ -1457,44 +1494,31 @@ function collectEditorValues() {
 async function saveEditorConfig() {
   const config = collectEditorValues();
 
-  // 1. Tentar via API (disponível após migração Supabase)
+  if (!state.eventId) {
+    updateEditorSaveStatus('Evento não carregado — recarregue o dashboard');
+    return;
+  }
+
   try {
     const response = await fetchWithAuth('/api/dashboard/event', {
       method: 'PATCH',
       body: JSON.stringify({ eventId: state.eventId, config }),
     });
-    if (response.ok) {
-      window.__SITE_CONFIG__ = config;
-      editorState.isDirty = false;
-      editorState.originalConfig = JSON.parse(JSON.stringify(config));
-      applySiteConfig(config);
-      updateEditorSaveStatus('Salvo no servidor ✓');
+
+    const data = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      updateEditorSaveStatus(data.error || 'Erro ao salvar no servidor');
       return;
     }
-  } catch {
-    // API ainda não disponível — usa fallback local
+
+    window.__SITE_CONFIG__ = config;
+    editorState.isDirty = false;
+    editorState.originalConfig = JSON.parse(JSON.stringify(config));
+    applySiteConfig(config);
+    updateEditorSaveStatus('Salvo no servidor ✓');
+  } catch (error) {
+    console.error('[saveEditorConfig]', error);
+    updateEditorSaveStatus('Erro ao salvar no servidor');
   }
-
-  // 2. Fallback: baixar site.json atualizado
-  downloadConfigJson(config);
-}
-
-function downloadConfigJson(config) {
-  const json = JSON.stringify(config, null, 2);
-  const blob = new Blob([json], { type: 'application/json;charset=utf-8' });
-  const url  = URL.createObjectURL(blob);
-  const a    = document.createElement('a');
-  a.href = url;
-  a.download = 'site.json';
-  a.style.display = 'none';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-
-  window.__SITE_CONFIG__ = config;
-  editorState.isDirty = false;
-  editorState.originalConfig = JSON.parse(JSON.stringify(config));
-  applySiteConfig(config);
-  updateEditorSaveStatus('Arquivo baixado — substitua o assets/config/site.json');
 }

@@ -1,9 +1,10 @@
-import { mergeDeep } from '../_lib/event-config.js';
+import { buildEventConfigResponse, mergeDeep } from '../_lib/event-config.js';
 import {
   authenticateSupabaseUser,
   createSupabaseServerClient,
   getEventById,
 } from '../_lib/supabase-server.js';
+import { verifyDashboardToken } from './auth.js';
 
 const EVENT_RESPONSE_SELECT = [
   'id',
@@ -52,9 +53,19 @@ const FIELD_MAP = {
 
 function setCorsHeaders(res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'PATCH, OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, PATCH, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   res.setHeader('Content-Type', 'application/json');
+}
+
+function getAuthToken(req) {
+  const authHeader = req.headers.authorization || req.headers.Authorization || '';
+
+  if (!authHeader.startsWith('Bearer ')) {
+    return '';
+  }
+
+  return authHeader.slice('Bearer '.length).trim();
 }
 
 function hasOwn(object, key) {
@@ -63,6 +74,62 @@ function hasOwn(object, key) {
 
 function isPlainObject(value) {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
+}
+
+function getEventLookup(req) {
+  const queryEventId = req.query?.eventId;
+  const bodyEventId = req.body?.eventId;
+  const querySlug = req.query?.slug;
+  const bodySlug = req.body?.slug;
+
+  return {
+    eventId: String(queryEventId || bodyEventId || '').trim(),
+    slug: String(querySlug || bodySlug || '').trim(),
+  };
+}
+
+async function authenticateRequest(req, supabase) {
+  const token = getAuthToken(req);
+
+  if (verifyDashboardToken(token)) {
+    return { mode: 'dashboard-token' };
+  }
+
+  const authResult = await authenticateSupabaseUser(req, supabase);
+  if (authResult.error) {
+    return authResult;
+  }
+
+  return {
+    mode: 'supabase-user',
+    user: authResult.user,
+  };
+}
+
+async function findEventRecord(supabase, lookup, authContext, selectClause) {
+  if (!lookup.eventId && !lookup.slug) {
+    return null;
+  }
+
+  let query = supabase.from('events').select(selectClause);
+
+  if (lookup.eventId) {
+    query = query.eq('id', lookup.eventId);
+  } else {
+    query = query.eq('slug', lookup.slug);
+  }
+
+  if (authContext.mode === 'supabase-user') {
+    query = query.eq('user_id', authContext.user.id);
+  }
+
+  const { data, error } = await query.maybeSingle();
+
+  if (error) {
+    throw error;
+  }
+
+  return data;
 }
 
 function buildEventUpdatePayload(body, existingConfig) {
@@ -96,7 +163,7 @@ export default async function handler(req, res) {
     return res.status(200).end();
   }
 
-  if (req.method !== 'PATCH') {
+  if (req.method !== 'GET' && req.method !== 'PATCH') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
@@ -107,25 +174,59 @@ export default async function handler(req, res) {
   }
 
   try {
-    const authResult = await authenticateSupabaseUser(req, supabase);
+    const authResult = await authenticateRequest(req, supabase);
 
     if (authResult.error) {
       return res.status(authResult.status).json({ error: authResult.error });
     }
 
-    const { eventId, ...body } = req.body || {};
+    if (req.method === 'GET') {
+      const lookup = getEventLookup(req);
 
-    if (!eventId || typeof eventId !== 'string') {
-      return res.status(400).json({ error: 'eventId required' });
+      if (!lookup.eventId && !lookup.slug) {
+        return res.status(400).json({ error: 'eventId or slug required' });
+      }
+
+      const event = await findEventRecord(
+        supabase,
+        lookup,
+        authResult,
+        `${EVENT_RESPONSE_SELECT},event_gifts(id,type,enabled,sort_order,config)`
+      );
+
+      if (!event) {
+        return res.status(404).json({ error: 'Event not found' });
+      }
+
+      return res.status(200).json({
+        event: {
+          id: event.id,
+          slug: event.slug,
+          user_id: event.user_id,
+          active_theme: event.active_theme,
+          active_layout: event.active_layout,
+          updated_at: event.updated_at,
+        },
+        config: buildEventConfigResponse(event),
+      });
     }
 
-    const currentEvent = await getEventById(supabase, eventId);
+    const lookup = getEventLookup(req);
+    const { eventId, slug, ...body } = req.body || {};
+
+    if (!lookup.eventId && !lookup.slug) {
+      return res.status(400).json({ error: 'eventId or slug required' });
+    }
+
+    const currentEvent = lookup.eventId
+      ? await getEventById(supabase, lookup.eventId)
+      : await findEventRecord(supabase, lookup, authResult, 'id,user_id,config,slug');
 
     if (!currentEvent) {
       return res.status(404).json({ error: 'Event not found' });
     }
 
-    if (currentEvent.user_id !== authResult.user.id) {
+    if (authResult.mode === 'supabase-user' && currentEvent.user_id !== authResult.user.id) {
       return res.status(403).json({ error: 'Forbidden' });
     }
 
@@ -138,8 +239,8 @@ export default async function handler(req, res) {
     const { data, error: updateError } = await supabase
       .from('events')
       .update(update)
-      .eq('id', eventId)
-      .eq('user_id', authResult.user.id)
+      .eq('id', currentEvent.id)
+      .eq('user_id', authResult.mode === 'supabase-user' ? authResult.user.id : currentEvent.user_id)
       .select(EVENT_RESPONSE_SELECT)
       .maybeSingle();
 

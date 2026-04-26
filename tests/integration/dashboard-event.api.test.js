@@ -1,11 +1,16 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const { createClientMock } = vi.hoisted(() => ({
+const { createClientMock, verifyDashboardTokenMock } = vi.hoisted(() => ({
   createClientMock: vi.fn(),
+  verifyDashboardTokenMock: vi.fn(),
 }));
 
 vi.mock('@supabase/supabase-js', () => ({
   createClient: createClientMock,
+}));
+
+vi.mock('../../api/dashboard/auth.js', () => ({
+  verifyDashboardToken: verifyDashboardTokenMock,
 }));
 
 function createMockResponse() {
@@ -60,12 +65,108 @@ function createUpdateBuilder(result) {
   };
 }
 
-describe('PATCH /api/dashboard/event', () => {
+describe('/api/dashboard/event', () => {
   beforeEach(() => {
     vi.resetModules();
     createClientMock.mockReset();
+    verifyDashboardTokenMock.mockReset();
+    verifyDashboardTokenMock.mockReturnValue(false);
     process.env.SUPABASE_URL = 'https://example.supabase.co';
     process.env.SUPABASE_SERVICE_ROLE_KEY = 'service-role-key';
+  });
+
+  it('loads an event config by slug for the current dashboard session', async () => {
+    const currentEventBuilder = createSelectBuilder({
+      data: {
+        id: 'event-1',
+        slug: 'ana-leo-2026',
+        user_id: 'user-1',
+        active_theme: 'classic-gold',
+        active_layout: 'classic',
+        updated_at: '2026-04-26T12:00:00.000Z',
+        couple_names: 'Ana & Leo',
+        bride_name: 'Ana',
+        groom_name: 'Leo',
+        event_date: '2026-09-06',
+        event_time: '17:00:00',
+        venue_name: 'Casa da Serra',
+        venue_address: 'Rua das Flores, 123',
+        venue_maps_link: 'https://maps.example.com',
+        config: {
+          texts: { metaTitle: 'Ana & Leo - Casamento' },
+          rsvp: { supabaseEnabled: true },
+        },
+        event_gifts: [],
+      },
+      error: null,
+    });
+
+    createClientMock.mockReturnValue({
+      auth: {
+        getUser: vi.fn().mockResolvedValue({ data: { user: { id: 'user-1' } }, error: null }),
+      },
+      from: vi.fn(() => currentEventBuilder),
+    });
+
+    const { default: handler } = await import('../../api/dashboard/event.js');
+    const res = createMockResponse();
+
+    await handler({
+      method: 'GET',
+      headers: { authorization: 'Bearer valid-token' },
+      query: { slug: 'ana-leo-2026' },
+    }, res);
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body).toMatchObject({
+      event: {
+        id: 'event-1',
+        slug: 'ana-leo-2026',
+      },
+      config: {
+        couple: { names: 'Ana & Leo' },
+        rsvp: { eventId: 'ana-leo-2026', supabaseEnabled: true },
+      },
+    });
+  });
+
+  it('accepts the current dashboard token bridge for GET by slug', async () => {
+    verifyDashboardTokenMock.mockReturnValue(true);
+
+    const currentEventBuilder = createSelectBuilder({
+      data: {
+        id: 'event-1',
+        slug: 'ana-leo-2026',
+        user_id: 'user-1',
+        active_theme: 'classic-gold',
+        active_layout: 'classic',
+        updated_at: '2026-04-26T12:00:00.000Z',
+        couple_names: 'Ana & Leo',
+        config: {},
+        event_gifts: [],
+      },
+      error: null,
+    });
+
+    const getUserMock = vi.fn();
+    createClientMock.mockReturnValue({
+      auth: {
+        getUser: getUserMock,
+      },
+      from: vi.fn(() => currentEventBuilder),
+    });
+
+    const { default: handler } = await import('../../api/dashboard/event.js');
+    const res = createMockResponse();
+
+    await handler({
+      method: 'GET',
+      headers: { authorization: 'Bearer dashboard-token' },
+      query: { slug: 'ana-leo-2026' },
+    }, res);
+
+    expect(res.statusCode).toBe(200);
+    expect(getUserMock).not.toHaveBeenCalled();
   });
 
   it('updates allowed fields and deep-merges config for the authenticated owner', async () => {
