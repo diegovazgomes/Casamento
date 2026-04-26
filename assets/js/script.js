@@ -1110,12 +1110,28 @@ async function bootstrap() {
 
     try {
         await loadDefaults();
+
+        // 1. Carregar config inicial para detectar eventId
         configSource = resolveSiteConfigSource();
-        const config = await loadConfig(
+        const initialConfig = await loadConfig(
             configSource.url,
             DEFAULT_SITE_CONTENT,
             { fallbackToDefaults: !configSource.usesApi }
         );
+
+        // 2. Se há eventId, preferir carregar da API em vez do arquivo estático
+        let finalConfigUrl = configSource.url;
+        const eventId = initialConfig?.rsvp?.eventId;
+        if (eventId && !configSource.usesApi) {
+            finalConfigUrl = `/api/event-config?slug=${encodeURIComponent(eventId)}`;
+            console.log('[bootstrap] Detectado eventId, carregando config da API:', finalConfigUrl);
+        }
+
+        // 3. Carregar config final (pode ser diferente se usarmos API)
+        const config = finalConfigUrl === configSource.url 
+            ? initialConfig 
+            : await loadConfig(finalConfigUrl, DEFAULT_SITE_CONTENT, { fallbackToDefaults: true });
+
         const layoutKey = config.activeLayout || ACTIVE_LAYOUT_KEY;
         await loadLayout(layoutKey);
         const themePath = resolveThemePath(config.activeTheme, layoutKey) || ACTIVE_THEME_PATH;

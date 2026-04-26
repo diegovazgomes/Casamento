@@ -139,7 +139,18 @@ describe('/api/dashboard/event', () => {
       data: {
         id: 'event-1',
         user_id: 'user-1',
+        slug: 'test-event',
+        couple_names: 'Test Couple',
+        bride_name: 'Bride',
+        groom_name: 'Groom',
+        event_date: '2026-09-06',
+        event_time: '17:00',
+        venue_name: 'Venue',
+        venue_address: 'Address',
+        venue_maps_link: 'https://maps.google.com',
         active_theme: 'classic-blue',
+        active_layout: 'classic',
+        updated_at: '2026-04-26T10:00:00Z',
         config: {
           texts: { metaTitle: 'Depois' },
           pages: { faq: { enabled: true }, historia: { enabled: true } },
@@ -166,8 +177,8 @@ describe('/api/dashboard/event', () => {
       headers: { authorization: 'Bearer valid-token' },
       body: {
         eventId: 'event-1',
-        activeTheme: 'classic-blue',
         config: {
+          activeTheme: 'classic-blue',
           texts: { metaTitle: 'Depois' },
           pages: { historia: { enabled: true } },
         },
@@ -178,6 +189,7 @@ describe('/api/dashboard/event', () => {
     expect(updatedEventBuilder.update).toHaveBeenCalledWith({
       active_theme: 'classic-blue',
       config: {
+        activeTheme: 'classic-blue',
         texts: { metaTitle: 'Depois' },
         pages: { faq: { enabled: true }, historia: { enabled: true } },
       },
@@ -185,13 +197,21 @@ describe('/api/dashboard/event', () => {
     expect(res.body).toEqual({
       event: {
         id: 'event-1',
+        slug: 'test-event',
         user_id: 'user-1',
+        couple_names: 'Test Couple',
+        bride_name: 'Bride',
+        groom_name: 'Groom',
+        event_date: '2026-09-06',
+        event_time: '17:00',
+        venue_name: 'Venue',
+        venue_address: 'Address',
+        venue_maps_link: 'https://maps.google.com',
         active_theme: 'classic-blue',
-        config: {
-          texts: { metaTitle: 'Depois' },
-          pages: { faq: { enabled: true }, historia: { enabled: true } },
-        },
+        active_layout: 'classic',
+        updated_at: '2026-04-26T10:00:00Z',
       },
+      config: expect.any(Object),
     });
   });
 
