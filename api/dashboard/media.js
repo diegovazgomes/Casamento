@@ -2,12 +2,7 @@ import { readFile } from 'fs/promises';
 
 import formidable from 'formidable';
 
-import {
-  authenticateSupabaseUser,
-  createSupabaseServerClient,
-  getEventById,
-} from '../_lib/supabase-server.js';
-import { verifyDashboardToken } from './auth.js';
+import { requireOwnedEvent } from '../_lib/dashboard-auth.js';
 
 const MIME_EXTENSION_MAP = {
   'image/jpeg': 'jpg',
@@ -20,34 +15,6 @@ function setCorsHeaders(res) {
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Authorization');
   res.setHeader('Content-Type', 'application/json');
-}
-
-function getAuthToken(req) {
-  const authHeader = req.headers.authorization || req.headers.Authorization || '';
-
-  if (!authHeader.startsWith('Bearer ')) {
-    return '';
-  }
-
-  return authHeader.slice('Bearer '.length).trim();
-}
-
-async function authenticateRequest(req, supabase) {
-  const token = getAuthToken(req);
-
-  if (verifyDashboardToken(token)) {
-    return { mode: 'dashboard-token' };
-  }
-
-  const authResult = await authenticateSupabaseUser(req, supabase);
-  if (authResult.error) {
-    return authResult;
-  }
-
-  return {
-    mode: 'supabase-user',
-    user: authResult.user,
-  };
 }
 
 function getSingleValue(value) {
@@ -136,19 +103,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const supabase = createSupabaseServerClient();
-
-  if (!supabase) {
-    return res.status(503).json({ error: 'Supabase server configuration missing' });
-  }
-
   try {
-    const authResult = await authenticateRequest(req, supabase);
-
-    if (authResult.error) {
-      return res.status(authResult.status).json({ error: authResult.error });
-    }
-
     const { fields, files } = await parseMultipartForm(req);
     const eventId = getSingleValue(fields.eventId);
     const type = getSingleValue(fields.type);
@@ -170,19 +125,21 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Unsupported file type' });
     }
 
-    const currentEvent = await getEventById(supabase, eventId);
+    const ownedEvent = await requireOwnedEvent({
+      ...req,
+      body: { ...(req.body || {}), eventId },
+      query: { ...(req.query || {}), eventId },
+    }, {
+      selectClause: 'id,user_id,slug,config',
+    });
 
-    if (!currentEvent) {
-      return res.status(404).json({ error: 'Event not found' });
-    }
-
-    if (authResult.mode === 'supabase-user' && currentEvent.user_id !== authResult.user.id) {
-      return res.status(403).json({ error: 'Forbidden' });
+    if (!ownedEvent.ok) {
+      return res.status(ownedEvent.status).json({ error: ownedEvent.error });
     }
 
     const buffer = await readFile(file.filepath);
     const storagePath = buildStoragePath(eventId, type, file);
-    const storage = supabase.storage.from('event-media');
+    const storage = ownedEvent.supabase.storage.from('event-media');
     const { error: uploadError } = await storage.upload(storagePath, buffer, {
       contentType: file.mimetype,
       upsert: type === 'hero',

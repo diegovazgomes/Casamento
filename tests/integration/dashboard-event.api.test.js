@@ -1,16 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const { createClientMock, verifyDashboardTokenMock } = vi.hoisted(() => ({
+const { createClientMock } = vi.hoisted(() => ({
   createClientMock: vi.fn(),
-  verifyDashboardTokenMock: vi.fn(),
 }));
 
 vi.mock('@supabase/supabase-js', () => ({
   createClient: createClientMock,
-}));
-
-vi.mock('../../api/dashboard/auth.js', () => ({
-  verifyDashboardToken: verifyDashboardTokenMock,
 }));
 
 function createMockResponse() {
@@ -69,8 +64,6 @@ describe('/api/dashboard/event', () => {
   beforeEach(() => {
     vi.resetModules();
     createClientMock.mockReset();
-    verifyDashboardTokenMock.mockReset();
-    verifyDashboardTokenMock.mockReturnValue(false);
     process.env.SUPABASE_URL = 'https://example.supabase.co';
     process.env.SUPABASE_SERVICE_ROLE_KEY = 'service-role-key';
   });
@@ -128,45 +121,6 @@ describe('/api/dashboard/event', () => {
         rsvp: { eventId: 'ana-leo-2026', supabaseEnabled: true },
       },
     });
-  });
-
-  it('accepts the current dashboard token bridge for GET by slug', async () => {
-    verifyDashboardTokenMock.mockReturnValue(true);
-
-    const currentEventBuilder = createSelectBuilder({
-      data: {
-        id: 'event-1',
-        slug: 'ana-leo-2026',
-        user_id: 'user-1',
-        active_theme: 'classic-gold',
-        active_layout: 'classic',
-        updated_at: '2026-04-26T12:00:00.000Z',
-        couple_names: 'Ana & Leo',
-        config: {},
-        event_gifts: [],
-      },
-      error: null,
-    });
-
-    const getUserMock = vi.fn();
-    createClientMock.mockReturnValue({
-      auth: {
-        getUser: getUserMock,
-      },
-      from: vi.fn(() => currentEventBuilder),
-    });
-
-    const { default: handler } = await import('../../api/dashboard/event.js');
-    const res = createMockResponse();
-
-    await handler({
-      method: 'GET',
-      headers: { authorization: 'Bearer dashboard-token' },
-      query: { slug: 'ana-leo-2026' },
-    }, res);
-
-    expect(res.statusCode).toBe(200);
-    expect(getUserMock).not.toHaveBeenCalled();
   });
 
   it('updates allowed fields and deep-merges config for the authenticated owner', async () => {

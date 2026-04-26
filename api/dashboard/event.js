@@ -1,10 +1,9 @@
 import { buildEventConfigResponse, mergeDeep } from '../_lib/event-config.js';
 import {
-  authenticateSupabaseUser,
-  createSupabaseServerClient,
-  getEventById,
-} from '../_lib/supabase-server.js';
-import { verifyDashboardToken } from './auth.js';
+  buildEventUpdatePayload,
+  getDashboardEventLookup,
+  requireOwnedEvent,
+} from '../_lib/dashboard-auth.js';
 
 const EVENT_RESPONSE_SELECT = [
   'id',
@@ -58,104 +57,6 @@ function setCorsHeaders(res) {
   res.setHeader('Content-Type', 'application/json');
 }
 
-function getAuthToken(req) {
-  const authHeader = req.headers.authorization || req.headers.Authorization || '';
-
-  if (!authHeader.startsWith('Bearer ')) {
-    return '';
-  }
-
-  return authHeader.slice('Bearer '.length).trim();
-}
-
-function hasOwn(object, key) {
-  return Object.prototype.hasOwnProperty.call(object, key);
-}
-
-function isPlainObject(value) {
-  return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
-}
-
-function getEventLookup(req) {
-  const queryEventId = req.query?.eventId;
-  const bodyEventId = req.body?.eventId;
-  const querySlug = req.query?.slug;
-  const bodySlug = req.body?.slug;
-
-  return {
-    eventId: String(queryEventId || bodyEventId || '').trim(),
-    slug: String(querySlug || bodySlug || '').trim(),
-  };
-}
-
-async function authenticateRequest(req, supabase) {
-  const token = getAuthToken(req);
-
-  if (verifyDashboardToken(token)) {
-    return { mode: 'dashboard-token' };
-  }
-
-  const authResult = await authenticateSupabaseUser(req, supabase);
-  if (authResult.error) {
-    return authResult;
-  }
-
-  return {
-    mode: 'supabase-user',
-    user: authResult.user,
-  };
-}
-
-async function findEventRecord(supabase, lookup, authContext, selectClause) {
-  if (!lookup.eventId && !lookup.slug) {
-    return null;
-  }
-
-  let query = supabase.from('events').select(selectClause);
-
-  if (lookup.eventId) {
-    query = query.eq('id', lookup.eventId);
-  } else {
-    query = query.eq('slug', lookup.slug);
-  }
-
-  if (authContext.mode === 'supabase-user') {
-    query = query.eq('user_id', authContext.user.id);
-  }
-
-  const { data, error } = await query.maybeSingle();
-
-  if (error) {
-    throw error;
-  }
-
-  return data;
-}
-
-function buildEventUpdatePayload(body, existingConfig) {
-  const update = {};
-
-  Object.entries(FIELD_MAP).forEach(([inputKey, columnName]) => {
-    if (hasOwn(body, inputKey)) {
-      update[columnName] = body[inputKey];
-    }
-  });
-
-  if (hasOwn(body, 'config')) {
-    if (!isPlainObject(body.config)) {
-      return { error: 'config must be an object' };
-    }
-
-    update.config = mergeDeep(existingConfig, body.config);
-  }
-
-  if (!Object.keys(update).length) {
-    return { error: 'No valid fields to update' };
-  }
-
-  return { update };
-}
-
 export default async function handler(req, res) {
   setCorsHeaders(res);
 
@@ -167,80 +68,52 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const supabase = createSupabaseServerClient();
-
-  if (!supabase) {
-    return res.status(503).json({ error: 'Supabase server configuration missing' });
-  }
-
   try {
-    const authResult = await authenticateRequest(req, supabase);
-
-    if (authResult.error) {
-      return res.status(authResult.status).json({ error: authResult.error });
-    }
-
     if (req.method === 'GET') {
-      const lookup = getEventLookup(req);
+      const ownedEvent = await requireOwnedEvent(req, {
+        selectClause: `${EVENT_RESPONSE_SELECT},event_gifts(id,type,enabled,sort_order,config)`,
+      });
 
-      if (!lookup.eventId && !lookup.slug) {
-        return res.status(400).json({ error: 'eventId or slug required' });
-      }
-
-      const event = await findEventRecord(
-        supabase,
-        lookup,
-        authResult,
-        `${EVENT_RESPONSE_SELECT},event_gifts(id,type,enabled,sort_order,config)`
-      );
-
-      if (!event) {
-        return res.status(404).json({ error: 'Event not found' });
+      if (!ownedEvent.ok) {
+        return res.status(ownedEvent.status).json({ error: ownedEvent.error });
       }
 
       return res.status(200).json({
         event: {
-          id: event.id,
-          slug: event.slug,
-          user_id: event.user_id,
-          active_theme: event.active_theme,
-          active_layout: event.active_layout,
-          updated_at: event.updated_at,
+          id: ownedEvent.event.id,
+          slug: ownedEvent.event.slug,
+          user_id: ownedEvent.event.user_id,
+          active_theme: ownedEvent.event.active_theme,
+          active_layout: ownedEvent.event.active_layout,
+          updated_at: ownedEvent.event.updated_at,
         },
-        config: buildEventConfigResponse(event),
+        config: buildEventConfigResponse(ownedEvent.event),
       });
     }
 
-    const lookup = getEventLookup(req);
+    const lookup = getDashboardEventLookup(req);
     const { eventId, slug, ...body } = req.body || {};
 
-    if (!lookup.eventId && !lookup.slug) {
-      return res.status(400).json({ error: 'eventId or slug required' });
+    const ownedEvent = await requireOwnedEvent(req, {
+      lookup,
+      selectClause: 'id,user_id,config,slug',
+    });
+
+    if (!ownedEvent.ok) {
+      return res.status(ownedEvent.status).json({ error: ownedEvent.error });
     }
 
-    const currentEvent = lookup.eventId
-      ? await getEventById(supabase, lookup.eventId)
-      : await findEventRecord(supabase, lookup, authResult, 'id,user_id,config,slug');
-
-    if (!currentEvent) {
-      return res.status(404).json({ error: 'Event not found' });
-    }
-
-    if (authResult.mode === 'supabase-user' && currentEvent.user_id !== authResult.user.id) {
-      return res.status(403).json({ error: 'Forbidden' });
-    }
-
-    const { update, error } = buildEventUpdatePayload(body, currentEvent.config ?? {});
+    const { update, error } = buildEventUpdatePayload(body, FIELD_MAP, ownedEvent.event.config ?? {}, mergeDeep);
 
     if (error) {
       return res.status(400).json({ error });
     }
 
-    const { data, error: updateError } = await supabase
+    const { data, error: updateError } = await ownedEvent.supabase
       .from('events')
       .update(update)
-      .eq('id', currentEvent.id)
-      .eq('user_id', authResult.mode === 'supabase-user' ? authResult.user.id : currentEvent.user_id)
+      .eq('id', ownedEvent.event.id)
+      .eq('user_id', ownedEvent.user.id)
       .select(EVENT_RESPONSE_SELECT)
       .maybeSingle();
 

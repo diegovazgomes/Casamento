@@ -6,7 +6,7 @@
  */
 
 import { createClient } from '@supabase/supabase-js';
-import { verifyDashboardToken } from './auth.js';
+import { requireOwnedEvent } from '../_lib/dashboard-auth.js';
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -30,13 +30,6 @@ export default function handler(req, res) {
     return res.status(503).json({ error: 'Supabase server configuration missing' });
   }
 
-  const authHeader = req.headers.authorization || '';
-  const token = authHeader.replace('Bearer ', '').trim();
-
-  if (!verifyDashboardToken(token)) {
-    return res.status(401).json({ error: 'Unauthorized' });
-  }
-
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -46,24 +39,26 @@ export default function handler(req, res) {
 
 async function handleListSubmissions(req, res) {
   const {
-    eventId,
     type = '',
     page = '1',
     pageSize = '20',
     search = '',
   } = req.query;
 
-  if (!eventId) {
-    return res.status(400).json({ error: 'eventId required' });
-  }
-
   if (type && type !== 'message' && type !== 'song') {
     return res.status(400).json({ error: 'type must be message or song' });
   }
 
-  const supabase = getSupabaseClient();
-
   try {
+    const ownedEvent = await requireOwnedEvent(req, {
+      selectClause: 'id,slug,user_id,config',
+    });
+
+    if (!ownedEvent.ok) {
+      return res.status(ownedEvent.status).json({ error: ownedEvent.error });
+    }
+
+    const supabase = ownedEvent.supabase;
     const pageNum = Math.max(1, parseInt(page, 10) || 1);
     const size = Math.min(100, Math.max(1, parseInt(pageSize, 10) || 20));
     const offset = (pageNum - 1) * size;
@@ -84,7 +79,7 @@ async function handleListSubmissions(req, res) {
         `,
         { count: 'exact' }
       )
-      .eq('event_id', eventId);
+      .eq('event_id', ownedEvent.event.id);
 
     if (type) {
       query = query.eq('type', type);

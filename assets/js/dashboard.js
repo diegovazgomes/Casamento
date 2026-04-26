@@ -17,6 +17,11 @@ const state = {
   editingGrupoId: null,
 };
 
+const LEGACY_DASHBOARD_TOKEN_STORAGE_KEY = 'dashboardToken';
+const DASHBOARD_SUPABASE_STORAGE_KEY = 'dashboard-supabase-auth';
+
+let dashboardSupabaseClientPromise = null;
+
 const TAB_LABELS = {
   overview: { tag: 'Visão Geral', title: 'Painel de controle' },
   grupos: { tag: 'Grupos', title: 'Gestão de convidados' },
@@ -54,35 +59,41 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 async function initializeDashboard() {
-  const bootstrapPromise = window.__DASHBOARD_BOOTSTRAP_PROMISE__;
-  if (bootstrapPromise && typeof bootstrapPromise.then === 'function') {
-    try {
-      const bootstrap = await bootstrapPromise;
-      applySiteConfig(bootstrap?.config);
-    } catch (error) {
-      console.warn('[dashboard] Falha ao aguardar bootstrap de config.', error);
+  try {
+    const bootstrapPromise = window.__DASHBOARD_BOOTSTRAP_PROMISE__;
+    if (bootstrapPromise && typeof bootstrapPromise.then === 'function') {
+      try {
+        const bootstrap = await bootstrapPromise;
+        applySiteConfig(bootstrap?.config);
+      } catch (error) {
+        console.warn('[dashboard] Falha ao aguardar bootstrap de config.', error);
+      }
     }
-  }
 
-  // Carregar token do sessionStorage
-  const savedToken = sessionStorage.getItem('dashboardToken');
-  if (savedToken) {
-    state.authToken = savedToken;
-    try {
-      showDashboard();
-      await hydrateDashboardEventContext();
-      await loadAllData();
-    } catch (error) {
-      console.error('[dashboard] Falha ao hidratar evento com token salvo.', error);
-      sessionStorage.removeItem('dashboardToken');
-      state.authToken = null;
-      showAuthScreen();
-      showAuthError(error?.message || 'Não foi possível conectar ao evento no Supabase.');
+    sessionStorage.removeItem(LEGACY_DASHBOARD_TOKEN_STORAGE_KEY);
+
+    const savedToken = await ensureDashboardAccessToken();
+    if (savedToken) {
+      try {
+        showDashboard();
+        await hydrateDashboardEventContext();
+        await loadAllData();
+      } catch (error) {
+        console.error('[dashboard] Falha ao hidratar evento com token salvo.', error);
+        await clearDashboardSession();
+        showAuthScreen();
+        showAuthError(error?.message || 'Não foi possível conectar ao evento no Supabase.');
+      }
+      return;
     }
-    return;
-  }
 
-  showAuthScreen();
+    showAuthScreen();
+  } catch (error) {
+    console.error('[dashboard] Falha ao inicializar autenticação do dashboard.', error);
+    await clearDashboardSession();
+    showAuthScreen();
+    showAuthError(error?.message || 'Não foi possível inicializar a autenticação do dashboard.');
+  }
 }
 
 function debounce(fn, delay) {
@@ -184,27 +195,24 @@ async function hydrateDashboardEventContext() {
 async function handleAuth(event) {
   event.preventDefault();
   
+  const email = document.getElementById('email').value.trim();
   const password = document.getElementById('password').value.trim();
-  if (!password) return;
+  if (!email || !password) return;
 
   try {
     authError.style.display = 'none';
-    const response = await fetch('/api/dashboard/auth', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ password }),
+    const supabase = await getDashboardSupabaseClient();
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
     });
 
-    const data = await response.json();
-
-    if (!response.ok) {
-      showAuthError(data.error || 'Erro na autenticação');
+    if (error || !data?.session?.access_token) {
+      showAuthError(error?.message || 'Erro na autenticação');
       return;
     }
 
-    // Salvar token
-    state.authToken = data.token;
-    sessionStorage.setItem('dashboardToken', data.token);
+    state.authToken = data.session.access_token;
 
     // Limpar form
     authForm.reset();
@@ -219,14 +227,72 @@ async function handleAuth(event) {
   }
 }
 
-function handleLogout() {
-  sessionStorage.removeItem('dashboardToken');
-  state.authToken = null;
+async function handleLogout() {
+  await clearDashboardSession();
   state.grupos = [];
   state.confirmacoes = [];
   state.allConfirmacoes = [];
   showAuthScreen();
   authForm.reset();
+}
+
+async function getDashboardSupabaseClient() {
+  if (!dashboardSupabaseClientPromise) {
+    dashboardSupabaseClientPromise = (async () => {
+      if (!window.supabase?.createClient) {
+        throw new Error('SDK do Supabase não carregado no dashboard');
+      }
+
+      const response = await fetch('/api/config');
+      const config = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(config.error || 'Não foi possível carregar a configuração pública do Supabase');
+      }
+
+      if (!config?.supabaseUrl || !config?.supabaseAnonKey) {
+        throw new Error('Supabase não configurado para autenticação do dashboard');
+      }
+
+      return window.supabase.createClient(config.supabaseUrl, config.supabaseAnonKey, {
+        auth: {
+          autoRefreshToken: true,
+          persistSession: true,
+          detectSessionInUrl: true,
+          storage: window.sessionStorage,
+          storageKey: DASHBOARD_SUPABASE_STORAGE_KEY,
+        },
+      });
+    })();
+  }
+
+  return dashboardSupabaseClientPromise;
+}
+
+async function ensureDashboardAccessToken() {
+  const supabase = await getDashboardSupabaseClient();
+  const { data, error } = await supabase.auth.getSession();
+
+  if (error) {
+    throw error;
+  }
+
+  const accessToken = data?.session?.access_token || null;
+  state.authToken = accessToken;
+  return accessToken;
+}
+
+async function clearDashboardSession() {
+  state.authToken = null;
+  sessionStorage.removeItem(LEGACY_DASHBOARD_TOKEN_STORAGE_KEY);
+  sessionStorage.removeItem(DASHBOARD_SUPABASE_STORAGE_KEY);
+
+  try {
+    const supabase = await getDashboardSupabaseClient();
+    await supabase.auth.signOut();
+  } catch (error) {
+    console.warn('[dashboard] Não foi possível encerrar a sessão Supabase.', error);
+  }
 }
 
 function showAuthError(message) {
@@ -1113,9 +1179,10 @@ function setupModalListeners() {
 }
 
 async function fetchWithAuth(url, options = {}) {
+  const token = state.authToken || await ensureDashboardAccessToken();
   const headers = {
     'Content-Type': 'application/json',
-    'Authorization': `Bearer ${state.authToken}`,
+    'Authorization': token ? `Bearer ${token}` : '',
     ...options.headers,
   };
 
@@ -1317,7 +1384,7 @@ async function uploadMediaFile(type, file) {
   const response = await fetch('/api/dashboard/media', {
     method: 'POST',
     headers: {
-      Authorization: `Bearer ${state.authToken}`,
+      Authorization: `Bearer ${state.authToken || await ensureDashboardAccessToken()}`,
     },
     body: formData,
   });

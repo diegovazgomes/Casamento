@@ -1,10 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const { createClientMock, formidableMock, readFileMock, verifyDashboardTokenMock } = vi.hoisted(() => ({
+const { createClientMock, formidableMock, readFileMock } = vi.hoisted(() => ({
   createClientMock: vi.fn(),
   formidableMock: vi.fn(),
   readFileMock: vi.fn(),
-  verifyDashboardTokenMock: vi.fn(),
 }));
 
 vi.mock('@supabase/supabase-js', () => ({
@@ -13,10 +12,6 @@ vi.mock('@supabase/supabase-js', () => ({
 
 vi.mock('formidable', () => ({
   default: formidableMock,
-}));
-
-vi.mock('../../api/dashboard/auth.js', () => ({
-  verifyDashboardToken: verifyDashboardTokenMock,
 }));
 
 vi.mock('fs/promises', () => ({
@@ -69,58 +64,8 @@ describe('POST /api/dashboard/media', () => {
     createClientMock.mockReset();
     formidableMock.mockReset();
     readFileMock.mockReset();
-    verifyDashboardTokenMock.mockReset();
-    verifyDashboardTokenMock.mockReturnValue(false);
     process.env.SUPABASE_URL = 'https://example.supabase.co';
     process.env.SUPABASE_SERVICE_ROLE_KEY = 'service-role-key';
-  });
-
-  it('accepts dashboard session token bridge for hero upload', async () => {
-    verifyDashboardTokenMock.mockReturnValue(true);
-
-    const uploadMock = vi.fn().mockResolvedValue({ error: null });
-    const getPublicUrlMock = vi.fn().mockReturnValue({
-      data: { publicUrl: 'https://cdn.example.com/event-1/hero.jpg' },
-    });
-    const getUserMock = vi.fn();
-
-    createClientMock.mockReturnValue({
-      auth: {
-        getUser: getUserMock,
-      },
-      from: vi.fn(() => createSelectBuilder({
-        data: { id: 'event-1', user_id: 'user-1', config: {} },
-        error: null,
-      })),
-      storage: {
-        from: vi.fn(() => ({
-          upload: uploadMock,
-          getPublicUrl: getPublicUrlMock,
-        })),
-      },
-    });
-
-    formidableMock.mockReturnValue({
-      parse: (req, callback) => callback(null, {
-        eventId: 'event-1',
-        type: 'hero',
-      }, {
-        file: {
-          filepath: 'C:/tmp/upload-file',
-          mimetype: 'image/jpeg',
-          originalFilename: 'Foto Principal.JPG',
-        },
-      }),
-    });
-    readFileMock.mockResolvedValue(Buffer.from('binary-data'));
-
-    const { default: handler } = await import('../../api/dashboard/media.js');
-    const res = createMockResponse();
-
-    await handler({ method: 'POST', headers: { authorization: 'Bearer dashboard-token' } }, res);
-
-    expect(res.statusCode).toBe(200);
-    expect(getUserMock).not.toHaveBeenCalled();
   });
 
   it('uploads an authenticated hero image to Supabase Storage', async () => {

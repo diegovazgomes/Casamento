@@ -868,6 +868,11 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
  
     <form class="auth-form" id="authForm" onsubmit="handleAuth(event)">
       <div class="field">
+        <label class="field-label" for="email">Email do painel</label>
+        <input type="email" class="field-input" id="email" name="email"
+               placeholder="casal@exemplo.com" autocomplete="email" required>
+      </div>
+      <div class="field">
         <label class="field-label" for="password">Senha do painel</label>
         <input type="password" class="field-input" id="password" name="password"
                placeholder="Digite sua senha" autocomplete="current-password" required>
@@ -1825,6 +1830,7 @@ window.__DASHBOARD_BOOTSTRAP_PROMISE__ = (async function loadTheme() {
 </script>
  
 <!-- Dashboard JS original -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="assets/js/dashboard.js"></script>
 </body>
 </html>
