@@ -164,6 +164,104 @@ body::before{
   margin-bottom:16px;
   text-align:left;
 }
+
+/* Loading Screen */
+.loading-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.loading-backdrop {
+  position: absolute;
+  inset: 0;
+  background: var(--ls-bg-color, #ffffff);
+  opacity: 1;
+}
+
+.loading-content {
+  position: relative;
+  text-align: center;
+  animation: loadingFadeIn 0.6s ease-out;
+}
+
+.loading-hearts {
+  display: flex;
+  justify-content: center;
+  gap: 0.4rem;
+  margin-bottom: 0.6rem;
+  height: 3.5rem;
+}
+
+.heart {
+  width: 2.8rem;
+  height: 2.8rem;
+  display: block;
+  animation: heartbeat 1.4s infinite ease-in-out;
+}
+
+.heart-text {
+  color: var(--ls-text-color, #f5f5f5);
+  animation-delay: 0s;
+}
+
+.heart-primary {
+  color: var(--ls-primary-color, #d4a574);
+  animation-delay: 0.7s;
+}
+
+.loading-names {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  color: var(--ls-text-color, #f5f5f5);
+  letter-spacing: 0.08em;
+  font-weight: 400;
+  opacity: 0.75;
+  margin: 0;
+  padding: 0 1.5rem;
+}
+
+@keyframes heartbeat {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.7;
+  }
+  50% {
+    transform: scale(1.15);
+    opacity: 1;
+  }
+}
+
+@keyframes loadingFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.loading-screen.fade-out {
+  animation: loadingFadeOut 0.6s ease-out forwards;
+}
+
+@keyframes loadingFadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
  
 /* ══ DASHBOARD LAYOUT ══════════════════════════════════════════════════════ */
 .dashboard{display:none;position:relative;z-index:1}
@@ -1764,6 +1862,12 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
 <!-- ══ THEME LOADER ═══════════════════════════════════════════════════════ -->
 <script type="module">
 import { loadDashboardThemeConfig } from './assets/js/dashboard-theme-config.js';
+import {
+  initLoadingScreen,
+  hideLoadingScreen,
+  markBootstrapComplete,
+  markContentReady,
+} from './assets/js/loading-screen.js';
 
 /**
  * loadTheme.js - embutido
@@ -1772,6 +1876,20 @@ import { loadDashboardThemeConfig } from './assets/js/dashboard-theme-config.js'
  */
 window.__DASHBOARD_BOOTSTRAP_PROMISE__ = (async function loadTheme() {
   try {
+    await initLoadingScreen();
+
+    window.__ON_DASHBOARD_READY__ = async () => {
+      markBootstrapComplete();
+      markContentReady();
+      await hideLoadingScreen();
+    };
+
+    window.addEventListener('dashboard:ready', window.__ON_DASHBOARD_READY__, { once: true });
+
+    if (window.__DASHBOARD_READY__ === true) {
+      await window.__ON_DASHBOARD_READY__();
+    }
+
     const { config: site, theme, themePath } = await loadDashboardThemeConfig();
  
     // 3. Mapeia tokens do tema para variáveis CSS do dashboard

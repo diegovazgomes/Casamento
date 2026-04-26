@@ -58,6 +58,20 @@ document.addEventListener('DOMContentLoaded', () => {
   syncActiveTab();
 });
 
+function notifyDashboardReady() {
+  window.__DASHBOARD_READY__ = true;
+
+  if (typeof window.__ON_DASHBOARD_READY__ === 'function') {
+    try {
+      window.__ON_DASHBOARD_READY__();
+    } catch (error) {
+      console.warn('[dashboard] Falha ao executar callback de pronto.', error);
+    }
+  }
+
+  window.dispatchEvent(new CustomEvent('dashboard:ready'));
+}
+
 async function initializeDashboard() {
   try {
     const bootstrapPromise = window.__DASHBOARD_BOOTSTRAP_PROMISE__;
@@ -84,15 +98,18 @@ async function initializeDashboard() {
         showAuthScreen();
         showAuthError(error?.message || 'Não foi possível conectar ao evento no Supabase.');
       }
+      notifyDashboardReady();
       return;
     }
 
     showAuthScreen();
+    notifyDashboardReady();
   } catch (error) {
     console.error('[dashboard] Falha ao inicializar autenticação do dashboard.', error);
     await clearDashboardSession();
     showAuthScreen();
     showAuthError(error?.message || 'Não foi possível inicializar a autenticação do dashboard.');
+    notifyDashboardReady();
   }
 }
 
@@ -221,9 +238,11 @@ async function handleAuth(event) {
     showDashboard();
     await hydrateDashboardEventContext();
     await loadAllData();
+    notifyDashboardReady();
   } catch (error) {
     console.error('[auth]', error);
     showAuthError(error?.message || 'Erro ao conectar ao servidor');
+    notifyDashboardReady();
   }
 }
 
