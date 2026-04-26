@@ -7,6 +7,26 @@ beforeEach(() => {
 });
 
 describe('script config/theme loaders', () => {
+  it('resolves an API config URL when the pathname starts with a slug', async () => {
+    const { resolveSiteConfigSource } = await import('../../assets/js/config-source.js');
+
+    expect(resolveSiteConfigSource('/ana-leo-2026')).toEqual({
+      slug: 'ana-leo-2026',
+      url: '/api/event-config?slug=ana-leo-2026',
+      usesApi: true,
+    });
+  });
+
+  it('keeps local site.json when the pathname points to a static file', async () => {
+    const { resolveSiteConfigSource } = await import('../../assets/js/config-source.js');
+
+    expect(resolveSiteConfigSource('/faq.html')).toEqual({
+      slug: '',
+      url: 'assets/config/site.json',
+      usesApi: false,
+    });
+  });
+
   it('reads token and section directly from URL when bootstrap state is absent', async () => {
     const { readNavigationStateFromUrl } = await import('../../assets/js/script.js');
 
@@ -62,6 +82,22 @@ describe('script config/theme loaders', () => {
 
     expect(config).toEqual(defaults);
     expect(config).not.toBe(defaults);
+  });
+
+  it('loadConfig rethrows request errors when fallback is disabled', async () => {
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 404,
+    });
+
+    const { loadConfig } = await import('../../assets/js/script.js');
+
+    await expect(
+      loadConfig('/api/event-config?slug=missing', {}, { fallbackToDefaults: false })
+    ).rejects.toMatchObject({
+      status: 404,
+      configUrl: '/api/event-config?slug=missing',
+    });
   });
 
   it('loadTheme merges fetched theme over defaults', async () => {

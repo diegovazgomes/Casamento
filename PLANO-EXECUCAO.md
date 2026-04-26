@@ -32,7 +32,12 @@ Transformar o convite — atualmente configurado via `site.json` para um único 
   - `GET /api/event-config?slug=`
   - `PATCH /api/dashboard/event`
   - `POST /api/dashboard/media`
-- Próximo passo ao retomar: iniciar Fase 3 no frontend, trocando o carregamento de `site.json` por slug + fallback local.
+- Fase 3 implementada e validada localmente:
+  - `script.js` resolve slug pela URL e busca `/api/event-config?slug=` quando aplicável
+  - fallback local para `assets/config/site.json` continua ativo em rotas estáticas/root
+  - loading screen usa a mesma fonte de config e o mesmo resolve de tema
+  - estado de erro explícito para slug/config inválido
+- Próximo passo ao retomar: iniciar Fase 4 no dashboard, conectando o painel às rotas `PATCH /api/dashboard/event` e `POST /api/dashboard/media`.
 
 ---
 

@@ -8,6 +8,8 @@
  * - Coordena com o bootstrap principal
  */
 
+import { resolveSiteConfigSource, resolveThemePath } from './config-source.js';
+
 const LOADING_SCREEN_HTML = `
 <div class="loading-screen" id="loadingScreen" aria-hidden="true">
     <div class="loading-backdrop"></div>
@@ -40,8 +42,13 @@ export async function initLoadingScreen() {
         // 1. Injetar HTML
         document.body.insertAdjacentHTML('afterbegin', LOADING_SCREEN_HTML);
 
-        // 2. Carregar site.json
-        const siteRes = await fetch('assets/config/site.json');
+        // 2. Carregar a config publica correta para a URL atual
+        const configSource = resolveSiteConfigSource();
+        const siteRes = await fetch(configSource.url, {
+            method: 'GET',
+            headers: { Accept: 'application/json' },
+            cache: 'no-store'
+        });
         if (!siteRes.ok) {
             applyFallbackLoadingColors();
             return;
@@ -50,13 +57,14 @@ export async function initLoadingScreen() {
         const coupleNames = siteConfig?.couple?.names || 'Siannah & Diego';
 
         // 3. Descobrir caminho do tema
-        let themePath = siteConfig.activeTheme;
-        if (!themePath) {
-            themePath = 'assets/layouts/classic/themes/classic-silver.json';
-        }
+        const themePath = resolveThemePath(siteConfig?.activeTheme, siteConfig?.activeLayout || 'classic');
 
         // 4. Carregar arquivo de tema
-        const themeRes = await fetch(themePath);
+        const themeRes = await fetch(themePath, {
+            method: 'GET',
+            headers: { Accept: 'application/json' },
+            cache: 'no-store'
+        });
         if (!themeRes.ok) {
             applyFallbackLoadingColors();
             preencherNomes(coupleNames);

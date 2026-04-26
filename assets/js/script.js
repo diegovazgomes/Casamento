@@ -4,9 +4,9 @@ import { RSVP } from './rsvp.js';
 import { PresentPage } from './presente.js';
 import { AudioController } from './audio.js';
 import { cloneDeep, mergeDeep, setInputPlaceholder, setText } from './utils.js';
+import { resolveSiteConfigSource, resolveThemePath } from './config-source.js';
 import { markBootstrapComplete, hideLoadingScreen } from './loading-screen.js';
 
-const SITE_CONFIG_URL = 'assets/config/site.json';
 const TYPOGRAPHY_CONFIG_URL = 'assets/config/typography.json';
 const INVITATION_STARTED_STORAGE_KEY = 'wedding-invitation-started';
 const NAVIGATION_SECTION_PARAM = 'section';
@@ -355,6 +355,13 @@ function warnThemeIssues(theme) {
     });
 }
 
+function createConfigLoadError(configUrl, status = 0) {
+    const error = new Error(`Config request failed for ${configUrl}`);
+    error.configUrl = configUrl;
+    error.status = Number(status) || 0;
+    return error;
+}
+
 async function loadDefaults() {
     const fetchJson = async (url) => {
         const res = await fetch(url, { method: 'GET', headers: { Accept: 'application/json' }, cache: 'no-store' });
@@ -372,7 +379,9 @@ async function loadDefaults() {
     ]);
 }
 
-export async function loadConfig(configUrl = SITE_CONFIG_URL, defaults = DEFAULT_SITE_CONTENT) {
+export async function loadConfig(configUrl, defaults = DEFAULT_SITE_CONTENT, options = {}) {
+    const { fallbackToDefaults = true } = options;
+
     try {
         const response = await fetch(configUrl, {
             method: 'GET',
@@ -381,7 +390,7 @@ export async function loadConfig(configUrl = SITE_CONFIG_URL, defaults = DEFAULT
         });
 
         if (!response.ok) {
-            throw new Error(`site.json returned HTTP ${response.status}`);
+            throw createConfigLoadError(configUrl, response.status);
         }
 
         const siteConfig = await response.json();
@@ -389,7 +398,11 @@ export async function loadConfig(configUrl = SITE_CONFIG_URL, defaults = DEFAULT
         warnConfigIssues(merged);
         return merged;
     } catch (error) {
-        console.warn('Falha ao carregar assets/config/site.json. Usando fallback local.', error);
+        if (!fallbackToDefaults) {
+            throw error;
+        }
+
+        console.warn(`Falha ao carregar ${configUrl}. Usando fallback local.`, error);
         return cloneDeep(defaults);
     }
 }
@@ -1042,10 +1055,50 @@ async function loadLayout(layoutKey) {
     });
 }
 
-function resolveThemePath(activeTheme, layoutKey) {
-    if (!activeTheme) return null;
-    if (activeTheme.startsWith('assets/')) return activeTheme; // formato legado
-    return `assets/layouts/${layoutKey}/themes/${activeTheme}.json`;
+function renderBootstrapError(error, configSource) {
+    document.body.classList.remove('experience-locked');
+
+    const shell = document.getElementById('siteShell');
+    if (shell) {
+        shell.hidden = true;
+        shell.setAttribute('aria-hidden', 'true');
+        shell.classList.remove('is-visible');
+    }
+
+    const introScreen = document.getElementById('introScreen');
+    if (introScreen) {
+        introScreen.hidden = true;
+    }
+
+    let state = document.getElementById('configErrorState');
+
+    if (!state) {
+        state = document.createElement('section');
+        state.id = 'configErrorState';
+        state.className = 'config-error-state';
+        state.innerHTML = `
+            <div class="config-error-state__card">
+                <p class="config-error-state__eyebrow">Convite digital</p>
+                <h1 class="config-error-state__title" id="configErrorTitle"></h1>
+                <p class="config-error-state__body" id="configErrorBody"></p>
+                <a class="config-error-state__action" href="/" id="configErrorAction">Ir para a pagina inicial</a>
+            </div>
+        `;
+        document.body.appendChild(state);
+    }
+
+    const isNotFound = configSource?.usesApi && Number(error?.status) === 404;
+
+    setText('configErrorTitle', isNotFound
+        ? 'Convite nao encontrado.'
+        : 'Nao foi possivel carregar este convite.');
+    setText('configErrorBody', isNotFound
+        ? 'Confira se o link esta completo ou solicite um novo acesso aos noivos.'
+        : 'Tente novamente em instantes. Se o problema continuar, fale com quem enviou o convite.');
+
+    document.title = isNotFound
+        ? 'Convite nao encontrado.'
+        : 'Nao foi possivel carregar este convite.';
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -1053,12 +1106,19 @@ function resolveThemePath(activeTheme, layoutKey) {
 // ──────────────────────────────────────────────────────────────────────────────
 
 async function bootstrap() {
+    let configSource = null;
+
     try {
         await loadDefaults();
-        const config = await loadConfig();
+        configSource = resolveSiteConfigSource();
+        const config = await loadConfig(
+            configSource.url,
+            DEFAULT_SITE_CONTENT,
+            { fallbackToDefaults: !configSource.usesApi }
+        );
         const layoutKey = config.activeLayout || ACTIVE_LAYOUT_KEY;
         await loadLayout(layoutKey);
-        const themePath = resolveThemePath(config.activeTheme, layoutKey) ?? ACTIVE_THEME_PATH;
+        const themePath = resolveThemePath(config.activeTheme, layoutKey) || ACTIVE_THEME_PATH;
         const [theme, typographyConfig] = await Promise.all([
             loadTheme(themePath),
             loadTypographyConfig()
@@ -1077,6 +1137,7 @@ async function bootstrap() {
         await hideLoadingScreen();
     } catch (error) {
         console.error('Falha ao carregar a configuracao da pagina.', error);
+        renderBootstrapError(error, configSource);
         markBootstrapComplete();
         await hideLoadingScreen();
     }
