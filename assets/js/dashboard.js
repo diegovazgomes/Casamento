@@ -275,7 +275,7 @@ async function getDashboardSupabaseClient() {
         throw new Error('Supabase não configurado para autenticação do dashboard');
       }
 
-      return window.supabase.createClient(config.supabaseUrl, config.supabaseAnonKey, {
+      const client = window.supabase.createClient(config.supabaseUrl, config.supabaseAnonKey, {
         auth: {
           autoRefreshToken: true,
           persistSession: true,
@@ -284,6 +284,19 @@ async function getDashboardSupabaseClient() {
           storageKey: DASHBOARD_SUPABASE_STORAGE_KEY,
         },
       });
+
+      client.auth.onAuthStateChange((_event, session) => {
+        const accessToken = session?.access_token || null;
+        state.authToken = accessToken;
+
+        if (accessToken) {
+          sessionStorage.setItem(DASHBOARD_ACCESS_TOKEN_STORAGE_KEY, accessToken);
+        } else {
+          sessionStorage.removeItem(DASHBOARD_ACCESS_TOKEN_STORAGE_KEY);
+        }
+      });
+
+      return client;
     })();
   }
 
@@ -299,18 +312,19 @@ async function ensureDashboardAccessToken() {
   }
 
   let accessToken = data?.session?.access_token || null;
+  const refreshToken = data?.session?.refresh_token || null;
 
   if (!accessToken) {
+    accessToken = sessionStorage.getItem(DASHBOARD_ACCESS_TOKEN_STORAGE_KEY) || null;
+  }
+
+  if (!accessToken && refreshToken) {
     const { data: refreshedData, error: refreshError } = await supabase.auth.refreshSession();
     if (refreshError) {
       throw refreshError;
     }
 
     accessToken = refreshedData?.session?.access_token || null;
-  }
-
-  if (!accessToken) {
-    accessToken = sessionStorage.getItem(DASHBOARD_ACCESS_TOKEN_STORAGE_KEY) || null;
   }
 
   state.authToken = accessToken;
@@ -1248,6 +1262,16 @@ function withDefaultContentType(headers, body) {
 
 async function refreshDashboardAccessToken() {
   const supabase = await getDashboardSupabaseClient();
+  const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+
+  if (sessionError) {
+    throw sessionError;
+  }
+
+  if (!sessionData?.session?.refresh_token) {
+    return sessionStorage.getItem(DASHBOARD_ACCESS_TOKEN_STORAGE_KEY) || null;
+  }
+
   const { data, error } = await supabase.auth.refreshSession();
 
   if (error) {
