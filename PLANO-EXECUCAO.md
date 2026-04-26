@@ -28,20 +28,71 @@ Transformar o convite — atualmente configurado via `site.json` para um único 
 ### Status atual (26/04/2026)
 
 - Fase 1 concluída e validada no Supabase.
-- Fase 2 implementada e validada localmente:
-  - `GET /api/event-config?slug=`
-  - `PATCH /api/dashboard/event`
+- Fase 2 implementada e validada:
+  - `GET /api/event-config?slug=` — cache alterado para `no-store` (dados sempre frescos)
+  - `PATCH /api/dashboard/event` — persiste mudanças no banco (confirmado)
   - `POST /api/dashboard/media`
-- Fase 3 implementada e validada localmente:
-  - `script.js` resolve slug pela URL e busca `/api/event-config?slug=` quando aplicável
-  - fallback local para `assets/config/site.json` continua ativo em rotas estáticas/root
-  - loading screen usa a mesma fonte de config e o mesmo resolve de tema
-  - estado de erro explícito para slug/config inválido
-- Fase 4 iniciada:
-  - dashboard autentica, resolve o evento pelo `slug` atual e passa a hidratar o `id` real do registro
-  - aba de edição salva no servidor via `PATCH /api/dashboard/event` sem fallback para download de `site.json`
-  - `GET /api/dashboard/event` agora suporta lookup por `slug` para o painel
-- Próximo passo ao retomar: continuar a Fase 4 com upload real de mídia no dashboard e migração do login do painel para o fluxo definitivo de autenticação.
+- Fase 3 implementada e validada:
+  - `script.js` detecta `rsvp.eventId` no `site.json` estático e redireciona automaticamente para `/api/event-config?slug=` — sem depender de slug na URL
+  - Fallback: se a API falhar, usa `initialConfig` (dados reais do casal) em vez dos defaults genéricos
+  - O site convite agora reflete mudanças feitas no dashboard após reload ✅
+- Fase 4 parcialmente implementada:
+  - Dashboard autentica via Supabase JWT (email/password)
+  - Aba de edição salva no servidor via `PATCH /api/dashboard/event`
+  - Sincronização dashboard → banco → site confirmada funcionando
+  - Upload de mídia (`POST /api/dashboard/media`) implementado mas **não testado no dashboard**
+  - Abas Fotos e Páginas Extras do dashboard **não implementadas** no frontend
+- Fase 5 não iniciada (roteamento por slug no Vercel).
+
+---
+
+## ⏸ Checkpoint — Onde paramos (26/04/2026)
+
+### O que foi concluído nessa sessão
+
+1. **Sincronização dashboard → site** — o site convite agora carrega config dinâmico da API.
+   - `script.js` (`bootstrap()`): detecta `rsvp.eventId` no `site.json` estático e prefere `/api/event-config?slug=eventId`
+   - `api/event-config.js`: cache alterado de `s-maxage=60` para `no-store`
+   - Fallback do bootstrap usa `initialConfig` (dados do casal) em vez de defaults genéricos
+
+2. **Testes corrigidos** — `tests/integration/dashboard-event.api.test.js` passa com 3/3 testes.
+
+3. **Mudanças pendentes de deploy** — os arquivos abaixo foram modificados e precisam de `git push` para entrar em produção:
+   - `api/event-config.js`
+   - `assets/js/script.js`
+
+### Arquivos-chave do estado atual
+
+| Arquivo | Estado | Observação |
+|---------|--------|------------|
+| `assets/js/script.js` | ✅ Modificado | Bootstrap detecta eventId e usa API |
+| `api/event-config.js` | ✅ Modificado | Cache no-store |
+| `api/dashboard/event.js` | ✅ Funcional | PATCH persiste ao banco |
+| `api/_lib/event-config.js` | ✅ Funcional | buildEventConfigResponse mapeia campos corretamente |
+| `assets/js/dashboard.js` | ✅ Funcional | Auth, edição e save funcionando |
+| `assets/js/loading-screen.js` | ✅ Funcional | Loading screen do dashboard |
+
+### Próximos passos — retomar aqui
+
+**Imediato (antes de continuar):**
+- [ ] `git add api/event-config.js assets/js/script.js`
+- [ ] `git commit -m "fix: site carrega config da API pelo eventId, cache no-store"`
+- [ ] `git push` — aguardar deploy no Vercel
+- [ ] Validar em produção: editar nome no dashboard → salvar → recarregar convite → nome deve mudar
+
+**Fase 4 — Continuação do dashboard:**
+- [ ] Testar e validar upload de mídia (`POST /api/dashboard/media`) no dashboard (aba Fotos)
+- [ ] Implementar aba Fotos no `dashboard.html` — upload hero image e galeria com preview
+- [ ] Implementar aba Páginas Extras no `dashboard.html` — editores de texto para história, FAQ, hospedagem
+- [ ] Testar fluxo completo: casal faz login → edita → salva → convite reflete mudanças
+
+**Fase 5 — Roteamento (após Fase 4 completa):**
+- [ ] Criar/atualizar `vercel.json` com rewrites por slug
+- [ ] Testar `/siannah-diego-2026` → carrega `index.html` com config correto
+- [ ] Testar páginas extras via slug: `/siannah-diego-2026/presente`
+- [ ] Testar URL inválida → exibe erro 404 adequado
+
+---
 
 ---
 
