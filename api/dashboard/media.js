@@ -7,6 +7,7 @@ import {
   createSupabaseServerClient,
   getEventById,
 } from '../_lib/supabase-server.js';
+import { verifyDashboardToken } from './auth.js';
 
 const MIME_EXTENSION_MAP = {
   'image/jpeg': 'jpg',
@@ -19,6 +20,34 @@ function setCorsHeaders(res) {
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Authorization');
   res.setHeader('Content-Type', 'application/json');
+}
+
+function getAuthToken(req) {
+  const authHeader = req.headers.authorization || req.headers.Authorization || '';
+
+  if (!authHeader.startsWith('Bearer ')) {
+    return '';
+  }
+
+  return authHeader.slice('Bearer '.length).trim();
+}
+
+async function authenticateRequest(req, supabase) {
+  const token = getAuthToken(req);
+
+  if (verifyDashboardToken(token)) {
+    return { mode: 'dashboard-token' };
+  }
+
+  const authResult = await authenticateSupabaseUser(req, supabase);
+  if (authResult.error) {
+    return authResult;
+  }
+
+  return {
+    mode: 'supabase-user',
+    user: authResult.user,
+  };
 }
 
 function getSingleValue(value) {
@@ -114,7 +143,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const authResult = await authenticateSupabaseUser(req, supabase);
+    const authResult = await authenticateRequest(req, supabase);
 
     if (authResult.error) {
       return res.status(authResult.status).json({ error: authResult.error });
@@ -147,7 +176,7 @@ export default async function handler(req, res) {
       return res.status(404).json({ error: 'Event not found' });
     }
 
-    if (currentEvent.user_id !== authResult.user.id) {
+    if (authResult.mode === 'supabase-user' && currentEvent.user_id !== authResult.user.id) {
       return res.status(403).json({ error: 'Forbidden' });
     }
 

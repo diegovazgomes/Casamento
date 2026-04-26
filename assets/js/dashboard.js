@@ -68,9 +68,17 @@ async function initializeDashboard() {
   const savedToken = sessionStorage.getItem('dashboardToken');
   if (savedToken) {
     state.authToken = savedToken;
-    showDashboard();
-    await hydrateDashboardEventContext();
-    await loadAllData();
+    try {
+      showDashboard();
+      await hydrateDashboardEventContext();
+      await loadAllData();
+    } catch (error) {
+      console.error('[dashboard] Falha ao hidratar evento com token salvo.', error);
+      sessionStorage.removeItem('dashboardToken');
+      state.authToken = null;
+      showAuthScreen();
+      showAuthError(error?.message || 'Não foi possível conectar ao evento no Supabase.');
+    }
     return;
   }
 
@@ -207,7 +215,7 @@ async function handleAuth(event) {
     await loadAllData();
   } catch (error) {
     console.error('[auth]', error);
-    showAuthError('Erro ao conectar ao servidor');
+    showAuthError(error?.message || 'Erro ao conectar ao servidor');
   }
 }
 
@@ -1286,6 +1294,127 @@ function updateEditorSaveStatus(message) {
 function setEditorStatusText(msg) {
   const el = document.getElementById('editorSaveStatusText');
   if (el) el.textContent = msg;
+}
+
+function setMediaUploadStatus(message, isError = false) {
+  const statusEl = document.getElementById('edMediaUploadStatus');
+  if (!statusEl) return;
+
+  statusEl.textContent = message || '';
+  statusEl.style.color = isError ? 'var(--danger)' : 'var(--text-dim)';
+}
+
+async function uploadMediaFile(type, file) {
+  if (!state.eventId) {
+    throw new Error('Evento não carregado no dashboard. Recarregue a página.');
+  }
+
+  const formData = new FormData();
+  formData.append('eventId', state.eventId);
+  formData.append('type', type);
+  formData.append('file', file);
+
+  const response = await fetch('/api/dashboard/media', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${state.authToken}`,
+    },
+    body: formData,
+  });
+
+  const data = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    throw new Error(data.error || 'Falha ao enviar mídia');
+  }
+
+  return data;
+}
+
+function ensureHistoriaGalleryArray(config) {
+  if (!config.pages) config.pages = {};
+  if (!config.pages.historia) config.pages.historia = {};
+  if (!config.pages.historia.content) config.pages.historia.content = {};
+  if (!Array.isArray(config.pages.historia.content.gallery)) {
+    config.pages.historia.content.gallery = [];
+  }
+
+  return config.pages.historia.content.gallery;
+}
+
+async function uploadHeroMedia() {
+  const input = document.getElementById('edMediaHeroFile');
+  const file = input?.files?.[0];
+
+  if (!file) {
+    setMediaUploadStatus('Selecione uma imagem para a foto principal.', true);
+    return;
+  }
+
+  setMediaUploadStatus('Enviando foto principal...');
+
+  try {
+    const result = await uploadMediaFile('hero', file);
+    setVal('edMediaHero', result.url || '');
+
+    if (window.__SITE_CONFIG__) {
+      if (!window.__SITE_CONFIG__.media) window.__SITE_CONFIG__.media = {};
+      window.__SITE_CONFIG__.media.heroImage = result.url || '';
+    }
+
+    markEditorDirty();
+    setMediaUploadStatus('Foto principal enviada. Lembre-se de salvar as alterações.');
+
+    if (input) {
+      input.value = '';
+    }
+  } catch (error) {
+    console.error('[uploadHeroMedia]', error);
+    setMediaUploadStatus(error.message || 'Erro ao enviar foto principal.', true);
+  }
+}
+
+async function uploadGalleryMedia() {
+  const input = document.getElementById('edMediaGalleryFiles');
+  const files = Array.from(input?.files || []);
+
+  if (!files.length) {
+    setMediaUploadStatus('Selecione ao menos uma imagem para a galeria.', true);
+    return;
+  }
+
+  setMediaUploadStatus(`Enviando ${files.length} imagem(ns) para a galeria...`);
+
+  try {
+    const uploadedItems = [];
+
+    for (const file of files) {
+      const result = await uploadMediaFile('gallery', file);
+      uploadedItems.push({
+        src: result.url || '',
+        alt: file.name.replace(/\.[^.]+$/, ''),
+      });
+    }
+
+    if (window.__SITE_CONFIG__) {
+      const gallery = ensureHistoriaGalleryArray(window.__SITE_CONFIG__);
+      uploadedItems.forEach((item) => {
+        if (item.src) {
+          gallery.push(item);
+        }
+      });
+    }
+
+    markEditorDirty();
+    setMediaUploadStatus(`Galeria atualizada com ${uploadedItems.length} nova(s) imagem(ns). Salve para persistir.`);
+
+    if (input) {
+      input.value = '';
+    }
+  } catch (error) {
+    console.error('[uploadGalleryMedia]', error);
+    setMediaUploadStatus(error.message || 'Erro ao enviar imagens da galeria.', true);
+  }
 }
 
 function reloadEditorTab() {

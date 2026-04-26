@@ -1582,6 +1582,30 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
               </div>
             </div>
 
+            <div class="form-grid-2" style="align-items:end">
+              <div class="field">
+                <label class="field-label" for="edMediaHeroFile">Upload da foto principal</label>
+                <input type="file" class="field-input sm" id="edMediaHeroFile" accept="image/png,image/jpeg,image/webp">
+                <div class="field-hint">Formatos aceitos: JPG, PNG e WEBP.</div>
+              </div>
+              <button type="button" class="btn btn-subtle" onclick="uploadHeroMedia()">
+                <span>Enviar foto principal</span>
+              </button>
+            </div>
+
+            <div class="form-grid-2" style="align-items:end">
+              <div class="field">
+                <label class="field-label" for="edMediaGalleryFiles">Upload para galeria</label>
+                <input type="file" class="field-input sm" id="edMediaGalleryFiles" accept="image/png,image/jpeg,image/webp" multiple>
+                <div class="field-hint">As imagens enviadas serão adicionadas em História → Galeria.</div>
+              </div>
+              <button type="button" class="btn btn-subtle" onclick="uploadGalleryMedia()">
+                <span>Enviar imagens da galeria</span>
+              </button>
+            </div>
+
+            <p class="field-hint" id="edMediaUploadStatus" style="margin-top:-6px"></p>
+
             <div class="editor-rule"></div>
             <span class="editor-sub-label">Trilha sonora principal</span>
             <div class="form-grid-3">
