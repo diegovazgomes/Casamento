@@ -1036,6 +1036,12 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
         </span>
         <span>Exportar</span>
       </button>
+      <button class="nav-item" data-tab="fotos" role="tab">
+        <span class="nav-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        </span>
+        <span>Fotos</span>
+      </button>
       <button class="nav-item" data-tab="editar" role="tab">
         <span class="nav-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 1 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
@@ -1768,6 +1774,88 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
         </div>
 
       </div><!-- /tab-editar -->
+
+      <!-- TAB: FOTOS -->
+      <div class="tab-content" id="tab-fotos" role="tabpanel">
+        <div style="max-width:860px">
+
+          <!-- ── Foto principal (hero) ───────────────────────────── -->
+          <div class="editor-section is-open" id="fotosSectionHero">
+            <button class="editor-section-header" type="button" onclick="toggleEditorSection('fotosSectionHero')">
+              <div>
+                <div class="editor-section-tag">Identidade visual</div>
+                <div class="editor-section-title">Foto principal do casal</div>
+              </div>
+              <svg class="editor-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            <div class="editor-section-body">
+
+              <!-- preview -->
+              <div id="fotosHeroPreviewWrap" style="margin-bottom:16px;display:none">
+                <div class="field-label" style="margin-bottom:8px">Foto atual</div>
+                <img id="fotosHeroPreview"
+                     src="" alt="Foto principal do casal"
+                     style="max-width:100%;max-height:320px;object-fit:cover;border:1px solid var(--border);display:block">
+                <div class="field-hint" id="fotosHeroUrl" style="margin-top:6px;word-break:break-all"></div>
+              </div>
+
+              <div id="fotosHeroEmpty" style="display:none;padding:24px;border:1px dashed var(--border);text-align:center;color:var(--text-dim);font-size:12px;margin-bottom:16px">
+                Nenhuma foto principal definida.
+              </div>
+
+              <div class="form-grid-2" style="align-items:end">
+                <div class="field">
+                  <label class="field-label" for="fotosHeroFile">Selecionar nova foto (JPG, PNG, WEBP)</label>
+                  <input type="file" class="field-input sm" id="fotosHeroFile" accept="image/png,image/jpeg,image/webp">
+                  <div class="field-hint">Max 10 MB. Substitui a foto atual.</div>
+                </div>
+                <button type="button" class="btn btn-primary" id="btnFotosHeroUpload" onclick="handleFotosHeroUpload()">
+                  <span>Enviar foto principal</span>
+                </button>
+              </div>
+
+              <p class="field-hint" id="fotosHeroStatus" style="margin-top:8px;min-height:18px"></p>
+            </div>
+          </div>
+
+          <!-- ── Galeria ─────────────────────────────────────────── -->
+          <div class="editor-section is-open" id="fotosSectionGaleria">
+            <button class="editor-section-header" type="button" onclick="toggleEditorSection('fotosSectionGaleria')">
+              <div>
+                <div class="editor-section-tag">Nossa História</div>
+                <div class="editor-section-title">Galeria de fotos</div>
+              </div>
+              <svg class="editor-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            <div class="editor-section-body">
+              <p style="font-size:11px;color:var(--text-dim);margin-bottom:16px;line-height:1.7">
+                As fotos abaixo aparecem na galeria da página <strong>Nossa História</strong>.
+                Novas imagens são adicionadas ao final. Salve as configurações após o upload para que o convite seja atualizado.
+              </p>
+
+              <!-- grade de miniaturas -->
+              <div id="fotosGaleriaGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;margin-bottom:20px"></div>
+              <div id="fotosGaleriaEmpty" style="display:none;padding:24px;border:1px dashed var(--border);text-align:center;color:var(--text-dim);font-size:12px;margin-bottom:16px">
+                Nenhuma foto na galeria ainda.
+              </div>
+
+              <div class="form-grid-2" style="align-items:end">
+                <div class="field">
+                  <label class="field-label" for="fotosGaleriaFiles">Adicionar fotos (JPG, PNG, WEBP)</label>
+                  <input type="file" class="field-input sm" id="fotosGaleriaFiles" accept="image/png,image/jpeg,image/webp" multiple>
+                  <div class="field-hint">Selecione múltiplos arquivos. Max 10 MB cada.</div>
+                </div>
+                <button type="button" class="btn btn-primary" id="btnFotosGaleriaUpload" onclick="handleFotosGaleriaUpload()">
+                  <span>Enviar para galeria</span>
+                </button>
+              </div>
+
+              <p class="field-hint" id="fotosGaleriaStatus" style="margin-top:8px;min-height:18px"></p>
+            </div>
+          </div>
+
+        </div>
+      </div><!-- /tab-fotos -->
 
     </main>
   </div>

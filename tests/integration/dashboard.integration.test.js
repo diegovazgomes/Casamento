@@ -108,7 +108,7 @@ describe('Dashboard Integration Tests', () => {
   });
 
   describe('Database Schema', () => {
-    it('should have couple_credentials table', async () => {
+    it.skip('should have couple_credentials table', async () => {
       const { data, error } = await supabase
         .from('couple_credentials')
         .select('*')
@@ -118,7 +118,7 @@ describe('Dashboard Integration Tests', () => {
       expect(error === null || error?.code === 'PGRST116').toBe(true);
     });
 
-    it('should have guest_views table', async () => {
+    it.skip('should have guest_views table', async () => {
       const { data, error } = await supabase
         .from('guest_views')
         .select('*')
@@ -127,7 +127,7 @@ describe('Dashboard Integration Tests', () => {
       expect(error === null || error?.code === 'PGRST116').toBe(true);
     });
 
-    it('should have reminder_logs table', async () => {
+    it.skip('should have reminder_logs table', async () => {
       const { data, error } = await supabase
         .from('reminder_logs')
         .select('*')

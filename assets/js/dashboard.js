@@ -30,6 +30,7 @@ const TAB_LABELS = {
   musicas: { tag: 'Músicas', title: 'Sugestões recebidas' },
   relatorios: { tag: 'Relatórios', title: 'Estatísticas por grupo' },
   export: { tag: 'Exportação', title: 'Baixar seus dados' },
+  fotos: { tag: 'Fotos', title: 'Foto principal e galeria' },
   editar: { tag: 'Configurações', title: 'Editar evento' },
 };
 
@@ -360,6 +361,8 @@ function handleTabSwitch(event) {
     reloadMusicas();
   } else if (tabName === 'relatorios') {
     loadRelatorios();
+  } else if (tabName === 'fotos') {
+    loadFotosTab();
   } else if (tabName === 'editar') {
     loadEditorTab();
   }
@@ -384,6 +387,11 @@ function refreshActiveTab() {
 
   if (activeTab === 'relatorios') {
     loadRelatorios();
+    return;
+  }
+
+  if (activeTab === 'fotos') {
+    loadFotosTab();
     return;
   }
 
@@ -1500,6 +1508,159 @@ async function uploadGalleryMedia() {
   } catch (error) {
     console.error('[uploadGalleryMedia]', error);
     setMediaUploadStatus(error.message || 'Erro ao enviar imagens da galeria.', true);
+  }
+}
+
+// ============================================================
+// ABA FOTOS — preview + upload hero + upload galeria
+// ============================================================
+
+function loadFotosTab() {
+  const config = window.__SITE_CONFIG__ || {};
+  renderFotosHeroPreview(config.media?.heroImage || '');
+  renderFotosGaleriaGrid(config.pages?.historia?.content?.gallery || []);
+}
+
+function renderFotosHeroPreview(url) {
+  const previewWrap = document.getElementById('fotosHeroPreviewWrap');
+  const previewImg  = document.getElementById('fotosHeroPreview');
+  const previewUrl  = document.getElementById('fotosHeroUrl');
+  const emptyEl     = document.getElementById('fotosHeroEmpty');
+
+  if (!previewWrap || !previewImg || !emptyEl) return;
+
+  if (url) {
+    previewImg.src = url;
+    if (previewUrl) previewUrl.textContent = url;
+    previewWrap.style.display = '';
+    emptyEl.style.display = 'none';
+  } else {
+    previewWrap.style.display = 'none';
+    emptyEl.style.display = '';
+  }
+}
+
+function renderFotosGaleriaGrid(images) {
+  const grid     = document.getElementById('fotosGaleriaGrid');
+  const emptyEl  = document.getElementById('fotosGaleriaEmpty');
+
+  if (!grid) return;
+
+  if (!Array.isArray(images) || images.length === 0) {
+    grid.innerHTML = '';
+    if (emptyEl) emptyEl.style.display = '';
+    return;
+  }
+
+  if (emptyEl) emptyEl.style.display = 'none';
+
+  grid.innerHTML = images.map((img, i) => {
+    const src = escapeHtml(img.src || '');
+    const alt = escapeHtml(img.alt || `Foto ${i + 1}`);
+    return `<div style="position:relative;aspect-ratio:1;overflow:hidden;border:1px solid var(--border)">
+      <img src="${src}" alt="${alt}"
+           style="width:100%;height:100%;object-fit:cover;display:block"
+           onerror="this.style.opacity=0.3">
+    </div>`;
+  }).join('');
+}
+
+function setFotosStatus(elId, message, isError = false) {
+  const el = document.getElementById(elId);
+  if (!el) return;
+  el.textContent = message || '';
+  el.style.color = isError ? 'var(--danger)' : 'var(--text-dim)';
+}
+
+async function handleFotosHeroUpload() {
+  const input = document.getElementById('fotosHeroFile');
+  const file  = input?.files?.[0];
+  const btn   = document.getElementById('btnFotosHeroUpload');
+
+  if (!file) {
+    setFotosStatus('fotosHeroStatus', 'Selecione uma imagem antes de enviar.', true);
+    return;
+  }
+
+  setFotosStatus('fotosHeroStatus', 'Enviando foto principal…');
+  if (btn) btn.disabled = true;
+
+  try {
+    const result = await uploadMediaFile('hero', file);
+    const url = result.url || '';
+
+    // Atualiza config em memória
+    if (window.__SITE_CONFIG__) {
+      if (!window.__SITE_CONFIG__.media) window.__SITE_CONFIG__.media = {};
+      window.__SITE_CONFIG__.media.heroImage = url;
+    }
+
+    // Atualiza preview imediatamente
+    renderFotosHeroPreview(url);
+
+    // Sincroniza campo do editor se estiver preenchido
+    const edHero = document.getElementById('edMediaHero');
+    if (edHero) edHero.value = url;
+
+    markEditorDirty();
+    setFotosStatus('fotosHeroStatus', 'Foto enviada! Clique em "Salvar configurações" para persistir.');
+
+    if (input) input.value = '';
+  } catch (error) {
+    console.error('[handleFotosHeroUpload]', error);
+    setFotosStatus('fotosHeroStatus', error.message || 'Erro ao enviar foto principal.', true);
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}
+
+async function handleFotosGaleriaUpload() {
+  const input = document.getElementById('fotosGaleriaFiles');
+  const files = Array.from(input?.files || []);
+  const btn   = document.getElementById('btnFotosGaleriaUpload');
+
+  if (!files.length) {
+    setFotosStatus('fotosGaleriaStatus', 'Selecione ao menos uma imagem antes de enviar.', true);
+    return;
+  }
+
+  setFotosStatus('fotosGaleriaStatus', `Enviando ${files.length} imagem(ns)…`);
+  if (btn) btn.disabled = true;
+
+  try {
+    const uploadedItems = [];
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      setFotosStatus('fotosGaleriaStatus', `Enviando ${i + 1}/${files.length}: ${file.name}…`);
+      const result = await uploadMediaFile('gallery', file);
+      uploadedItems.push({
+        src: result.url || '',
+        alt: file.name.replace(/\.[^.]+$/, ''),
+      });
+    }
+
+    // Atualiza config em memória
+    if (window.__SITE_CONFIG__) {
+      const gallery = ensureHistoriaGalleryArray(window.__SITE_CONFIG__);
+      uploadedItems.forEach((item) => {
+        if (item.src) gallery.push(item);
+      });
+    }
+
+    // Atualiza grade de thumbnails
+    const currentGallery = window.__SITE_CONFIG__?.pages?.historia?.content?.gallery || [];
+    renderFotosGaleriaGrid(currentGallery);
+
+    markEditorDirty();
+    setFotosStatus('fotosGaleriaStatus', `${uploadedItems.length} foto(s) adicionada(s). Clique em "Salvar configurações" para persistir.`);
+
+    if (input) input.value = '';
+  } catch (error) {
+    console.error('[handleFotosGaleriaUpload]', error);
+    setFotosStatus('fotosGaleriaStatus', error.message || 'Erro ao enviar imagens da galeria.', true);
+  } finally {
+    if (btn) btn.disabled = false;
   }
 }
 

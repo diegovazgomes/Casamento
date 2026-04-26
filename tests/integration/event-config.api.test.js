@@ -88,7 +88,7 @@ describe('GET /api/event-config', () => {
     await handler({ method: 'GET', query: { slug: 'ana-leo-2026' } }, res);
 
     expect(res.statusCode).toBe(200);
-    expect(res.headers['Cache-Control']).toBe('s-maxage=60, stale-while-revalidate=300');
+    expect(res.headers['Cache-Control']).toBe('no-store, no-cache, must-revalidate');
     expect(res.body).toMatchObject({
       activeTheme: 'classic-gold',
       activeLayout: 'classic',
