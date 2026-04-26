@@ -125,10 +125,13 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Unsupported file type' });
     }
 
+    // Passa explicitamente headers — spread de IncomingMessage (classe Node.js)
+    // não copia propriedades não-enumeráveis em ambientes serverless (Vercel),
+    // fazendo req.headers chegar undefined em extractBearerToken → 401.
     const ownedEvent = await requireOwnedEvent({
-      ...req,
-      body: { ...(req.body || {}), eventId },
-      query: { ...(req.query || {}), eventId },
+      headers: req.headers,
+      body: { eventId },
+      query: { eventId },
     }, {
       selectClause: 'id,user_id,slug,config',
     });
