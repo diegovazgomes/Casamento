@@ -25,10 +25,14 @@ Transformar o convite — atualmente configurado via `site.json` para um único 
 | 4 — Dashboard | Painel de edição completo para o casal (4 abas) | dashboard.html | Experiência do casal |
 | 5 — Roteamento | `vercel.json` com rewrites por slug | vercel.json | Multi-casal no ar |
 
-### Status atual (25/04/2026)
+### Status atual (26/04/2026)
 
 - Fase 1 concluída e validada no Supabase.
-- Próximo passo ao retomar: iniciar Fase 2 pelo endpoint `GET /api/event-config?slug=`.
+- Fase 2 implementada e validada localmente:
+  - `GET /api/event-config?slug=`
+  - `PATCH /api/dashboard/event`
+  - `POST /api/dashboard/media`
+- Próximo passo ao retomar: iniciar Fase 3 no frontend, trocando o carregamento de `site.json` por slug + fallback local.
 
 ---
 

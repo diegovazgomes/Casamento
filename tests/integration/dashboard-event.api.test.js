@@ -1,0 +1,159 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
+const { createClientMock } = vi.hoisted(() => ({
+  createClientMock: vi.fn(),
+}));
+
+vi.mock('@supabase/supabase-js', () => ({
+  createClient: createClientMock,
+}));
+
+function createMockResponse() {
+  return {
+    statusCode: 200,
+    headers: {},
+    body: undefined,
+    ended: false,
+    setHeader(name, value) {
+      this.headers[name] = value;
+      return this;
+    },
+    status(code) {
+      this.statusCode = code;
+      return this;
+    },
+    json(payload) {
+      this.body = payload;
+      return this;
+    },
+    end() {
+      this.ended = true;
+      return this;
+    },
+  };
+}
+
+function createSelectBuilder(result) {
+  return {
+    select: vi.fn(function select() {
+      return this;
+    }),
+    eq: vi.fn(function eq() {
+      return this;
+    }),
+    maybeSingle: vi.fn().mockResolvedValue(result),
+  };
+}
+
+function createUpdateBuilder(result) {
+  return {
+    update: vi.fn(function update() {
+      return this;
+    }),
+    eq: vi.fn(function eq() {
+      return this;
+    }),
+    select: vi.fn(function select() {
+      return this;
+    }),
+    maybeSingle: vi.fn().mockResolvedValue(result),
+  };
+}
+
+describe('PATCH /api/dashboard/event', () => {
+  beforeEach(() => {
+    vi.resetModules();
+    createClientMock.mockReset();
+    process.env.SUPABASE_URL = 'https://example.supabase.co';
+    process.env.SUPABASE_SERVICE_ROLE_KEY = 'service-role-key';
+  });
+
+  it('updates allowed fields and deep-merges config for the authenticated owner', async () => {
+    const currentEventBuilder = createSelectBuilder({
+      data: {
+        id: 'event-1',
+        user_id: 'user-1',
+        config: {
+          texts: { metaTitle: 'Antes' },
+          pages: { faq: { enabled: true } },
+        },
+      },
+      error: null,
+    });
+    const updatedEventBuilder = createUpdateBuilder({
+      data: {
+        id: 'event-1',
+        user_id: 'user-1',
+        active_theme: 'classic-blue',
+        config: {
+          texts: { metaTitle: 'Depois' },
+          pages: { faq: { enabled: true }, historia: { enabled: true } },
+        },
+      },
+      error: null,
+    });
+    const fromMock = vi.fn()
+      .mockReturnValueOnce(currentEventBuilder)
+      .mockReturnValueOnce(updatedEventBuilder);
+
+    createClientMock.mockReturnValue({
+      auth: {
+        getUser: vi.fn().mockResolvedValue({ data: { user: { id: 'user-1' } }, error: null }),
+      },
+      from: fromMock,
+    });
+
+    const { default: handler } = await import('../../api/dashboard/event.js');
+    const res = createMockResponse();
+
+    await handler({
+      method: 'PATCH',
+      headers: { authorization: 'Bearer valid-token' },
+      body: {
+        eventId: 'event-1',
+        activeTheme: 'classic-blue',
+        config: {
+          texts: { metaTitle: 'Depois' },
+          pages: { historia: { enabled: true } },
+        },
+      },
+    }, res);
+
+    expect(res.statusCode).toBe(200);
+    expect(updatedEventBuilder.update).toHaveBeenCalledWith({
+      active_theme: 'classic-blue',
+      config: {
+        texts: { metaTitle: 'Depois' },
+        pages: { faq: { enabled: true }, historia: { enabled: true } },
+      },
+    });
+    expect(res.body).toEqual({
+      event: {
+        id: 'event-1',
+        user_id: 'user-1',
+        active_theme: 'classic-blue',
+        config: {
+          texts: { metaTitle: 'Depois' },
+          pages: { faq: { enabled: true }, historia: { enabled: true } },
+        },
+      },
+    });
+  });
+
+  it('returns 401 when the bearer token is missing', async () => {
+    createClientMock.mockReturnValue({
+      auth: {
+        getUser: vi.fn(),
+      },
+      from: vi.fn(),
+    });
+
+    const { default: handler } = await import('../../api/dashboard/event.js');
+    const res = createMockResponse();
+
+    await handler({ method: 'PATCH', headers: {}, body: { eventId: 'event-1' } }, res);
+
+    expect(res.statusCode).toBe(401);
+    expect(res.body).toEqual({ error: 'Unauthorized' });
+  });
+});
