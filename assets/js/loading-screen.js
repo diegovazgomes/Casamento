@@ -24,7 +24,7 @@ const LOADING_SCREEN_HTML = `
                 <path d="M50,95 C20,75 5,60 5,45 C5,30 15,20 27,20 C35,20 42,25 50,35 C58,25 65,20 73,20 C85,20 95,30 95,45 C95,60 80,75 50,95 Z" fill="currentColor"/>
             </svg>
         </div>
-        <p class="loading-names" id="loadingNames"></p>
+        <p class="loading-names" id="loadingNames">Carregando experiência...</p>
     </div>
 </div>
 `;
@@ -54,7 +54,7 @@ export async function initLoadingScreen() {
             return;
         }
         const siteConfig = await siteRes.json();
-        const coupleNames = siteConfig?.couple?.names || 'Casal';
+        const coupleNames = siteConfig?.couple?.names || '';
 
         // 3. Descobrir caminho do tema
         const themePath = resolveThemePath(siteConfig?.activeTheme, siteConfig?.activeLayout || 'classic');
@@ -98,9 +98,10 @@ export async function initLoadingScreen() {
  */
 function preencherNomes(coupleNames) {
     const loadingNames = document.getElementById('loadingNames');
-    if (loadingNames) {
+    if (loadingNames && coupleNames) {
         loadingNames.textContent = coupleNames;
     }
+    // Se coupleNames for vazio ou undefined, mantém "Carregando experiência..."
 }
 
 /**

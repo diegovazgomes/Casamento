@@ -6,7 +6,7 @@
 <title>Dashboard — Convite de Casamento</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Jost:wght@200;300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Great+Vibes&family=Jost:wght@200;300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 /* ══════════════════════════════════════════════════════════════════════════
    TOKENS — padrão clássico silver
@@ -30,6 +30,7 @@
   --danger:        #c97878;
   --warning:       #e0b674;
   --font-display:  'Cormorant Garamond', serif;
+  --font-accent:   'Great Vibes', cursive;
   --font-sans:     'Jost', sans-serif;
   --ease:          cubic-bezier(0.25,0.46,0.45,0.94);
   --radius:        4px;
@@ -217,7 +218,7 @@ body::before{
 }
 
 .loading-names {
-  font-family: var(--font-display);
+  font-family: var(--font-accent);
   font-size: 1rem;
   color: var(--ls-text-color, #f5f5f5);
   letter-spacing: 0.08em;
@@ -968,7 +969,7 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
 <div class="auth-screen" id="authScreen">
   <div class="auth-card">
     <div class="auth-label">Acesso Restrito</div>
-    <h1 class="auth-title" id="authCoupleTitle">Dashboard do Casal</h1>
+    <h1 class="auth-title" id="authCoupleTitle">Painel do Casal</h1>
     <p class="auth-subtitle">Gerenciar convidados &amp; confirmações</p>
  
     <div class="alert" id="authError" hidden></div>
@@ -1956,11 +1957,9 @@ window.__DASHBOARD_BOOTSTRAP_PROMISE__ = (async function loadTheme() {
  
     const sidebarCouple = document.getElementById('sidebarCouple');
     const sidebarDate = document.getElementById('sidebarDate');
-    const authCoupleTitle = document.getElementById('authCoupleTitle');
  
     if (sidebarCouple) sidebarCouple.textContent = coupleNames;
     if (sidebarDate) sidebarDate.textContent = heroDate;
-    if (authCoupleTitle) authCoupleTitle.textContent = coupleNames;
  
     // 5. Expõe site para o dashboard.js usar
     window.__SITE_CONFIG__ = site;
