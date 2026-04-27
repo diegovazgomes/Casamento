@@ -196,6 +196,37 @@ export default async function handler(req, res) {
       updatedAt: data.updated_at,
     });
 
+    // 4b. Sincronizar event_gifts.enabled para pix e card
+    //     O config JSONB guarda pixEnabled/cardPaymentEnabled, mas
+    //     mapGiftConfig sobrescreve esses valores com event_gifts.enabled.
+    //     Por isso é preciso manter os dois em sincronia.
+    const incomingGift = sanitizedIncomingConfig.gift || {};
+    const giftSyncs = [];
+
+    if ('pixEnabled' in incomingGift) {
+      giftSyncs.push({ type: 'pix', enabled: Boolean(incomingGift.pixEnabled) });
+    }
+    if ('cardPaymentEnabled' in incomingGift) {
+      giftSyncs.push({ type: 'card', enabled: Boolean(incomingGift.cardPaymentEnabled) });
+    }
+
+    for (const sync of giftSyncs) {
+      const { error: giftUpdateError } = await ownedEvent.supabase
+        .from('event_gifts')
+        .update({ enabled: sync.enabled })
+        .eq('event_id', ownedEvent.event.id)
+        .eq('type', sync.type);
+
+      if (giftUpdateError) {
+        console.warn(
+          `[dashboard/event] Falha ao sincronizar event_gifts.enabled type=${sync.type}:`,
+          giftUpdateError,
+        );
+      } else {
+        console.log(`[dashboard/event] event_gifts.enabled synced: type=${sync.type} enabled=${sync.enabled}`);
+      }
+    }
+
     // 5. Retornar evento atualizado
     const mappedConfig = buildEventConfigResponse(data);
     const galleryImages = await resolveEventGalleryFromStorage(ownedEvent.supabase, data.id);
