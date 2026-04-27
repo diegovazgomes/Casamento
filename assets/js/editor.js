@@ -594,12 +594,12 @@ function typographyLinkedCard({
 }
 
 function renderCoupleNamesTypography() {
-  const sampleText = getPath(config, 'couple.names') || 'Siannah & Diego';
+  const sampleText = getPath(config, 'couple.names') || 'Nome & Nome';
   const heroMax = getPath(config, 'themeOverrides.typography.sizes.heroNames.max');
   const accentFont = getPath(config, 'themeOverrides.typography.fonts.accent');
 
   return group('Nomes do Casal (Hero + Rodapé)', `
-    <p class="ed-theme-hint">Controle dedicado do texto ${esc('"Siannah & Diego"')} no hero e no rodapé.</p>
+    <p class="ed-theme-hint">Controle dedicado do texto ${esc('"Nome & Nome"')} no hero e no rodapé.</p>
     <div class="ed-typo-card">
       <div class="ed-typo-card-head">
         <h4 class="ed-typo-card-title">Nome do casal</h4>
@@ -609,7 +609,7 @@ function renderCoupleNamesTypography() {
       <div
         class="ed-typo-preview"
         data-sample-path="couple.names"
-        data-sample-fallback="Siannah & Diego"
+        data-sample-fallback="Nome & Nome"
         data-size-path="themeOverrides.typography.sizes.heroNames.max"
         data-font-path="themeOverrides.typography.fonts.accent"
         style="${heroMax ? `font-size:${esc(heroMax)};` : ''}${accentFont ? `font-family:${esc(accentFont)};` : ''}">
@@ -1348,7 +1348,7 @@ function hospItemHtml(item, i, listKey) {
 
 function renderCasal() {
   return group('Casal', `
-    ${fieldInput({ label: 'Nomes do casal', path: 'couple.names', placeholder: 'Siannah & Diego' })}
+    ${fieldInput({ label: 'Nomes do casal', path: 'couple.names', placeholder: 'Nome & Nome' })}
     ${fieldTextarea({ label: 'Frase do casal', path: 'couple.subtitle', hint: 'Exibida abaixo dos nomes' })}
   `) + group('Data & Horário', `
     ${fieldInput({ label: 'Data (formato longo)', path: 'event.displayDate', placeholder: '06 de setembro de 2026', hint: 'Usada na seção de detalhes e meta' })}
@@ -1693,7 +1693,7 @@ function themeCardHtml(theme) {
     <div class="ed-theme-card${isActive ? ' is-active' : ''}" data-theme-path="${esc(theme.path)}">
       <div class="ed-theme-preview" style="background:${esc(bg)};border-color:${esc(bdr)}">
         <span class="ed-theme-preview-accent" style="font-family:${esc(theme.fonts.accent)};color:${esc(pri)}">
-          Diego &amp; Siannah
+          Nome &amp; Nome
         </span>
         <span class="ed-theme-preview-serif" style="font-family:${esc(theme.fonts.serif)};color:${esc(fg)}">
           CASAMENTO
@@ -1896,7 +1896,7 @@ function getActiveTabPreviewHtml() {
   switch (activeTab) {
     case 'casal':
       return `
-        <h3 class="ed-preview-title">${esc(getPath(config, 'couple.names') || 'Siannah & Diego')}</h3>
+        <h3 class="ed-preview-title">${esc(getPath(config, 'couple.names') || 'Nome & Nome')}</h3>
         <p class="ed-preview-text">${esc(getPath(config, 'couple.subtitle') || '')}</p>
         <p class="ed-preview-meta">${esc(getPath(config, 'event.displayDate') || '')} • ${esc(getPath(config, 'event.time') || '')}</p>
         <p class="ed-preview-meta">${esc(getPath(config, 'event.locationName') || '')} — ${esc(getPath(config, 'event.locationCity') || '')}</p>

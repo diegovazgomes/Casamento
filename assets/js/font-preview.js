@@ -46,7 +46,7 @@ function createCard({ key, cssValue }) {
   const sampleMain = document.createElement('div');
   sampleMain.className = 'fp-sample fp-sample--main';
   sampleMain.style.fontFamily = cssValue;
-  sampleMain.textContent = 'Diego & Siannah';
+  sampleMain.textContent = 'Nome & Nome';
 
   const sampleUpper = document.createElement('div');
   sampleUpper.className = 'fp-sample fp-sample--upper';

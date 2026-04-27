@@ -49,7 +49,7 @@ export default function handler(req, res) {
  *
  * Body:
  *   {
- *     "eventId": "siannah-diego-2026",
+ *     "eventId": "<slug-do-evento>",
  *     "tokenId": "uuid-token",
  *     "message": "Olá! Ainda não recebemos sua confirmação...",
  *     "sendVia": "whatsapp" | "log"

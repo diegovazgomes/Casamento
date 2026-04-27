@@ -7,7 +7,7 @@
 const state = {
   authToken: null,
   eventId: '',
-  eventSlug: 'siannah-diego-2026',
+  eventSlug: window.location.pathname.replace(/^\//, '').split('/')[0] || null,
   grupos: [],
   confirmacoes: [],
   allConfirmacoes: [],
@@ -1018,7 +1018,7 @@ function sendLembrete(grupoId, grupoName) {
 
 function updateMensagemPreview() {
   const template = document.getElementById('lembreteTemplate').value;
-  const coupleNames = window.__SITE_CONFIG__?.couple?.names || 'Siannah & Diego';
+  const coupleNames = window.__SITE_CONFIG__?.couple?.names || 'Casal';
   const templates = {
     pending: `Olá! Ainda não recebemos sua confirmação para o casamento de ${coupleNames}. Por favor, confirme sua presença através do link que recebeu.`,
     thankyou: `Obrigado por confirmar sua presença no casamento de ${coupleNames}! Fique atento para mais informações nos próximos dias.`,

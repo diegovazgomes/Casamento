@@ -781,8 +781,8 @@ class InvitationExperience {
     parseCoupleNames() {
         const names = this.config.couple?.names || DEFAULT_SITE_CONTENT.couple.names;
         const parts = names.split('&').map((part) => part.trim()).filter(Boolean);
-        const firstName = parts[0] || 'Siannah';
-        const secondName = parts[1] || 'Diego';
+        const firstName = parts[0] || 'Noiva';
+        const secondName = parts[1] || 'Noivo';
 
         return {
             names,

@@ -54,7 +54,7 @@ export async function initLoadingScreen() {
             return;
         }
         const siteConfig = await siteRes.json();
-        const coupleNames = siteConfig?.couple?.names || 'Siannah & Diego';
+        const coupleNames = siteConfig?.couple?.names || 'Casal';
 
         // 3. Descobrir caminho do tema
         const themePath = resolveThemePath(siteConfig?.activeTheme, siteConfig?.activeLayout || 'classic');
