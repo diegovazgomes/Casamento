@@ -159,4 +159,43 @@ describe('RSVP flow integration', () => {
     expect(document.getElementById('rsvp-name-error').hidden).toBe(true);
     expect(document.getElementById('rsvp-phone-error').hidden).toBe(true);
   });
+
+  it('não bloqueia persistência quando supabaseEnabled é false (legado)', async () => {
+    const { saveRsvpConfirmation } = await import('../../assets/js/rsvp-persistence.js');
+    saveRsvpConfirmation.mockResolvedValue(true);
+
+    const { RSVP } = await import('../../assets/js/rsvp.js');
+
+    document.getElementById('rsvp-name').value = 'Ana Clara';
+    document.getElementById('rsvp-phone').value = '11999999999';
+    document.getElementById('rsvp-attendance').value = 'yes';
+
+    const rsvp = new RSVP({
+      ...baseConfig,
+      rsvp: { ...baseConfig.rsvp, supabaseEnabled: false },
+    });
+    await rsvp.handleSubmit({ preventDefault() {} });
+
+    expect(saveRsvpConfirmation).toHaveBeenCalledTimes(1);
+  });
+
+  it('desliga persistência quando disablePersistence é true', async () => {
+    const { saveRsvpConfirmation } = await import('../../assets/js/rsvp-persistence.js');
+    saveRsvpConfirmation.mockResolvedValue(true);
+
+    const { RSVP } = await import('../../assets/js/rsvp.js');
+
+    document.getElementById('rsvp-name').value = 'Ana Clara';
+    document.getElementById('rsvp-phone').value = '11999999999';
+    document.getElementById('rsvp-attendance').value = 'yes';
+
+    const rsvp = new RSVP({
+      ...baseConfig,
+      rsvp: { ...baseConfig.rsvp, disablePersistence: true },
+    });
+    await rsvp.handleSubmit({ preventDefault() {} });
+
+    expect(saveRsvpConfirmation).not.toHaveBeenCalled();
+    expect(document.getElementById('rsvpSuccess').classList.contains('show')).toBe(true);
+  });
 });
