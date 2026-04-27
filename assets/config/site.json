@@ -21,7 +21,7 @@
     "assets/layouts/classic/themes/classic-blue.json"
   ],
   "couple": {
-    "names": "Siannah & Diego",
+    "names": "Noiva & Noivo",
     "subtitle": "Seguimos escolhendo um ao outro para sempre."
   },
   "event": {
@@ -43,13 +43,13 @@
     "venueAddress": "Rodovia Anchieta, SP-150, km 28, São Bernardo do Campo - SP"
   },
   "texts": {
-    "metaTitle": "Siannah & Diego - Casamento",
-    "metaDescription": "Siannah e Diego convidam você para celebrar o casamento em uma noite elegante e inesquecível.",
+    "metaTitle": "Convite de Casamento",
+    "metaDescription": "Você foi convidado para celebrar este momento especial.",
     "themeColor": "#1a1714",
     "introLabel": "Convite",
     "intro": "Um momento pensado para viver ao lado de quem faz parte da nossa vida.",
     "heroLabel": "Você foi convidado para o casamento de",
-    "heroPhotoAlt": "Siannah e Diego em retrato do casal",
+    "heroPhotoAlt": "Foto do casal",
     "countdownTag": "Contagem Regressiva",
     "countdownTitle": "O grande dia se aproxima!",
     "countdownFinished": "O grande dia chegou.",
@@ -481,7 +481,7 @@
           {
             "year": "2013",
             "title": "O primeiro encontro",
-            "text": "Essa história começou em junho de 2013, quando passaram a trabalhar juntos em uma empresa de telemarketing. Para Diego, foi paixão à primeira vista. Para Siannah, nem tanto… rs. Mas, aos poucos, ele foi conquistando o coração dela, e assim começou essa linda história de amor."
+            "text": "Descreva aqui como a história de vocês começou."
           },
           {
             "year": "2023",
@@ -610,7 +610,7 @@
   },
   "whatsapp": {
     "destinationPhone": "5511949606377",
-    "recipientName": "Siannah",
+    "recipientName": "Noiva",
     "redirectDelayMs": 5000,
     "messages": {
       "attending": "Olá, {recipientName}!\n\nAqui é {name}.\nMeu WhatsApp para contato é {phone}.\nEstou passando para confirmar minha presença no casamento.\n\nNos vemos em breve.",
@@ -652,9 +652,9 @@
     "enabled": true,
     "eventId": "siannah-diego-2026",
     "reminderTemplates": {
-      "pending": "Olá! Ainda não recebemos sua confirmação para o casamento de Siannah & Diego. Por favor, confirme sua presença através do link que recebeu.",
-      "thankyou": "Obrigado por confirmar sua presença no casamento de Siannah & Diego! Fique atento para mais informações nos próximos dias.",
-      "announcement": "Oi! Temos uma informação importante sobre o casamento de Siannah & Diego. Verifique seu email ou o convite online."
+      "pending": "Olá! Ainda não recebemos sua confirmação para o casamento. Por favor, confirme sua presença através do link que recebeu.",
+      "thankyou": "Obrigado por confirmar sua presença no casamento! Fique atento para mais informações nos próximos dias.",
+      "announcement": "Oi! Temos uma informação importante sobre o casamento. Verifique seu email ou o convite online."
     }
   }
 }
