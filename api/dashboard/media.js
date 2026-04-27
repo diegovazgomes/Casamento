@@ -67,6 +67,10 @@ function buildStoragePath(eventId, type, file) {
     return `${eventId}/hero.${extension}`;
   }
 
+  if (type === 'pix-qr') {
+    return `${eventId}/pix-qr.${extension}`;
+  }
+
   const safeBaseName = sanitizeBaseName(file?.originalFilename);
   return `${eventId}/gallery/${Date.now()}-${safeBaseName}.${extension}`;
 }
@@ -113,8 +117,8 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'eventId required' });
     }
 
-    if (!['hero', 'gallery'].includes(type)) {
-      return res.status(400).json({ error: 'type must be hero or gallery' });
+    if (!['hero', 'gallery', 'pix-qr'].includes(type)) {
+      return res.status(400).json({ error: 'type must be hero, gallery or pix-qr' });
     }
 
     if (!file) {
@@ -145,7 +149,7 @@ export default async function handler(req, res) {
     const storage = ownedEvent.supabase.storage.from('event-media');
     const { error: uploadError } = await storage.upload(storagePath, buffer, {
       contentType: file.mimetype,
-      upsert: type === 'hero',
+      upsert: type === 'hero' || type === 'pix-qr',
     });
 
     if (uploadError) {

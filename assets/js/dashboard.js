@@ -1403,6 +1403,8 @@ function loadEditorTab() {
   toggleGiftBlock('giftBlockPix', pixOn);
   setVal('edGiftPixKey', gift.pixKey    ?? '');
   setVal('edGiftPixQr',  gift.pixQrImage ?? '');
+  renderPixQrPreview(gift.pixQrImage || '');
+  setPixQrUploadStatus('');
 
   const cardOn = !!gift.cardPaymentEnabled;
   setChk('edGiftCardEnabled', cardOn);
@@ -1489,6 +1491,14 @@ function setMediaUploadStatus(message, isError = false) {
   statusEl.style.color = isError ? 'var(--danger)' : 'var(--text-dim)';
 }
 
+function setPixQrUploadStatus(message, isError = false) {
+  const statusEl = document.getElementById('edGiftPixQrUploadStatus');
+  if (!statusEl) return;
+
+  statusEl.textContent = message || '';
+  statusEl.style.color = isError ? 'var(--danger)' : 'var(--text-dim)';
+}
+
 async function uploadMediaFile(type, file) {
   if (!state.eventId) {
     throw new Error('Evento não carregado no dashboard. Recarregue a página.');
@@ -1567,6 +1577,44 @@ function renderMediaHeroPreview(url) {
   emptyEl.style.display = '';
 }
 
+function renderPixQrPreview(url) {
+  const previewWrap = document.getElementById('edGiftPixQrPreviewWrap');
+  const previewImg = document.getElementById('edGiftPixQrPreview');
+  const previewUrl = document.getElementById('edGiftPixQrPreviewUrl');
+  const emptyEl = document.getElementById('edGiftPixQrEmpty');
+
+  if (!previewWrap || !previewImg || !emptyEl) {
+    return;
+  }
+
+  const source = String(url || document.getElementById('edGiftPixQr')?.value || '').trim();
+
+  if (source) {
+    let resolvedSource = source;
+
+    try {
+      resolvedSource = new URL(source, window.location.href).href;
+    } catch (error) {
+      resolvedSource = source;
+    }
+
+    previewImg.src = resolvedSource;
+    if (previewUrl) {
+      previewUrl.textContent = source;
+    }
+    previewWrap.style.display = '';
+    emptyEl.style.display = 'none';
+    return;
+  }
+
+  previewImg.removeAttribute('src');
+  if (previewUrl) {
+    previewUrl.textContent = '';
+  }
+  previewWrap.style.display = 'none';
+  emptyEl.style.display = '';
+}
+
 function renderMediaGalleryGrid(images) {
   const grid = document.getElementById('edMediaGalleryGrid');
   const emptyEl = document.getElementById('edMediaGalleryEmpty');
@@ -1598,6 +1646,47 @@ function ensureHistoriaGalleryArray(config) {
   }
 
   return config.pages.historia.content.gallery;
+}
+
+async function uploadPixQrMedia() {
+  const input = document.getElementById('edGiftPixQrFile');
+  const file = input?.files?.[0];
+  const button = document.getElementById('btnEdGiftPixQrUpload');
+
+  if (!file) {
+    setPixQrUploadStatus('Selecione uma imagem para o QR Pix.', true);
+    return;
+  }
+
+  setPixQrUploadStatus('Enviando QR Pix...');
+  if (button) {
+    button.disabled = true;
+  }
+
+  try {
+    const result = await uploadMediaFile('pix-qr', file);
+    setVal('edGiftPixQr', result.url || '');
+
+    if (window.__SITE_CONFIG__) {
+      if (!window.__SITE_CONFIG__.gift) window.__SITE_CONFIG__.gift = {};
+      window.__SITE_CONFIG__.gift.pixQrImage = result.url || '';
+    }
+
+    renderPixQrPreview(result.url || '');
+    markEditorDirty();
+    setPixQrUploadStatus('QR Pix enviado. Lembre-se de salvar as alterações.');
+
+    if (input) {
+      input.value = '';
+    }
+  } catch (error) {
+    console.error('[uploadPixQrMedia]', error);
+    setPixQrUploadStatus(error.message || 'Erro ao enviar QR Pix.', true);
+  } finally {
+    if (button) {
+      button.disabled = false;
+    }
+  }
 }
 
 async function uploadHeroMedia() {

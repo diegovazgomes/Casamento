@@ -1606,10 +1606,35 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
                   <div class="field">
                     <label class="field-label" for="edGiftPixQr">Imagem QR Code</label>
                     <input type="text" class="field-input sm" id="edGiftPixQr"
-                           placeholder="assets/images/icons/pix-qr.png" oninput="markEditorDirty()">
+                           placeholder="assets/images/icons/pix-qr.png" oninput="markEditorDirty();renderPixQrPreview(this.value)">
                     <div class="field-hint">Caminho relativo ao projeto ou URL.</div>
                   </div>
                 </div>
+
+                <div class="media-preview-wrap" id="edGiftPixQrPreviewWrap" style="display:none;margin-top:14px">
+                  <div class="field-label" style="margin-bottom:8px">QR Pix atual</div>
+                  <img id="edGiftPixQrPreview" class="media-preview-box" src="" alt="QR Code Pix atual">
+                  <div class="field-hint" id="edGiftPixQrPreviewUrl" style="word-break:break-all"></div>
+                </div>
+
+                <div class="media-preview-empty" id="edGiftPixQrEmpty" style="margin-top:14px">
+                  Nenhum QR Pix definido.
+                </div>
+
+                <div class="media-upload-row" style="margin-top:14px">
+                  <div class="field">
+                    <label class="field-label" for="edGiftPixQrFile">Upload do QR Pix</label>
+                    <input type="file" class="field-input sm" id="edGiftPixQrFile" accept="image/png,image/jpeg,image/webp">
+                    <div class="field-hint">Formatos aceitos: JPG, PNG e WEBP. O upload substitui o QR atual.</div>
+                  </div>
+                  <div class="media-upload-action">
+                    <button type="button" class="btn btn-subtle" id="btnEdGiftPixQrUpload" onclick="uploadPixQrMedia()">
+                      <span>Enviar QR Pix</span>
+                    </button>
+                  </div>
+                </div>
+
+                <p class="field-hint" id="edGiftPixQrUploadStatus" style="margin-top:8px;min-height:18px"></p>
               </div>
             </div>
 
