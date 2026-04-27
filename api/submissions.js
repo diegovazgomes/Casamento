@@ -27,6 +27,9 @@ function parseJsonBody(body) {
 }
 
 function sanitizeRsvpPayload(payload) {
+  const hasGroupName = Object.prototype.hasOwnProperty.call(payload || {}, 'group_name');
+  const hasGroupMax = Object.prototype.hasOwnProperty.call(payload || {}, 'group_max_confirmations');
+
   const next = {
     name: String(payload?.name || '').trim(),
     phone: String(payload?.phone || '').trim(),
@@ -36,11 +39,17 @@ function sanitizeRsvpPayload(payload) {
     user_agent: payload?.user_agent ? String(payload.user_agent).slice(0, 200) : null,
     referrer: payload?.referrer ? String(payload.referrer).slice(0, 200) : null,
     token_id: payload?.token_id || null,
-    group_name: payload?.group_name ?? null,
-    group_max_confirmations: payload?.group_max_confirmations ?? null,
     marketing_consent: Boolean(payload?.marketing_consent),
     marketing_consent_at: payload?.marketing_consent_at || null,
   };
+
+  if (hasGroupName) {
+    next.group_name = payload?.group_name ?? null;
+  }
+
+  if (hasGroupMax) {
+    next.group_max_confirmations = payload?.group_max_confirmations ?? null;
+  }
 
   if (!next.name || !next.phone || !next.event_id || !RSVP_ATTENDANCE.has(next.attendance)) {
     return null;
@@ -127,6 +136,12 @@ export default async function handler(req, res) {
       .insert(payload);
 
     if (error) {
+      console.warn('[api/submissions] Insert failed', {
+        table,
+        code: error.code || null,
+        message: error.message || 'Insert failed',
+      });
+
       return res.status(400).json({
         code: error.code || null,
         message: error.message || 'Insert failed',

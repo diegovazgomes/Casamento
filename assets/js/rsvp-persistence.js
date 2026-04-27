@@ -37,7 +37,7 @@ async function getConfig() {
 }
 
 function shouldFallbackToLegacySupabase(status) {
-    return status === 404 || status === 405 || status === 500 || status === 503;
+    return status === 401 || status === 403 || status === 404 || status === 405 || status === 500 || status === 503;
 }
 
 async function postToServer(table, payload) {

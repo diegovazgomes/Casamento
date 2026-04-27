@@ -105,6 +105,45 @@ describe('POST /api/submissions', () => {
       event_id: 'siannah-diego-2026',
       marketing_consent: true,
     }));
+
+    const payload = insertMock.mock.calls[0][0];
+    expect(payload).not.toHaveProperty('group_name');
+    expect(payload).not.toHaveProperty('group_max_confirmations');
+  });
+
+  it('inclui colunas opcionais de grupo quando enviadas no RSVP', async () => {
+    const insertMock = vi.fn().mockResolvedValue({ error: null });
+    createClientMock.mockReturnValue({
+      from: vi.fn(() => ({ insert: insertMock })),
+    });
+
+    const { default: handler } = await import('../../api/submissions.js');
+    const res = createMockResponse();
+
+    await handler({
+      method: 'POST',
+      body: {
+        table: 'rsvp_confirmations',
+        payload: {
+          name: 'Diego',
+          phone: '11999999999',
+          attendance: 'yes',
+          event_id: 'siannah-diego-2026',
+          token_id: 'token-1',
+          group_name: 'Familia Silva',
+          group_max_confirmations: 3,
+        },
+      },
+    }, res);
+
+    expect(res.statusCode).toBe(201);
+
+    const payload = insertMock.mock.calls[0][0];
+    expect(payload).toMatchObject({
+      token_id: 'token-1',
+      group_name: 'Familia Silva',
+      group_max_confirmations: 3,
+    });
   });
 
   it('retorna 400 para payload inválido', async () => {
