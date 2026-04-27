@@ -54,6 +54,12 @@ function bindMessageForm(content, config) {
         }
 
         if (config?.rsvp?.supabaseEnabled !== false) {
+            console.log('[mensagem] Enviando mensagem para persistência.', {
+                eventId: config?.rsvp?.eventId || 'wedding-event',
+                hasGuestName: Boolean(guestName),
+                messageLength: messageBody.length,
+            });
+
             const saved = await saveGuestMessage({
                 guestName,
                 message: messageBody,
@@ -61,6 +67,7 @@ function bindMessageForm(content, config) {
             }).catch(() => false);
 
             if (!saved) {
+                console.warn('[mensagem] Falha na persistência da mensagem.');
                 feedback.classList.add('is-error');
                 feedback.textContent = content?.errorMessage || 'Não foi possível enviar sua mensagem agora. Tente novamente.';
                 if (submitButton) {
@@ -68,6 +75,10 @@ function bindMessageForm(content, config) {
                 }
                 return;
             }
+
+            console.log('[mensagem] Mensagem persistida com sucesso.');
+        } else {
+            console.warn('[mensagem] Persistência desativada (config.rsvp.supabaseEnabled=false). Mensagem não será salva no banco.');
         }
 
         feedback.textContent = content?.successMessage || 'Mensagem enviada com carinho. Obrigado pelo seu recado.';

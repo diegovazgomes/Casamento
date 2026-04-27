@@ -62,6 +62,12 @@ function bindMusicForm(content, config) {
         }
 
         if (config?.rsvp?.supabaseEnabled !== false) {
+            console.log('[musica] Enviando sugestão para persistência.', {
+                eventId: config?.rsvp?.eventId || 'wedding-event',
+                hasGuestName: Boolean(guestName),
+                songTitleLength: songTitle.length,
+            });
+
             const saved = await saveSongSuggestion({
                 guestName,
                 songTitle,
@@ -71,6 +77,7 @@ function bindMusicForm(content, config) {
             }).catch(() => false);
 
             if (!saved) {
+                console.warn('[musica] Falha na persistência da sugestão.');
                 feedback.classList.add('is-error');
                 feedback.textContent = content?.errorMessage || 'Não foi possível enviar sua sugestão agora. Tente novamente.';
                 if (submitButton) {
@@ -78,6 +85,10 @@ function bindMusicForm(content, config) {
                 }
                 return;
             }
+
+            console.log('[musica] Sugestão persistida com sucesso.');
+        } else {
+            console.warn('[musica] Persistência desativada (config.rsvp.supabaseEnabled=false). Sugestão não será salva no banco.');
         }
 
         feedback.textContent = content?.successMessage || 'Sugestão enviada com sucesso. Obrigado por participar da nossa festa.';
