@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env node
+#!/usr/bin/env node
 
 /**
  * Manual E2E Test: Config Sync - Dashboard -> API -> Site
@@ -9,8 +9,8 @@ console.log('E2E Test: Config Sync - Dashboard -> API -> Site\n');
 // STEP 1: Simular site.json estatico
 const staticConfig = {
   activeLayout: 'classic',
-  rsvp: { eventId: 'siannah-diego-2026', supabaseEnabled: true },
-  couple: { names: 'Siannah & Diego (static file)' }
+  rsvp: { eventId: '<slug-do-evento>', supabaseEnabled: true },
+  couple: { names: 'Noiva & Noivo (static file)' }
 };
 
 console.log('Step 1: Carregado site.json:');
@@ -27,7 +27,7 @@ console.log(` - API URL: ${finalConfigUrl}\n`);
 // STEP 3: Simular resposta da API (dados atualizados no dashboard)
 const apiResponse = {
   activeLayout: 'modern',
-  couple: { names: 'Siannah & Diego (Dashboard Updated)' }
+  couple: { names: 'Noiva & Noivo (Dashboard Updated)' }
 };
 console.log('Step 3: Simulando carregamento da API...');
 console.log(` - Novo couple.names: "${apiResponse.couple.names}"\n`);

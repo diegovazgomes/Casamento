@@ -1,7 +1,7 @@
-﻿{
+{
     "couple": {
-        "names": "Siannah & Diego",
-        "subtitle": "Seguimos escolhendo um ao outro, agora para todo sempre."
+        "names": "Noiva & Noivo",
+        "subtitle": "Uma história que começa aqui."
     },
     "event": {
         "date": "2026-09-06T17:00:00-03:00",
@@ -14,12 +14,15 @@
         "locationCity": "Sao Bernardo do Campo",
         "mapsLink": "https://share.google/7Qt15gWSb3IAGGofM",
         "mapEnabled": false,
-        "venueCoordinates": { "lat": -23.8545, "lng": -46.5797 },
+        "venueCoordinates": {
+            "lat": -23.8545,
+            "lng": -46.5797
+        },
         "venueAddress": "Rodovia Anchieta, SP-150, km 28, Sao Bernardo do Campo - SP"
     },
     "texts": {
-        "metaTitle": "Siannah & Diego - Casamento",
-        "metaDescription": "Siannah e Diego convidam voce para celebrar o casamento em uma noite elegante e inesquecivel.",
+        "metaTitle": "Convite de Casamento",
+        "metaDescription": "Você foi convidado para celebrar este momento especial.",
         "themeColor": "#1a1714",
         "introLabel": "Convite",
         "intro": "Seguimos escolhendo um ao outro, agora para todo sempre.",
@@ -68,7 +71,8 @@
         "backToExtrasButton": "Voltar",
         "giftOverlayCloseButton": "Fechar",
         "giftOverlayBackButton": "Voltar para confirmacao",
-        "footerNote": "06 . 09 . 2026 | Sao Bernardo do Campo"
+        "footerNote": "06 . 09 . 2026 | Sao Bernardo do Campo",
+        "recipientName": "Noiva"
     },
     "gift": {
         "pixKey": "CHAVE_PIX_OU_CODIGO_COPIA_E_COLA_AQUI",
@@ -202,7 +206,7 @@
     },
     "whatsapp": {
         "destinationPhone": "5511914772174",
-        "recipientName": "Siannah",
+        "recipientName": "Noiva",
         "redirectDelayMs": 5000,
         "messages": {
             "attending": "Ola, {recipientName}!\n\nAqui e {name}.\nMeu WhatsApp para contato e {phone}.\nEstou passando para confirmar minha presenca no casamento.\n\nNos vemos em breve.",
