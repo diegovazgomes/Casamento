@@ -10,6 +10,8 @@
 
 let _config = null;
 
+const SERVER_SUBMISSIONS_ENDPOINT = '/api/submissions';
+
 async function getConfig() {
     if (_config) return _config;
 
@@ -32,6 +34,46 @@ async function getConfig() {
     }
 
     return _config;
+}
+
+function shouldFallbackToLegacySupabase(status) {
+    return status === 404 || status === 405 || status === 500 || status === 503;
+}
+
+async function postToServer(table, payload) {
+    try {
+        const response = await fetch(SERVER_SUBMISSIONS_ENDPOINT, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ table, payload }),
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            const parsedError = parseSupabaseError(errorText);
+
+            return {
+                ok: false,
+                error: parsedError,
+                shouldFallback: shouldFallbackToLegacySupabase(response.status),
+            };
+        }
+
+        return { ok: true, error: null, shouldFallback: false };
+    } catch (error) {
+        return {
+            ok: false,
+            error: {
+                code: null,
+                message: error.message,
+                details: '',
+                hint: '',
+            },
+            shouldFallback: true,
+        };
+    }
 }
 
 function parseSupabaseError(errorText) {
@@ -195,6 +237,28 @@ async function postToSupabase(table, payload) {
 }
 
 async function postToSupabaseDetailed(table, payload) {
+    const serverAttempt = await postToServer(table, payload);
+    if (serverAttempt.ok) {
+        return { ok: true, error: null };
+    }
+
+    if (!serverAttempt.shouldFallback) {
+        console.warn(
+            `[rsvp-persistence] Falha ao salvar via ${SERVER_SUBMISSIONS_ENDPOINT}.`,
+            {
+                code: serverAttempt.error?.code,
+                message: serverAttempt.error?.message,
+                details: serverAttempt.error?.details,
+                hint: serverAttempt.error?.hint,
+                table,
+                type: payload?.type,
+                source: payload?.source,
+            }
+        );
+
+        return { ok: false, error: serverAttempt.error };
+    }
+
     try {
         const { supabaseUrl, supabaseAnonKey } = await getConfig();
 
