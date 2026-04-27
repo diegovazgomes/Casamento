@@ -1000,10 +1000,38 @@ window.addEventListener('app:ready', ({ detail: { config } }) => {
   if (!cardEnabled) {
     const cardTab = document.querySelector('[data-panel="cartao"]');
     if (cardTab) cardTab.hidden = true;
+    const cardPanel = document.getElementById('panel-cartao');
+    if (cardPanel) cardPanel.hidden = true;
   }
 
+  /* Pix — respeita gift.pixEnabled do dashboard */
+  const pixEnabled = config?.gift?.pixEnabled !== false && !!pixKey;
+  if (!pixEnabled) {
+    const pixTab = document.querySelector('[data-panel="pix"]');
+    if (pixTab) pixTab.hidden = true;
+    const pixPanel = document.getElementById('panel-pix');
+    if (pixPanel) pixPanel.hidden = true;
+  }
+
+  /* Catálogo — respeita gift.catalogEnabled do dashboard */
+  const catalogEnabled = config?.gift?.catalogEnabled !== false;
+  if (!catalogEnabled) {
+    const listaTab = document.querySelector('[data-panel="lista"]');
+    if (listaTab) listaTab.hidden = true;
+    const listaPanel = document.getElementById('panel-lista');
+    if (listaPanel) listaPanel.hidden = true;
+  }
+
+  /* Ativa o primeiro tab visível caso o padrão tenha sido ocultado */
+  const allTabs   = Array.from(document.querySelectorAll('.gift-tab:not([hidden])'));
+  const allPanels = Array.from(document.querySelectorAll('.gift-tab-panel:not([hidden])'));
+  document.querySelectorAll('.gift-tab').forEach(t => t.classList.remove('is-active'));
+  document.querySelectorAll('.gift-tab-panel').forEach(p => p.classList.remove('is-active'));
+  if (allTabs.length)   allTabs[0].classList.add('is-active');
+  if (allPanels.length) allPanels[0].classList.add('is-active');
+
   /* Renderiza lista com chave Pix carregada */
-  renderGiftList(pixKey, qrSrc, cardLink);
+  if (catalogEnabled) renderGiftList(pixKey, qrSrc, cardLink);
 });
 
 /* Fallback — renderiza lista mesmo sem app:ready */
