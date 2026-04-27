@@ -52,3 +52,40 @@
 ## Impacto
 
 Nenhuma mudança visual para o convidado. O comportamento do convite permanece idêntico desde que a config seja carregada corretamente. O fallback genérico (`'Noiva'`, `'Noivo'`, `'Casal'`) só aparece se a config falhar — o que não deve ocorrer em produção.
+
+---
+
+## Tela de Login do Dashboard
+
+**Arquivo:** `dashboard.html`, `assets/js/dashboard.js`
+
+- Título da tela de login alterado para **"Painel do Casal"** — estático e permanente
+- Removidas todas as referências em JavaScript que sobrescreviam o título com o nome do casal vindo da config (`authCoupleTitle` em `dashboard.html` inline script e `dashboard.js` linhas 172 e 176)
+
+---
+
+## Loading Screen — Fallback Dinâmico
+
+**Arquivo:** `assets/js/loading-screen.js`
+
+- Texto inicial alterado de vazio/genérico para `"Carregando experiências…"` (com `s` e ellipsis Unicode)
+- Adicionada blocklist `GENERIC_NAME_FALLBACKS` com valores que nunca devem aparecer na tela: `['Noiva & Noivo', 'Casal', 'Nome & Nome', '']`
+- Função `preencherNomes` reforçada: só atualiza o elemento com o nome real se vier do Supabase e não estiver na blocklist
+- Comportamento: inicia com `"Carregando experiências…"` → após load bem-sucedido do Supabase, exibe `couple.names` → se falhar ou valor for genérico, mantém o placeholder
+- Aplica-se tanto ao convite quanto ao dashboard (ambos importam o mesmo módulo)
+
+---
+
+## Bug: Checkboxes de Presentes Não Respeitados no Convite
+
+**Arquivos:** `api/dashboard/event.js` (PATCH handler), `presente.html`
+
+**Causa raiz:** Dois sistemas de fonte de verdade desincronizados:
+- `events.config` (JSONB) — onde o Dashboard salvava `gift.pixEnabled`, `gift.cardPaymentEnabled`
+- `event_gifts.enabled` (coluna booleana) — de onde `mapGiftConfig` lia ao montar a resposta da API
+
+O PATCH atualizava apenas o JSONB. A leitura ignorava o JSONB e usava `event_gifts.enabled`, que nunca era atualizado. Resultado: desmarcar o checkbox não tinha efeito no convite.
+
+**Correção:**
+- `api/dashboard/event.js`: após salvar em `events.config`, o PATCH agora também atualiza `event_gifts.enabled` para os registros `type = 'pix'` e `type = 'card'` correspondentes
+- `presente.html`: adicionada leitura de `gift.pixEnabled` e `gift.catalogEnabled` (antes só `cardPaymentEnabled` era lido); adicionada lógica para ativar automaticamente a primeira aba visível quando a aba padrão é ocultada
