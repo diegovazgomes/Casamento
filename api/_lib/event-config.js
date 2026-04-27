@@ -80,6 +80,69 @@ function setIfDefined(target, key, value) {
   }
 }
 
+function firstDefined(...values) {
+  for (const value of values) {
+    if (value !== undefined && value !== null && value !== '') {
+      return value;
+    }
+  }
+
+  return undefined;
+}
+
+function normalizeRsvpConfig(rsvpConfig = {}, eventSlug = '') {
+  const nextRsvp = isPlainObject(rsvpConfig) ? cloneValue(rsvpConfig) : {};
+
+  const normalizedEventId = firstDefined(nextRsvp.eventId, nextRsvp.event_id, eventSlug);
+  const normalizedSupabaseEnabled = firstDefined(nextRsvp.supabaseEnabled, nextRsvp.supabase_enabled);
+
+  setIfDefined(nextRsvp, 'eventId', normalizedEventId);
+  if (normalizedSupabaseEnabled !== undefined) {
+    nextRsvp.supabaseEnabled = Boolean(normalizedSupabaseEnabled);
+  }
+
+  if ('event_id' in nextRsvp) {
+    delete nextRsvp.event_id;
+  }
+  if ('supabase_enabled' in nextRsvp) {
+    delete nextRsvp.supabase_enabled;
+  }
+
+  return nextRsvp;
+}
+
+function normalizeWhatsappConfig(whatsappConfig = {}) {
+  const nextWhatsapp = isPlainObject(whatsappConfig) ? cloneValue(whatsappConfig) : {};
+
+  setIfDefined(
+    nextWhatsapp,
+    'destinationPhone',
+    firstDefined(nextWhatsapp.destinationPhone, nextWhatsapp.destination_phone)
+  );
+  setIfDefined(
+    nextWhatsapp,
+    'recipientName',
+    firstDefined(nextWhatsapp.recipientName, nextWhatsapp.recipient_name)
+  );
+  setIfDefined(
+    nextWhatsapp,
+    'redirectDelayMs',
+    firstDefined(nextWhatsapp.redirectDelayMs, nextWhatsapp.redirect_delay_ms)
+  );
+
+  if ('destination_phone' in nextWhatsapp) {
+    delete nextWhatsapp.destination_phone;
+  }
+  if ('recipient_name' in nextWhatsapp) {
+    delete nextWhatsapp.recipient_name;
+  }
+  if ('redirect_delay_ms' in nextWhatsapp) {
+    delete nextWhatsapp.redirect_delay_ms;
+  }
+
+  return nextWhatsapp;
+}
+
 function resolveCatalogKey(config, index) {
   const rawKey = config?.key || config?.id || config?.slug || config?.title || `catalog-${index + 1}`;
 
@@ -246,8 +309,8 @@ export function buildEventConfigResponse(eventRecord) {
   setIfDefined(nextConfig.event, 'venueAddress', eventRecord?.venue_address);
   setIfDefined(nextConfig.event, 'mapsLink', eventRecord?.venue_maps_link);
 
-  nextConfig.rsvp = mergeDeep(nextConfig.rsvp, {});
-  setIfDefined(nextConfig.rsvp, 'eventId', nextConfig.rsvp?.eventId || eventRecord?.slug);
+  nextConfig.rsvp = normalizeRsvpConfig(nextConfig.rsvp, eventRecord?.slug);
+  nextConfig.whatsapp = normalizeWhatsappConfig(nextConfig.whatsapp);
 
   nextConfig.gift = mapGiftConfig(eventRecord?.event_gifts, nextConfig.gift);
 

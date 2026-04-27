@@ -152,6 +152,53 @@ describe('GET /api/event-config', () => {
     });
   });
 
+  it('normalizes legacy snake_case keys from DB config', async () => {
+    const queryBuilder = createQueryBuilder({
+      data: {
+        id: 'event-legacy',
+        slug: 'casal-legado-2026',
+        couple_names: 'Casal Legado',
+        config: {
+          rsvp: {
+            event_id: 'casal-legado-2026',
+            supabase_enabled: true,
+          },
+          whatsapp: {
+            destination_phone: '5511999999999',
+            recipient_name: 'Noiva',
+            redirect_delay_ms: 3500,
+          },
+        },
+        event_gifts: [],
+      },
+      error: null,
+    });
+
+    createClientMock.mockReturnValue({
+      from: vi.fn(() => queryBuilder),
+      storage: createStorageMock({ listData: [] }),
+    });
+
+    const { default: handler } = await import('../../api/event-config.js');
+    const res = createMockResponse();
+
+    await handler({ method: 'GET', query: { slug: 'casal-legado-2026' } }, res);
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body?.rsvp).toMatchObject({
+      eventId: 'casal-legado-2026',
+      supabaseEnabled: true,
+    });
+    expect(res.body?.whatsapp).toMatchObject({
+      destinationPhone: '5511999999999',
+      recipientName: 'Noiva',
+      redirectDelayMs: 3500,
+    });
+    expect(res.body?.rsvp?.event_id).toBeUndefined();
+    expect(res.body?.rsvp?.supabase_enabled).toBeUndefined();
+    expect(res.body?.whatsapp?.destination_phone).toBeUndefined();
+  });
+
   it('returns 400 when slug is missing', async () => {
     const { default: handler } = await import('../../api/event-config.js');
     const res = createMockResponse();
