@@ -24,7 +24,7 @@ const LOADING_SCREEN_HTML = `
                 <path d="M50,95 C20,75 5,60 5,45 C5,30 15,20 27,20 C35,20 42,25 50,35 C58,25 65,20 73,20 C85,20 95,30 95,45 C95,60 80,75 50,95 Z" fill="currentColor"/>
             </svg>
         </div>
-        <p class="loading-names" id="loadingNames">Carregando experiência...</p>
+        <p class="loading-names" id="loadingNames">Carregando experiências…</p>
     </div>
 </div>
 `;
@@ -94,14 +94,18 @@ export async function initLoadingScreen() {
 
 /**
  * Preenche o elemento de nomes com os nomes dos noivos
- * Remove a cor de "Carregando" e deixa discreto
+ * Só atualiza se o nome for real (não genérico e não vazio)
  */
+// Valores genéricos que NÃO devem substituir o placeholder de loading
+const GENERIC_NAME_FALLBACKS = ['Noiva & Noivo', 'Casal', 'Nome & Nome', ''];
+
 function preencherNomes(coupleNames) {
     const loadingNames = document.getElementById('loadingNames');
-    if (loadingNames && coupleNames) {
-        loadingNames.textContent = coupleNames;
+    const nome = (coupleNames || '').trim();
+    if (loadingNames && nome && !GENERIC_NAME_FALLBACKS.includes(nome)) {
+        loadingNames.textContent = nome;
     }
-    // Se coupleNames for vazio ou undefined, mantém "Carregando experiência..."
+    // Caso contrário, mantém "Carregando experiências…"
 }
 
 /**
