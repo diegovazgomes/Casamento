@@ -79,7 +79,7 @@ async function handleListSubmissions(req, res) {
         `,
         { count: 'exact' }
       )
-      .eq('event_id', ownedEvent.event.id);
+      .eq('event_id', ownedEvent.event.slug);
 
     if (type) {
       query = query.eq('type', type);

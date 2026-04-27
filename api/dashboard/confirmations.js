@@ -88,7 +88,7 @@ async function handleListConfirmations(req, res) {
         `,
         { count: 'exact' }
       )
-      .eq('event_id', ownedEvent.event.id);
+      .eq('event_id', ownedEvent.event.slug);
 
     // Filtrar por status
     if (status && status !== 'pending') {
@@ -168,7 +168,7 @@ async function handleExportCsv(req, res) {
         guest_tokens:token_id(group_name)
         `
       )
-      .eq('event_id', ownedEvent.event.id);
+      .eq('event_id', ownedEvent.event.slug);
 
     // Aplicar filtros (mesma lógica de listagem)
     if (status && status !== 'pending') {
