@@ -5,7 +5,7 @@ import { PresentPage } from './presente.js';
 import { AudioController } from './audio.js';
 import { cloneDeep, mergeDeep, setInputPlaceholder, setText } from './utils.js';
 import { resolveSiteConfigSource, resolveThemePath } from './config-source.js';
-import { markBootstrapComplete, hideLoadingScreen } from './loading-screen.js';
+import { markBootstrapComplete, hideLoadingScreen, applyThemeToLoadingScreen } from './loading-screen.js';
 
 const TYPOGRAPHY_CONFIG_URL = 'assets/config/typography.json';
 const INVITATION_STARTED_STORAGE_KEY = 'wedding-invitation-started';
@@ -1146,6 +1146,10 @@ async function bootstrap() {
         window.CONFIG = config;
         window.THEME = effectiveTheme;
         applyTheme(effectiveTheme);
+        // Aplicar cores do tema na loading screen antes de ela sumir.
+        // Feito aqui (após applyTheme) garante timing: tema já carregado,
+        // loading screen ainda visível, zero race condition.
+        applyThemeToLoadingScreen(effectiveTheme);
         const experience = new InvitationExperience(config, effectiveTheme, navigationState);
         await experience.init();
         window.dispatchEvent(new CustomEvent('app:ready', { detail: { config, theme: effectiveTheme } }));

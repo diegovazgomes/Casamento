@@ -39,58 +39,42 @@ const LOADING_SCREEN_HTML = `
  */
 export async function initLoadingScreen() {
     try {
-        // 1. Injetar HTML e aplicar cores neutras imediatamente (antes do fetch)
+        // 1. Injetar HTML e aplicar cores neutras imediatamente (sem esperar fetch)
         document.body.insertAdjacentHTML('afterbegin', LOADING_SCREEN_HTML);
         applyNeutralLoadingColors();
 
-        // 2. Carregar a config publica correta para a URL atual
+        // 2. Buscar apenas os nomes do casal — em paralelo com o bootstrap principal
+        //    As cores do tema são aplicadas por bootstrap() via applyThemeToLoadingScreen()
+        //    assim que o tema real for carregado, garantindo timing correto.
         const configSource = resolveSiteConfigSource();
         const siteRes = await fetch(configSource.url, {
             method: 'GET',
             headers: { Accept: 'application/json' },
             cache: 'no-store'
         });
-        if (!siteRes.ok) {
-            applyFallbackLoadingColors();
-            return;
-        }
+        if (!siteRes.ok) return;
+
         const siteConfig = await siteRes.json();
-        const coupleNames = siteConfig?.couple?.names || '';
-
-        // 3. Descobrir caminho do tema
-        const themePath = resolveThemePath(siteConfig?.activeTheme, siteConfig?.activeLayout || 'classic');
-
-        // 4. Carregar arquivo de tema
-        const themeRes = await fetch(themePath, {
-            method: 'GET',
-            headers: { Accept: 'application/json' },
-            cache: 'no-store'
-        });
-        if (!themeRes.ok) {
-            applyFallbackLoadingColors();
-            preencherNomes(coupleNames);
-            return;
-        }
-        const theme = await themeRes.json();
-
-        // 5. Extrair cores do tema (fallback para as cores neutras já aplicadas)
-        const bgColor      = theme?.colors?.background || NEUTRAL_LOADING_COLORS.bg;
-        const textColor    = theme?.colors?.text        || NEUTRAL_LOADING_COLORS.text;
-        const primaryColor = theme?.colors?.primary     || NEUTRAL_LOADING_COLORS.primary;
-
-        // 6. Aplicar cores via CSS variables
-        const root = document.documentElement;
-        root.style.setProperty('--ls-bg-color', bgColor);
-        root.style.setProperty('--ls-text-color', textColor);
-        root.style.setProperty('--ls-primary-color', primaryColor);
-
-        // 7. Preencher nomes dos noivos
-        preencherNomes(coupleNames);
+        preencherNomes(siteConfig?.couple?.names || '');
 
     } catch (error) {
-        console.warn('[LoadingScreen] Erro ao inicializar, usando fallback.', error);
-        applyFallbackLoadingColors();
+        console.warn('[LoadingScreen] Erro ao buscar nomes, usando fallback.', error);
     }
+}
+
+/**
+ * Aplica as cores do tema ativo na loading screen.
+ * Chamada por bootstrap() em script.js logo após applyTheme(),
+ * garantindo que as cores estejam aplicadas antes do fade-out.
+ *
+ * @param {object} theme — objeto de tema resolvido (mesmo passado para applyTheme)
+ */
+export function applyThemeToLoadingScreen(theme) {
+    const colors = theme?.colors ?? {};
+    const root   = document.documentElement;
+    root.style.setProperty('--ls-bg-color',      colors.background || NEUTRAL_LOADING_COLORS.bg);
+    root.style.setProperty('--ls-text-color',    colors.text       || NEUTRAL_LOADING_COLORS.text);
+    root.style.setProperty('--ls-primary-color', colors.primary    || NEUTRAL_LOADING_COLORS.primary);
 }
 
 /**
