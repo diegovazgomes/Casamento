@@ -39,9 +39,12 @@ const LOADING_SCREEN_HTML = `
  */
 export async function initLoadingScreen() {
     try {
-        // 1. Injetar HTML e aplicar cores neutras imediatamente (sem esperar fetch)
+        // 1. Injetar HTML e aplicar cores imediatamente (sem esperar fetch)
+        //    Prefere cores persistidas da visita anterior (evita flash neutro).
         document.body.insertAdjacentHTML('afterbegin', LOADING_SCREEN_HTML);
-        applyNeutralLoadingColors();
+        if (!loadPersistedThemeColors()) {
+            applyNeutralLoadingColors();
+        }
 
         // 2. Buscar apenas os nomes do casal — em paralelo com o bootstrap principal
         //    As cores do tema são aplicadas por bootstrap() via applyThemeToLoadingScreen()
@@ -71,10 +74,52 @@ export async function initLoadingScreen() {
  */
 export function applyThemeToLoadingScreen(theme) {
     const colors = theme?.colors ?? {};
-    const root   = document.documentElement;
-    root.style.setProperty('--ls-bg-color',      colors.background || NEUTRAL_LOADING_COLORS.bg);
-    root.style.setProperty('--ls-text-color',    colors.text       || NEUTRAL_LOADING_COLORS.text);
-    root.style.setProperty('--ls-primary-color', colors.primary    || NEUTRAL_LOADING_COLORS.primary);
+    const bg      = colors.background || NEUTRAL_LOADING_COLORS.bg;
+    const text     = colors.text       || NEUTRAL_LOADING_COLORS.text;
+    const primary  = colors.primary    || NEUTRAL_LOADING_COLORS.primary;
+
+    const root = document.documentElement;
+    root.style.setProperty('--ls-bg-color',      bg);
+    root.style.setProperty('--ls-text-color',    text);
+    root.style.setProperty('--ls-primary-color', primary);
+
+    // Persistir para próximas navegações na mesma aba (sem flash neutro)
+    persistThemeColors(bg, text, primary);
+}
+
+/**
+ * Salva as cores do tema no sessionStorage.
+ * sessionStorage dura apenas enquanto a aba estiver aberta, então
+ * cada nova aba começa limpa — sem vazar cores de um casal para outro.
+ */
+function persistThemeColors(bg, text, primary) {
+    try {
+        sessionStorage.setItem('ls-theme-colors', JSON.stringify({ bg, text, primary }));
+    } catch {
+        // sessionStorage indisponível (ex: modo incógnito bloqueado) — silencioso
+    }
+}
+
+/**
+ * Lê cores persistidas do sessionStorage e aplica imediatamente.
+ * Retorna true se encontrou e aplicou cores, false caso contrário.
+ */
+function loadPersistedThemeColors() {
+    try {
+        const raw = sessionStorage.getItem('ls-theme-colors');
+        if (!raw) return false;
+
+        const { bg, text, primary } = JSON.parse(raw);
+        if (!bg || !text || !primary) return false;
+
+        const root = document.documentElement;
+        root.style.setProperty('--ls-bg-color',      bg);
+        root.style.setProperty('--ls-text-color',    text);
+        root.style.setProperty('--ls-primary-color', primary);
+        return true;
+    } catch {
+        return false;
+    }
 }
 
 /**
