@@ -125,6 +125,9 @@ body::before{
 }
 .field-input::placeholder{color:var(--text-dim);font-style:italic}
 .field-input:focus{border-color:var(--primary);background:rgba(192,192,192,0.04)}
+/* iOS Safari: font-size < 16px dispara zoom automático ao focar — sem reversão após submit.
+   Os inputs do formulário de login recebem 16px explícito para prevenir o zoom. */
+.auth-form .field-input{font-size:16px}
  
 .btn{
   position:relative;overflow:hidden;
@@ -895,6 +898,11 @@ body::before{
 .form-group{margin-bottom:14px}
 @media(max-width:760px){.form-grid-2,.form-grid-3,.media-upload-row{grid-template-columns:1fr}.media-upload-action{justify-content:stretch}.media-upload-action .btn{width:100%;min-width:0;min-height:44px}}
 .field-input.sm{padding:10px 12px;font-size:12px}
+/* Mobile: todos os inputs sobem para 16px — previne auto-zoom do iOS Safari.
+   Posicionado após .field-input.sm para ganhar na cascade (mesma especificidade, ordem vence). */
+@media(max-width:768px){
+  .field-input,.field-input.sm{font-size:16px}
+}
 textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.65}
 .field-hint{
   font-size:10px;color:var(--text-faint);
