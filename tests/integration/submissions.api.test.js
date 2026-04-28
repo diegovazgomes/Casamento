@@ -146,6 +146,55 @@ describe('POST /api/submissions', () => {
     });
   });
 
+  it('reenvia RSVP sem colunas opcionais quando o schema legado nao tem group_max_confirmations', async () => {
+    const insertMock = vi.fn()
+      .mockResolvedValueOnce({
+        error: {
+          code: 'PGRST204',
+          message: "Could not find the 'group_max_confirmations' column of 'rsvp_confirmations' in the schema cache",
+          details: '',
+          hint: '',
+        },
+      })
+      .mockResolvedValueOnce({ error: null });
+
+    createClientMock.mockReturnValue({
+      from: vi.fn(() => ({ insert: insertMock })),
+    });
+
+    const { default: handler } = await import('../../api/submissions.js');
+    const res = createMockResponse();
+
+    await handler({
+      method: 'POST',
+      body: {
+        table: 'rsvp_confirmations',
+        payload: {
+          name: 'Diego',
+          phone: '11999999999',
+          attendance: 'yes',
+          event_id: 'siannah-diego-2026',
+          token_id: 'token-1',
+          group_name: 'Familia Silva',
+          group_max_confirmations: 3,
+        },
+      },
+    }, res);
+
+    expect(res.statusCode).toBe(201);
+    expect(insertMock).toHaveBeenCalledTimes(2);
+    expect(insertMock.mock.calls[0][0]).toMatchObject({
+      token_id: 'token-1',
+      group_name: 'Familia Silva',
+      group_max_confirmations: 3,
+    });
+    expect(insertMock.mock.calls[1][0]).toMatchObject({
+      token_id: 'token-1',
+    });
+    expect(insertMock.mock.calls[1][0]).not.toHaveProperty('group_name');
+    expect(insertMock.mock.calls[1][0]).not.toHaveProperty('group_max_confirmations');
+  });
+
   it('retorna 400 para payload inválido', async () => {
     createClientMock.mockReturnValue({
       from: vi.fn(),

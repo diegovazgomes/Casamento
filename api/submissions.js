@@ -6,6 +6,48 @@ const ALLOWED_TABLES = new Set([RSVP_TABLE, GUEST_TABLE]);
 const RSVP_ATTENDANCE = new Set(['yes', 'no']);
 const GUEST_TYPES = new Set(['message', 'song']);
 
+function isUnsupportedRsvpColumnError(error) {
+  const haystack = [error?.message, error?.details, error?.hint]
+    .filter(Boolean)
+    .join(' ')
+    .toLowerCase();
+
+  return haystack.includes('group_name') || haystack.includes('group_max_confirmations');
+}
+
+function stripOptionalRsvpColumns(payload) {
+  const nextPayload = { ...payload };
+  delete nextPayload.group_name;
+  delete nextPayload.group_max_confirmations;
+  return nextPayload;
+}
+
+async function insertSubmission(supabase, table, payload) {
+  const { error } = await supabase
+    .from(table)
+    .insert(payload);
+
+  if (!error) {
+    return { ok: true, error: null };
+  }
+
+  if (table === RSVP_TABLE && isUnsupportedRsvpColumnError(error)) {
+    const fallbackPayload = stripOptionalRsvpColumns(payload);
+    const fallbackResult = await supabase
+      .from(table)
+      .insert(fallbackPayload);
+
+    if (!fallbackResult.error) {
+      console.warn('[api/submissions] RSVP salvo sem colunas opcionais de grupo por compatibilidade de schema.');
+      return { ok: true, error: null };
+    }
+
+    return { ok: false, error: fallbackResult.error };
+  }
+
+  return { ok: false, error };
+}
+
 function parseJsonBody(body) {
   if (!body) {
     return {};
@@ -131,11 +173,10 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { error } = await supabase
-      .from(table)
-      .insert(payload);
+    const result = await insertSubmission(supabase, table, payload);
 
-    if (error) {
+    if (!result.ok) {
+      const error = result.error;
       console.warn('[api/submissions] Insert failed', {
         table,
         code: error.code || null,
