@@ -6,6 +6,7 @@ import { AudioController } from './audio.js';
 import { cloneDeep, mergeDeep, setInputPlaceholder, setText } from './utils.js';
 import { resolveSiteConfigSource, resolveThemePath } from './config-source.js';
 import { markBootstrapComplete, hideLoadingScreen, applyThemeToLoadingScreen } from './loading-screen.js';
+import { onConfigLoaded } from './debug-badge.js';
 
 const TYPOGRAPHY_CONFIG_URL = 'assets/config/typography.json';
 const INVITATION_STARTED_STORAGE_KEY = 'wedding-invitation-started';
@@ -1150,6 +1151,8 @@ async function bootstrap() {
         // Feito aqui (após applyTheme) garante timing: tema já carregado,
         // loading screen ainda visível, zero race condition.
         applyThemeToLoadingScreen(effectiveTheme);
+        // Atualiza badge de debug com tema e status de cache (no-op se não estiver em modo debug)
+        onConfigLoaded({ configUrl: finalConfigUrl, theme: config.activeTheme || 'classic-gold' });
         const experience = new InvitationExperience(config, effectiveTheme, navigationState);
         await experience.init();
         window.dispatchEvent(new CustomEvent('app:ready', { detail: { config, theme: effectiveTheme } }));

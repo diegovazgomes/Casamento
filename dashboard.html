@@ -1925,6 +1925,7 @@ import {
   markBootstrapComplete,
   markContentReady,
 } from './assets/js/loading-screen.js';
+import { initDebugBadge, onConfigLoaded } from './assets/js/debug-badge.js';
 
 /**
  * loadTheme.js - embutido
@@ -1934,6 +1935,7 @@ import {
 window.__DASHBOARD_BOOTSTRAP_PROMISE__ = (async function loadTheme() {
   try {
     await initLoadingScreen();
+    initDebugBadge();
 
     window.__ON_DASHBOARD_READY__ = async () => {
       markBootstrapComplete();
@@ -1993,6 +1995,9 @@ window.__DASHBOARD_BOOTSTRAP_PROMISE__ = (async function loadTheme() {
       detail: { config: site, theme, themePath }
     }));
  
+    // Badge de debug: config carregada, tema e status de cache
+    onConfigLoaded({ configUrl: themePath, theme: theme.meta?.name || site.activeTheme || 'classic-gold' });
+
     console.log('[dashboard] tema aplicado:', theme.meta?.name || themePath);
     return { config: site, theme, themePath };
   } catch (err) {
