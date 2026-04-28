@@ -39,8 +39,9 @@ const LOADING_SCREEN_HTML = `
  */
 export async function initLoadingScreen() {
     try {
-        // 1. Injetar HTML
+        // 1. Injetar HTML e aplicar cores neutras imediatamente (antes do fetch)
         document.body.insertAdjacentHTML('afterbegin', LOADING_SCREEN_HTML);
+        applyNeutralLoadingColors();
 
         // 2. Carregar a config publica correta para a URL atual
         const configSource = resolveSiteConfigSource();
@@ -72,10 +73,10 @@ export async function initLoadingScreen() {
         }
         const theme = await themeRes.json();
 
-        // 5. Extrair cores do tema
-        const bgColor = theme?.colors?.background || '#ffffff';
-        const textColor = theme?.colors?.text || '#f5f5f5';
-        const primaryColor = theme?.colors?.primary || textColor;
+        // 5. Extrair cores do tema (fallback para as cores neutras já aplicadas)
+        const bgColor      = theme?.colors?.background || NEUTRAL_LOADING_COLORS.bg;
+        const textColor    = theme?.colors?.text        || NEUTRAL_LOADING_COLORS.text;
+        const primaryColor = theme?.colors?.primary     || NEUTRAL_LOADING_COLORS.primary;
 
         // 6. Aplicar cores via CSS variables
         const root = document.documentElement;
@@ -109,14 +110,28 @@ function preencherNomes(coupleNames) {
 }
 
 /**
- * Aplica cores padrão se o carregamento do tema falhar
- * Garante que a loading screen sempre apareça com cores aceitáveis
+ * Cores neutras escuras — estado inicial e fallback de erro.
+ * Evitam o flash de branco antes do tema ser carregado.
+ */
+const NEUTRAL_LOADING_COLORS = {
+    bg:      '#1a1714',   // escuro neutro (compatível com qualquer tema)
+    text:    '#f0ede8',   // off-white quente
+    primary: '#c9a84c',   // dourado sutil
+};
+
+function applyNeutralLoadingColors() {
+    const root = document.documentElement;
+    root.style.setProperty('--ls-bg-color',      NEUTRAL_LOADING_COLORS.bg);
+    root.style.setProperty('--ls-text-color',    NEUTRAL_LOADING_COLORS.text);
+    root.style.setProperty('--ls-primary-color', NEUTRAL_LOADING_COLORS.primary);
+}
+
+/**
+ * Aplica cores neutras se o carregamento do tema falhar.
+ * Garante que a loading screen sempre apareça com cores legíveis.
  */
 function applyFallbackLoadingColors() {
-    const root = document.documentElement;
-    root.style.setProperty('--ls-bg-color', '#ffffff');
-    root.style.setProperty('--ls-text-color', '#f5f5f5');
-    root.style.setProperty('--ls-primary-color', '#f5f5f5');
+    applyNeutralLoadingColors();
 }
 
 /**
