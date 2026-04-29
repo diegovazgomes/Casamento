@@ -114,12 +114,15 @@ describe('POST /api/dashboard/media', () => {
     await handler({ method: 'POST', headers: { authorization: 'Bearer valid-token' } }, res);
 
     expect(res.statusCode).toBe(200);
-    expect(listMock).toHaveBeenCalledWith('event-1/hero', { limit: 100 });
+    // upload happens first, then post-upload cleanup (list + conditional remove)
     expect(uploadMock).toHaveBeenCalledWith(
       'event-1/hero/hero.jpg',
       Buffer.from('binary-data'),
       { contentType: 'image/jpeg', upsert: true }
     );
+    expect(listMock).toHaveBeenCalledWith('event-1/hero', { limit: 100 });
+    // nothing to remove when list is empty
+    expect(removeMock).not.toHaveBeenCalled();
     expect(res.body).toEqual({
       eventId: 'event-1',
       path: 'event-1/hero/hero.jpg',
@@ -128,10 +131,11 @@ describe('POST /api/dashboard/media', () => {
     });
   });
 
-  it('removes previous hero files before uploading new hero with different extension', async () => {
+  it('removes old hero file after uploading new hero with different extension', async () => {
     const uploadMock = vi.fn().mockResolvedValue({ error: null });
+    // after upload, folder contains both the old jpg and the new webp
     const listMock = vi.fn().mockResolvedValue({
-      data: [{ name: 'hero.jpg' }],
+      data: [{ name: 'hero.jpg' }, { name: 'hero.webp' }],
       error: null,
     });
     const removeMock = vi.fn().mockResolvedValue({ error: null });
@@ -177,12 +181,62 @@ describe('POST /api/dashboard/media', () => {
     await handler({ method: 'POST', headers: { authorization: 'Bearer valid-token' } }, res);
 
     expect(res.statusCode).toBe(200);
-    expect(removeMock).toHaveBeenCalledWith(['event-1/hero/hero.jpg']);
     expect(uploadMock).toHaveBeenCalledWith(
       'event-1/hero/hero.webp',
       expect.any(Buffer),
       { contentType: 'image/webp', upsert: true }
     );
+    // only the old jpg is removed; new webp is kept
+    expect(removeMock).toHaveBeenCalledWith(['event-1/hero/hero.jpg']);
+  });
+
+  it('upload succeeds even when post-upload cleanup list call fails', async () => {
+    const uploadMock = vi.fn().mockResolvedValue({ error: null });
+    const listMock = vi.fn().mockRejectedValue(new Error('storage unavailable'));
+    const getPublicUrlMock = vi.fn().mockReturnValue({
+      data: { publicUrl: 'https://cdn.example.com/event-1/hero/hero.jpg' },
+    });
+
+    createClientMock.mockReturnValue({
+      auth: {
+        getUser: vi.fn().mockResolvedValue({ data: { user: { id: 'user-1' } }, error: null }),
+      },
+      from: vi.fn(() => createSelectBuilder({
+        data: { id: 'event-1', user_id: 'user-1', config: {} },
+        error: null,
+      })),
+      storage: {
+        from: vi.fn(() => ({
+          list: listMock,
+          upload: uploadMock,
+          getPublicUrl: getPublicUrlMock,
+        })),
+      },
+    });
+
+    formidableMock.mockReturnValue({
+      parse: (req, callback) => callback(null, {
+        eventId: 'event-1',
+        type: 'hero',
+      }, {
+        file: {
+          filepath: 'C:/tmp/upload-file',
+          mimetype: 'image/jpeg',
+          originalFilename: 'foto.jpg',
+        },
+      }),
+    });
+    readFileMock.mockResolvedValue(Buffer.from('binary-data'));
+
+    const { default: handler } = await import('../../api/dashboard/media.js');
+    const res = createMockResponse();
+
+    await handler({ method: 'POST', headers: { authorization: 'Bearer valid-token' } }, res);
+
+    // upload must succeed regardless of cleanup failure
+    expect(res.statusCode).toBe(200);
+    expect(uploadMock).toHaveBeenCalled();
+    expect(res.body.url).toBe('https://cdn.example.com/event-1/hero/hero.jpg');
   });
 
   it('uploads a pix qr image and overwrites previous file', async () => {
@@ -231,12 +285,13 @@ describe('POST /api/dashboard/media', () => {
     await handler({ method: 'POST', headers: { authorization: 'Bearer valid-token' } }, res);
 
     expect(res.statusCode).toBe(200);
-    expect(listMock).toHaveBeenCalledWith('event-1/pix', { limit: 100 });
     expect(uploadMock).toHaveBeenCalledWith(
       'event-1/pix/pix-qr.png',
       Buffer.from('binary-data'),
       { contentType: 'image/png', upsert: true }
     );
+    expect(listMock).toHaveBeenCalledWith('event-1/pix', { limit: 100 });
+    expect(removeMock).not.toHaveBeenCalled();
     expect(res.body).toEqual({
       eventId: 'event-1',
       path: 'event-1/pix/pix-qr.png',
@@ -245,10 +300,11 @@ describe('POST /api/dashboard/media', () => {
     });
   });
 
-  it('removes previous pix file before uploading pix with different extension', async () => {
+  it('removes old pix file after uploading pix with different extension', async () => {
     const uploadMock = vi.fn().mockResolvedValue({ error: null });
+    // after upload, folder contains both the old jpg and the new png
     const listMock = vi.fn().mockResolvedValue({
-      data: [{ name: 'pix-qr.jpg' }],
+      data: [{ name: 'pix-qr.jpg' }, { name: 'pix-qr.png' }],
       error: null,
     });
     const removeMock = vi.fn().mockResolvedValue({ error: null });
@@ -294,6 +350,7 @@ describe('POST /api/dashboard/media', () => {
     await handler({ method: 'POST', headers: { authorization: 'Bearer valid-token' } }, res);
 
     expect(res.statusCode).toBe(200);
+    // only the old jpg is removed; new png is kept
     expect(removeMock).toHaveBeenCalledWith(['event-1/pix/pix-qr.jpg']);
     expect(uploadMock).toHaveBeenCalledWith(
       'event-1/pix/pix-qr.png',

@@ -75,14 +75,18 @@ function buildStoragePath(eventId, type, file) {
   return `${eventId}/gallery/${Date.now()}-${safeBaseName}.${extension}`;
 }
 
-async function clearStorageFolder(storage, prefix) {
-  const { data, error } = await storage.list(prefix, { limit: 100 });
-  if (error || !Array.isArray(data) || data.length === 0) return;
-  const paths = data
-    .filter((entry) => Boolean(entry?.name))
-    .map((entry) => `${prefix}/${entry.name}`);
-  if (paths.length > 0) {
-    await storage.remove(paths);
+async function removeOtherFilesInFolder(storage, prefix, keepName) {
+  try {
+    const { data, error } = await storage.list(prefix, { limit: 100 });
+    if (error || !Array.isArray(data) || data.length === 0) return;
+    const paths = data
+      .filter((entry) => Boolean(entry?.name) && entry.name !== keepName)
+      .map((entry) => `${prefix}/${entry.name}`);
+    if (paths.length > 0) {
+      await storage.remove(paths);
+    }
+  } catch {
+    // Non-blocking: cleanup failure must not affect the upload result
   }
 }
 
@@ -159,11 +163,6 @@ export default async function handler(req, res) {
     const storagePath = buildStoragePath(eventId, type, file);
     const storage = ownedEvent.supabase.storage.from('event-media');
 
-    if (type === 'hero' || type === 'pix-qr') {
-      const folderPrefix = type === 'hero' ? `${eventId}/hero` : `${eventId}/pix`;
-      await clearStorageFolder(storage, folderPrefix);
-    }
-
     const { error: uploadError } = await storage.upload(storagePath, buffer, {
       contentType: file.mimetype,
       upsert: type === 'hero' || type === 'pix-qr',
@@ -171,6 +170,14 @@ export default async function handler(req, res) {
 
     if (uploadError) {
       throw uploadError;
+    }
+
+    // After a successful upload, remove any other files in the same folder
+    // (e.g. old hero.jpg when the new upload is hero.webp). Non-blocking.
+    if (type === 'hero' || type === 'pix-qr') {
+      const folderPrefix = type === 'hero' ? `${eventId}/hero` : `${eventId}/pix`;
+      const newFileName = storagePath.replace(`${folderPrefix}/`, '');
+      await removeOtherFilesInFolder(storage, folderPrefix, newFileName);
     }
 
     const { data } = storage.getPublicUrl(storagePath);
