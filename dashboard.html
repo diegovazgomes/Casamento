@@ -6,7 +6,7 @@
 <title>Dashboard — Convite de Casamento</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Jost:wght@200;300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Great+Vibes&family=Jost:wght@200;300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 /* ══════════════════════════════════════════════════════════════════════════
    TOKENS — padrão clássico silver
@@ -30,6 +30,7 @@
   --danger:        #c97878;
   --warning:       #e0b674;
   --font-display:  'Cormorant Garamond', serif;
+  --font-accent:   'Great Vibes', cursive;
   --font-sans:     'Jost', sans-serif;
   --ease:          cubic-bezier(0.25,0.46,0.45,0.94);
   --radius:        4px;
@@ -108,13 +109,13 @@ body::before{
 }
 .auth-form{display:flex;flex-direction:column;gap:16px}
  
-.field{display:flex;flex-direction:column;gap:8px;text-align:left}
+.field{display:flex;flex-direction:column;gap:8px;text-align:left;min-width:0;align-items:center}
 .field-label{
   font-size:9px;font-weight:400;
   letter-spacing:0.25em;text-transform:uppercase;color:var(--text-dim);
 }
 .field-input{
-  width:100%;
+  width:100%;box-sizing:border-box;
   background:rgba(0,0,0,0.3);
   border:1px solid var(--border);
   color:var(--text);
@@ -124,6 +125,17 @@ body::before{
 }
 .field-input::placeholder{color:var(--text-dim);font-style:italic}
 .field-input:focus{border-color:var(--primary);background:rgba(192,192,192,0.04)}
+input[type="date"].field-input{width:100%;min-width:0;box-sizing:border-box;-webkit-appearance:none;appearance:none;font-size:13px;padding:10px 12px;height:36px;line-height:1;display:block;text-align:left}
+/* iOS Safari: font-size < 16px dispara zoom automático ao focar — sem reversão após submit.
+   Os inputs do formulário de login recebem 16px explícito para prevenir o zoom. */
+.auth-form .field-input{font-size:16px}
+.field-auto{opacity:.7;cursor:default;background:rgba(0,0,0,0.15)!important}
+.field-badge-auto{
+  display:inline-block;font-size:9px;font-weight:500;letter-spacing:.06em;
+  background:rgba(var(--primary,201,168,76),.15);color:var(--primary,#c9a84c);
+  border:1px solid rgba(var(--primary,201,168,76),.3);
+  border-radius:4px;padding:1px 5px;vertical-align:middle;margin-left:4px;
+}
  
 .btn{
   position:relative;overflow:hidden;
@@ -164,6 +176,104 @@ body::before{
   margin-bottom:16px;
   text-align:left;
 }
+
+/* Loading Screen */
+.loading-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.loading-backdrop {
+  position: absolute;
+  inset: 0;
+  background: var(--ls-bg-color, #1a1714);
+  opacity: 1;
+}
+
+.loading-content {
+  position: relative;
+  text-align: center;
+  animation: loadingFadeIn 0.6s ease-out;
+}
+
+.loading-hearts {
+  display: flex;
+  justify-content: center;
+  gap: 0.4rem;
+  margin-bottom: 0.6rem;
+  height: 3.5rem;
+}
+
+.heart {
+  width: 2.8rem;
+  height: 2.8rem;
+  display: block;
+  animation: heartbeat 1.4s infinite ease-in-out;
+}
+
+.heart-text {
+  color: var(--ls-text-color, #f5f5f5);
+  animation-delay: 0s;
+}
+
+.heart-primary {
+  color: var(--ls-primary-color, #d4a574);
+  animation-delay: 0.7s;
+}
+
+.loading-names {
+  font-family: var(--font-accent);
+  font-size: 1rem;
+  color: var(--ls-text-color, #f5f5f5);
+  letter-spacing: 0.08em;
+  font-weight: 400;
+  opacity: 0.75;
+  margin: 0;
+  padding: 0 1.5rem;
+}
+
+@keyframes heartbeat {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.7;
+  }
+  50% {
+    transform: scale(1.15);
+    opacity: 1;
+  }
+}
+
+@keyframes loadingFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.loading-screen.fade-out {
+  animation: loadingFadeOut 0.6s ease-out forwards;
+}
+
+@keyframes loadingFadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
  
 /* ══ DASHBOARD LAYOUT ══════════════════════════════════════════════════════ */
 .dashboard{display:none;position:relative;z-index:1}
@@ -197,7 +307,7 @@ body::before{
   font-size:9px;letter-spacing:0.28em;text-transform:uppercase;
   color:var(--text-dim);margin-top:6px;
 }
- 
+
 .sidebar-nav{
   flex:1;padding:16px 0;
   display:flex;flex-direction:column;gap:2px;
@@ -748,6 +858,21 @@ body::before{
 .editor-save-status.is-saved .editor-save-dot{background:var(--success)}
 .editor-save-status.is-saved{color:var(--success)}
 .editor-save-actions{display:flex;gap:10px;align-items:center}
+@media(max-width:768px){
+  .editor-savebar{padding:10px 16px;gap:8px;flex-wrap:wrap}
+  .editor-save-status{width:100%;text-align:center;justify-content:center}
+  .editor-save-actions{flex-wrap:wrap;width:100%}
+  .editor-save-actions .btn{width:100%;box-sizing:border-box;justify-content:center}
+}
+.media-upload-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px;align-items:end;margin-bottom:14px}
+.media-upload-action{display:flex;justify-content:flex-end;align-items:flex-end}
+.media-upload-action .btn{min-height:42px;padding:0 22px;font-size:9px;letter-spacing:0.24em;min-width:230px}
+.media-preview-wrap{margin-bottom:16px}
+.media-preview-box{max-width:100%;max-height:320px;object-fit:cover;border:1px solid var(--border);display:block}
+.media-preview-empty{display:none;padding:24px;border:1px dashed var(--border);text-align:center;color:var(--text-dim);font-size:12px;margin-bottom:16px}
+.media-gallery-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;margin-bottom:20px}
+.media-gallery-card{position:relative;aspect-ratio:1;overflow:hidden;border:1px solid var(--border)}
+.media-gallery-card img{width:100%;height:100%;object-fit:cover;display:block}
 
 .editor-section{
   border:1px solid var(--border);
@@ -785,8 +910,13 @@ body::before{
 .form-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
 .form-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:14px}
 .form-group{margin-bottom:14px}
-@media(max-width:760px){.form-grid-2,.form-grid-3{grid-template-columns:1fr}}
+@media(max-width:760px){.form-grid-2,.form-grid-3,.media-upload-row{grid-template-columns:1fr}.media-upload-action{justify-content:stretch}.media-upload-action .btn{width:100%;min-width:0;min-height:44px}}
 .field-input.sm{padding:10px 12px;font-size:12px}
+/* Mobile: todos os inputs sobem para 16px — previne auto-zoom do iOS Safari.
+   Posicionado após .field-input.sm para ganhar na cascade (mesma especificidade, ordem vence). */
+@media(max-width:768px){
+  .field-input,.field-input.sm{font-size:16px}
+}
 textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.65}
 .field-hint{
   font-size:10px;color:var(--text-faint);
@@ -853,6 +983,22 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
   color:var(--text-faint);margin-bottom:8px;
 }
 .page-card-name{font-family:var(--font-display);font-size:15px;font-weight:500;color:var(--text)}
+.historia-chapters{margin-top:20px}
+.historia-chapters-title{
+  font-size:10px;letter-spacing:0.25em;text-transform:uppercase;
+  color:var(--text-dim);margin-bottom:12px;
+}
+.historia-chapter-block{
+  border:1px solid var(--border);background:rgba(0,0,0,0.1);
+  padding:14px 16px;margin-bottom:10px;
+}
+.historia-chapter-header{
+  display:flex;align-items:center;gap:8px;margin-bottom:12px;
+}
+.historia-chapter-num{
+  font-size:9px;letter-spacing:0.2em;text-transform:uppercase;
+  color:var(--primary,#c9a84c);font-weight:600;
+}
 </style>
 </head>
 <body>
@@ -861,12 +1007,17 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
 <div class="auth-screen" id="authScreen">
   <div class="auth-card">
     <div class="auth-label">Acesso Restrito</div>
-    <h1 class="auth-title" id="authCoupleTitle">Dashboard do Casal</h1>
+    <h1 class="auth-title" id="authCoupleTitle">Painel do Casal</h1>
     <p class="auth-subtitle">Gerenciar convidados &amp; confirmações</p>
  
     <div class="alert" id="authError" hidden></div>
  
     <form class="auth-form" id="authForm" onsubmit="handleAuth(event)">
+      <div class="field">
+        <label class="field-label" for="email">Email do painel</label>
+        <input type="email" class="field-input" id="email" name="email"
+               placeholder="casal@exemplo.com" autocomplete="email" required>
+      </div>
       <div class="field">
         <label class="field-label" for="password">Senha do painel</label>
         <input type="password" class="field-input" id="password" name="password"
@@ -886,8 +1037,8 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
   <aside class="sidebar">
     <div class="sidebar-brand">
       <span class="sidebar-brand-label">Dashboard</span>
-      <div class="sidebar-brand-names" id="sidebarCouple">Siannah &amp; Diego</div>
-      <div class="sidebar-brand-date" id="sidebarDate">06 . 09 . 2026</div>
+      <div class="sidebar-brand-names" id="sidebarCouple"></div>
+      <div class="sidebar-brand-date" id="sidebarDate"></div>
     </div>
  
     <nav class="sidebar-nav" role="tablist">
@@ -1302,7 +1453,7 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
               </div>
               <div class="field">
                 <label class="field-label" for="edCoupleSubtitle">Subtítulo</label>
-                <input type="text" class="field-input sm" id="edCoupleSubtitle" placeholder="Save the date…" oninput="markEditorDirty()">
+                <input type="text" class="field-input sm" id="edCoupleSubtitle" placeholder="ex: Um momento especial com vocês" oninput="markEditorDirty()">
               </div>
             </div>
 
@@ -1311,27 +1462,32 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
 
             <div class="form-grid-2">
               <div class="field">
-                <label class="field-label" for="edEventDate">Data ISO 8601 *</label>
-                <input type="text" class="field-input sm" id="edEventDate" placeholder="2026-09-06T17:00:00-03:00" oninput="markEditorDirty()">
-                <div class="field-hint">Usada para calcular o contador regressivo.</div>
+                <label class="field-label" for="edEventDate">Data do evento *</label>
+                <input type="date" class="field-input sm" id="edEventDate"
+                       onchange="onEventDateChange(); markEditorDirty();">
+                <div class="field-hint">Os formatos abaixo são gerados automaticamente.</div>
               </div>
               <div class="field">
                 <label class="field-label" for="edEventTime">Horário de exibição</label>
                 <input type="text" class="field-input sm" id="edEventTime" placeholder="17h" oninput="markEditorDirty()">
               </div>
             </div>
+            <!-- Campos derivados — gerados automaticamente ao mudar a data -->
             <div class="form-grid-3">
               <div class="field">
-                <label class="field-label" for="edEventHeroDate">Data no hero</label>
-                <input type="text" class="field-input sm" id="edEventHeroDate" placeholder="06 . 09 . 2026" oninput="markEditorDirty()">
+                <label class="field-label">Data no hero <span class="field-badge-auto">auto</span></label>
+                <input type="text" class="field-input sm field-auto" id="edEventHeroDate"
+                       placeholder="06 . 09 . 2026" readonly>
               </div>
               <div class="field">
-                <label class="field-label" for="edEventDisplayDate">Data de exibição</label>
-                <input type="text" class="field-input sm" id="edEventDisplayDate" placeholder="6 de setembro de 2026" oninput="markEditorDirty()">
+                <label class="field-label">Data de exibição <span class="field-badge-auto">auto</span></label>
+                <input type="text" class="field-input sm field-auto" id="edEventDisplayDate"
+                       placeholder="6 de setembro de 2026" readonly>
               </div>
               <div class="field">
-                <label class="field-label" for="edEventWeekday">Dia da semana</label>
-                <input type="text" class="field-input sm" id="edEventWeekday" placeholder="Domingo" oninput="markEditorDirty()">
+                <label class="field-label">Dia da semana <span class="field-badge-auto">auto</span></label>
+                <input type="text" class="field-input sm field-auto" id="edEventWeekday"
+                       placeholder="Domingo" readonly>
               </div>
             </div>
 
@@ -1341,7 +1497,7 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
             <div class="form-grid-2">
               <div class="field">
                 <label class="field-label" for="edEventLocation">Nome do local</label>
-                <input type="text" class="field-input sm" id="edEventLocation" placeholder="Mansão Ilha de Capri" oninput="markEditorDirty()">
+                <input type="text" class="field-input sm" id="edEventLocation" placeholder="Mansão, Sítio, Salão de Festas..." oninput="markEditorDirty()">
               </div>
               <div class="field">
                 <label class="field-label" for="edEventCity">Cidade</label>
@@ -1351,25 +1507,24 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
             <div class="form-group">
               <div class="field">
                 <label class="field-label" for="edEventMapsLink">Link do Google Maps</label>
-                <input type="url" class="field-input sm" id="edEventMapsLink" placeholder="https://maps.google.com/…" oninput="markEditorDirty()">
+                <input type="url" class="field-input sm" id="edEventMapsLink"
+                       placeholder="Cole aqui o link do Google Maps do local"
+                       oninput="markEditorDirty()"
+                       onblur="onMapsLinkExtract()"
+                       onpaste="setTimeout(onMapsLinkExtract, 0)">
+                <div id="edEventCoordsStatus" class="field-hint" style="display:none"></div>
               </div>
             </div>
             <div class="form-group">
               <div class="field">
                 <label class="field-label" for="edEventVenueAddress">Endereço completo</label>
-                <input type="text" class="field-input sm" id="edEventVenueAddress" placeholder="Rua…" oninput="markEditorDirty()">
+                <input type="text" class="field-input sm" id="edEventVenueAddress"
+                       placeholder="Rua dos Noivos, 100 — São Paulo, SP" oninput="markEditorDirty()">
               </div>
             </div>
-            <div class="form-grid-2">
-              <div class="field">
-                <label class="field-label" for="edEventLat">Latitude</label>
-                <input type="number" class="field-input sm" id="edEventLat" step="0.000001" placeholder="-23.710000" oninput="markEditorDirty()">
-              </div>
-              <div class="field">
-                <label class="field-label" for="edEventLng">Longitude</label>
-                <input type="number" class="field-input sm" id="edEventLng" step="0.000001" placeholder="-46.560000" oninput="markEditorDirty()">
-              </div>
-            </div>
+            <!-- Coordenadas — preenchidas automaticamente pelo link do Maps (campos ocultos) -->
+            <input type="hidden" id="edEventLat">
+            <input type="hidden" id="edEventLng">
             <div class="form-group">
               <label class="toggle">
                 <input type="checkbox" class="toggle-input" id="edEventMapEnabled" onchange="markEditorDirty()">
@@ -1426,7 +1581,7 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
               </div>
               <div class="field">
                 <label class="field-label" for="edWaRecipient">Nome do destinatário</label>
-                <input type="text" class="field-input sm" id="edWaRecipient" placeholder="Diego" oninput="markEditorDirty()">
+                <input type="text" class="field-input sm" id="edWaRecipient" placeholder="Nome da noiva/noivo" oninput="markEditorDirty()">
                 <div class="field-hint">Aparece na saudação das mensagens automáticas.</div>
               </div>
             </div>
@@ -1493,10 +1648,35 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
                   <div class="field">
                     <label class="field-label" for="edGiftPixQr">Imagem QR Code</label>
                     <input type="text" class="field-input sm" id="edGiftPixQr"
-                           placeholder="assets/images/icons/pix-qr.png" oninput="markEditorDirty()">
+                           placeholder="assets/images/icons/pix-qr.png" oninput="markEditorDirty();renderPixQrPreview(this.value)">
                     <div class="field-hint">Caminho relativo ao projeto ou URL.</div>
                   </div>
                 </div>
+
+                <div class="media-preview-wrap" id="edGiftPixQrPreviewWrap" style="display:none;margin-top:14px">
+                  <div class="field-label" style="margin-bottom:8px">QR Pix atual</div>
+                  <img id="edGiftPixQrPreview" class="media-preview-box" src="" alt="QR Code Pix atual">
+                  <div class="field-hint" id="edGiftPixQrPreviewUrl" style="word-break:break-all"></div>
+                </div>
+
+                <div class="media-preview-empty" id="edGiftPixQrEmpty" style="margin-top:14px">
+                  Nenhum QR Pix definido.
+                </div>
+
+                <div class="media-upload-row" style="margin-top:14px">
+                  <div class="field">
+                    <label class="field-label" for="edGiftPixQrFile">Upload do QR Pix</label>
+                    <input type="file" class="field-input sm" id="edGiftPixQrFile" accept="image/png,image/jpeg,image/webp">
+                    <div class="field-hint">Formatos aceitos: JPG, PNG e WEBP. O upload substitui o QR atual.</div>
+                  </div>
+                  <div class="media-upload-action">
+                    <button type="button" class="btn btn-subtle" id="btnEdGiftPixQrUpload" onclick="uploadPixQrMedia()">
+                      <span>Enviar QR Pix</span>
+                    </button>
+                  </div>
+                </div>
+
+                <p class="field-hint" id="edGiftPixQrUploadStatus" style="margin-top:8px;min-height:18px"></p>
               </div>
             </div>
 
@@ -1573,14 +1753,60 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
             <svg class="editor-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
           </button>
           <div class="editor-section-body">
+            <div class="media-preview-wrap" id="edMediaHeroPreviewWrap" style="display:none">
+              <div class="field-label" style="margin-bottom:8px">Foto atual do hero</div>
+              <img id="edMediaHeroPreview" class="media-preview-box" src="" alt="Foto principal do casal">
+              <div class="field-hint" id="edMediaHeroPreviewUrl" style="word-break:break-all"></div>
+            </div>
+
+            <div class="media-preview-empty" id="edMediaHeroEmpty">
+              Nenhuma foto principal definida.
+            </div>
+
             <div class="form-group">
               <div class="field">
                 <label class="field-label" for="edMediaHero">Foto do casal (hero)</label>
                 <input type="text" class="field-input sm" id="edMediaHero"
-                       placeholder="assets/images/couple/hero.jpg" oninput="markEditorDirty()">
+                    placeholder="assets/images/couple/hero.jpg" oninput="markEditorDirty();renderMediaHeroPreview(this.value)">
                 <div class="field-hint">Caminho relativo ou URL da imagem principal exibida no convite.</div>
               </div>
             </div>
+
+            <div class="media-upload-row">
+              <div class="field">
+                <label class="field-label" for="edMediaHeroFile">Upload da foto principal</label>
+                <input type="file" class="field-input sm" id="edMediaHeroFile" accept="image/png,image/jpeg,image/webp">
+                <div class="field-hint">Formatos aceitos: JPG, PNG e WEBP.</div>
+              </div>
+              <div class="media-upload-action">
+                <button type="button" class="btn btn-subtle" id="btnEdMediaHeroUpload" onclick="uploadHeroMedia()">
+                  <span>Enviar foto principal</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="editor-rule"></div>
+            <span class="editor-sub-label">Galeria da página Nossa História</span>
+
+            <div class="media-gallery-grid" id="edMediaGalleryGrid"></div>
+            <div class="media-preview-empty" id="edMediaGalleryEmpty">
+              Nenhuma foto na galeria ainda.
+            </div>
+
+            <div class="media-upload-row">
+              <div class="field">
+                <label class="field-label" for="edMediaGalleryFiles">Upload para galeria</label>
+                <input type="file" class="field-input sm" id="edMediaGalleryFiles" accept="image/png,image/jpeg,image/webp" multiple>
+                <div class="field-hint">As imagens enviadas serão adicionadas em História → Galeria.</div>
+              </div>
+              <div class="media-upload-action">
+                <button type="button" class="btn btn-subtle" id="btnEdMediaGalleryUpload" onclick="uploadGalleryMedia()">
+                  <span>Enviar imagens da galeria</span>
+                </button>
+              </div>
+            </div>
+
+            <p class="field-hint" id="edMediaUploadStatus" style="margin-top:8px;min-height:18px"></p>
 
             <div class="editor-rule"></div>
             <span class="editor-sub-label">Trilha sonora principal</span>
@@ -1623,7 +1849,97 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
           </div>
         </div>
 
-        <!-- ── SEÇÃO 6: PÁGINAS EXTRAS ────────────────── -->
+
+        <!-- ── SEÇÃO 6: NOSSA HISTÓRIA ───────────────── -->
+        <div class="editor-section is-open" id="edSectionHistoria">
+          <button class="editor-section-header" type="button" onclick="toggleEditorSection('edSectionHistoria')">
+            <div>
+              <div class="editor-section-tag">Conteúdo</div>
+              <div class="editor-section-title">Nossa História</div>
+            </div>
+            <svg class="editor-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="editor-section-body">
+            <p style="font-size:11px;color:var(--text-dim);margin-bottom:16px;letter-spacing:0.03em;line-height:1.7">
+              Edite os três momentos que compõem a linha do tempo da página Nossa História.
+            </p>
+
+            <!-- Capítulo 1 -->
+            <div class="historia-chapter-block">
+              <div class="historia-chapter-header">
+                <span class="historia-chapter-num">Capítulo 1</span>
+              </div>
+              <div class="form-grid-3" style="margin-bottom:10px">
+                <div class="field">
+                  <label class="field-label" for="edChapter0Year">Ano</label>
+                  <input type="text" class="field-input sm" id="edChapter0Year"
+                         placeholder="ex: 2019" maxlength="10" oninput="markEditorDirty()">
+                </div>
+                <div class="field" style="grid-column:span 2">
+                  <label class="field-label" for="edChapter0Title">Título</label>
+                  <input type="text" class="field-input sm" id="edChapter0Title"
+                         placeholder="ex: O primeiro encontro" oninput="markEditorDirty()">
+                </div>
+              </div>
+              <div class="field">
+                <label class="field-label" for="edChapter0Text">Texto</label>
+                <textarea class="field-input sm" id="edChapter0Text" rows="3"
+                          placeholder="Descreva este momento..." oninput="markEditorDirty()"></textarea>
+              </div>
+            </div>
+
+            <!-- Capítulo 2 -->
+            <div class="historia-chapter-block">
+              <div class="historia-chapter-header">
+                <span class="historia-chapter-num">Capítulo 2</span>
+              </div>
+              <div class="form-grid-3" style="margin-bottom:10px">
+                <div class="field">
+                  <label class="field-label" for="edChapter1Year">Ano</label>
+                  <input type="text" class="field-input sm" id="edChapter1Year"
+                         placeholder="ex: 2022" maxlength="10" oninput="markEditorDirty()">
+                </div>
+                <div class="field" style="grid-column:span 2">
+                  <label class="field-label" for="edChapter1Title">Título</label>
+                  <input type="text" class="field-input sm" id="edChapter1Title"
+                         placeholder="ex: O pedido" oninput="markEditorDirty()">
+                </div>
+              </div>
+              <div class="field">
+                <label class="field-label" for="edChapter1Text">Texto</label>
+                <textarea class="field-input sm" id="edChapter1Text" rows="3"
+                          placeholder="Descreva este momento..." oninput="markEditorDirty()"></textarea>
+              </div>
+            </div>
+
+            <!-- Capítulo 3 -->
+            <div class="historia-chapter-block">
+              <div class="historia-chapter-header">
+                <span class="historia-chapter-num">Capítulo 3</span>
+              </div>
+              <div class="form-grid-3" style="margin-bottom:10px">
+                <div class="field">
+                  <label class="field-label" for="edChapter2Year">Ano</label>
+                  <input type="text" class="field-input sm" id="edChapter2Year"
+                         placeholder="ex: 2026" maxlength="10" oninput="markEditorDirty()">
+                </div>
+                <div class="field" style="grid-column:span 2">
+                  <label class="field-label" for="edChapter2Title">Título</label>
+                  <input type="text" class="field-input sm" id="edChapter2Title"
+                         placeholder="ex: O grande dia" oninput="markEditorDirty()">
+                </div>
+              </div>
+              <div class="field">
+                <label class="field-label" for="edChapter2Text">Texto</label>
+                <textarea class="field-input sm" id="edChapter2Text" rows="3"
+                          placeholder="Descreva este momento..." oninput="markEditorDirty()"></textarea>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- ── SEÇÃO 7: PÁGINAS EXTRAS ────────────────── -->
         <div class="editor-section is-open" id="edSectionPages">
           <button class="editor-section-header" type="button" onclick="toggleEditorSection('edSectionPages')">
             <div>
@@ -1735,6 +2051,13 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
 <!-- ══ THEME LOADER ═══════════════════════════════════════════════════════ -->
 <script type="module">
 import { loadDashboardThemeConfig } from './assets/js/dashboard-theme-config.js';
+import {
+  initLoadingScreen,
+  hideLoadingScreen,
+  markBootstrapComplete,
+  markContentReady,
+} from './assets/js/loading-screen.js';
+import { initDebugBadge, onConfigLoaded } from './assets/js/debug-badge.js';
 
 /**
  * loadTheme.js - embutido
@@ -1743,6 +2066,21 @@ import { loadDashboardThemeConfig } from './assets/js/dashboard-theme-config.js'
  */
 window.__DASHBOARD_BOOTSTRAP_PROMISE__ = (async function loadTheme() {
   try {
+    await initLoadingScreen();
+    initDebugBadge();
+
+    window.__ON_DASHBOARD_READY__ = async () => {
+      markBootstrapComplete();
+      markContentReady();
+      await hideLoadingScreen();
+    };
+
+    window.addEventListener('dashboard:ready', window.__ON_DASHBOARD_READY__, { once: true });
+
+    if (window.__DASHBOARD_READY__ === true) {
+      await window.__ON_DASHBOARD_READY__();
+    }
+
     const { config: site, theme, themePath } = await loadDashboardThemeConfig();
  
     // 3. Mapeia tokens do tema para variáveis CSS do dashboard
@@ -1778,11 +2116,9 @@ window.__DASHBOARD_BOOTSTRAP_PROMISE__ = (async function loadTheme() {
  
     const sidebarCouple = document.getElementById('sidebarCouple');
     const sidebarDate = document.getElementById('sidebarDate');
-    const authCoupleTitle = document.getElementById('authCoupleTitle');
  
     if (sidebarCouple) sidebarCouple.textContent = coupleNames;
     if (sidebarDate) sidebarDate.textContent = heroDate;
-    if (authCoupleTitle) authCoupleTitle.textContent = coupleNames;
  
     // 5. Expõe site para o dashboard.js usar
     window.__SITE_CONFIG__ = site;
@@ -1791,6 +2127,9 @@ window.__DASHBOARD_BOOTSTRAP_PROMISE__ = (async function loadTheme() {
       detail: { config: site, theme, themePath }
     }));
  
+    // Badge de debug: config carregada, tema e status de cache
+    onConfigLoaded({ configUrl: themePath, theme: theme.meta?.name || site.activeTheme || 'classic-gold' });
+
     console.log('[dashboard] tema aplicado:', theme.meta?.name || themePath);
     return { config: site, theme, themePath };
   } catch (err) {
@@ -1801,6 +2140,7 @@ window.__DASHBOARD_BOOTSTRAP_PROMISE__ = (async function loadTheme() {
 </script>
  
 <!-- Dashboard JS original -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="assets/js/dashboard.js"></script>
 </body>
 </html>

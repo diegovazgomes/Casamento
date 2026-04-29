@@ -23,8 +23,8 @@ describe('dashboard theme/config bootstrap', () => {
         'assets/config/site.json': {
           activeLayout: 'classic',
           activeTheme: 'assets/layouts/classic/themes/classic-silver.json',
-          couple: { names: 'Siannah & Diego' },
-          rsvp: { eventId: 'siannah-diego-2026' },
+          couple: { names: 'Noiva & Noivo' },
+          rsvp: { eventId: 'noiva-noivo-2026' },
         },
         'assets/layouts/classic/themes/classic-silver.json': {
           meta: { name: 'Classic Silver' },
@@ -53,8 +53,8 @@ describe('dashboard theme/config bootstrap', () => {
     const { loadDashboardThemeConfig } = await import('../../assets/js/dashboard-theme-config.js');
     const result = await loadDashboardThemeConfig();
 
-    expect(result.config.couple.names).toBe('Siannah & Diego');
-    expect(result.config.rsvp.eventId).toBe('siannah-diego-2026');
+    expect(result.config.couple.names).toBe('Noiva & Noivo');
+    expect(result.config.rsvp.eventId).toBe('noiva-noivo-2026');
     expect(result.themePath).toBe('assets/layouts/classic/themes/classic-silver.json');
     expect(result.theme.colors.background).toBe('#101010');
     expect(result.theme.colors.primary).toBe('#c0c0c0');

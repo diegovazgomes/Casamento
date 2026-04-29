@@ -214,7 +214,7 @@ a, button, input, select, textarea {
 .loading-backdrop {
     position: absolute;
     inset: 0;
-    background: var(--ls-bg-color, var(--color-background, #ffffff));
+    background: var(--ls-bg-color, var(--color-bg, #1a1714));
     opacity: 1;
 }
 

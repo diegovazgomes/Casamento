@@ -8,6 +8,8 @@
  * - Coordena com o bootstrap principal
  */
 
+import { resolveSiteConfigSource, resolveThemePath } from './config-source.js';
+
 const LOADING_SCREEN_HTML = `
 <div class="loading-screen" id="loadingScreen" aria-hidden="true">
     <div class="loading-backdrop"></div>
@@ -22,7 +24,7 @@ const LOADING_SCREEN_HTML = `
                 <path d="M50,95 C20,75 5,60 5,45 C5,30 15,20 27,20 C35,20 42,25 50,35 C58,25 65,20 73,20 C85,20 95,30 95,45 C95,60 80,75 50,95 Z" fill="currentColor"/>
             </svg>
         </div>
-        <p class="loading-names" id="loadingNames"></p>
+        <p class="loading-names" id="loadingNames">Carregando experiências…</p>
     </div>
 </div>
 `;
@@ -37,73 +39,128 @@ const LOADING_SCREEN_HTML = `
  */
 export async function initLoadingScreen() {
     try {
-        // 1. Injetar HTML
+        // 1. Injetar HTML e aplicar cores imediatamente (sem esperar fetch)
+        //    Prefere cores persistidas da visita anterior (evita flash neutro).
         document.body.insertAdjacentHTML('afterbegin', LOADING_SCREEN_HTML);
-
-        // 2. Carregar site.json
-        const siteRes = await fetch('assets/config/site.json');
-        if (!siteRes.ok) {
-            applyFallbackLoadingColors();
-            return;
+        if (!loadPersistedThemeColors()) {
+            applyNeutralLoadingColors();
         }
+
+        // 2. Buscar apenas os nomes do casal — em paralelo com o bootstrap principal
+        //    As cores do tema são aplicadas por bootstrap() via applyThemeToLoadingScreen()
+        //    assim que o tema real for carregado, garantindo timing correto.
+        const configSource = resolveSiteConfigSource();
+        const siteRes = await fetch(configSource.url, {
+            method: 'GET',
+            headers: { Accept: 'application/json' },
+            cache: 'no-store'
+        });
+        if (!siteRes.ok) return;
+
         const siteConfig = await siteRes.json();
-        const coupleNames = siteConfig?.couple?.names || 'Siannah & Diego';
-
-        // 3. Descobrir caminho do tema
-        let themePath = siteConfig.activeTheme;
-        if (!themePath) {
-            themePath = 'assets/layouts/classic/themes/classic-silver.json';
-        }
-
-        // 4. Carregar arquivo de tema
-        const themeRes = await fetch(themePath);
-        if (!themeRes.ok) {
-            applyFallbackLoadingColors();
-            preencherNomes(coupleNames);
-            return;
-        }
-        const theme = await themeRes.json();
-
-        // 5. Extrair cores do tema
-        const bgColor = theme?.colors?.background || '#ffffff';
-        const textColor = theme?.colors?.text || '#f5f5f5';
-        const primaryColor = theme?.colors?.primary || textColor;
-
-        // 6. Aplicar cores via CSS variables
-        const root = document.documentElement;
-        root.style.setProperty('--ls-bg-color', bgColor);
-        root.style.setProperty('--ls-text-color', textColor);
-        root.style.setProperty('--ls-primary-color', primaryColor);
-
-        // 7. Preencher nomes dos noivos
-        preencherNomes(coupleNames);
+        preencherNomes(siteConfig?.couple?.names || '');
 
     } catch (error) {
-        console.warn('[LoadingScreen] Erro ao inicializar, usando fallback.', error);
-        applyFallbackLoadingColors();
+        console.warn('[LoadingScreen] Erro ao buscar nomes, usando fallback.', error);
+    }
+}
+
+/**
+ * Aplica as cores do tema ativo na loading screen.
+ * Chamada por bootstrap() em script.js logo após applyTheme(),
+ * garantindo que as cores estejam aplicadas antes do fade-out.
+ *
+ * @param {object} theme — objeto de tema resolvido (mesmo passado para applyTheme)
+ */
+export function applyThemeToLoadingScreen(theme) {
+    const colors = theme?.colors ?? {};
+    const bg      = colors.background || NEUTRAL_LOADING_COLORS.bg;
+    const text     = colors.text       || NEUTRAL_LOADING_COLORS.text;
+    const primary  = colors.primary    || NEUTRAL_LOADING_COLORS.primary;
+
+    const root = document.documentElement;
+    root.style.setProperty('--ls-bg-color',      bg);
+    root.style.setProperty('--ls-text-color',    text);
+    root.style.setProperty('--ls-primary-color', primary);
+
+    // Persistir para próximas navegações na mesma aba (sem flash neutro)
+    persistThemeColors(bg, text, primary);
+}
+
+/**
+ * Salva as cores do tema no sessionStorage.
+ * sessionStorage dura apenas enquanto a aba estiver aberta, então
+ * cada nova aba começa limpa — sem vazar cores de um casal para outro.
+ */
+function persistThemeColors(bg, text, primary) {
+    try {
+        sessionStorage.setItem('ls-theme-colors', JSON.stringify({ bg, text, primary }));
+    } catch {
+        // sessionStorage indisponível (ex: modo incógnito bloqueado) — silencioso
+    }
+}
+
+/**
+ * Lê cores persistidas do sessionStorage e aplica imediatamente.
+ * Retorna true se encontrou e aplicou cores, false caso contrário.
+ */
+function loadPersistedThemeColors() {
+    try {
+        const raw = sessionStorage.getItem('ls-theme-colors');
+        if (!raw) return false;
+
+        const { bg, text, primary } = JSON.parse(raw);
+        if (!bg || !text || !primary) return false;
+
+        const root = document.documentElement;
+        root.style.setProperty('--ls-bg-color',      bg);
+        root.style.setProperty('--ls-text-color',    text);
+        root.style.setProperty('--ls-primary-color', primary);
+        return true;
+    } catch {
+        return false;
     }
 }
 
 /**
  * Preenche o elemento de nomes com os nomes dos noivos
- * Remove a cor de "Carregando" e deixa discreto
+ * Só atualiza se o nome for real (não genérico e não vazio)
  */
+// Valores genéricos que NÃO devem substituir o placeholder de loading
+const GENERIC_NAME_FALLBACKS = ['Noiva & Noivo', 'Casal', 'Nome & Nome', ''];
+
 function preencherNomes(coupleNames) {
     const loadingNames = document.getElementById('loadingNames');
-    if (loadingNames) {
-        loadingNames.textContent = coupleNames;
+    const nome = (coupleNames || '').trim();
+    if (loadingNames && nome && !GENERIC_NAME_FALLBACKS.includes(nome)) {
+        loadingNames.textContent = nome;
     }
+    // Caso contrário, mantém "Carregando experiências…"
 }
 
 /**
- * Aplica cores padrão se o carregamento do tema falhar
- * Garante que a loading screen sempre apareça com cores aceitáveis
+ * Cores neutras escuras — estado inicial e fallback de erro.
+ * Evitam o flash de branco antes do tema ser carregado.
+ */
+const NEUTRAL_LOADING_COLORS = {
+    bg:      '#1a1714',   // escuro neutro (compatível com qualquer tema)
+    text:    '#f0ede8',   // off-white quente
+    primary: '#c9a84c',   // dourado sutil
+};
+
+function applyNeutralLoadingColors() {
+    const root = document.documentElement;
+    root.style.setProperty('--ls-bg-color',      NEUTRAL_LOADING_COLORS.bg);
+    root.style.setProperty('--ls-text-color',    NEUTRAL_LOADING_COLORS.text);
+    root.style.setProperty('--ls-primary-color', NEUTRAL_LOADING_COLORS.primary);
+}
+
+/**
+ * Aplica cores neutras se o carregamento do tema falhar.
+ * Garante que a loading screen sempre apareça com cores legíveis.
  */
 function applyFallbackLoadingColors() {
-    const root = document.documentElement;
-    root.style.setProperty('--ls-bg-color', '#ffffff');
-    root.style.setProperty('--ls-text-color', '#f5f5f5');
-    root.style.setProperty('--ls-primary-color', '#f5f5f5');
+    applyNeutralLoadingColors();
 }
 
 /**

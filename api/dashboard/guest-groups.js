@@ -6,7 +6,11 @@
  */
 
 import { createClient } from '@supabase/supabase-js';
-import { verifyDashboardToken } from './auth.js';
+import {
+  authenticateDashboardRequest,
+  findOwnedGuestToken,
+  requireOwnedEvent,
+} from '../_lib/dashboard-auth.js';
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -31,14 +35,6 @@ export default function handler(req, res) {
     return res.status(503).json({ error: 'Supabase server configuration missing' });
   }
 
-  // Verificar token
-  const authHeader = req.headers.authorization || '';
-  const token = authHeader.replace('Bearer ', '').trim();
-
-  if (!verifyDashboardToken(token)) {
-    return res.status(401).json({ error: 'Unauthorized' });
-  }
-
   // Rotear para handlers específicos
   switch (req.method) {
     case 'GET':
@@ -59,19 +55,22 @@ export default function handler(req, res) {
  * Listar todos os grupos de um evento
  */
 async function handleGetGroups(req, res) {
-  const { eventId } = req.query;
-  const supabase = getSupabaseClient();
-
-  if (!eventId) {
-    return res.status(400).json({ error: 'eventId required' });
-  }
-
   try {
+    const ownedEvent = await requireOwnedEvent(req, {
+      selectClause: 'id,slug,user_id,config',
+    });
+
+    if (!ownedEvent.ok) {
+      return res.status(ownedEvent.status).json({ error: ownedEvent.error });
+    }
+
+    const supabase = ownedEvent.supabase;
+
     // Buscar tokens
     const { data: tokens, error: tokensError } = await supabase
       .from('guest_tokens')
       .select('id, token, group_name, max_confirmations, phone, notes, created_at')
-      .eq('event_id', eventId)
+      .eq('event_id', ownedEvent.event.id)
       .order('created_at', { ascending: false });
 
     if (tokensError) throw tokensError;
@@ -112,10 +111,9 @@ async function handleGetGroups(req, res) {
  *   { "eventId": "...", "groupName": "...", "maxConfirmations": 2, "phone": "...", "notes": "..." }
  */
 async function handleCreateGroup(req, res) {
-  const { eventId, groupName, maxConfirmations, phone, notes } = req.body || {};
-  const supabase = getSupabaseClient();
+  const { groupName, maxConfirmations, phone, notes } = req.body || {};
 
-  if (!eventId || !groupName || !maxConfirmations) {
+  if (!groupName || !maxConfirmations) {
     return res.status(400).json({ error: 'Missing required fields' });
   }
 
@@ -124,13 +122,23 @@ async function handleCreateGroup(req, res) {
   }
 
   try {
+    const ownedEvent = await requireOwnedEvent(req, {
+      selectClause: 'id,slug,user_id,config',
+    });
+
+    if (!ownedEvent.ok) {
+      return res.status(ownedEvent.status).json({ error: ownedEvent.error });
+    }
+
+    const supabase = ownedEvent.supabase;
+
     // Gerar token único
     const guestToken = generateGuestToken();
 
     const { data, error } = await supabase
       .from('guest_tokens')
       .insert({
-        event_id: eventId,
+        event_id: ownedEvent.event.id,
         token: guestToken,
         group_name: groupName,
         max_confirmations: maxConfirmations,
@@ -167,7 +175,6 @@ async function handleCreateGroup(req, res) {
 async function handleUpdateGroup(req, res) {
   const { id: tokenId } = req.query;
   const { maxConfirmations, groupName, phone, notes } = req.body || {};
-  const supabase = getSupabaseClient();
 
   if (!tokenId) {
     return res.status(400).json({ error: 'tokenId required' });
@@ -178,6 +185,19 @@ async function handleUpdateGroup(req, res) {
   }
 
   try {
+    const auth = await authenticateDashboardRequest(req);
+
+    if (!auth.ok) {
+      return res.status(auth.status).json({ error: auth.error });
+    }
+
+    const ownedToken = await findOwnedGuestToken(auth.supabase, auth.user.id, tokenId);
+
+    if (!ownedToken) {
+      return res.status(404).json({ error: 'Group not found' });
+    }
+
+    const supabase = auth.supabase;
     const updateData = {};
     if (maxConfirmations !== undefined) updateData.max_confirmations = maxConfirmations;
     if (groupName !== undefined) updateData.group_name = groupName;
@@ -187,7 +207,8 @@ async function handleUpdateGroup(req, res) {
     const { data, error } = await supabase
       .from('guest_tokens')
       .update(updateData)
-      .eq('id', tokenId)
+      .eq('id', ownedToken.id)
+      .eq('event_id', ownedToken.event_id)
       .select()
       .single();
 
@@ -220,18 +241,31 @@ async function handleUpdateGroup(req, res) {
  */
 async function handleDeleteGroup(req, res) {
   const { id: tokenId } = req.query;
-  const supabase = getSupabaseClient();
 
   if (!tokenId) {
     return res.status(400).json({ error: 'tokenId required' });
   }
 
   try {
+    const auth = await authenticateDashboardRequest(req);
+
+    if (!auth.ok) {
+      return res.status(auth.status).json({ error: auth.error });
+    }
+
+    const ownedToken = await findOwnedGuestToken(auth.supabase, auth.user.id, tokenId);
+
+    if (!ownedToken) {
+      return res.status(404).json({ error: 'Group not found' });
+    }
+
+    const supabase = auth.supabase;
     // Supabase com ON DELETE CASCADE cuida das tabelas relacionadas
     const { error } = await supabase
       .from('guest_tokens')
       .delete()
-      .eq('id', tokenId);
+      .eq('id', ownedToken.id)
+      .eq('event_id', ownedToken.event_id);
 
     if (error) throw error;
 

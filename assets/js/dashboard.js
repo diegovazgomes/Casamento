@@ -6,7 +6,8 @@
 // Estado
 const state = {
   authToken: null,
-  eventId: 'siannah-diego-2026', // Padrão — pode ser lido de config futuramente
+  eventId: '',
+  eventSlug: window.location.pathname.replace(/^\//, '').split('/')[0] || null,
   grupos: [],
   confirmacoes: [],
   allConfirmacoes: [],
@@ -15,6 +16,12 @@ const state = {
   currentPage: 1,
   editingGrupoId: null,
 };
+
+const LEGACY_DASHBOARD_TOKEN_STORAGE_KEY = 'dashboardToken';
+const DASHBOARD_SUPABASE_STORAGE_KEY = 'dashboard-supabase-auth';
+const DASHBOARD_ACCESS_TOKEN_STORAGE_KEY = 'dashboard-access-token';
+
+let dashboardSupabaseClientPromise = null;
 
 const TAB_LABELS = {
   overview: { tag: 'Visão Geral', title: 'Painel de controle' },
@@ -52,27 +59,59 @@ document.addEventListener('DOMContentLoaded', () => {
   syncActiveTab();
 });
 
-async function initializeDashboard() {
-  const bootstrapPromise = window.__DASHBOARD_BOOTSTRAP_PROMISE__;
-  if (bootstrapPromise && typeof bootstrapPromise.then === 'function') {
+function notifyDashboardReady() {
+  window.__DASHBOARD_READY__ = true;
+
+  if (typeof window.__ON_DASHBOARD_READY__ === 'function') {
     try {
-      const bootstrap = await bootstrapPromise;
-      applySiteConfig(bootstrap?.config);
+      window.__ON_DASHBOARD_READY__();
     } catch (error) {
-      console.warn('[dashboard] Falha ao aguardar bootstrap de config.', error);
+      console.warn('[dashboard] Falha ao executar callback de pronto.', error);
     }
   }
 
-  // Carregar token do sessionStorage
-  const savedToken = sessionStorage.getItem('dashboardToken');
-  if (savedToken) {
-    state.authToken = savedToken;
-    showDashboard();
-    await loadAllData();
-    return;
-  }
+  window.dispatchEvent(new CustomEvent('dashboard:ready'));
+}
 
-  showAuthScreen();
+async function initializeDashboard() {
+  try {
+    const bootstrapPromise = window.__DASHBOARD_BOOTSTRAP_PROMISE__;
+    if (bootstrapPromise && typeof bootstrapPromise.then === 'function') {
+      try {
+        const bootstrap = await bootstrapPromise;
+        applySiteConfig(bootstrap?.config);
+      } catch (error) {
+        console.warn('[dashboard] Falha ao aguardar bootstrap de config.', error);
+      }
+    }
+
+    sessionStorage.removeItem(LEGACY_DASHBOARD_TOKEN_STORAGE_KEY);
+
+    const savedToken = await ensureDashboardAccessToken();
+    if (savedToken) {
+      try {
+        showDashboard();
+        await hydrateDashboardEventContext();
+        await loadAllData();
+      } catch (error) {
+        console.error('[dashboard] Falha ao hidratar evento com token salvo.', error);
+        await clearDashboardSession();
+        showAuthScreen();
+        showAuthError(error?.message || 'Não foi possível conectar ao evento no Supabase.');
+      }
+      notifyDashboardReady();
+      return;
+    }
+
+    showAuthScreen();
+    notifyDashboardReady();
+  } catch (error) {
+    console.error('[dashboard] Falha ao inicializar autenticação do dashboard.', error);
+    await clearDashboardSession();
+    showAuthScreen();
+    showAuthError(error?.message || 'Não foi possível inicializar a autenticação do dashboard.');
+    notifyDashboardReady();
+  }
 }
 
 function debounce(fn, delay) {
@@ -120,9 +159,9 @@ function applySiteConfig(siteConfig) {
     return;
   }
 
-  const eventId = siteConfig?.rsvp?.eventId;
-  if (eventId) {
-    state.eventId = eventId;
+  const eventSlug = siteConfig?.rsvp?.eventId;
+  if (eventSlug) {
+    state.eventSlug = eventSlug;
   }
 
   const coupleNames = siteConfig?.couple?.names;
@@ -130,11 +169,39 @@ function applySiteConfig(siteConfig) {
 
   const sidebarCouple = document.getElementById('sidebarCouple');
   const sidebarDate = document.getElementById('sidebarDate');
-  const authCoupleTitle = document.getElementById('authCoupleTitle');
-
   if (sidebarCouple && coupleNames) sidebarCouple.textContent = coupleNames;
   if (sidebarDate && heroDate) sidebarDate.textContent = heroDate;
-  if (authCoupleTitle && coupleNames) authCoupleTitle.textContent = coupleNames;
+}
+
+async function hydrateDashboardEventContext() {
+  const lookupSlug = state.eventSlug || window.__SITE_CONFIG__?.rsvp?.eventId;
+
+  if (!lookupSlug) {
+    throw new Error('Slug do evento não disponível para o dashboard');
+  }
+
+  const response = await fetchWithAuth(`/api/dashboard/event?slug=${encodeURIComponent(lookupSlug)}`);
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.error || 'Não foi possível carregar o evento do dashboard');
+  }
+
+  if (data?.event?.id) {
+    state.eventId = data.event.id;
+  }
+
+  if (data?.event?.slug) {
+    state.eventSlug = data.event.slug;
+  }
+
+  if (data?.config) {
+    window.__SITE_JSON__ = window.__SITE_CONFIG__;
+    window.__SITE_CONFIG__ = data.config;
+    applySiteConfig(data.config);
+  }
+
+  return data;
 }
 
 // ============================================================
@@ -144,48 +211,151 @@ function applySiteConfig(siteConfig) {
 async function handleAuth(event) {
   event.preventDefault();
   
+  const email = document.getElementById('email').value.trim();
   const password = document.getElementById('password').value.trim();
-  if (!password) return;
+  if (!email || !password) return;
 
   try {
     authError.style.display = 'none';
-    const response = await fetch('/api/dashboard/auth', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ password }),
+    const supabase = await getDashboardSupabaseClient();
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
     });
 
-    const data = await response.json();
-
-    if (!response.ok) {
-      showAuthError(data.error || 'Erro na autenticação');
+    if (error || !data?.session?.access_token) {
+      showAuthError(error?.message || 'Erro na autenticação');
       return;
     }
 
-    // Salvar token
-    state.authToken = data.token;
-    sessionStorage.setItem('dashboardToken', data.token);
+    state.authToken = data.session.access_token;
+    sessionStorage.setItem(DASHBOARD_ACCESS_TOKEN_STORAGE_KEY, state.authToken);
 
     // Limpar form
     authForm.reset();
 
     // Mostrar dashboard
     showDashboard();
-    loadAllData();
+    await hydrateDashboardEventContext();
+    await loadAllData();
+    notifyDashboardReady();
   } catch (error) {
     console.error('[auth]', error);
-    showAuthError('Erro ao conectar ao servidor');
+    showAuthError(error?.message || 'Erro ao conectar ao servidor');
+    notifyDashboardReady();
   }
 }
 
-function handleLogout() {
-  sessionStorage.removeItem('dashboardToken');
-  state.authToken = null;
+async function handleLogout() {
+  await clearDashboardSession();
   state.grupos = [];
   state.confirmacoes = [];
   state.allConfirmacoes = [];
   showAuthScreen();
   authForm.reset();
+}
+
+async function getDashboardSupabaseClient() {
+  if (!dashboardSupabaseClientPromise) {
+    dashboardSupabaseClientPromise = (async () => {
+      if (!window.supabase?.createClient) {
+        throw new Error('SDK do Supabase não carregado no dashboard');
+      }
+
+      const response = await fetch('/api/config');
+      const config = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(config.error || 'Não foi possível carregar a configuração pública do Supabase');
+      }
+
+      if (!config?.supabaseUrl || !config?.supabaseAnonKey) {
+        throw new Error('Supabase não configurado para autenticação do dashboard');
+      }
+
+      const client = window.supabase.createClient(config.supabaseUrl, config.supabaseAnonKey, {
+        auth: {
+          autoRefreshToken: true,
+          persistSession: true,
+          detectSessionInUrl: true,
+          storage: window.sessionStorage,
+          storageKey: DASHBOARD_SUPABASE_STORAGE_KEY,
+        },
+      });
+
+      client.auth.onAuthStateChange((_event, session) => {
+        const accessToken = session?.access_token || null;
+        state.authToken = accessToken;
+
+        if (accessToken) {
+          sessionStorage.setItem(DASHBOARD_ACCESS_TOKEN_STORAGE_KEY, accessToken);
+        } else {
+          sessionStorage.removeItem(DASHBOARD_ACCESS_TOKEN_STORAGE_KEY);
+        }
+      });
+
+      return client;
+    })();
+  }
+
+  return dashboardSupabaseClientPromise;
+}
+
+async function ensureDashboardAccessToken() {
+  const supabase = await getDashboardSupabaseClient();
+  const { data, error } = await supabase.auth.getSession();
+
+  if (error) {
+    throw error;
+  }
+
+  let accessToken = data?.session?.access_token || null;
+  const refreshToken = data?.session?.refresh_token || null;
+
+  if (!accessToken) {
+    accessToken = sessionStorage.getItem(DASHBOARD_ACCESS_TOKEN_STORAGE_KEY) || null;
+  }
+
+  if (!accessToken && refreshToken) {
+    const { data: refreshedData, error: refreshError } = await supabase.auth.refreshSession();
+    if (refreshError) {
+      throw refreshError;
+    }
+
+    accessToken = refreshedData?.session?.access_token || null;
+  }
+
+  state.authToken = accessToken;
+
+  if (accessToken) {
+    sessionStorage.setItem(DASHBOARD_ACCESS_TOKEN_STORAGE_KEY, accessToken);
+  }
+
+  return accessToken;
+}
+
+async function getDashboardAccessToken() {
+  const token = state.authToken || await ensureDashboardAccessToken();
+
+  if (!token) {
+    throw new Error('Sessão expirada. Faça login novamente no dashboard.');
+  }
+
+  return token;
+}
+
+async function clearDashboardSession() {
+  state.authToken = null;
+  sessionStorage.removeItem(LEGACY_DASHBOARD_TOKEN_STORAGE_KEY);
+  sessionStorage.removeItem(DASHBOARD_SUPABASE_STORAGE_KEY);
+  sessionStorage.removeItem(DASHBOARD_ACCESS_TOKEN_STORAGE_KEY);
+
+  try {
+    const supabase = await getDashboardSupabaseClient();
+    await supabase.auth.signOut();
+  } catch (error) {
+    console.warn('[dashboard] Não foi possível encerrar a sessão Supabase.', error);
+  }
 }
 
 function showAuthError(message) {
@@ -846,7 +1016,7 @@ function sendLembrete(grupoId, grupoName) {
 
 function updateMensagemPreview() {
   const template = document.getElementById('lembreteTemplate').value;
-  const coupleNames = window.__SITE_CONFIG__?.couple?.names || 'Siannah & Diego';
+  const coupleNames = window.__SITE_CONFIG__?.couple?.names || 'Casal';
   const templates = {
     pending: `Olá! Ainda não recebemos sua confirmação para o casamento de ${coupleNames}. Por favor, confirme sua presença através do link que recebeu.`,
     thankyou: `Obrigado por confirmar sua presença no casamento de ${coupleNames}! Fique atento para mais informações nos próximos dias.`,
@@ -1071,14 +1241,68 @@ function setupModalListeners() {
   });
 }
 
-async function fetchWithAuth(url, options = {}) {
+function buildAuthHeaders(token, incomingHeaders = {}) {
   const headers = {
-    'Content-Type': 'application/json',
-    'Authorization': `Bearer ${state.authToken}`,
-    ...options.headers,
+    ...incomingHeaders,
+    Authorization: `Bearer ${token}`,
   };
 
-  return fetch(url, { ...options, headers });
+  return headers;
+}
+
+function withDefaultContentType(headers, body) {
+  if (!(body instanceof FormData) && !headers['Content-Type'] && !headers['content-type']) {
+    headers['Content-Type'] = 'application/json';
+  }
+
+  return headers;
+}
+
+async function refreshDashboardAccessToken() {
+  const supabase = await getDashboardSupabaseClient();
+  const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+
+  if (sessionError) {
+    throw sessionError;
+  }
+
+  if (!sessionData?.session?.refresh_token) {
+    return sessionStorage.getItem(DASHBOARD_ACCESS_TOKEN_STORAGE_KEY) || null;
+  }
+
+  const { data, error } = await supabase.auth.refreshSession();
+
+  if (error) {
+    throw error;
+  }
+
+  const token = data?.session?.access_token || null;
+  state.authToken = token;
+
+  if (token) {
+    sessionStorage.setItem(DASHBOARD_ACCESS_TOKEN_STORAGE_KEY, token);
+  }
+
+  return token;
+}
+
+async function fetchWithAuth(url, options = {}) {
+  let token = await getDashboardAccessToken();
+  let headers = withDefaultContentType(buildAuthHeaders(token, options.headers), options.body);
+  let response = await fetch(url, { ...options, headers });
+
+  if (response.status !== 401) {
+    return response;
+  }
+
+  token = await refreshDashboardAccessToken();
+  if (!token) {
+    return response;
+  }
+
+  headers = withDefaultContentType(buildAuthHeaders(token, options.headers), options.body);
+  response = await fetch(url, { ...options, headers });
+  return response;
 }
 
 // ============================================================
@@ -1086,6 +1310,10 @@ async function fetchWithAuth(url, options = {}) {
 // ============================================================
 
 async function loadAllData() {
+  if (!state.eventId) {
+    return;
+  }
+
   // Grupos e confirmações em paralelo — reduz tempo total à metade
   await Promise.all([
     loadGrupos(),
@@ -1143,12 +1371,23 @@ function loadEditorTab() {
 
   // Casal & Evento
   setVal('edCoupleNames',       config.couple?.names      ?? '');
-  setVal('edCoupleSubtitle',    config.couple?.subtitle   ?? '');
-  setVal('edEventDate',         config.event?.date        ?? '');
-  setVal('edEventTime',         config.event?.time        ?? '');
-  setVal('edEventHeroDate',     config.event?.heroDate    ?? '');
-  setVal('edEventDisplayDate',  config.event?.displayDate ?? '');
-  setVal('edEventWeekday',      config.event?.weekday     ?? '');
+  setVal('edCoupleSubtitle',    config.couple?.subtitle || window.__SITE_JSON__?.couple?.subtitle || '');
+  // edEventDate é type="date" — precisa de YYYY-MM-DD (não ISO completo)
+  const isoDate = config.event?.date ?? '';
+  const datePart = isoDate.includes('T') ? isoDate.split('T')[0] : isoDate;
+  setVal('edEventDate', datePart);
+  setVal('edEventTime',        config.event?.time        ?? '');
+  // Popula campos derivados do config; se vazios, gera automaticamente da data
+  const heroDate    = config.event?.heroDate    || '';
+  const displayDate = config.event?.displayDate || '';
+  const weekday     = config.event?.weekday     || '';
+  if (heroDate || displayDate || weekday) {
+    setVal('edEventHeroDate',    heroDate);
+    setVal('edEventDisplayDate', displayDate);
+    setVal('edEventWeekday',     weekday);
+  } else if (datePart) {
+    onEventDateChange();
+  }
   setVal('edEventLocation',     config.event?.locationName  ?? '');
   setVal('edEventCity',         config.event?.locationCity  ?? '');
   setVal('edEventMapsLink',     config.event?.mapsLink      ?? '');
@@ -1176,6 +1415,8 @@ function loadEditorTab() {
   toggleGiftBlock('giftBlockPix', pixOn);
   setVal('edGiftPixKey', gift.pixKey    ?? '');
   setVal('edGiftPixQr',  gift.pixQrImage ?? '');
+  renderPixQrPreview(gift.pixQrImage || '');
+  setPixQrUploadStatus('');
 
   const cardOn = !!gift.cardPaymentEnabled;
   setChk('edGiftCardEnabled', cardOn);
@@ -1201,14 +1442,110 @@ function loadEditorTab() {
   setVal('edTrackGiftSrc',    config.media?.tracks?.gift?.src     ?? '');
   setVal('edTrackGiftVolume', config.media?.tracks?.gift?.volume  ?? '');
   setVal('edTrackGiftStart',  config.media?.tracks?.gift?.startTime ?? '');
+  renderMediaHeroPreview(config.media?.heroImage || '');
+  renderMediaGalleryGrid(config.pages?.historia?.content?.gallery || []);
+  setMediaUploadStatus('');
 
   // Páginas extras
   renderPagesGrid(config.pages || {});
+
+  // Capítulos de Nossa História
+  const _chapters = config.pages?.historia?.content?.chapters || [];
+  for (let _i = 0; _i < 3; _i++) {
+    const _ch = _chapters[_i] || {};
+    setVal(`edChapter${_i}Year`,  _ch.year  ?? '');
+    setVal(`edChapter${_i}Title`, _ch.title ?? '');
+    setVal(`edChapter${_i}Text`,  _ch.text  ?? '');
+  }
 
   updateEditorSaveStatus();
 }
 
 // ── Helpers de formulário ─────────────────────────────────────
+
+// ── Extração automática de coordenadas do link do Google Maps ──────────────
+
+function extractCoordsFromMapsLink(url) {
+  if (!url) return null;
+  // Formato: /place/.../@lat,lng,zoom
+  const atMatch = url.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+  if (atMatch) return { lat: parseFloat(atMatch[1]), lng: parseFloat(atMatch[2]) };
+  // Formato: ?q=lat,lng ou ?ll=lat,lng ou &ll=lat,lng
+  const qMatch = url.match(/[?&](?:q|ll)=(-?\d+\.\d+),(-?\d+\.\d+)/);
+  if (qMatch) return { lat: parseFloat(qMatch[1]), lng: parseFloat(qMatch[2]) };
+  return null;
+}
+
+function onMapsLinkExtract() {
+  const input   = document.getElementById('edEventMapsLink');
+  const statusEl = document.getElementById('edEventCoordsStatus');
+  const latEl   = document.getElementById('edEventLat');
+  const lngEl   = document.getElementById('edEventLng');
+  if (!input || !statusEl) return;
+
+  const url = input.value.trim();
+  statusEl.style.display = 'block';
+
+  // Link encurtado (maps.app.goo.gl) — não é possível extrair sem fetch
+  if (url.includes('maps.app.goo.gl') || url.includes('goo.gl/maps')) {
+    statusEl.textContent = '⚠ Link encurtado detectado — cole o link completo do Maps para extrair as coordenadas automaticamente.';
+    statusEl.style.color = 'var(--text-soft, #aaa)';
+    return;
+  }
+
+  if (!url) {
+    statusEl.style.display = 'none';
+    return;
+  }
+
+  const coords = extractCoordsFromMapsLink(url);
+  if (coords) {
+    if (latEl) { latEl.value = coords.lat; }
+    if (lngEl) { lngEl.value = coords.lng; }
+    statusEl.textContent = `✓ Coordenadas extraídas: ${coords.lat}, ${coords.lng}`;
+    statusEl.style.color = 'var(--primary, #c9a84c)';
+    markEditorDirty();
+  } else {
+    statusEl.textContent = 'Coordenadas não encontradas — verifique se o link é do Google Maps completo.';
+    statusEl.style.color = 'var(--text-soft, #aaa)';
+  }
+}
+
+// ── Geração automática dos formatos de data ──────────────────────────────────
+
+const MONTHS_SHORT = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+const MONTHS_FULL  = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+const WEEKDAYS     = ['Domingo','Segunda-feira','Terça-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sábado'];
+
+function generateDateFormats(isoDate) {
+  // T12:00:00 evita problemas de fuso horário (date-only strings são tratadas como UTC)
+  const date = new Date(isoDate + 'T12:00:00');
+  if (isNaN(date.getTime())) return null;
+
+  const d = String(date.getDate()).padStart(2, '0');
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const y = date.getFullYear();
+
+  return {
+    heroDate:    `${d} . ${m} . ${y}`,
+    detailDate:  `${d} ${MONTHS_SHORT[date.getMonth()]} ${y}`,
+    displayDate: `${d} de ${MONTHS_FULL[date.getMonth()]} de ${y}`,
+    weekday:     WEEKDAYS[date.getDay()],
+  };
+}
+
+function onEventDateChange() {
+  const dateInput = document.getElementById('edEventDate');
+  if (!dateInput?.value) return;
+
+  const formats = generateDateFormats(dateInput.value);
+  if (!formats) return;
+
+  const set = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
+  set('edEventHeroDate',    formats.heroDate);
+  set('edEventDisplayDate', formats.displayDate);
+  set('edEventWeekday',     formats.weekday);
+}
 
 function setVal(id, value) {
   const el = document.getElementById(id);
@@ -1249,6 +1586,309 @@ function updateEditorSaveStatus(message) {
 function setEditorStatusText(msg) {
   const el = document.getElementById('editorSaveStatusText');
   if (el) el.textContent = msg;
+}
+
+function setMediaUploadStatus(message, isError = false) {
+  const statusEl = document.getElementById('edMediaUploadStatus');
+  if (!statusEl) return;
+
+  statusEl.textContent = message || '';
+  statusEl.style.color = isError ? 'var(--danger)' : 'var(--text-dim)';
+}
+
+function setPixQrUploadStatus(message, isError = false) {
+  const statusEl = document.getElementById('edGiftPixQrUploadStatus');
+  if (!statusEl) return;
+
+  statusEl.textContent = message || '';
+  statusEl.style.color = isError ? 'var(--danger)' : 'var(--text-dim)';
+}
+
+async function uploadMediaFile(type, file) {
+  if (!state.eventId) {
+    throw new Error('Evento não carregado no dashboard. Recarregue a página.');
+  }
+
+  // Força token fresco diretamente do cliente Supabase para evitar token expirado
+  const supabase = await getDashboardSupabaseClient();
+  const { data: freshSession } = await supabase.auth.getSession();
+  const freshToken = freshSession?.session?.access_token || null;
+  if (freshToken) {
+    state.authToken = freshToken;
+    sessionStorage.setItem(DASHBOARD_ACCESS_TOKEN_STORAGE_KEY, freshToken);
+  }
+
+  if (!state.authToken) {
+    throw new Error('Sessão expirada. Faça login novamente no dashboard.');
+  }
+
+  const formData = new FormData();
+  formData.append('eventId', state.eventId);
+  formData.append('type', type);
+  formData.append('file', file);
+
+  const response = await fetch('/api/dashboard/media', {
+    method: 'POST',
+    body: formData,
+    headers: {
+      Authorization: `Bearer ${state.authToken}`,
+    },
+  });
+
+  const data = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    throw new Error(data.error || 'Falha ao enviar mídia');
+  }
+
+  return data;
+}
+
+function renderMediaHeroPreview(url) {
+  const previewWrap = document.getElementById('edMediaHeroPreviewWrap');
+  const previewImg = document.getElementById('edMediaHeroPreview');
+  const previewUrl = document.getElementById('edMediaHeroPreviewUrl');
+  const emptyEl = document.getElementById('edMediaHeroEmpty');
+
+  if (!previewWrap || !previewImg || !emptyEl) {
+    return;
+  }
+
+  const source = String(url || document.getElementById('edMediaHero')?.value || '').trim();
+
+  if (source) {
+    let resolvedSource = source;
+
+    try {
+      resolvedSource = new URL(source, window.location.href).href;
+    } catch (error) {
+      resolvedSource = source;
+    }
+
+    previewImg.src = resolvedSource;
+    if (previewUrl) {
+      previewUrl.textContent = source;
+    }
+    previewWrap.style.display = '';
+    emptyEl.style.display = 'none';
+    return;
+  }
+
+  previewImg.removeAttribute('src');
+  if (previewUrl) {
+    previewUrl.textContent = '';
+  }
+  previewWrap.style.display = 'none';
+  emptyEl.style.display = '';
+}
+
+function renderPixQrPreview(url) {
+  const previewWrap = document.getElementById('edGiftPixQrPreviewWrap');
+  const previewImg = document.getElementById('edGiftPixQrPreview');
+  const previewUrl = document.getElementById('edGiftPixQrPreviewUrl');
+  const emptyEl = document.getElementById('edGiftPixQrEmpty');
+
+  if (!previewWrap || !previewImg || !emptyEl) {
+    return;
+  }
+
+  const source = String(url || document.getElementById('edGiftPixQr')?.value || '').trim();
+
+  if (source) {
+    let resolvedSource = source;
+
+    try {
+      resolvedSource = new URL(source, window.location.href).href;
+    } catch (error) {
+      resolvedSource = source;
+    }
+
+    previewImg.src = resolvedSource;
+    if (previewUrl) {
+      previewUrl.textContent = source;
+    }
+    previewWrap.style.display = '';
+    emptyEl.style.display = 'none';
+    return;
+  }
+
+  previewImg.removeAttribute('src');
+  if (previewUrl) {
+    previewUrl.textContent = '';
+  }
+  previewWrap.style.display = 'none';
+  emptyEl.style.display = '';
+}
+
+function renderMediaGalleryGrid(images) {
+  const grid = document.getElementById('edMediaGalleryGrid');
+  const emptyEl = document.getElementById('edMediaGalleryEmpty');
+
+  if (!grid || !emptyEl) {
+    return;
+  }
+
+  if (!Array.isArray(images) || images.length === 0) {
+    grid.innerHTML = '';
+    emptyEl.style.display = '';
+    return;
+  }
+
+  emptyEl.style.display = 'none';
+  grid.innerHTML = images.map((image, index) => {
+    const src = escapeHtml(image?.src || '');
+    const alt = escapeHtml(image?.alt || `Foto ${index + 1}`);
+    return `<div class="media-gallery-card"><img src="${src}" alt="${alt}" onerror="this.style.opacity=0.3"></div>`;
+  }).join('');
+}
+
+function ensureHistoriaGalleryArray(config) {
+  if (!config.pages) config.pages = {};
+  if (!config.pages.historia) config.pages.historia = {};
+  if (!config.pages.historia.content) config.pages.historia.content = {};
+  if (!Array.isArray(config.pages.historia.content.gallery)) {
+    config.pages.historia.content.gallery = [];
+  }
+
+  return config.pages.historia.content.gallery;
+}
+
+async function uploadPixQrMedia() {
+  const input = document.getElementById('edGiftPixQrFile');
+  const file = input?.files?.[0];
+  const button = document.getElementById('btnEdGiftPixQrUpload');
+
+  if (!file) {
+    setPixQrUploadStatus('Selecione uma imagem para o QR Pix.', true);
+    return;
+  }
+
+  setPixQrUploadStatus('Enviando QR Pix...');
+  if (button) {
+    button.disabled = true;
+  }
+
+  try {
+    const result = await uploadMediaFile('pix-qr', file);
+    setVal('edGiftPixQr', result.url || '');
+
+    if (window.__SITE_CONFIG__) {
+      if (!window.__SITE_CONFIG__.gift) window.__SITE_CONFIG__.gift = {};
+      window.__SITE_CONFIG__.gift.pixQrImage = result.url || '';
+    }
+
+    renderPixQrPreview(result.url || '');
+    markEditorDirty();
+    setPixQrUploadStatus('QR Pix enviado. Lembre-se de salvar as alterações.');
+
+    if (input) {
+      input.value = '';
+    }
+  } catch (error) {
+    console.error('[uploadPixQrMedia]', error);
+    setPixQrUploadStatus(error.message || 'Erro ao enviar QR Pix.', true);
+  } finally {
+    if (button) {
+      button.disabled = false;
+    }
+  }
+}
+
+async function uploadHeroMedia() {
+  const input = document.getElementById('edMediaHeroFile');
+  const file = input?.files?.[0];
+  const button = document.getElementById('btnEdMediaHeroUpload');
+
+  if (!file) {
+    setMediaUploadStatus('Selecione uma imagem para a foto principal.', true);
+    return;
+  }
+
+  setMediaUploadStatus('Enviando foto principal...');
+  if (button) {
+    button.disabled = true;
+  }
+
+  try {
+    const result = await uploadMediaFile('hero', file);
+    setVal('edMediaHero', result.url || '');
+
+    if (window.__SITE_CONFIG__) {
+      if (!window.__SITE_CONFIG__.media) window.__SITE_CONFIG__.media = {};
+      window.__SITE_CONFIG__.media.heroImage = result.url || '';
+    }
+
+    renderMediaHeroPreview(result.url || '');
+
+    markEditorDirty();
+    setMediaUploadStatus('Foto principal enviada. Lembre-se de salvar as alterações.');
+
+    if (input) {
+      input.value = '';
+    }
+  } catch (error) {
+    console.error('[uploadHeroMedia]', error);
+    setMediaUploadStatus(error.message || 'Erro ao enviar foto principal.', true);
+  } finally {
+    if (button) {
+      button.disabled = false;
+    }
+  }
+}
+
+async function uploadGalleryMedia() {
+  const input = document.getElementById('edMediaGalleryFiles');
+  const files = Array.from(input?.files || []);
+  const button = document.getElementById('btnEdMediaGalleryUpload');
+
+  if (!files.length) {
+    setMediaUploadStatus('Selecione ao menos uma imagem para a galeria.', true);
+    return;
+  }
+
+  setMediaUploadStatus(`Enviando ${files.length} imagem(ns) para a galeria...`);
+  if (button) {
+    button.disabled = true;
+  }
+
+  try {
+    const uploadedItems = [];
+
+    for (let index = 0; index < files.length; index += 1) {
+      const file = files[index];
+      setMediaUploadStatus(`Enviando ${index + 1}/${files.length}: ${file.name}...`);
+      const result = await uploadMediaFile('gallery', file);
+      uploadedItems.push({
+        src: result.url || '',
+        alt: file.name.replace(/\.[^.]+$/, ''),
+      });
+    }
+
+    if (window.__SITE_CONFIG__) {
+      const gallery = ensureHistoriaGalleryArray(window.__SITE_CONFIG__);
+      uploadedItems.forEach((item) => {
+        if (item.src) {
+          gallery.push(item);
+        }
+      });
+
+      renderMediaGalleryGrid(gallery);
+    }
+
+    markEditorDirty();
+    setMediaUploadStatus(`Galeria atualizada com ${uploadedItems.length} nova(s) imagem(ns). Salve para persistir.`);
+
+    if (input) {
+      input.value = '';
+    }
+  } catch (error) {
+    console.error('[uploadGalleryMedia]', error);
+    setMediaUploadStatus(error.message || 'Erro ao enviar imagens da galeria.', true);
+  } finally {
+    if (button) {
+      button.disabled = false;
+    }
+  }
 }
 
 function reloadEditorTab() {
@@ -1382,15 +2022,27 @@ function collectEditorValues() {
   // Casal & Evento
   if (!config.couple) config.couple = {};
   config.couple.names    = document.getElementById('edCoupleNames')?.value.trim()    || config.couple.names;
-  config.couple.subtitle = document.getElementById('edCoupleSubtitle')?.value.trim() || '';
+  config.couple.subtitle = document.getElementById('edCoupleSubtitle')?.value.trim() || config.couple.subtitle || '';
 
   if (!config.event) config.event = {};
-  config.event.date         = document.getElementById('edEventDate')?.value.trim()        || config.event.date;
-  config.event.time         = document.getElementById('edEventTime')?.value.trim()        || '';
-  config.event.heroDate     = document.getElementById('edEventHeroDate')?.value.trim()    || '';
-  config.event.displayDate  = document.getElementById('edEventDisplayDate')?.value.trim() || '';
-  config.event.detailDate   = config.event.displayDate;
-  config.event.weekday      = document.getElementById('edEventWeekday')?.value.trim()     || '';
+  // Reconstrói ISO a partir de date (YYYY-MM-DD) + time (HH:MM)
+  const _datePart = document.getElementById('edEventDate')?.value.trim() || '';
+  const _timePart = (document.getElementById('edEventTime')?.value.trim() || '').replace(/h$/i, ':00').replace(/^(\d{1,2})$/, '$1:00');
+  if (_datePart) {
+    const _timeNorm = /^\d{2}:\d{2}/.test(_timePart) ? _timePart.slice(0, 5) : '00:00';
+    config.event.date = `${_datePart}T${_timeNorm}:00`;
+  }
+  config.event.time        = document.getElementById('edEventTime')?.value.trim()        || '';
+  config.event.heroDate    = document.getElementById('edEventHeroDate')?.value.trim()    || '';
+  config.event.displayDate = document.getElementById('edEventDisplayDate')?.value.trim() || '';
+  // detailDate = formato "06 Set 2026" — gera da data se possível, senão usa displayDate
+  if (_datePart) {
+    const _fmt = generateDateFormats(_datePart);
+    config.event.detailDate = _fmt ? _fmt.detailDate : config.event.displayDate;
+  } else {
+    config.event.detailDate = config.event.displayDate;
+  }
+  config.event.weekday     = document.getElementById('edEventWeekday')?.value.trim()     || '';
   config.event.locationName = document.getElementById('edEventLocation')?.value.trim()    || '';
   config.event.locationCity = document.getElementById('edEventCity')?.value.trim()        || '';
   config.event.mapsLink     = document.getElementById('edEventMapsLink')?.value.trim()    || '';
@@ -1451,50 +2103,54 @@ function collectEditorValues() {
     config.pages[key].cardHint  = document.getElementById(`edPage_${key}_hint`)?.value.trim()  || '';
   });
 
+  // Capítulos de Nossa História
+  if (!config.pages.historia) config.pages.historia = {};
+  if (!config.pages.historia.content) config.pages.historia.content = {};
+  config.pages.historia.content.chapters = [0, 1, 2].map(i => ({
+    year:  document.getElementById(`edChapter${i}Year`)?.value.trim()  || '',
+    title: document.getElementById(`edChapter${i}Title`)?.value.trim() || '',
+    text:  document.getElementById(`edChapter${i}Text`)?.value.trim()  || '',
+  }));
+
+  // Imagens da galeria não têm campo de formulário — vivem em window.__SITE_CONFIG__
+  // (modificado pelos uploads). Preserva o estado vivo para não descartar ao salvar.
+  const liveGallery = window.__SITE_CONFIG__?.pages?.historia?.content?.gallery;
+  if (Array.isArray(liveGallery)) {
+    config.pages.historia.content.gallery = liveGallery;
+  }
+
   return config;
 }
 
 async function saveEditorConfig() {
   const config = collectEditorValues();
 
-  // 1. Tentar via API (disponível após migração Supabase)
+  if (!state.eventId) {
+    updateEditorSaveStatus('Evento não carregado — recarregue o dashboard');
+    return;
+  }
+
   try {
     const response = await fetchWithAuth('/api/dashboard/event', {
       method: 'PATCH',
       body: JSON.stringify({ eventId: state.eventId, config }),
     });
-    if (response.ok) {
-      window.__SITE_CONFIG__ = config;
-      editorState.isDirty = false;
-      editorState.originalConfig = JSON.parse(JSON.stringify(config));
-      applySiteConfig(config);
-      updateEditorSaveStatus('Salvo no servidor ✓');
+
+    const data = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      updateEditorSaveStatus(data.error || 'Erro ao salvar no servidor');
       return;
     }
-  } catch {
-    // API ainda não disponível — usa fallback local
+
+    const savedConfig = data?.config && typeof data.config === 'object' ? data.config : config;
+    window.__SITE_CONFIG__ = savedConfig;
+    editorState.isDirty = false;
+    editorState.originalConfig = JSON.parse(JSON.stringify(savedConfig));
+    applySiteConfig(savedConfig);
+    updateEditorSaveStatus('Salvo no servidor ✓');
+  } catch (error) {
+    console.error('[saveEditorConfig]', error);
+    updateEditorSaveStatus('Erro ao salvar no servidor');
   }
-
-  // 2. Fallback: baixar site.json atualizado
-  downloadConfigJson(config);
-}
-
-function downloadConfigJson(config) {
-  const json = JSON.stringify(config, null, 2);
-  const blob = new Blob([json], { type: 'application/json;charset=utf-8' });
-  const url  = URL.createObjectURL(blob);
-  const a    = document.createElement('a');
-  a.href = url;
-  a.download = 'site.json';
-  a.style.display = 'none';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-
-  window.__SITE_CONFIG__ = config;
-  editorState.isDirty = false;
-  editorState.originalConfig = JSON.parse(JSON.stringify(config));
-  applySiteConfig(config);
-  updateEditorSaveStatus('Arquivo baixado — substitua o assets/config/site.json');
 }

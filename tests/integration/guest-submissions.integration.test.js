@@ -154,4 +154,50 @@ describe('guest submissions integration', () => {
     expect(openSpy).not.toHaveBeenCalled();
     expect(document.getElementById('musicaFeedback').textContent).toContain('Sugestão enviada');
   });
+
+  it('não bloqueia persistência quando supabaseEnabled é false (legado)', async () => {
+    createMessageDom();
+    const { saveGuestMessage } = await import('../../assets/js/rsvp-persistence.js');
+    saveGuestMessage.mockResolvedValue(true);
+
+    await import('../../assets/js/mensagem.js');
+    window.dispatchEvent(new CustomEvent('app:ready', {
+      detail: {
+        config: {
+          ...baseConfig,
+          rsvp: { ...baseConfig.rsvp, supabaseEnabled: false },
+        },
+      },
+    }));
+
+    document.getElementById('mensagemNameInput').value = 'Ana';
+    document.getElementById('mensagemBodyInput').value = 'Parabéns ao casal!';
+    document.getElementById('mensagemForm').dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+    await flushAsync();
+
+    expect(saveGuestMessage).toHaveBeenCalledTimes(1);
+  });
+
+  it('desliga persistência quando disablePersistence é true', async () => {
+    createMusicDom();
+    const { saveSongSuggestion } = await import('../../assets/js/rsvp-persistence.js');
+    saveSongSuggestion.mockResolvedValue(true);
+
+    await import('../../assets/js/musica.js');
+    window.dispatchEvent(new CustomEvent('app:ready', {
+      detail: {
+        config: {
+          ...baseConfig,
+          rsvp: { ...baseConfig.rsvp, disablePersistence: true },
+        },
+      },
+    }));
+
+    document.getElementById('musicaNameInput').value = 'Ana';
+    document.getElementById('musicaSongInput').value = 'Velha Infância';
+    document.getElementById('musicaForm').dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+    await flushAsync();
+
+    expect(saveSongSuggestion).not.toHaveBeenCalled();
+  });
 });

@@ -8,6 +8,22 @@ function setFieldValidity(field, isInvalid) {
     field.setAttribute('aria-invalid', String(isInvalid));
 }
 
+function shouldPersistToDatabase(config, moduleName) {
+    const rsvpConfig = config?.rsvp ?? {};
+
+    if (rsvpConfig.disablePersistence === true) {
+        return false;
+    }
+
+    if (rsvpConfig.supabaseEnabled === false) {
+        console.warn(
+            `[${moduleName}] config.rsvp.supabaseEnabled=false é legado e será ignorado. A persistência permanece habilitada; use config.rsvp.disablePersistence=true para desativar.`
+        );
+    }
+
+    return true;
+}
+
 function bindMessageForm(content, config) {
     setText('mensagemFormTitle', content?.formTitle);
     setText('mensagemFormSubtitle', content?.formSubtitle);
@@ -53,7 +69,13 @@ function bindMessageForm(content, config) {
             submitButton.disabled = true;
         }
 
-        if (config?.rsvp?.supabaseEnabled !== false) {
+        if (shouldPersistToDatabase(config, 'mensagem')) {
+            console.log('[mensagem] Enviando mensagem para persistência.', {
+                eventId: config?.rsvp?.eventId || 'wedding-event',
+                hasGuestName: Boolean(guestName),
+                messageLength: messageBody.length,
+            });
+
             const saved = await saveGuestMessage({
                 guestName,
                 message: messageBody,
@@ -61,6 +83,7 @@ function bindMessageForm(content, config) {
             }).catch(() => false);
 
             if (!saved) {
+                console.warn('[mensagem] Falha na persistência da mensagem.');
                 feedback.classList.add('is-error');
                 feedback.textContent = content?.errorMessage || 'Não foi possível enviar sua mensagem agora. Tente novamente.';
                 if (submitButton) {
@@ -68,6 +91,10 @@ function bindMessageForm(content, config) {
                 }
                 return;
             }
+
+            console.log('[mensagem] Mensagem persistida com sucesso.');
+        } else {
+            console.warn('[mensagem] Persistência desativada (config.rsvp.disablePersistence=true). Mensagem não será salva no banco.');
         }
 
         feedback.textContent = content?.successMessage || 'Mensagem enviada com carinho. Obrigado pelo seu recado.';

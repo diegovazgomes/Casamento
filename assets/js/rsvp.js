@@ -31,6 +31,22 @@ function normalizePhoneDigits(value) {
     return digits;
 }
 
+function shouldPersistToDatabase(config, moduleName) {
+    const rsvpConfig = config?.rsvp ?? {};
+
+    if (rsvpConfig.disablePersistence === true) {
+        return false;
+    }
+
+    if (rsvpConfig.supabaseEnabled === false) {
+        console.warn(
+            `[${moduleName}] config.rsvp.supabaseEnabled=false é legado e será ignorado. A persistência permanece habilitada; use config.rsvp.disablePersistence=true para desativar.`
+        );
+    }
+
+    return true;
+}
+
 export class RSVP {
     constructor(config = {}, guestTokenData = null, refreshSlots = null) {
         this.config = config;
@@ -198,7 +214,7 @@ export class RSVP {
         const eventId = this.config?.rsvp?.eventId || 'wedding-event';
         const marketingConsent = document.getElementById('rsvp-marketing-consent')?.checked ?? false;
 
-        if (this.config?.rsvp?.supabaseEnabled !== false) {
+        if (shouldPersistToDatabase(this.config, 'rsvp')) {
             const saved = await saveRsvpConfirmation({
                 name: this.fields.name.value.trim(),
                 phone: this.fields.phone.value.trim(),
@@ -220,7 +236,7 @@ export class RSVP {
                 return;
             }
         } else {
-            console.warn('[rsvp] Persistência desativada, seguindo fluxo.');
+            console.warn('[rsvp] Persistência desativada (config.rsvp.disablePersistence=true), seguindo fluxo.');
         }
 
         this.markSubmittedThisSession();

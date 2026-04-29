@@ -8,7 +8,11 @@
  */
 
 import { createClient } from '@supabase/supabase-js';
-import { verifyDashboardToken } from './auth.js';
+import {
+  authenticateDashboardRequest,
+  findOwnedGuestToken,
+  requireOwnedEvent,
+} from '../_lib/dashboard-auth.js';
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -33,14 +37,6 @@ export default function handler(req, res) {
     return res.status(503).json({ error: 'Supabase server configuration missing' });
   }
 
-  // Verificar token
-  const authHeader = req.headers.authorization || '';
-  const token = authHeader.replace('Bearer ', '').trim();
-
-  if (!verifyDashboardToken(token)) {
-    return res.status(401).json({ error: 'Unauthorized' });
-  }
-
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -53,7 +49,7 @@ export default function handler(req, res) {
  *
  * Body:
  *   {
- *     "eventId": "siannah-diego-2026",
+ *     "eventId": "<slug-do-evento>",
  *     "tokenId": "uuid-token",
  *     "message": "Olá! Ainda não recebemos sua confirmação...",
  *     "sendVia": "whatsapp" | "log"
@@ -61,7 +57,6 @@ export default function handler(req, res) {
  */
 async function handleSendReminder(req, res) {
   const { eventId, tokenId, message, sendVia = 'whatsapp' } = req.body || {};
-  const supabase = getSupabaseClient();
 
   if (!eventId || !tokenId || !message) {
     return res.status(400).json({
@@ -70,19 +65,29 @@ async function handleSendReminder(req, res) {
   }
 
   try {
-    // 1. Buscar token e dados do grupo
-    const { data: guestToken, error: tokenError } = await supabase
-      .from('guest_tokens')
-      .select('id, token, group_name, phone')
-      .eq('id', tokenId)
-      .eq('event_id', eventId)
-      .single();
+    const auth = await authenticateDashboardRequest(req);
 
-    if (tokenError || !guestToken) {
+    if (!auth.ok) {
+      return res.status(auth.status).json({ error: auth.error });
+    }
+
+    const ownedEvent = await requireOwnedEvent(req, {
+      selectClause: 'id,slug,user_id,config',
+    });
+
+    if (!ownedEvent.ok) {
+      return res.status(ownedEvent.status).json({ error: ownedEvent.error });
+    }
+
+    const ownedToken = await findOwnedGuestToken(auth.supabase, auth.user.id, tokenId, 'id,event_id,group_name,phone,token');
+
+    if (!ownedToken || ownedToken.event_id !== ownedEvent.event.id) {
       return res.status(404).json({ error: 'Guest group not found' });
     }
 
-    if (!guestToken.phone) {
+    const supabase = auth.supabase;
+    // 1. Buscar token e dados do grupo
+    if (!ownedToken.phone) {
       return res.status(400).json({ error: 'Phone number not configured for this group' });
     }
 
@@ -93,7 +98,7 @@ async function handleSendReminder(req, res) {
     if (sendVia === 'whatsapp' && process.env.TWILIO_ACCOUNT_SID) {
       try {
         sendStatus = await sendViaWhatsApp(
-          guestToken.phone,
+          ownedToken.phone,
           message,
           process.env.TWILIO_ACCOUNT_SID,
           process.env.TWILIO_AUTH_TOKEN,
@@ -116,7 +121,7 @@ async function handleSendReminder(req, res) {
       .insert({
         event_id: eventId,
         token_id: tokenId,
-        phone: guestToken.phone,
+        phone: ownedToken.phone,
         message,
         status: sendStatus,
         error_message: errorMessage,
@@ -136,8 +141,8 @@ async function handleSendReminder(req, res) {
       data: {
         logId: log?.id,
         status: sendStatus,
-        groupName: guestToken.group_name,
-        phone: maskPhone(guestToken.phone),
+        groupName: ownedToken.group_name,
+        phone: maskPhone(ownedToken.phone),
         errorMessage,
       },
     });

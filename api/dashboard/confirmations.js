@@ -7,7 +7,7 @@
  */
 
 import { createClient } from '@supabase/supabase-js';
-import { verifyDashboardToken } from './auth.js';
+import { requireOwnedEvent } from '../_lib/dashboard-auth.js';
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -30,15 +30,6 @@ export default function handler(req, res) {
   if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
     res.setHeader('Content-Type', 'application/json');
     return res.status(503).json({ error: 'Supabase server configuration missing' });
-  }
-
-  // Verificar token
-  const authHeader = req.headers.authorization || '';
-  const token = authHeader.replace('Bearer ', '').trim();
-
-  if (!verifyDashboardToken(token)) {
-    res.setHeader('Content-Type', 'application/json');
-    return res.status(401).json({ error: 'Unauthorized' });
   }
 
   if (req.method !== 'GET') {
@@ -66,15 +57,19 @@ export default function handler(req, res) {
  *   - pageSize: default 50
  */
 async function handleListConfirmations(req, res) {
-  const { eventId, status, groupId, page = '1', pageSize = '50' } = req.query;
-  const supabase = getSupabaseClient();
-
-  if (!eventId) {
-    res.setHeader('Content-Type', 'application/json');
-    return res.status(400).json({ error: 'eventId required' });
-  }
+  const { status, groupId, page = '1', pageSize = '50' } = req.query;
 
   try {
+    const ownedEvent = await requireOwnedEvent(req, {
+      selectClause: 'id,slug,user_id,config',
+    });
+
+    if (!ownedEvent.ok) {
+      res.setHeader('Content-Type', 'application/json');
+      return res.status(ownedEvent.status).json({ error: ownedEvent.error });
+    }
+
+    const supabase = ownedEvent.supabase;
     const pageNum = Math.max(1, parseInt(page, 10) || 1);
     const size = Math.min(100, parseInt(pageSize, 10) || 50);
     const offset = (pageNum - 1) * size;
@@ -93,7 +88,7 @@ async function handleListConfirmations(req, res) {
         `,
         { count: 'exact' }
       )
-      .eq('event_id', eventId);
+      .eq('event_id', ownedEvent.event.slug);
 
     // Filtrar por status
     if (status && status !== 'pending') {
@@ -147,15 +142,19 @@ async function handleListConfirmations(req, res) {
  * Exportar confirmações como CSV
  */
 async function handleExportCsv(req, res) {
-  const { eventId, status, groupId } = req.query;
-  const supabase = getSupabaseClient();
-
-  if (!eventId) {
-    res.setHeader('Content-Type', 'application/json');
-    return res.status(400).json({ error: 'eventId required' });
-  }
+  const { status, groupId } = req.query;
 
   try {
+    const ownedEvent = await requireOwnedEvent(req, {
+      selectClause: 'id,slug,user_id,config',
+    });
+
+    if (!ownedEvent.ok) {
+      res.setHeader('Content-Type', 'application/json');
+      return res.status(ownedEvent.status).json({ error: ownedEvent.error });
+    }
+
+    const supabase = ownedEvent.supabase;
     let query = supabase
       .from('rsvp_confirmations')
       .select(
@@ -169,7 +168,7 @@ async function handleExportCsv(req, res) {
         guest_tokens:token_id(group_name)
         `
       )
-      .eq('event_id', eventId);
+      .eq('event_id', ownedEvent.event.slug);
 
     // Aplicar filtros (mesma lógica de listagem)
     if (status && status !== 'pending') {
@@ -195,7 +194,7 @@ async function handleExportCsv(req, res) {
 
     // Retornar como download
     res.setHeader('Content-Type', 'text/csv; charset=utf-8');
-    res.setHeader('Content-Disposition', `attachment; filename="confirmacoes-${eventId}-${Date.now()}.csv"`);
+    res.setHeader('Content-Disposition', `attachment; filename="confirmacoes-${ownedEvent.event.slug || ownedEvent.event.id}-${Date.now()}.csv"`);
     return res.status(200).send(csv);
   } catch (error) {
     console.error('[confirmations EXPORT]', error);

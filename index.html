@@ -44,9 +44,11 @@
         })();
     </script>
     <script type="module">
-        // Inicializa loading screen de forma centralizada
+        // Inicializa loading screen e badge de debug (apenas com ?debug ou ?dev)
         import { initLoadingScreen } from './assets/js/loading-screen.js';
+        import { initDebugBadge }    from './assets/js/debug-badge.js';
         initLoadingScreen();
+        initDebugBadge();
     </script>
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="assets/css/animations.css">
