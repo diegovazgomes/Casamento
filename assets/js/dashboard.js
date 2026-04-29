@@ -3,22 +3,11 @@
  * Lógica e interação do painel de gerenciamento do casal
  */
 
-import { isUsableEventSlug } from './config-source.js';
-
-function getSlugFromCurrentPath(pathname = window.location.pathname) {
-  const [firstSegment = ''] = String(pathname || '').replace(/^\//, '').split('/');
-  return isUsableEventSlug(firstSegment) ? firstSegment : null;
-}
-
-function normalizeDashboardSlug(value) {
-  return isUsableEventSlug(value) ? String(value).trim() : null;
-}
-
 // Estado
 const state = {
   authToken: null,
   eventId: '',
-  eventSlug: getSlugFromCurrentPath(),
+  eventSlug: window.location.pathname.replace(/^\//, '').split('/')[0] || null,
   grupos: [],
   confirmacoes: [],
   allConfirmacoes: [],
@@ -170,7 +159,7 @@ function applySiteConfig(siteConfig) {
     return;
   }
 
-  const eventSlug = normalizeDashboardSlug(siteConfig?.rsvp?.eventId);
+  const eventSlug = siteConfig?.rsvp?.eventId;
   if (eventSlug) {
     state.eventSlug = eventSlug;
   }
@@ -180,17 +169,21 @@ function applySiteConfig(siteConfig) {
 
   const sidebarCouple = document.getElementById('sidebarCouple');
   const sidebarDate = document.getElementById('sidebarDate');
+  const sidebarSubtitle = document.getElementById('sidebarSubtitle');
   if (sidebarCouple && coupleNames) sidebarCouple.textContent = coupleNames;
   if (sidebarDate && heroDate) sidebarDate.textContent = heroDate;
+  const coupleSubtitle = siteConfig?.couple?.subtitle || window.__SITE_JSON__?.couple?.subtitle || '';
+  if (sidebarSubtitle) sidebarSubtitle.textContent = coupleSubtitle;
 }
 
 async function hydrateDashboardEventContext() {
-  const lookupSlug = normalizeDashboardSlug(state.eventSlug || window.__SITE_CONFIG__?.rsvp?.eventId);
-  const endpoint = lookupSlug
-    ? `/api/dashboard/event?slug=${encodeURIComponent(lookupSlug)}`
-    : '/api/dashboard/event';
+  const lookupSlug = state.eventSlug || window.__SITE_CONFIG__?.rsvp?.eventId;
 
-  const response = await fetchWithAuth(endpoint);
+  if (!lookupSlug) {
+    throw new Error('Slug do evento não disponível para o dashboard');
+  }
+
+  const response = await fetchWithAuth(`/api/dashboard/event?slug=${encodeURIComponent(lookupSlug)}`);
   const data = await response.json();
 
   if (!response.ok) {
@@ -2158,7 +2151,7 @@ async function saveEditorConfig() {
     editorState.isDirty = false;
     editorState.originalConfig = JSON.parse(JSON.stringify(savedConfig));
     applySiteConfig(savedConfig);
-    updateEditorSaveStatus('As informações do seu convite foram salvas ✓');
+    updateEditorSaveStatus('Salvo no servidor ✓');
   } catch (error) {
     console.error('[saveEditorConfig]', error);
     updateEditorSaveStatus('Erro ao salvar no servidor');

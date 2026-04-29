@@ -1,7 +1,6 @@
 export const STATIC_SITE_CONFIG_URL = 'assets/config/site.json';
 export const DEFAULT_LAYOUT_KEY = 'classic';
 export const DEFAULT_THEME_PATH = 'assets/layouts/classic/themes/classic-silver.json';
-const PLACEHOLDER_EVENT_SLUGS = new Set(['event-slug', 'wedding-event', 'default-event', 'demo-event']);
 
 function normalizePathname(pathname) {
   if (typeof pathname !== 'string') {
@@ -11,55 +10,27 @@ function normalizePathname(pathname) {
   return pathname.trim() || '/';
 }
 
-function normalizeSlug(value) {
-  if (typeof value !== 'string') {
-    return '';
-  }
-
-  return value.trim().toLowerCase();
-}
-
-export function isUsableEventSlug(value) {
-  const slug = normalizeSlug(value);
-
-  if (!slug) {
-    return false;
-  }
-
-  if (slug.includes('.') || slug.includes('/')) {
-    return false;
-  }
-
-  if (slug === 'api' || slug === 'assets') {
-    return false;
-  }
-
-  return !PLACEHOLDER_EVENT_SLUGS.has(slug);
-}
-
-export function getEventSlugFromSearch(search = window.location.search) {
-  try {
-    const params = new URLSearchParams(search || '');
-    const slug = params.get('slug') || params.get('event') || '';
-    return isUsableEventSlug(slug) ? slug.trim() : '';
-  } catch {
-    return '';
-  }
-}
-
 export function getEventSlugFromPath(pathname = window.location.pathname) {
   const normalizedPath = normalizePathname(pathname);
   const [firstSegment = ''] = normalizedPath.split('/').filter(Boolean);
 
-  if (!isUsableEventSlug(firstSegment)) {
+  if (!firstSegment) {
+    return '';
+  }
+
+  if (firstSegment.includes('.')) {
+    return '';
+  }
+
+  if (firstSegment === 'api' || firstSegment === 'assets') {
     return '';
   }
 
   return firstSegment;
 }
 
-export function resolveSiteConfigSource(pathname = window.location.pathname, search = window.location.search) {
-  const slug = getEventSlugFromPath(pathname) || getEventSlugFromSearch(search);
+export function resolveSiteConfigSource(pathname = window.location.pathname) {
+  const slug = getEventSlugFromPath(pathname);
 
   if (!slug) {
     return {

@@ -4,7 +4,7 @@ import { RSVP } from './rsvp.js';
 import { PresentPage } from './presente.js';
 import { AudioController } from './audio.js';
 import { cloneDeep, mergeDeep, setInputPlaceholder, setText } from './utils.js';
-import { isUsableEventSlug, resolveSiteConfigSource, resolveThemePath } from './config-source.js';
+import { resolveSiteConfigSource, resolveThemePath } from './config-source.js';
 import { markBootstrapComplete, hideLoadingScreen, applyThemeToLoadingScreen } from './loading-screen.js';
 import { onConfigLoaded } from './debug-badge.js';
 
@@ -1123,7 +1123,7 @@ async function bootstrap() {
         // 2. Se há eventId, preferir carregar da API em vez do arquivo estático
         let finalConfigUrl = configSource.url;
         const eventId = initialConfig?.rsvp?.eventId;
-        if (isUsableEventSlug(eventId) && !configSource.usesApi) {
+        if (eventId && !configSource.usesApi) {
             finalConfigUrl = `/api/event-config?slug=${encodeURIComponent(eventId)}`;
             console.log('[bootstrap] Detectado eventId, carregando config da API:', finalConfigUrl);
         }

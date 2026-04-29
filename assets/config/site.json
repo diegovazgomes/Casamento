@@ -1,7 +1,7 @@
 {
   "activeLayout": "classic",
   "rsvp": {
-    "eventId": "event-slug",
+    "eventId": "siannah-diego-2026",
     "supabaseEnabled": true
   },
   "activeTheme": "assets/layouts/classic/themes/classic-gold.json",
@@ -32,15 +32,15 @@
     "weekday": "Domingo",
     "time": "17:00",
     "timezone": "Horário de Brasília",
-    "locationName": "Local da Cerimônia",
-    "locationCity": "Cidade do Evento",
-    "mapsLink": "https://maps.google.com",
-    "mapEnabled": false,
+    "locationName": "Mansão Ilha de Capri",
+    "locationCity": "São Bernardo do Campo",
+    "mapsLink": "https://www.google.com/maps/dir//Ilha+de+Capri+Buffet+Eventos,+Rodovia+Anchieta,+SP-150,+km+28+-+Vila+Balnearia,+S%C3%A3o+Bernardo+do+Campo+-+SP,+09822-250/@-23.6611535,-46.6029821,15z/data=!4m8!4m7!1m0!1m5!1m1!1s0x94ce41794f164f17:0x93eaef9188424c1b!2m2!1d-46.535788!2d-23.767335?entry=ttu&g_ep=EgoyMDI2MDQwMS4wIKXMDSoASAFQAw%3D%3D",
+    "mapEnabled": true,
     "venueCoordinates": {
       "lat": -23.8545,
       "lng": -46.5797
     },
-    "venueAddress": "Endereço do local será informado aos convidados"
+    "venueAddress": "Rodovia Anchieta, SP-150, km 28, São Bernardo do Campo - SP"
   },
   "texts": {
     "metaTitle": "Convite de Casamento",
@@ -94,13 +94,13 @@
     "backToExtrasButton": "Voltar para página principal",
     "giftOverlayCloseButton": "Fechar",
     "giftOverlayBackButton": "Voltar para confirmação",
-    "footerNote": "06 . 09 . 2026 | Cidade do Evento"
+    "footerNote": "06 . 09 . 2026 | São Bernardo do Campo"
   },
   "gift": {
-    "pixKey": "CHAVE_PIX_OU_CODIGO_COPIA_E_COLA_AQUI",
-    "pixQrImage": "assets/images/icons/pix-placeholder.svg",
+    "pixKey": "c7806bc8-831c-4a41-8bd5-80862fe13584",
+    "pixQrImage": "assets/images/icons/IMG_8732.jpeg",
     "cardPaymentEnabled": true,
-    "cardPaymentLink": "https://pagamento.exemplo.com/link-do-casal",
+    "cardPaymentLink": "https://link.mercadopago.com.br/diegovaz",
     "activeCatalogKey": "honeymoon",
     "catalog": {
       "enabled": true,
@@ -506,16 +506,16 @@
         "intro": "Reunimos as perguntas mais frequentes para facilitar o seu preparo.",
         "items": [
           {
-            "question": "Até quando posso confirmar presença?",
-            "answer": "Pedimos que confirme o quanto antes para organização do evento."
+            "question": "Qual valor do convite avulço?",
+            "answer": "R$100,00 por pessoa"
           },
           {
             "question": "Qual o dresscode da festa?",
-            "answer": "Traje esporte fino."
+            "answer": "Apenas roupas da lacoste"
           },
           {
             "question": "Tem estacionamento no local?",
-            "answer": "Consulte as orientações atualizadas no dia do evento."
+            "answer": "Sim. O estacionamento é cobrado R$40,00 por veículo"
           }
         ]
       }
@@ -546,9 +546,9 @@
         "restaurantsTitle": "Restaurantes",
         "restaurants": [
           {
-            "name": "Restaurante Sugerido",
-            "description": "Opção próxima ao local do evento.",
-            "link": "https://www.google.com/maps",
+            "name": "Raphaela Bolos",
+            "description": "Melhor ovo de Páscoa da América Latina",
+            "link": "https://raphaconfeitaria.menudino.com/",
             "linkLabel": "Ver na web"
           },
           {
@@ -609,7 +609,7 @@
     }
   },
   "whatsapp": {
-    "destinationPhone": "5500000000000",
+    "destinationPhone": "5511949606377",
     "recipientName": "Noiva",
     "redirectDelayMs": 5000,
     "messages": {
@@ -650,7 +650,7 @@
   "themeOverrides": {},
   "dashboard": {
     "enabled": true,
-    "eventId": "event-slug",
+    "eventId": "siannah-diego-2026",
     "reminderTemplates": {
       "pending": "Olá! Ainda não recebemos sua confirmação para o casamento. Por favor, confirme sua presença através do link que recebeu.",
       "thankyou": "Obrigado por confirmar sua presença no casamento! Fique atento para mais informações nos próximos dias.",
