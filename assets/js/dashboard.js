@@ -1448,6 +1448,15 @@ function loadEditorTab() {
   // Páginas extras
   renderPagesGrid(config.pages || {});
 
+  // Capítulos de Nossa História
+  const _chapters = config.pages?.historia?.content?.chapters || [];
+  for (let _i = 0; _i < 3; _i++) {
+    const _ch = _chapters[_i] || {};
+    setVal(`edChapter${_i}Year`,  _ch.year  ?? '');
+    setVal(`edChapter${_i}Title`, _ch.title ?? '');
+    setVal(`edChapter${_i}Text`,  _ch.text  ?? '');
+  }
+
   updateEditorSaveStatus();
 }
 
@@ -2093,12 +2102,19 @@ function collectEditorValues() {
     config.pages[key].cardHint  = document.getElementById(`edPage_${key}_hint`)?.value.trim()  || '';
   });
 
+  // Capítulos de Nossa História
+  if (!config.pages.historia) config.pages.historia = {};
+  if (!config.pages.historia.content) config.pages.historia.content = {};
+  config.pages.historia.content.chapters = [0, 1, 2].map(i => ({
+    year:  document.getElementById(`edChapter${i}Year`)?.value.trim()  || '',
+    title: document.getElementById(`edChapter${i}Title`)?.value.trim() || '',
+    text:  document.getElementById(`edChapter${i}Text`)?.value.trim()  || '',
+  }));
+
   // Imagens da galeria não têm campo de formulário — vivem em window.__SITE_CONFIG__
   // (modificado pelos uploads). Preserva o estado vivo para não descartar ao salvar.
   const liveGallery = window.__SITE_CONFIG__?.pages?.historia?.content?.gallery;
   if (Array.isArray(liveGallery)) {
-    if (!config.pages.historia) config.pages.historia = {};
-    if (!config.pages.historia.content) config.pages.historia.content = {};
     config.pages.historia.content.gallery = liveGallery;
   }
 
