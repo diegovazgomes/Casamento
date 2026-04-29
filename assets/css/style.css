@@ -718,3 +718,24 @@ footer {
         transition: none;
     }
 }
+
+@media (max-width: 768px) {
+  .editor-savebar {
+    padding: 10px 16px;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .editor-save-status {
+    width: 100%;
+    text-align: center;
+  }
+  .editor-save-actions {
+    flex-wrap: wrap;
+    width: 100%;
+  }
+  .editor-save-actions .btn {
+    width: 100%;
+    box-sizing: border-box;
+    justify-content: center;
+  }
+}

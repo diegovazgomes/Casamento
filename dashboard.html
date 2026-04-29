@@ -1515,19 +1515,9 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
                        placeholder="Rua dos Noivos, 100 — São Paulo, SP" oninput="markEditorDirty()">
               </div>
             </div>
-            <!-- Coordenadas — preenchidas automaticamente pelo link do Maps -->
-            <div class="form-grid-2">
-              <div class="field">
-                <label class="field-label">Latitude <span class="field-badge-auto">auto</span></label>
-                <input type="number" class="field-input sm field-auto" id="edEventLat"
-                       step="0.000001" placeholder="-23.710000" readonly>
-              </div>
-              <div class="field">
-                <label class="field-label">Longitude <span class="field-badge-auto">auto</span></label>
-                <input type="number" class="field-input sm field-auto" id="edEventLng"
-                       step="0.000001" placeholder="-46.560000" readonly>
-              </div>
-            </div>
+            <!-- Coordenadas — preenchidas automaticamente pelo link do Maps (campos ocultos) -->
+            <input type="hidden" id="edEventLat">
+            <input type="hidden" id="edEventLng">
             <div class="form-group">
               <label class="toggle">
                 <input type="checkbox" class="toggle-input" id="edEventMapEnabled" onchange="markEditorDirty()">

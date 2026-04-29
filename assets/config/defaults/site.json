@@ -1,239 +1,239 @@
 {
-    "couple": {
-        "names": "Noiva & Noivo",
-        "subtitle": "Uma história que começa aqui."
+  "couple": {
+    "names": "Noiva & Noivo",
+    "subtitle": "Um momento pensado para viver ao lado de quem faz parte da nossa vida"
+  },
+  "event": {
+    "date": "2026-09-06T17:00:00-03:00",
+    "heroDate": "06 . 09 . 2026",
+    "detailDate": "06 Set 2026",
+    "weekday": "Domingo",
+    "time": "17:00",
+    "timezone": "Horario de Brasilia",
+    "locationName": "Mansao Ilha de Capri",
+    "locationCity": "Sao Bernardo do Campo",
+    "mapsLink": "https://share.google/7Qt15gWSb3IAGGofM",
+    "mapEnabled": false,
+    "venueCoordinates": {
+      "lat": -23.8545,
+      "lng": -46.5797
     },
-    "event": {
-        "date": "2026-09-06T17:00:00-03:00",
-        "heroDate": "06 . 09 . 2026",
-        "detailDate": "06 Set 2026",
-        "weekday": "Domingo",
-        "time": "17:00",
-        "timezone": "Horario de Brasilia",
-        "locationName": "Mansao Ilha de Capri",
-        "locationCity": "Sao Bernardo do Campo",
-        "mapsLink": "https://share.google/7Qt15gWSb3IAGGofM",
-        "mapEnabled": false,
-        "venueCoordinates": {
-            "lat": -23.8545,
-            "lng": -46.5797
+    "venueAddress": "Rodovia Anchieta, SP-150, km 28, Sao Bernardo do Campo - SP"
+  },
+  "texts": {
+    "metaTitle": "Convite de Casamento",
+    "metaDescription": "Você foi convidado para celebrar este momento especial.",
+    "themeColor": "#1a1714",
+    "introLabel": "Convite",
+    "intro": "Seguimos escolhendo um ao outro, agora para todo sempre.",
+    "heroLabel": "Voce foi convidado para o casamento de",
+    "countdownTag": "Contagem Regressiva",
+    "countdownTitle": "O grande dia se aproxima!",
+    "countdownFinished": "O grande dia chegou.",
+    "detailsTag": "Detalhes da Cerimonia",
+    "detailsTitle": "O inicio de tudo o que queremos viver juntos.",
+    "detailsIntro": "Uma celebracao intima, pensada para compartilhar esse momento com quem faz parte da nossa historia.",
+    "detailsDateLabel": "Data",
+    "detailsTimeLabel": "Horario",
+    "detailsLocationLabel": "Local",
+    "detailsOccasionLabel": "Ocasiao",
+    "detailsOccasionValue": "Cerimonia & Recepcao",
+    "detailsOccasionSub": "Traje esporte fino",
+    "detailsLocationHint": "Abrir no mapa",
+    "detailsGiftTitle": "Presente",
+    "detailsGiftValue": "Para nos presentear",
+    "detailsGiftSub": "Abrir opcoes",
+    "rsvpTag": "Confirmacao de Presenca",
+    "rsvpTitle": "Esperamos voce.",
+    "rsvpSubtitle": "Pedimos, por gentileza, que confirme sua presenca o quanto antes.",
+    "rsvpFormTitle": "Confirmar Presenca",
+    "rsvpFormSubtitle": "Preencha os dados para registrar sua confirmacao com a gente.",
+    "rsvpPlaceholderName": "Seu nome completo",
+    "rsvpPlaceholderPhone": "Seu WhatsApp",
+    "rsvpYesLabel": "Confirmo presenca",
+    "rsvpNoLabel": "Nao poderei ir",
+    "rsvpSubmit": "Enviar confirmacao aos noivos",
+    "rsvpSuccessFaqHint": "Se ainda tiver duvidas, a area de FAQ acima pode te ajudar. Se preferir falar diretamente com a gente, use o botao abaixo.",
+    "rsvpSuccessContactButton": "Falar com os noivos no WhatsApp",
+    "giftTag": "Presente",
+    "giftTitle": "Para nos presentear",
+    "giftIntro": "Sua presenca ja e o nosso maior presente.",
+    "giftPixTag": "Pix",
+    "giftPixTitle": "Pix do casal",
+    "giftPixDescription": "Se preferir, voce pode nos presentear por Pix.",
+    "giftPixCopyLabel": "Pix copia e cola",
+    "giftPixCopyButton": "Copiar codigo Pix",
+    "giftCardTag": "Pagamento por cartao",
+    "giftCardTitle": "Pagamento por cartao",
+    "giftCardBody": "Em breve, esta opcao estara disponivel.",
+    "giftCardPlaceholder": "Espaco reservado para o link de pagamento por cartao.",
+    "backToHomeButton": "Voltar para o início",
+    "backToExtrasButton": "Voltar",
+    "giftOverlayCloseButton": "Fechar",
+    "giftOverlayBackButton": "Voltar para confirmacao",
+    "footerNote": "06 . 09 . 2026 | Sao Bernardo do Campo",
+    "recipientName": "Noiva"
+  },
+  "gift": {
+    "pixKey": "CHAVE_PIX_OU_CODIGO_COPIA_E_COLA_AQUI",
+    "pixQrImage": "assets/images/icons/pix-placeholder.svg",
+    "cardPaymentEnabled": false,
+    "cardPaymentLink": "https://pagamento.exemplo.com/link-do-casal",
+    "activeCatalogKey": "honeymoon",
+    "catalog": {
+      "enabled": true,
+      "title": "Lista de Lua de Mel",
+      "items": []
+    },
+    "catalogs": {
+      "activeKey": "honeymoon",
+      "lists": {
+        "honeymoon": {
+          "enabled": true,
+          "title": "Lista de Lua de Mel",
+          "subtitle": "",
+          "items": []
         },
-        "venueAddress": "Rodovia Anchieta, SP-150, km 28, Sao Bernardo do Campo - SP"
-    },
-    "texts": {
-        "metaTitle": "Convite de Casamento",
-        "metaDescription": "Você foi convidado para celebrar este momento especial.",
-        "themeColor": "#1a1714",
-        "introLabel": "Convite",
-        "intro": "Seguimos escolhendo um ao outro, agora para todo sempre.",
-        "heroLabel": "Voce foi convidado para o casamento de",
-        "countdownTag": "Contagem Regressiva",
-        "countdownTitle": "O grande dia se aproxima!",
-        "countdownFinished": "O grande dia chegou.",
-        "detailsTag": "Detalhes da Cerimonia",
-        "detailsTitle": "O inicio de tudo o que queremos viver juntos.",
-        "detailsIntro": "Uma celebracao intima, pensada para compartilhar esse momento com quem faz parte da nossa historia.",
-        "detailsDateLabel": "Data",
-        "detailsTimeLabel": "Horario",
-        "detailsLocationLabel": "Local",
-        "detailsOccasionLabel": "Ocasiao",
-        "detailsOccasionValue": "Cerimonia & Recepcao",
-        "detailsOccasionSub": "Traje esporte fino",
-        "detailsLocationHint": "Abrir no mapa",
-        "detailsGiftTitle": "Presente",
-        "detailsGiftValue": "Para nos presentear",
-        "detailsGiftSub": "Abrir opcoes",
-        "rsvpTag": "Confirmacao de Presenca",
-        "rsvpTitle": "Esperamos voce.",
-        "rsvpSubtitle": "Pedimos, por gentileza, que confirme sua presenca o quanto antes.",
-        "rsvpFormTitle": "Confirmar Presenca",
-        "rsvpFormSubtitle": "Preencha os dados para registrar sua confirmacao com a gente.",
-        "rsvpPlaceholderName": "Seu nome completo",
-        "rsvpPlaceholderPhone": "Seu WhatsApp",
-        "rsvpYesLabel": "Confirmo presenca",
-        "rsvpNoLabel": "Nao poderei ir",
-        "rsvpSubmit": "Enviar confirmacao aos noivos",
-        "rsvpSuccessFaqHint": "Se ainda tiver duvidas, a area de FAQ acima pode te ajudar. Se preferir falar diretamente com a gente, use o botao abaixo.",
-        "rsvpSuccessContactButton": "Falar com os noivos no WhatsApp",
-        "giftTag": "Presente",
-        "giftTitle": "Para nos presentear",
-        "giftIntro": "Sua presenca ja e o nosso maior presente.",
-        "giftPixTag": "Pix",
-        "giftPixTitle": "Pix do casal",
-        "giftPixDescription": "Se preferir, voce pode nos presentear por Pix.",
-        "giftPixCopyLabel": "Pix copia e cola",
-        "giftPixCopyButton": "Copiar codigo Pix",
-        "giftCardTag": "Pagamento por cartao",
-        "giftCardTitle": "Pagamento por cartao",
-        "giftCardBody": "Em breve, esta opcao estara disponivel.",
-        "giftCardPlaceholder": "Espaco reservado para o link de pagamento por cartao.",
-        "backToHomeButton": "Voltar para o início",
-        "backToExtrasButton": "Voltar",
-        "giftOverlayCloseButton": "Fechar",
-        "giftOverlayBackButton": "Voltar para confirmacao",
-        "footerNote": "06 . 09 . 2026 | Sao Bernardo do Campo",
-        "recipientName": "Noiva"
-    },
-    "gift": {
-        "pixKey": "CHAVE_PIX_OU_CODIGO_COPIA_E_COLA_AQUI",
-        "pixQrImage": "assets/images/icons/pix-placeholder.svg",
-        "cardPaymentEnabled": false,
-        "cardPaymentLink": "https://pagamento.exemplo.com/link-do-casal",
-        "activeCatalogKey": "honeymoon",
-        "catalog": {
-            "enabled": true,
-            "title": "Lista de Lua de Mel",
-            "items": []
-        },
-        "catalogs": {
-            "activeKey": "honeymoon",
-            "lists": {
-                "honeymoon": {
-                    "enabled": true,
-                    "title": "Lista de Lua de Mel",
-                    "subtitle": "",
-                    "items": []
-                },
-                "home": {
-                    "enabled": true,
-                    "title": "Lista para Casa",
-                    "subtitle": "",
-                    "items": []
-                }
-            }
+        "home": {
+          "enabled": true,
+          "title": "Lista para Casa",
+          "subtitle": "",
+          "items": []
         }
+      }
+    }
+  },
+  "media": {
+    "heroImage": "assets/images/couple/casal.png",
+    "tracks": {
+      "main": {
+        "src": "assets/audio/main-theme.mp3",
+        "volume": 0.14,
+        "startTime": 8
+      },
+      "gift": {
+        "src": "assets/audio/gift-theme.mp3",
+        "volume": 0.12,
+        "startTime": 78
+      }
+    }
+  },
+  "pages": {
+    "historia": {
+      "enabled": true,
+      "cardLabel": "Nossa Historia",
+      "cardHint": "Ler nossa historia",
+      "content": {
+        "tag": "Nossa Historia",
+        "title": "Como tudo comecou",
+        "intro": "Uma historia que e nossa, e que a partir de setembro passa a ser de voces tambem.",
+        "gallery": [],
+        "chapters": []
+      }
     },
-    "media": {
-        "heroImage": "assets/images/couple/casal.png",
-        "tracks": {
-            "main": {
-                "src": "assets/audio/main-theme.mp3",
-                "volume": 0.14,
-                "startTime": 8
-            },
-            "gift": {
-                "src": "assets/audio/gift-theme.mp3",
-                "volume": 0.12,
-                "startTime": 78
-            }
-        }
+    "faq": {
+      "enabled": true,
+      "cardLabel": "Duvidas Frequentes",
+      "cardHint": "Ver perguntas",
+      "content": {
+        "tag": "FAQ",
+        "title": "Tudo que voce precisa saber",
+        "intro": "",
+        "items": []
+      }
     },
-    "pages": {
-        "historia": {
-            "enabled": true,
-            "cardLabel": "Nossa Historia",
-            "cardHint": "Ler nossa historia",
-            "content": {
-                "tag": "Nossa Historia",
-                "title": "Como tudo comecou",
-                "intro": "Uma historia que e nossa, e que a partir de setembro passa a ser de voces tambem.",
-                "gallery": [],
-                "chapters": []
-            }
-        },
-        "faq": {
-            "enabled": true,
-            "cardLabel": "Duvidas Frequentes",
-            "cardHint": "Ver perguntas",
-            "content": {
-                "tag": "FAQ",
-                "title": "Tudo que voce precisa saber",
-                "intro": "",
-                "items": []
-            }
-        },
-        "hospedagem": {
-            "enabled": true,
-            "cardLabel": "Para Quem Vem de Fora",
-            "cardHint": "Ver opcoes",
-            "content": {
-                "tag": "Para Quem Vem de Fora",
-                "title": "Fique a vontade para explorar",
-                "intro": "",
-                "hotelsTitle": "Hospedagem",
-                "hotels": [],
-                "restaurantsTitle": "Restaurantes",
-                "restaurants": []
-            }
-        },
-        "mensagem": {
-            "enabled": false,
-            "cardLabel": "Mensagem ao Casal",
-            "cardHint": "Deixar recado",
-            "content": {
-                "tag": "Mensagem ao Casal",
-                "title": "Deixe uma mensagem de carinho",
-                "intro": "Seu recado vai deixar esse momento ainda mais especial para nós.",
-                "formTitle": "Escreva para nós",
-                "formSubtitle": "Você pode deixar seu nome e uma mensagem que prepararemos para guardar com carinho.",
-                "nameLabel": "Seu nome (opcional)",
-                "messageLabel": "Sua mensagem",
-                "namePlaceholder": "Como podemos te chamar?",
-                "messagePlaceholder": "Escreva aqui sua mensagem de carinho...",
-                "submitLabel": "Enviar mensagem aos noivos",
-                "successMessage": "Mensagem enviada com carinho. Obrigado por deixar seu recado para nos.",
-                "errorMessage": "Nao foi possivel enviar sua mensagem agora. Tente novamente."
-            }
-        },
-        "musica": {
-            "enabled": false,
-            "cardLabel": "Sugerir Música",
-            "cardHint": "Para a festa",
-            "content": {
-                "tag": "Sugestão de Música",
-                "title": "Qual música não pode faltar?",
-                "intro": "Sugira uma música para tocar na nossa festa e ajudar a montar a trilha desse dia.",
-                "formTitle": "Envie sua sugestão",
-                "formSubtitle": "Compartilhe ao menos o nome da música. Se quiser, inclua artista e observações.",
-                "nameLabel": "Seu nome (opcional)",
-                "songLabel": "Nome da música",
-                "artistLabel": "Artista (opcional)",
-                "notesLabel": "Observações (opcional)",
-                "namePlaceholder": "Como podemos te chamar?",
-                "songPlaceholder": "Ex: Velha Infância",
-                "artistPlaceholder": "Ex: Tribalistas",
-                "notesPlaceholder": "Diga por que essa música é especial...",
-                "submitLabel": "Enviar sugestao aos noivos",
-                "successMessage": "Sugestao enviada com sucesso. Obrigado por ajudar a montar a trilha da nossa festa.",
-                "errorMessage": "Nao foi possivel enviar sua sugestao agora. Tente novamente."
-            }
-        },
-        "presente": {
-            "enabled": true,
-            "cardLabel": "Lista de Presentes",
-            "cardHint": "Ver opcoes"
-        }
+    "hospedagem": {
+      "enabled": true,
+      "cardLabel": "Para Quem Vem de Fora",
+      "cardHint": "Ver opcoes",
+      "content": {
+        "tag": "Para Quem Vem de Fora",
+        "title": "Fique a vontade para explorar",
+        "intro": "",
+        "hotelsTitle": "Hospedagem",
+        "hotels": [],
+        "restaurantsTitle": "Restaurantes",
+        "restaurants": []
+      }
     },
-    "whatsapp": {
-        "destinationPhone": "5511914772174",
-        "recipientName": "Noiva",
-        "redirectDelayMs": 5000,
-        "messages": {
-            "attending": "Ola, {recipientName}!\n\nAqui e {name}.\nMeu WhatsApp para contato e {phone}.\nEstou passando para confirmar minha presenca no casamento.\n\nNos vemos em breve.",
-            "notAttending": "Ola, {recipientName}!\n\nAqui e {name}.\nMeu WhatsApp para contato e {phone}.\nInfelizmente, nao poderei estar presente no casamento.\n\nAgradeço muito pelo convite e desejo um dia lindo para voces."
-        },
-        "feedback": {
-            "attending": {
-                "title": "Presenca confirmada, {firstName}.",
-                "subtitle": "Sua confirmacao foi registrada com carinho. Estamos muito felizes em celebrar esse momento com voce.",
-                "note": ""
-            },
-            "notAttending": {
-                "title": "Obrigada pelo aviso, {firstName}.",
-                "subtitle": "Seu retorno foi registrado com carinho. Agradecemos por nos avisar.",
-                "note": ""
-            },
-            "error": {
-                "title": "Faltam alguns dados para continuar.",
-                "subtitle": "Revise os campos destacados e tente novamente.",
-                "note": ""
-            }
-        }
+    "mensagem": {
+      "enabled": false,
+      "cardLabel": "Mensagem ao Casal",
+      "cardHint": "Deixar recado",
+      "content": {
+        "tag": "Mensagem ao Casal",
+        "title": "Deixe uma mensagem de carinho",
+        "intro": "Seu recado vai deixar esse momento ainda mais especial para nós.",
+        "formTitle": "Escreva para nós",
+        "formSubtitle": "Você pode deixar seu nome e uma mensagem que prepararemos para guardar com carinho.",
+        "nameLabel": "Seu nome (opcional)",
+        "messageLabel": "Sua mensagem",
+        "namePlaceholder": "Como podemos te chamar?",
+        "messagePlaceholder": "Escreva aqui sua mensagem de carinho...",
+        "submitLabel": "Enviar mensagem aos noivos",
+        "successMessage": "Mensagem enviada com carinho. Obrigado por deixar seu recado para nos.",
+        "errorMessage": "Nao foi possivel enviar sua mensagem agora. Tente novamente."
+      }
     },
-    "themeOverridesByTheme": {
-        "classic-gold-light": {
-            "colors": {}
-        }
+    "musica": {
+      "enabled": false,
+      "cardLabel": "Sugerir Música",
+      "cardHint": "Para a festa",
+      "content": {
+        "tag": "Sugestão de Música",
+        "title": "Qual música não pode faltar?",
+        "intro": "Sugira uma música para tocar na nossa festa e ajudar a montar a trilha desse dia.",
+        "formTitle": "Envie sua sugestão",
+        "formSubtitle": "Compartilhe ao menos o nome da música. Se quiser, inclua artista e observações.",
+        "nameLabel": "Seu nome (opcional)",
+        "songLabel": "Nome da música",
+        "artistLabel": "Artista (opcional)",
+        "notesLabel": "Observações (opcional)",
+        "namePlaceholder": "Como podemos te chamar?",
+        "songPlaceholder": "Ex: Velha Infância",
+        "artistPlaceholder": "Ex: Tribalistas",
+        "notesPlaceholder": "Diga por que essa música é especial...",
+        "submitLabel": "Enviar sugestao aos noivos",
+        "successMessage": "Sugestao enviada com sucesso. Obrigado por ajudar a montar a trilha da nossa festa.",
+        "errorMessage": "Nao foi possivel enviar sua sugestao agora. Tente novamente."
+      }
     },
-    "themeOverrides": {}
+    "presente": {
+      "enabled": true,
+      "cardLabel": "Lista de Presentes",
+      "cardHint": "Ver opcoes"
+    }
+  },
+  "whatsapp": {
+    "destinationPhone": "5511914772174",
+    "recipientName": "Noiva",
+    "redirectDelayMs": 5000,
+    "messages": {
+      "attending": "Ola, {recipientName}!\n\nAqui e {name}.\nMeu WhatsApp para contato e {phone}.\nEstou passando para confirmar minha presenca no casamento.\n\nNos vemos em breve.",
+      "notAttending": "Ola, {recipientName}!\n\nAqui e {name}.\nMeu WhatsApp para contato e {phone}.\nInfelizmente, nao poderei estar presente no casamento.\n\nAgradeço muito pelo convite e desejo um dia lindo para voces."
+    },
+    "feedback": {
+      "attending": {
+        "title": "Presenca confirmada, {firstName}.",
+        "subtitle": "Sua confirmacao foi registrada com carinho. Estamos muito felizes em celebrar esse momento com voce.",
+        "note": ""
+      },
+      "notAttending": {
+        "title": "Obrigada pelo aviso, {firstName}.",
+        "subtitle": "Seu retorno foi registrado com carinho. Agradecemos por nos avisar.",
+        "note": ""
+      },
+      "error": {
+        "title": "Faltam alguns dados para continuar.",
+        "subtitle": "Revise os campos destacados e tente novamente.",
+        "note": ""
+      }
+    }
+  },
+  "themeOverridesByTheme": {
+    "classic-gold-light": {
+      "colors": {}
+    }
+  },
+  "themeOverrides": {}
 }
