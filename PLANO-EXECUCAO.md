@@ -8,7 +8,7 @@
 
 Transformar o convite — atualmente configurado via `site.json` para um único casal — em uma plataforma multi-tenant escalável. Cada casal terá seu próprio espaço no Supabase, acessará o dashboard com login próprio e gerenciará seu convite de forma autônoma.
 
-- `site.json` passa a ser configuração exclusiva do desenvolvedor (feature flags, defaults globais).
+- `site.json` passa a ser configuração exclusiva doo desenvolvedor (feature flags, defaults globais).
 - Dados variáveis por casal migram para o Supabase — tabelas `events` e `event_gifts` + Storage.
 - Autenticação via Supabase Auth (já funcional) — cada usuário vê apenas seus próprios dados.
 - URLs baseadas em slug: `seusite.com.br/siannah-diego-2026` via Vercel rewrite.
