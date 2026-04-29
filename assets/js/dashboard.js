@@ -3,11 +3,22 @@
  * Lógica e interação do painel de gerenciamento do casal
  */
 
+import { isUsableEventSlug } from './config-source.js';
+
+function getSlugFromCurrentPath(pathname = window.location.pathname) {
+  const [firstSegment = ''] = String(pathname || '').replace(/^\//, '').split('/');
+  return isUsableEventSlug(firstSegment) ? firstSegment : null;
+}
+
+function normalizeDashboardSlug(value) {
+  return isUsableEventSlug(value) ? String(value).trim() : null;
+}
+
 // Estado
 const state = {
   authToken: null,
   eventId: '',
-  eventSlug: window.location.pathname.replace(/^\//, '').split('/')[0] || null,
+  eventSlug: getSlugFromCurrentPath(),
   grupos: [],
   confirmacoes: [],
   allConfirmacoes: [],
@@ -159,7 +170,7 @@ function applySiteConfig(siteConfig) {
     return;
   }
 
-  const eventSlug = siteConfig?.rsvp?.eventId;
+  const eventSlug = normalizeDashboardSlug(siteConfig?.rsvp?.eventId);
   if (eventSlug) {
     state.eventSlug = eventSlug;
   }
@@ -174,13 +185,12 @@ function applySiteConfig(siteConfig) {
 }
 
 async function hydrateDashboardEventContext() {
-  const lookupSlug = state.eventSlug || window.__SITE_CONFIG__?.rsvp?.eventId;
+  const lookupSlug = normalizeDashboardSlug(state.eventSlug || window.__SITE_CONFIG__?.rsvp?.eventId);
+  const endpoint = lookupSlug
+    ? `/api/dashboard/event?slug=${encodeURIComponent(lookupSlug)}`
+    : '/api/dashboard/event';
 
-  if (!lookupSlug) {
-    throw new Error('Slug do evento não disponível para o dashboard');
-  }
-
-  const response = await fetchWithAuth(`/api/dashboard/event?slug=${encodeURIComponent(lookupSlug)}`);
+  const response = await fetchWithAuth(endpoint);
   const data = await response.json();
 
   if (!response.ok) {

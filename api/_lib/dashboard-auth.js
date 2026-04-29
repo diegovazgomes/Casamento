@@ -51,8 +51,11 @@ export async function authenticateDashboardRequest(req) {
   };
 }
 
-export async function findOwnedEventRecord(supabase, userId, lookup, selectClause) {
-  if (!lookup?.eventId && !lookup?.slug) {
+export async function findOwnedEventRecord(supabase, userId, lookup, selectClause, options = {}) {
+  const { allowImplicitLookup = false } = options;
+  const hasLookup = Boolean(lookup?.eventId || lookup?.slug);
+
+  if (!hasLookup && !allowImplicitLookup) {
     return null;
   }
 
@@ -61,10 +64,14 @@ export async function findOwnedEventRecord(supabase, userId, lookup, selectClaus
     .select(selectClause)
     .eq('user_id', userId);
 
-  if (lookup.eventId) {
-    query = query.eq('id', lookup.eventId);
+  if (hasLookup) {
+    if (lookup.eventId) {
+      query = query.eq('id', lookup.eventId);
+    } else {
+      query = query.eq('slug', lookup.slug);
+    }
   } else {
-    query = query.eq('slug', lookup.slug);
+    query = query.order('updated_at', { ascending: false }).limit(1);
   }
 
   const { data, error } = await query.maybeSingle();
@@ -84,8 +91,9 @@ export async function requireOwnedEvent(req, options = {}) {
   }
 
   const lookup = options.lookup || getDashboardEventLookup(req);
+  const allowImplicitLookup = options.allowImplicitLookup === true;
 
-  if (!lookup.eventId && !lookup.slug) {
+  if (!lookup.eventId && !lookup.slug && !allowImplicitLookup) {
     return {
       ok: false,
       status: 400,
@@ -96,7 +104,7 @@ export async function requireOwnedEvent(req, options = {}) {
   }
 
   const selectClause = options.selectClause || 'id,slug,user_id,config';
-  const event = await findOwnedEventRecord(auth.supabase, auth.user.id, lookup, selectClause);
+  const event = await findOwnedEventRecord(auth.supabase, auth.user.id, lookup, selectClause, { allowImplicitLookup });
 
   if (!event) {
     return {
