@@ -1371,11 +1371,22 @@ function loadEditorTab() {
   // Casal & Evento
   setVal('edCoupleNames',       config.couple?.names      ?? '');
   setVal('edCoupleSubtitle',    config.couple?.subtitle   ?? '');
-  setVal('edEventDate',         config.event?.date        ?? '');
-  setVal('edEventTime',         config.event?.time        ?? '');
-  setVal('edEventHeroDate',     config.event?.heroDate    ?? '');
-  setVal('edEventDisplayDate',  config.event?.displayDate ?? '');
-  setVal('edEventWeekday',      config.event?.weekday     ?? '');
+  // edEventDate é type="date" — precisa de YYYY-MM-DD (não ISO completo)
+  const isoDate = config.event?.date ?? '';
+  const datePart = isoDate.includes('T') ? isoDate.split('T')[0] : isoDate;
+  setVal('edEventDate', datePart);
+  setVal('edEventTime',        config.event?.time        ?? '');
+  // Popula campos derivados do config; se vazios, gera automaticamente da data
+  const heroDate    = config.event?.heroDate    || '';
+  const displayDate = config.event?.displayDate || '';
+  const weekday     = config.event?.weekday     || '';
+  if (heroDate || displayDate || weekday) {
+    setVal('edEventHeroDate',    heroDate);
+    setVal('edEventDisplayDate', displayDate);
+    setVal('edEventWeekday',     weekday);
+  } else if (datePart) {
+    onEventDateChange();
+  }
   setVal('edEventLocation',     config.event?.locationName  ?? '');
   setVal('edEventCity',         config.event?.locationCity  ?? '');
   setVal('edEventMapsLink',     config.event?.mapsLink      ?? '');
@@ -1441,6 +1452,90 @@ function loadEditorTab() {
 }
 
 // ── Helpers de formulário ─────────────────────────────────────
+
+// ── Extração automática de coordenadas do link do Google Maps ──────────────
+
+function extractCoordsFromMapsLink(url) {
+  if (!url) return null;
+  // Formato: /place/.../@lat,lng,zoom
+  const atMatch = url.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+  if (atMatch) return { lat: parseFloat(atMatch[1]), lng: parseFloat(atMatch[2]) };
+  // Formato: ?q=lat,lng ou ?ll=lat,lng ou &ll=lat,lng
+  const qMatch = url.match(/[?&](?:q|ll)=(-?\d+\.\d+),(-?\d+\.\d+)/);
+  if (qMatch) return { lat: parseFloat(qMatch[1]), lng: parseFloat(qMatch[2]) };
+  return null;
+}
+
+function onMapsLinkExtract() {
+  const input   = document.getElementById('edEventMapsLink');
+  const statusEl = document.getElementById('edEventCoordsStatus');
+  const latEl   = document.getElementById('edEventLat');
+  const lngEl   = document.getElementById('edEventLng');
+  if (!input || !statusEl) return;
+
+  const url = input.value.trim();
+  statusEl.style.display = 'block';
+
+  // Link encurtado (maps.app.goo.gl) — não é possível extrair sem fetch
+  if (url.includes('maps.app.goo.gl') || url.includes('goo.gl/maps')) {
+    statusEl.textContent = '⚠ Link encurtado detectado — cole o link completo do Maps para extrair as coordenadas automaticamente.';
+    statusEl.style.color = 'var(--text-soft, #aaa)';
+    return;
+  }
+
+  if (!url) {
+    statusEl.style.display = 'none';
+    return;
+  }
+
+  const coords = extractCoordsFromMapsLink(url);
+  if (coords) {
+    if (latEl) { latEl.value = coords.lat; }
+    if (lngEl) { lngEl.value = coords.lng; }
+    statusEl.textContent = `✓ Coordenadas extraídas: ${coords.lat}, ${coords.lng}`;
+    statusEl.style.color = 'var(--primary, #c9a84c)';
+    markEditorDirty();
+  } else {
+    statusEl.textContent = 'Coordenadas não encontradas — verifique se o link é do Google Maps completo.';
+    statusEl.style.color = 'var(--text-soft, #aaa)';
+  }
+}
+
+// ── Geração automática dos formatos de data ──────────────────────────────────
+
+const MONTHS_SHORT = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+const MONTHS_FULL  = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+const WEEKDAYS     = ['Domingo','Segunda-feira','Terça-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sábado'];
+
+function generateDateFormats(isoDate) {
+  // T12:00:00 evita problemas de fuso horário (date-only strings são tratadas como UTC)
+  const date = new Date(isoDate + 'T12:00:00');
+  if (isNaN(date.getTime())) return null;
+
+  const d = String(date.getDate()).padStart(2, '0');
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const y = date.getFullYear();
+
+  return {
+    heroDate:    `${d} . ${m} . ${y}`,
+    detailDate:  `${d} ${MONTHS_SHORT[date.getMonth()]} ${y}`,
+    displayDate: `${d} de ${MONTHS_FULL[date.getMonth()]} de ${y}`,
+    weekday:     WEEKDAYS[date.getDay()],
+  };
+}
+
+function onEventDateChange() {
+  const dateInput = document.getElementById('edEventDate');
+  if (!dateInput?.value) return;
+
+  const formats = generateDateFormats(dateInput.value);
+  if (!formats) return;
+
+  const set = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
+  set('edEventHeroDate',    formats.heroDate);
+  set('edEventDisplayDate', formats.displayDate);
+  set('edEventWeekday',     formats.weekday);
+}
 
 function setVal(id, value) {
   const el = document.getElementById(id);
@@ -1920,12 +2015,24 @@ function collectEditorValues() {
   config.couple.subtitle = document.getElementById('edCoupleSubtitle')?.value.trim() || '';
 
   if (!config.event) config.event = {};
-  config.event.date         = document.getElementById('edEventDate')?.value.trim()        || config.event.date;
-  config.event.time         = document.getElementById('edEventTime')?.value.trim()        || '';
-  config.event.heroDate     = document.getElementById('edEventHeroDate')?.value.trim()    || '';
-  config.event.displayDate  = document.getElementById('edEventDisplayDate')?.value.trim() || '';
-  config.event.detailDate   = config.event.displayDate;
-  config.event.weekday      = document.getElementById('edEventWeekday')?.value.trim()     || '';
+  // Reconstrói ISO a partir de date (YYYY-MM-DD) + time (HH:MM)
+  const _datePart = document.getElementById('edEventDate')?.value.trim() || '';
+  const _timePart = (document.getElementById('edEventTime')?.value.trim() || '').replace(/h$/i, ':00').replace(/^(\d{1,2})$/, '$1:00');
+  if (_datePart) {
+    const _timeNorm = /^\d{2}:\d{2}/.test(_timePart) ? _timePart.slice(0, 5) : '00:00';
+    config.event.date = `${_datePart}T${_timeNorm}:00`;
+  }
+  config.event.time        = document.getElementById('edEventTime')?.value.trim()        || '';
+  config.event.heroDate    = document.getElementById('edEventHeroDate')?.value.trim()    || '';
+  config.event.displayDate = document.getElementById('edEventDisplayDate')?.value.trim() || '';
+  // detailDate = formato "06 Set 2026" — gera da data se possível, senão usa displayDate
+  if (_datePart) {
+    const _fmt = generateDateFormats(_datePart);
+    config.event.detailDate = _fmt ? _fmt.detailDate : config.event.displayDate;
+  } else {
+    config.event.detailDate = config.event.displayDate;
+  }
+  config.event.weekday     = document.getElementById('edEventWeekday')?.value.trim()     || '';
   config.event.locationName = document.getElementById('edEventLocation')?.value.trim()    || '';
   config.event.locationCity = document.getElementById('edEventCity')?.value.trim()        || '';
   config.event.mapsLink     = document.getElementById('edEventMapsLink')?.value.trim()    || '';

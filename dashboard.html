@@ -128,6 +128,13 @@ body::before{
 /* iOS Safari: font-size < 16px dispara zoom automático ao focar — sem reversão após submit.
    Os inputs do formulário de login recebem 16px explícito para prevenir o zoom. */
 .auth-form .field-input{font-size:16px}
+.field-auto{opacity:.7;cursor:default;background:rgba(0,0,0,0.15)!important}
+.field-badge-auto{
+  display:inline-block;font-size:9px;font-weight:500;letter-spacing:.06em;
+  background:rgba(var(--primary,201,168,76),.15);color:var(--primary,#c9a84c);
+  border:1px solid rgba(var(--primary,201,168,76),.3);
+  border-radius:4px;padding:1px 5px;vertical-align:middle;margin-left:4px;
+}
  
 .btn{
   position:relative;overflow:hidden;
@@ -1432,27 +1439,32 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
 
             <div class="form-grid-2">
               <div class="field">
-                <label class="field-label" for="edEventDate">Data ISO 8601 *</label>
-                <input type="text" class="field-input sm" id="edEventDate" placeholder="2026-09-06T17:00:00-03:00" oninput="markEditorDirty()">
-                <div class="field-hint">Usada para calcular o contador regressivo.</div>
+                <label class="field-label" for="edEventDate">Data do evento *</label>
+                <input type="date" class="field-input sm" id="edEventDate"
+                       onchange="onEventDateChange(); markEditorDirty();">
+                <div class="field-hint">Os formatos abaixo são gerados automaticamente.</div>
               </div>
               <div class="field">
                 <label class="field-label" for="edEventTime">Horário de exibição</label>
                 <input type="text" class="field-input sm" id="edEventTime" placeholder="17h" oninput="markEditorDirty()">
               </div>
             </div>
+            <!-- Campos derivados — gerados automaticamente ao mudar a data -->
             <div class="form-grid-3">
               <div class="field">
-                <label class="field-label" for="edEventHeroDate">Data no hero</label>
-                <input type="text" class="field-input sm" id="edEventHeroDate" placeholder="06 . 09 . 2026" oninput="markEditorDirty()">
+                <label class="field-label">Data no hero <span class="field-badge-auto">auto</span></label>
+                <input type="text" class="field-input sm field-auto" id="edEventHeroDate"
+                       placeholder="06 . 09 . 2026" readonly>
               </div>
               <div class="field">
-                <label class="field-label" for="edEventDisplayDate">Data de exibição</label>
-                <input type="text" class="field-input sm" id="edEventDisplayDate" placeholder="6 de setembro de 2026" oninput="markEditorDirty()">
+                <label class="field-label">Data de exibição <span class="field-badge-auto">auto</span></label>
+                <input type="text" class="field-input sm field-auto" id="edEventDisplayDate"
+                       placeholder="6 de setembro de 2026" readonly>
               </div>
               <div class="field">
-                <label class="field-label" for="edEventWeekday">Dia da semana</label>
-                <input type="text" class="field-input sm" id="edEventWeekday" placeholder="Domingo" oninput="markEditorDirty()">
+                <label class="field-label">Dia da semana <span class="field-badge-auto">auto</span></label>
+                <input type="text" class="field-input sm field-auto" id="edEventWeekday"
+                       placeholder="Domingo" readonly>
               </div>
             </div>
 
@@ -1462,7 +1474,7 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
             <div class="form-grid-2">
               <div class="field">
                 <label class="field-label" for="edEventLocation">Nome do local</label>
-                <input type="text" class="field-input sm" id="edEventLocation" placeholder="Mansão Ilha de Capri" oninput="markEditorDirty()">
+                <input type="text" class="field-input sm" id="edEventLocation" placeholder="Mansão, Sítio, Salão de Festas..." oninput="markEditorDirty()">
               </div>
               <div class="field">
                 <label class="field-label" for="edEventCity">Cidade</label>
@@ -1472,23 +1484,32 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
             <div class="form-group">
               <div class="field">
                 <label class="field-label" for="edEventMapsLink">Link do Google Maps</label>
-                <input type="url" class="field-input sm" id="edEventMapsLink" placeholder="https://maps.google.com/…" oninput="markEditorDirty()">
+                <input type="url" class="field-input sm" id="edEventMapsLink"
+                       placeholder="Cole aqui o link do Google Maps do local"
+                       oninput="markEditorDirty()"
+                       onblur="onMapsLinkExtract()"
+                       onpaste="setTimeout(onMapsLinkExtract, 0)">
+                <div id="edEventCoordsStatus" class="field-hint" style="display:none"></div>
               </div>
             </div>
             <div class="form-group">
               <div class="field">
                 <label class="field-label" for="edEventVenueAddress">Endereço completo</label>
-                <input type="text" class="field-input sm" id="edEventVenueAddress" placeholder="Rua…" oninput="markEditorDirty()">
+                <input type="text" class="field-input sm" id="edEventVenueAddress"
+                       placeholder="Rua dos Noivos, 100 — São Paulo, SP" oninput="markEditorDirty()">
               </div>
             </div>
+            <!-- Coordenadas — preenchidas automaticamente pelo link do Maps -->
             <div class="form-grid-2">
               <div class="field">
-                <label class="field-label" for="edEventLat">Latitude</label>
-                <input type="number" class="field-input sm" id="edEventLat" step="0.000001" placeholder="-23.710000" oninput="markEditorDirty()">
+                <label class="field-label">Latitude <span class="field-badge-auto">auto</span></label>
+                <input type="number" class="field-input sm field-auto" id="edEventLat"
+                       step="0.000001" placeholder="-23.710000" readonly>
               </div>
               <div class="field">
-                <label class="field-label" for="edEventLng">Longitude</label>
-                <input type="number" class="field-input sm" id="edEventLng" step="0.000001" placeholder="-46.560000" oninput="markEditorDirty()">
+                <label class="field-label">Longitude <span class="field-badge-auto">auto</span></label>
+                <input type="number" class="field-input sm field-auto" id="edEventLng"
+                       step="0.000001" placeholder="-46.560000" readonly>
               </div>
             </div>
             <div class="form-group">
