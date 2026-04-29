@@ -64,15 +64,26 @@ function buildStoragePath(eventId, type, file) {
   const extension = resolveFileExtension(file);
 
   if (type === 'hero') {
-    return `${eventId}/hero.${extension}`;
+    return `${eventId}/hero/hero.${extension}`;
   }
 
   if (type === 'pix-qr') {
-    return `${eventId}/pix-qr.${extension}`;
+    return `${eventId}/pix/pix-qr.${extension}`;
   }
 
   const safeBaseName = sanitizeBaseName(file?.originalFilename);
   return `${eventId}/gallery/${Date.now()}-${safeBaseName}.${extension}`;
+}
+
+async function clearStorageFolder(storage, prefix) {
+  const { data, error } = await storage.list(prefix, { limit: 100 });
+  if (error || !Array.isArray(data) || data.length === 0) return;
+  const paths = data
+    .filter((entry) => Boolean(entry?.name))
+    .map((entry) => `${prefix}/${entry.name}`);
+  if (paths.length > 0) {
+    await storage.remove(paths);
+  }
 }
 
 function parseMultipartForm(req) {
@@ -147,6 +158,12 @@ export default async function handler(req, res) {
     const buffer = await readFile(file.filepath);
     const storagePath = buildStoragePath(eventId, type, file);
     const storage = ownedEvent.supabase.storage.from('event-media');
+
+    if (type === 'hero' || type === 'pix-qr') {
+      const folderPrefix = type === 'hero' ? `${eventId}/hero` : `${eventId}/pix`;
+      await clearStorageFolder(storage, folderPrefix);
+    }
+
     const { error: uploadError } = await storage.upload(storagePath, buffer, {
       contentType: file.mimetype,
       upsert: type === 'hero' || type === 'pix-qr',
