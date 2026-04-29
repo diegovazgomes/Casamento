@@ -1852,7 +1852,97 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
           </div>
         </div>
 
-        <!-- ── SEÇÃO 6: PÁGINAS EXTRAS ────────────────── -->
+
+        <!-- ── SEÇÃO 6: NOSSA HISTÓRIA ───────────────── -->
+        <div class="editor-section is-open" id="edSectionHistoria">
+          <button class="editor-section-header" type="button" onclick="toggleEditorSection('edSectionHistoria')">
+            <div>
+              <div class="editor-section-tag">Conteúdo</div>
+              <div class="editor-section-title">Nossa História</div>
+            </div>
+            <svg class="editor-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="editor-section-body">
+            <p style="font-size:11px;color:var(--text-dim);margin-bottom:16px;letter-spacing:0.03em;line-height:1.7">
+              Edite os três momentos que compõem a linha do tempo da página Nossa História.
+            </p>
+
+            <!-- Capítulo 1 -->
+            <div class="historia-chapter-block">
+              <div class="historia-chapter-header">
+                <span class="historia-chapter-num">Capítulo 1</span>
+              </div>
+              <div class="form-grid-3" style="margin-bottom:10px">
+                <div class="field">
+                  <label class="field-label" for="edChapter0Year">Ano</label>
+                  <input type="text" class="field-input sm" id="edChapter0Year"
+                         placeholder="ex: 2019" maxlength="10" oninput="markEditorDirty()">
+                </div>
+                <div class="field" style="grid-column:span 2">
+                  <label class="field-label" for="edChapter0Title">Título</label>
+                  <input type="text" class="field-input sm" id="edChapter0Title"
+                         placeholder="ex: O primeiro encontro" oninput="markEditorDirty()">
+                </div>
+              </div>
+              <div class="field">
+                <label class="field-label" for="edChapter0Text">Texto</label>
+                <textarea class="field-input sm" id="edChapter0Text" rows="3"
+                          placeholder="Descreva este momento..." oninput="markEditorDirty()"></textarea>
+              </div>
+            </div>
+
+            <!-- Capítulo 2 -->
+            <div class="historia-chapter-block">
+              <div class="historia-chapter-header">
+                <span class="historia-chapter-num">Capítulo 2</span>
+              </div>
+              <div class="form-grid-3" style="margin-bottom:10px">
+                <div class="field">
+                  <label class="field-label" for="edChapter1Year">Ano</label>
+                  <input type="text" class="field-input sm" id="edChapter1Year"
+                         placeholder="ex: 2022" maxlength="10" oninput="markEditorDirty()">
+                </div>
+                <div class="field" style="grid-column:span 2">
+                  <label class="field-label" for="edChapter1Title">Título</label>
+                  <input type="text" class="field-input sm" id="edChapter1Title"
+                         placeholder="ex: O pedido" oninput="markEditorDirty()">
+                </div>
+              </div>
+              <div class="field">
+                <label class="field-label" for="edChapter1Text">Texto</label>
+                <textarea class="field-input sm" id="edChapter1Text" rows="3"
+                          placeholder="Descreva este momento..." oninput="markEditorDirty()"></textarea>
+              </div>
+            </div>
+
+            <!-- Capítulo 3 -->
+            <div class="historia-chapter-block">
+              <div class="historia-chapter-header">
+                <span class="historia-chapter-num">Capítulo 3</span>
+              </div>
+              <div class="form-grid-3" style="margin-bottom:10px">
+                <div class="field">
+                  <label class="field-label" for="edChapter2Year">Ano</label>
+                  <input type="text" class="field-input sm" id="edChapter2Year"
+                         placeholder="ex: 2026" maxlength="10" oninput="markEditorDirty()">
+                </div>
+                <div class="field" style="grid-column:span 2">
+                  <label class="field-label" for="edChapter2Title">Título</label>
+                  <input type="text" class="field-input sm" id="edChapter2Title"
+                         placeholder="ex: O grande dia" oninput="markEditorDirty()">
+                </div>
+              </div>
+              <div class="field">
+                <label class="field-label" for="edChapter2Text">Texto</label>
+                <textarea class="field-input sm" id="edChapter2Text" rows="3"
+                          placeholder="Descreva este momento..." oninput="markEditorDirty()"></textarea>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- ── SEÇÃO 7: PÁGINAS EXTRAS ────────────────── -->
         <div class="editor-section is-open" id="edSectionPages">
           <button class="editor-section-header" type="button" onclick="toggleEditorSection('edSectionPages')">
             <div>
@@ -1866,83 +1956,6 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
               Páginas desabilitadas não aparecem nos cards de navegação do convite.
             </p>
             <div class="pages-grid" id="edPagesGrid"></div>
-            <div class="editor-rule" style="margin-top:20px"></div>
-            <div class="historia-chapters">
-              <div class="historia-chapters-title">Capítulos — Nossa História</div>
-
-              <!-- Capítulo 1 -->
-              <div class="historia-chapter-block">
-                <div class="historia-chapter-header">
-                  <span class="historia-chapter-num">Capítulo 1</span>
-                </div>
-                <div class="form-grid-3" style="margin-bottom:10px">
-                  <div class="field">
-                    <label class="field-label" for="edChapter0Year">Ano</label>
-                    <input type="text" class="field-input sm" id="edChapter0Year"
-                           placeholder="ex: 2019" maxlength="10" oninput="markEditorDirty()">
-                  </div>
-                  <div class="field" style="grid-column:span 2">
-                    <label class="field-label" for="edChapter0Title">Título</label>
-                    <input type="text" class="field-input sm" id="edChapter0Title"
-                           placeholder="ex: O primeiro encontro" oninput="markEditorDirty()">
-                  </div>
-                </div>
-                <div class="field">
-                  <label class="field-label" for="edChapter0Text">Texto</label>
-                  <textarea class="field-input sm" id="edChapter0Text" rows="3"
-                            placeholder="Descreva este momento..." oninput="markEditorDirty()"></textarea>
-                </div>
-              </div>
-
-              <!-- Capítulo 2 -->
-              <div class="historia-chapter-block">
-                <div class="historia-chapter-header">
-                  <span class="historia-chapter-num">Capítulo 2</span>
-                </div>
-                <div class="form-grid-3" style="margin-bottom:10px">
-                  <div class="field">
-                    <label class="field-label" for="edChapter1Year">Ano</label>
-                    <input type="text" class="field-input sm" id="edChapter1Year"
-                           placeholder="ex: 2022" maxlength="10" oninput="markEditorDirty()">
-                  </div>
-                  <div class="field" style="grid-column:span 2">
-                    <label class="field-label" for="edChapter1Title">Título</label>
-                    <input type="text" class="field-input sm" id="edChapter1Title"
-                           placeholder="ex: O pedido" oninput="markEditorDirty()">
-                  </div>
-                </div>
-                <div class="field">
-                  <label class="field-label" for="edChapter1Text">Texto</label>
-                  <textarea class="field-input sm" id="edChapter1Text" rows="3"
-                            placeholder="Descreva este momento..." oninput="markEditorDirty()"></textarea>
-                </div>
-              </div>
-
-              <!-- Capítulo 3 -->
-              <div class="historia-chapter-block">
-                <div class="historia-chapter-header">
-                  <span class="historia-chapter-num">Capítulo 3</span>
-                </div>
-                <div class="form-grid-3" style="margin-bottom:10px">
-                  <div class="field">
-                    <label class="field-label" for="edChapter2Year">Ano</label>
-                    <input type="text" class="field-input sm" id="edChapter2Year"
-                           placeholder="ex: 2026" maxlength="10" oninput="markEditorDirty()">
-                  </div>
-                  <div class="field" style="grid-column:span 2">
-                    <label class="field-label" for="edChapter2Title">Título</label>
-                    <input type="text" class="field-input sm" id="edChapter2Title"
-                           placeholder="ex: O grande dia" oninput="markEditorDirty()">
-                  </div>
-                </div>
-                <div class="field">
-                  <label class="field-label" for="edChapter2Text">Texto</label>
-                  <textarea class="field-input sm" id="edChapter2Text" rows="3"
-                            placeholder="Descreva este momento..." oninput="markEditorDirty()"></textarea>
-                </div>
-              </div>
-
-            </div><!-- /historia-chapters -->
           </div>
         </div>
 
