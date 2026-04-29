@@ -2021,7 +2021,7 @@ function collectEditorValues() {
   // Casal & Evento
   if (!config.couple) config.couple = {};
   config.couple.names    = document.getElementById('edCoupleNames')?.value.trim()    || config.couple.names;
-  config.couple.subtitle = document.getElementById('edCoupleSubtitle')?.value.trim() || '';
+  config.couple.subtitle = document.getElementById('edCoupleSubtitle')?.value.trim() || config.couple.subtitle || '';
 
   if (!config.event) config.event = {};
   // Reconstrói ISO a partir de date (YYYY-MM-DD) + time (HH:MM)
