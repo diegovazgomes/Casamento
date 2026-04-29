@@ -115,7 +115,7 @@ body::before{
   letter-spacing:0.25em;text-transform:uppercase;color:var(--text-dim);
 }
 .field-input{
-  width:100%;
+  width:100%;box-sizing:border-box;
   background:rgba(0,0,0,0.3);
   border:1px solid var(--border);
   color:var(--text);
@@ -857,6 +857,12 @@ body::before{
 .editor-save-status.is-saved .editor-save-dot{background:var(--success)}
 .editor-save-status.is-saved{color:var(--success)}
 .editor-save-actions{display:flex;gap:10px;align-items:center}
+@media(max-width:768px){
+  .editor-savebar{padding:10px 16px;gap:8px;flex-wrap:wrap}
+  .editor-save-status{width:100%;text-align:center;justify-content:center}
+  .editor-save-actions{flex-wrap:wrap;width:100%}
+  .editor-save-actions .btn{width:100%;box-sizing:border-box;justify-content:center}
+}
 .media-upload-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px;align-items:end;margin-bottom:14px}
 .media-upload-action{display:flex;justify-content:flex-end;align-items:flex-end}
 .media-upload-action .btn{min-height:42px;padding:0 22px;font-size:9px;letter-spacing:0.24em;min-width:230px}
@@ -1446,7 +1452,7 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
               </div>
               <div class="field">
                 <label class="field-label" for="edCoupleSubtitle">Subtítulo</label>
-                <input type="text" class="field-input sm" id="edCoupleSubtitle" placeholder="Save the date…" oninput="markEditorDirty()">
+                <input type="text" class="field-input sm" id="edCoupleSubtitle" placeholder="ex: Um momento especial com vocês" oninput="markEditorDirty()">
               </div>
             </div>
 
