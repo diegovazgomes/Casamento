@@ -70,8 +70,10 @@ describe('POST /api/dashboard/media', () => {
 
   it('uploads an authenticated hero image to Supabase Storage', async () => {
     const uploadMock = vi.fn().mockResolvedValue({ error: null });
+    const listMock = vi.fn().mockResolvedValue({ data: [], error: null });
+    const removeMock = vi.fn().mockResolvedValue({ error: null });
     const getPublicUrlMock = vi.fn().mockReturnValue({
-      data: { publicUrl: 'https://cdn.example.com/event-1/hero.jpg' },
+      data: { publicUrl: 'https://cdn.example.com/event-1/hero/hero.jpg' },
     });
 
     createClientMock.mockReturnValue({
@@ -84,6 +86,8 @@ describe('POST /api/dashboard/media', () => {
       })),
       storage: {
         from: vi.fn(() => ({
+          list: listMock,
+          remove: removeMock,
           upload: uploadMock,
           getPublicUrl: getPublicUrlMock,
         })),
@@ -110,23 +114,29 @@ describe('POST /api/dashboard/media', () => {
     await handler({ method: 'POST', headers: { authorization: 'Bearer valid-token' } }, res);
 
     expect(res.statusCode).toBe(200);
+    expect(listMock).toHaveBeenCalledWith('event-1/hero', { limit: 100 });
     expect(uploadMock).toHaveBeenCalledWith(
-      'event-1/hero.jpg',
+      'event-1/hero/hero.jpg',
       Buffer.from('binary-data'),
       { contentType: 'image/jpeg', upsert: true }
     );
     expect(res.body).toEqual({
       eventId: 'event-1',
-      path: 'event-1/hero.jpg',
+      path: 'event-1/hero/hero.jpg',
       type: 'hero',
-      url: 'https://cdn.example.com/event-1/hero.jpg',
+      url: 'https://cdn.example.com/event-1/hero/hero.jpg',
     });
   });
 
-  it('uploads a pix qr image and overwrites previous file', async () => {
+  it('removes previous hero files before uploading new hero with different extension', async () => {
     const uploadMock = vi.fn().mockResolvedValue({ error: null });
+    const listMock = vi.fn().mockResolvedValue({
+      data: [{ name: 'hero.jpg' }],
+      error: null,
+    });
+    const removeMock = vi.fn().mockResolvedValue({ error: null });
     const getPublicUrlMock = vi.fn().mockReturnValue({
-      data: { publicUrl: 'https://cdn.example.com/event-1/pix-qr.png' },
+      data: { publicUrl: 'https://cdn.example.com/event-1/hero/hero.webp' },
     });
 
     createClientMock.mockReturnValue({
@@ -139,6 +149,62 @@ describe('POST /api/dashboard/media', () => {
       })),
       storage: {
         from: vi.fn(() => ({
+          list: listMock,
+          remove: removeMock,
+          upload: uploadMock,
+          getPublicUrl: getPublicUrlMock,
+        })),
+      },
+    });
+
+    formidableMock.mockReturnValue({
+      parse: (req, callback) => callback(null, {
+        eventId: 'event-1',
+        type: 'hero',
+      }, {
+        file: {
+          filepath: 'C:/tmp/upload-file',
+          mimetype: 'image/webp',
+          originalFilename: 'nova-foto.webp',
+        },
+      }),
+    });
+    readFileMock.mockResolvedValue(Buffer.from('binary-data'));
+
+    const { default: handler } = await import('../../api/dashboard/media.js');
+    const res = createMockResponse();
+
+    await handler({ method: 'POST', headers: { authorization: 'Bearer valid-token' } }, res);
+
+    expect(res.statusCode).toBe(200);
+    expect(removeMock).toHaveBeenCalledWith(['event-1/hero/hero.jpg']);
+    expect(uploadMock).toHaveBeenCalledWith(
+      'event-1/hero/hero.webp',
+      expect.any(Buffer),
+      { contentType: 'image/webp', upsert: true }
+    );
+  });
+
+  it('uploads a pix qr image and overwrites previous file', async () => {
+    const uploadMock = vi.fn().mockResolvedValue({ error: null });
+    const listMock = vi.fn().mockResolvedValue({ data: [], error: null });
+    const removeMock = vi.fn().mockResolvedValue({ error: null });
+    const getPublicUrlMock = vi.fn().mockReturnValue({
+      data: { publicUrl: 'https://cdn.example.com/event-1/pix/pix-qr.png' },
+    });
+
+    createClientMock.mockReturnValue({
+      auth: {
+        getUser: vi.fn().mockResolvedValue({ data: { user: { id: 'user-1' } }, error: null }),
+      },
+      from: vi.fn(() => createSelectBuilder({
+        data: { id: 'event-1', user_id: 'user-1', config: {} },
+        error: null,
+      })),
+      storage: {
+        from: vi.fn(() => ({
+          list: listMock,
+          remove: removeMock,
           upload: uploadMock,
           getPublicUrl: getPublicUrlMock,
         })),
@@ -165,17 +231,75 @@ describe('POST /api/dashboard/media', () => {
     await handler({ method: 'POST', headers: { authorization: 'Bearer valid-token' } }, res);
 
     expect(res.statusCode).toBe(200);
+    expect(listMock).toHaveBeenCalledWith('event-1/pix', { limit: 100 });
     expect(uploadMock).toHaveBeenCalledWith(
-      'event-1/pix-qr.png',
+      'event-1/pix/pix-qr.png',
       Buffer.from('binary-data'),
       { contentType: 'image/png', upsert: true }
     );
     expect(res.body).toEqual({
       eventId: 'event-1',
-      path: 'event-1/pix-qr.png',
+      path: 'event-1/pix/pix-qr.png',
       type: 'pix-qr',
-      url: 'https://cdn.example.com/event-1/pix-qr.png',
+      url: 'https://cdn.example.com/event-1/pix/pix-qr.png',
     });
+  });
+
+  it('removes previous pix file before uploading pix with different extension', async () => {
+    const uploadMock = vi.fn().mockResolvedValue({ error: null });
+    const listMock = vi.fn().mockResolvedValue({
+      data: [{ name: 'pix-qr.jpg' }],
+      error: null,
+    });
+    const removeMock = vi.fn().mockResolvedValue({ error: null });
+    const getPublicUrlMock = vi.fn().mockReturnValue({
+      data: { publicUrl: 'https://cdn.example.com/event-1/pix/pix-qr.png' },
+    });
+
+    createClientMock.mockReturnValue({
+      auth: {
+        getUser: vi.fn().mockResolvedValue({ data: { user: { id: 'user-1' } }, error: null }),
+      },
+      from: vi.fn(() => createSelectBuilder({
+        data: { id: 'event-1', user_id: 'user-1', config: {} },
+        error: null,
+      })),
+      storage: {
+        from: vi.fn(() => ({
+          list: listMock,
+          remove: removeMock,
+          upload: uploadMock,
+          getPublicUrl: getPublicUrlMock,
+        })),
+      },
+    });
+
+    formidableMock.mockReturnValue({
+      parse: (req, callback) => callback(null, {
+        eventId: 'event-1',
+        type: 'pix-qr',
+      }, {
+        file: {
+          filepath: 'C:/tmp/upload-file',
+          mimetype: 'image/png',
+          originalFilename: 'qr-novo.png',
+        },
+      }),
+    });
+    readFileMock.mockResolvedValue(Buffer.from('binary-data'));
+
+    const { default: handler } = await import('../../api/dashboard/media.js');
+    const res = createMockResponse();
+
+    await handler({ method: 'POST', headers: { authorization: 'Bearer valid-token' } }, res);
+
+    expect(res.statusCode).toBe(200);
+    expect(removeMock).toHaveBeenCalledWith(['event-1/pix/pix-qr.jpg']);
+    expect(uploadMock).toHaveBeenCalledWith(
+      'event-1/pix/pix-qr.png',
+      expect.any(Buffer),
+      { contentType: 'image/png', upsert: true }
+    );
   });
 
   it('rejects unsupported file types', async () => {
