@@ -109,7 +109,7 @@ body::before{
 }
 .auth-form{display:flex;flex-direction:column;gap:16px}
  
-.field{display:flex;flex-direction:column;gap:8px;text-align:left;min-width:0}
+.field{display:flex;flex-direction:column;gap:8px;text-align:left;min-width:0;align-items:stretch}
 .field-label{
   font-size:9px;font-weight:400;
   letter-spacing:0.25em;text-transform:uppercase;color:var(--text-dim);
@@ -125,7 +125,7 @@ body::before{
 }
 .field-input::placeholder{color:var(--text-dim);font-style:italic}
 .field-input:focus{border-color:var(--primary);background:rgba(192,192,192,0.04)}
-input[type="date"].field-input{display:block;text-align:left}
+input[type="date"].field-input{display:block;text-align:left;width:100%;min-width:0;box-sizing:border-box;align-self:stretch}
 /* iOS Safari: font-size < 16px dispara zoom automático ao focar — sem reversão após submit.
    Os inputs do formulário de login recebem 16px explícito para prevenir o zoom. */
 .auth-form .field-input{font-size:16px}

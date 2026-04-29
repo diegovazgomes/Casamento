@@ -196,6 +196,7 @@ async function hydrateDashboardEventContext() {
   }
 
   if (data?.config) {
+    window.__SITE_JSON__ = window.__SITE_CONFIG__;
     window.__SITE_CONFIG__ = data.config;
     applySiteConfig(data.config);
   }
@@ -1370,7 +1371,7 @@ function loadEditorTab() {
 
   // Casal & Evento
   setVal('edCoupleNames',       config.couple?.names      ?? '');
-  setVal('edCoupleSubtitle',    config.couple?.subtitle   ?? '');
+  setVal('edCoupleSubtitle',    config.couple?.subtitle || window.__SITE_JSON__?.couple?.subtitle || '');
   // edEventDate é type="date" — precisa de YYYY-MM-DD (não ISO completo)
   const isoDate = config.event?.date ?? '';
   const datePart = isoDate.includes('T') ? isoDate.split('T')[0] : isoDate;
