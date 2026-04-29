@@ -125,7 +125,7 @@ body::before{
 }
 .field-input::placeholder{color:var(--text-dim);font-style:italic}
 .field-input:focus{border-color:var(--primary);background:rgba(192,192,192,0.04)}
-input[type="date"].field-input{display:block;text-align:left;width:100%;min-width:0;box-sizing:border-box}
+input[type="date"].field-input{width:100%;min-width:0;box-sizing:border-box;-webkit-appearance:none;appearance:none;font-size:12px;padding:10px 12px;height:36px;line-height:1;display:block;text-align:left}
 /* iOS Safari: font-size < 16px dispara zoom automático ao focar — sem reversão após submit.
    Os inputs do formulário de login recebem 16px explícito para prevenir o zoom. */
 .auth-form .field-input{font-size:16px}
@@ -307,12 +307,7 @@ input[type="date"].field-input{display:block;text-align:left;width:100%;min-widt
   font-size:9px;letter-spacing:0.28em;text-transform:uppercase;
   color:var(--text-dim);margin-top:6px;
 }
-.sidebar-brand-subtitle{
-  font-size:9px;letter-spacing:0.06em;
-  color:var(--text-faint);margin-top:3px;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px;
-}
- 
+
 .sidebar-nav{
   flex:1;padding:16px 0;
   display:flex;flex-direction:column;gap:2px;
@@ -1043,7 +1038,6 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
     <div class="sidebar-brand">
       <span class="sidebar-brand-label">Dashboard</span>
       <div class="sidebar-brand-names" id="sidebarCouple"></div>
-      <div class="sidebar-brand-subtitle" id="sidebarSubtitle"></div>
       <div class="sidebar-brand-date" id="sidebarDate"></div>
     </div>
  
