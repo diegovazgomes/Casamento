@@ -169,8 +169,11 @@ function applySiteConfig(siteConfig) {
 
   const sidebarCouple = document.getElementById('sidebarCouple');
   const sidebarDate = document.getElementById('sidebarDate');
+  const sidebarSubtitle = document.getElementById('sidebarSubtitle');
   if (sidebarCouple && coupleNames) sidebarCouple.textContent = coupleNames;
   if (sidebarDate && heroDate) sidebarDate.textContent = heroDate;
+  const coupleSubtitle = siteConfig?.couple?.subtitle || window.__SITE_JSON__?.couple?.subtitle || '';
+  if (sidebarSubtitle) sidebarSubtitle.textContent = coupleSubtitle;
 }
 
 async function hydrateDashboardEventContext() {
