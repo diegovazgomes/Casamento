@@ -126,6 +126,13 @@ body::before{
 .field-input::placeholder{color:var(--text-dim);font-style:italic}
 .field-input:focus{border-color:var(--primary);background:rgba(192,192,192,0.04)}
 input[type="date"].field-input{width:100%;min-width:0;box-sizing:border-box;-webkit-appearance:none;appearance:none;font-size:13px;padding:10px 12px;height:36px;line-height:1;display:block;text-align:left}
+@media (min-width:761px){
+  input[type="date"].field-input{
+    -webkit-appearance:auto;appearance:auto;
+    padding:14px 16px;height:42px;line-height:normal;
+  }
+  input[type="date"].field-input::-webkit-calendar-picker-indicator{opacity:1;cursor:pointer}
+}
 /* iOS Safari: font-size < 16px dispara zoom automático ao focar — sem reversão após submit.
    Os inputs do formulário de login recebem 16px explícito para prevenir o zoom. */
 .auth-form .field-input{font-size:16px}
@@ -867,6 +874,10 @@ input[type="date"].field-input{width:100%;min-width:0;box-sizing:border-box;-web
 .media-upload-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px;align-items:end;margin-bottom:14px}
 .media-upload-action{display:flex;justify-content:flex-end;align-items:flex-end}
 .media-upload-action .btn{min-height:42px;padding:0 22px;font-size:9px;letter-spacing:0.24em;min-width:230px}
+@media (min-width:761px){
+  .media-upload-row{align-items:start}
+  .media-upload-action{align-items:flex-start}
+}
 .media-preview-wrap{margin-bottom:16px}
 .media-preview-box{max-width:100%;max-height:320px;object-fit:cover;border:1px solid var(--border);display:block}
 .media-preview-empty{display:none;padding:24px;border:1px dashed var(--border);text-align:center;color:var(--text-dim);font-size:12px;margin-bottom:16px}
@@ -1648,13 +1659,8 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
                     <input type="text" class="field-input sm" id="edGiftPixKey"
                            placeholder="CPF, e-mail, telefone ou chave aleatória" oninput="markEditorDirty()">
                   </div>
-                  <div class="field">
-                    <label class="field-label" for="edGiftPixQr">Imagem QR Code</label>
-                    <input type="password" class="field-input sm" id="edGiftPixQr"
-                           placeholder="Definido via upload" readonly>
-                    <div class="field-hint">Use o botão de upload para atualizar a imagem.</div>
-                  </div>
                 </div>
+                <input type="hidden" id="edGiftPixQr">
 
                 <div class="media-preview-wrap" id="edGiftPixQrPreviewWrap" style="display:none;margin-top:14px">
                   <div class="field-label" style="margin-bottom:8px">QR Pix atual</div>
@@ -1788,14 +1794,7 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
               Nenhuma foto principal definida.
             </div>
 
-            <div class="form-group">
-              <div class="field">
-                <label class="field-label" for="edMediaHero">Foto do casal (hero)</label>
-                <input type="password" class="field-input sm" id="edMediaHero"
-                    placeholder="Definida via upload" readonly>
-                <div class="field-hint">Use o botão de upload para atualizar a foto principal.</div>
-              </div>
-            </div>
+            <input type="hidden" id="edMediaHero">
 
             <div class="media-upload-row">
               <div class="field">
