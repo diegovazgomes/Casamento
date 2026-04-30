@@ -2204,6 +2204,8 @@ function collectEditorValues() {
   if (!config.gift.catalog) config.gift.catalog = {};
   config.gift.catalog.key      = window.__catalogType || 'honeymoon';
   config.gift.activeCatalogKey = window.__catalogType || 'honeymoon';
+  if (!config.gift.catalogs) config.gift.catalogs = {};
+  config.gift.catalogs.activeKey = window.__catalogType || 'honeymoon';
   config.gift.catalog.title    = document.getElementById('edGiftCatalogTitle')?.value.trim()    || '';
   config.gift.catalog.subtitle = document.getElementById('edGiftCatalogSubtitle')?.value.trim() || '';
   config.gift.catalog.items    = editorState.catalogItems
