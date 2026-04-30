@@ -837,7 +837,8 @@ function sanitizeCatalogItems(items = [], fallbackCategory = 'Lua de Mel') {
 function resolveActiveCatalog(giftConfig = {}) {
   const catalogsRoot = giftConfig?.catalogs;
   const lists = catalogsRoot?.lists;
-  const configuredActiveKey = giftConfig?.activeCatalogKey || catalogsRoot?.activeKey;
+  // gift.catalog.key é definido pelo mapGiftConfig e é a fonte mais confiável do catálogo ativo
+  const configuredActiveKey = giftConfig?.activeCatalogKey || catalogsRoot?.activeKey || giftConfig?.catalog?.key;
 
   if (lists && typeof lists === 'object' && !Array.isArray(lists)) {
     const entries = Object.entries(lists).filter(([, value]) => value && typeof value === 'object');
@@ -851,8 +852,9 @@ function resolveActiveCatalog(giftConfig = {}) {
     }
   }
 
+  // Fallback: usa gift.catalog diretamente — já contém os itens do catálogo ativo via mapGiftConfig
   if (giftConfig?.catalog && typeof giftConfig.catalog === 'object') {
-    return { catalog: giftConfig.catalog, catalogKey: configuredActiveKey || 'honeymoon' };
+    return { catalog: giftConfig.catalog, catalogKey: configuredActiveKey || giftConfig.catalog?.key || 'honeymoon' };
   }
 
   return { catalog: DEFAULT_CATALOGS.honeymoon, catalogKey: 'honeymoon' };

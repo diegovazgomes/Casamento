@@ -193,6 +193,8 @@ async function hydrateDashboardEventContext() {
 
   if (data?.event?.slug) {
     state.eventSlug = data.event.slug;
+    const previewBtn = document.getElementById('btnPreviewInvite');
+    if (previewBtn) previewBtn.href = `${window.location.origin}/${data.event.slug}`;
   }
 
   if (data?.config) {
@@ -2014,6 +2016,7 @@ const DASHBOARD_DEFAULT_CATALOGS = {
 };
 
 function onCatalogTypeChange(key) {
+  const prevKey = window.__catalogType || 'honeymoon'; // captura ANTES de mudar
   window.__catalogType = key;
   const currentItems = editorState.catalogItems || [];
   if (currentItems.length === 0) {
@@ -2025,9 +2028,9 @@ function onCatalogTypeChange(key) {
       loadDefaultCatalogItems(key);
     } else {
       // reverte o radio para o valor anterior sem disparar onchange
-      const prev = window.__catalogType || 'honeymoon';
+      window.__catalogType = prevKey;
       const radios = document.querySelectorAll('input[name="catalogType"]');
-      radios.forEach(r => { r.checked = (r.value === prev); });
+      radios.forEach(r => { r.checked = (r.value === prevKey); });
     }
   }
 }
