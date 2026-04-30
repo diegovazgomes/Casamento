@@ -739,3 +739,63 @@ footer {
     justify-content: center;
   }
 }
+
+/* ─── Animações de entrada premium — intro screen hero ───────────────────── */
+
+@keyframes introHeroPhotoReveal {
+    from {
+        opacity: 0;
+        transform: scale(1.04);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes introHeroTextReveal {
+    from {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes introHeroBtnReveal {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+.anim-hero-photo {
+    will-change: opacity, transform;
+    animation: introHeroPhotoReveal 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0s both;
+}
+
+.anim-hero-name {
+    will-change: opacity, transform;
+    animation: introHeroTextReveal 0.9s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.4s both;
+}
+
+.anim-hero-subtitle {
+    will-change: opacity, transform;
+    animation: introHeroTextReveal 0.9s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.8s both;
+}
+
+.anim-hero-btn {
+    will-change: opacity;
+    animation: introHeroBtnReveal 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94) 1.4s both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .anim-hero-photo,
+    .anim-hero-name,
+    .anim-hero-subtitle,
+    .anim-hero-btn {
+        animation: none;
+        opacity: 1;
+        transform: none;
+    }
+}

@@ -536,6 +536,7 @@ class InvitationExperience {
         this.applyNavigationLinks();
         this.presentPage.init();
         this.bindIntro();
+        this._animateIntroScreen();
         this.bindAudioToggle();
         this.audio.addEventListener('statechange', () => this.syncAudioButton());
         this.syncAudioButton();
@@ -563,6 +564,23 @@ class InvitationExperience {
             const initialContext = this.getInitialAudioContext();
             const audioPromise = this.audio.startFromGesture(initialContext);
             this.enterInvitation({ audioPromise });
+        });
+    }
+
+    _animateIntroScreen() {
+        if (!this.introScreen) return;
+
+        const backdrop = this.introScreen.querySelector('.intro-screen__backdrop');
+        const names    = document.getElementById('introScreenTitle');
+        const subtitle = document.getElementById('introNote');
+        const btn      = this.openInviteButton;
+
+        // rAF garante que o browser pintou o estado inicial antes de acionar as animações
+        requestAnimationFrame(() => {
+            if (backdrop) backdrop.classList.add('anim-hero-photo');
+            if (names)    names.classList.add('anim-hero-name');
+            if (subtitle) subtitle.classList.add('anim-hero-subtitle');
+            if (btn)      btn.classList.add('anim-hero-btn');
         });
     }
 
