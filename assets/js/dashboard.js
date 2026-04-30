@@ -1440,6 +1440,7 @@ function loadEditorTab() {
   document.querySelectorAll('input[name="catalogType"]').forEach(r => {
     r.checked = (r.value === activeCatalogKey);
   });
+  syncCatalogMetaFields(activeCatalogKey);
   renderCatalogItems();
 
   // Fotos & Mídia
@@ -1675,7 +1676,7 @@ function renderMediaHeroPreview(url) {
 
     previewImg.src = resolvedSource;
     if (previewUrl) {
-      previewUrl.textContent = source;
+      previewUrl.textContent = '';
     }
     previewWrap.style.display = '';
     emptyEl.style.display = 'none';
@@ -1713,7 +1714,7 @@ function renderPixQrPreview(url) {
 
     previewImg.src = resolvedSource;
     if (previewUrl) {
-      previewUrl.textContent = source;
+      previewUrl.textContent = '';
     }
     previewWrap.style.display = '';
     emptyEl.style.display = 'none';
@@ -2015,6 +2016,21 @@ const DASHBOARD_DEFAULT_CATALOGS = {
   }
 };
 
+function getCatalogMetaByKey(key) {
+  const catalog = DASHBOARD_DEFAULT_CATALOGS[key] || DASHBOARD_DEFAULT_CATALOGS.honeymoon;
+  return {
+    key: catalog.key || 'honeymoon',
+    title: catalog.title || 'Lista de Lua de Mel',
+    subtitle: catalog.subtitle || '',
+  };
+}
+
+function syncCatalogMetaFields(key) {
+  const meta = getCatalogMetaByKey(key);
+  setVal('edGiftCatalogTitle', meta.title);
+  setVal('edGiftCatalogSubtitle', meta.subtitle);
+}
+
 function onCatalogTypeChange(key) {
   const prevKey = window.__catalogType || 'honeymoon'; // captura ANTES de mudar
   window.__catalogType = key;
@@ -2031,6 +2047,7 @@ function onCatalogTypeChange(key) {
       window.__catalogType = prevKey;
       const radios = document.querySelectorAll('input[name="catalogType"]');
       radios.forEach(r => { r.checked = (r.value === prevKey); });
+      syncCatalogMetaFields(prevKey);
     }
   }
 }
@@ -2039,11 +2056,8 @@ function loadDefaultCatalogItems(key) {
   const catalog = DASHBOARD_DEFAULT_CATALOGS[key];
   if (!catalog) return;
   window.__catalogType = key;
-  // Preenche título e subtítulo com os valores padrão do catálogo escolhido
-  const titleEl = document.getElementById('edGiftCatalogTitle');
-  const subtitleEl = document.getElementById('edGiftCatalogSubtitle');
-  if (titleEl && !titleEl.value.trim()) titleEl.value = catalog.title;
-  if (subtitleEl && !subtitleEl.value.trim()) subtitleEl.value = catalog.subtitle;
+  // Sempre sincroniza título/subtítulo com o tipo de lista selecionado
+  syncCatalogMetaFields(key);
   // Substitui os itens do editor
   editorState.catalogItems = catalog.items.map(i => ({
     name: i.name,
@@ -2212,8 +2226,9 @@ function collectEditorValues() {
   config.gift.activeCatalogKey = window.__catalogType || 'honeymoon';
   if (!config.gift.catalogs) config.gift.catalogs = {};
   config.gift.catalogs.activeKey = window.__catalogType || 'honeymoon';
-  config.gift.catalog.title    = document.getElementById('edGiftCatalogTitle')?.value.trim()    || '';
-  config.gift.catalog.subtitle = document.getElementById('edGiftCatalogSubtitle')?.value.trim() || '';
+  const catalogMeta = getCatalogMetaByKey(window.__catalogType || 'honeymoon');
+  config.gift.catalog.title    = catalogMeta.title;
+  config.gift.catalog.subtitle = catalogMeta.subtitle;
   config.gift.catalog.items    = editorState.catalogItems
     .filter(it => (it.name || '').trim())
     .map((it, i) => ({ id: i + 1, name: it.name.trim(), amount: Number(it.amount) || 0, icon: it.icon || '💛' }));

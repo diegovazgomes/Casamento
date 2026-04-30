@@ -999,7 +999,7 @@ window.addEventListener('app:ready', ({ detail: { config } }) => {
   const cardLink = config?.gift?.cardPaymentLink || '';
   const cardEnabled = config?.gift?.cardPaymentEnabled !== false;
   const { catalog: activeCatalog, catalogKey } = resolveActiveCatalog(config?.gift || {});
-  const categoryFallback = catalogKey === 'home' ? 'Casa' : 'Lua de Mel';
+  const categoryFallback = DEFAULT_CATALOGS[catalogKey]?.items?.[0]?.category || 'Presente';
   const normalizedCatalog = sanitizeCatalogItems(activeCatalog?.items, categoryFallback);
 
   ACTIVE_CATALOG_TITLE = activeCatalog?.title || DEFAULT_CATALOGS[catalogKey]?.title || DEFAULT_CATALOGS.honeymoon.title;
@@ -1008,7 +1008,7 @@ window.addEventListener('app:ready', ({ detail: { config } }) => {
   if (normalizedCatalog.length) {
     GIFT_ITEMS = normalizedCatalog;
   } else {
-    GIFT_ITEMS = catalogKey === 'home' ? DEFAULT_HOUSEHOLD_ITEMS : DEFAULT_HONEYMOON_ITEMS;
+    GIFT_ITEMS = DEFAULT_CATALOGS[catalogKey]?.items || DEFAULT_HONEYMOON_ITEMS;
   }
 
   /* Preenche textos */

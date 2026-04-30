@@ -1650,16 +1650,16 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
                   </div>
                   <div class="field">
                     <label class="field-label" for="edGiftPixQr">Imagem QR Code</label>
-                    <input type="text" class="field-input sm" id="edGiftPixQr"
-                           placeholder="assets/images/icons/pix-qr.png" oninput="markEditorDirty();renderPixQrPreview(this.value)">
-                    <div class="field-hint">Caminho relativo ao projeto ou URL.</div>
+                    <input type="password" class="field-input sm" id="edGiftPixQr"
+                           placeholder="Definido via upload" readonly>
+                    <div class="field-hint">Use o botão de upload para atualizar a imagem.</div>
                   </div>
                 </div>
 
                 <div class="media-preview-wrap" id="edGiftPixQrPreviewWrap" style="display:none;margin-top:14px">
                   <div class="field-label" style="margin-bottom:8px">QR Pix atual</div>
                   <img id="edGiftPixQrPreview" class="media-preview-box" src="" alt="QR Code Pix atual">
-                  <div class="field-hint" id="edGiftPixQrPreviewUrl" style="word-break:break-all"></div>
+                  <div class="field-hint" id="edGiftPixQrPreviewUrl" style="display:none"></div>
                 </div>
 
                 <div class="media-preview-empty" id="edGiftPixQrEmpty" style="margin-top:14px">
@@ -1724,12 +1724,12 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
                   <div class="field">
                     <label class="field-label" for="edGiftCatalogTitle">Título da lista</label>
                     <input type="text" class="field-input sm" id="edGiftCatalogTitle"
-                           placeholder="Lista de Presentes" oninput="markEditorDirty()">
+                           placeholder="Definido automaticamente" readonly>
                   </div>
                   <div class="field">
                     <label class="field-label" for="edGiftCatalogSubtitle">Subtítulo</label>
                     <input type="text" class="field-input sm" id="edGiftCatalogSubtitle"
-                           placeholder="Sugestões para a lua de mel" oninput="markEditorDirty()">
+                           placeholder="Definido automaticamente" readonly>
                   </div>
                 </div>
                 <div class="editor-rule"></div>
@@ -1781,7 +1781,7 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
             <div class="media-preview-wrap" id="edMediaHeroPreviewWrap" style="display:none">
               <div class="field-label" style="margin-bottom:8px">Foto atual do hero</div>
               <img id="edMediaHeroPreview" class="media-preview-box" src="" alt="Foto principal do casal">
-              <div class="field-hint" id="edMediaHeroPreviewUrl" style="word-break:break-all"></div>
+              <div class="field-hint" id="edMediaHeroPreviewUrl" style="display:none"></div>
             </div>
 
             <div class="media-preview-empty" id="edMediaHeroEmpty">
@@ -1791,9 +1791,9 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
             <div class="form-group">
               <div class="field">
                 <label class="field-label" for="edMediaHero">Foto do casal (hero)</label>
-                <input type="text" class="field-input sm" id="edMediaHero"
-                    placeholder="assets/images/couple/hero.jpg" oninput="markEditorDirty();renderMediaHeroPreview(this.value)">
-                <div class="field-hint">Caminho relativo ou URL da imagem principal exibida no convite.</div>
+                <input type="password" class="field-input sm" id="edMediaHero"
+                    placeholder="Definida via upload" readonly>
+                <div class="field-hint">Use o botão de upload para atualizar a foto principal.</div>
               </div>
             </div>
 
