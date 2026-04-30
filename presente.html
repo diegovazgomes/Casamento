@@ -538,8 +538,12 @@
   .gift-grid-list { grid-template-columns: 1fr; }
 }
 </style>
+<script type="module">
+    import { initLoadingScreen } from './assets/js/loading-screen.js';
+    initLoadingScreen();
+</script>
 </head>
-<body class="gift-page">
+<body class="extra-page gift-page">
 
 <!-- Toast de feedback -->
 <div class="gift-toast" id="giftToast"></div>
@@ -1038,6 +1042,10 @@ setTimeout(() => {
   const grid = document.getElementById('giftGridList');
   if (grid && !grid.children.length) renderGiftList('', '', '');
 }, 3000);
+</script>
+<script type="module">
+import { markContentReady } from './assets/js/loading-screen.js';
+window.addEventListener('app:ready', () => markContentReady());
 </script>
 </body>
 </html>
