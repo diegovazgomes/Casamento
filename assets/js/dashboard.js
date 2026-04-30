@@ -194,7 +194,7 @@ async function hydrateDashboardEventContext() {
   if (data?.event?.slug) {
     state.eventSlug = data.event.slug;
     const previewBtn = document.getElementById('btnPreviewInvite');
-    if (previewBtn) previewBtn.href = `${window.location.origin}/${data.event.slug}`;
+    if (previewBtn) previewBtn.href = window.location.origin;
   }
 
   if (data?.config) {
@@ -2070,6 +2070,9 @@ function renderCatalogItems() {
 
   container.innerHTML = editorState.catalogItems.map((item, i) => `
     <div class="catalog-item">
+      <input type="text" class="field-input emoji-input" value="${escapeHtml(item.icon || '💛')}"
+             placeholder="😊" title="Emoji do presente"
+             oninput="updateCatalogItem(${i},'icon',this.value)">
       <input type="text" class="field-input sm" value="${escapeHtml(item.name || '')}"
              placeholder="Descrição do presente"
              oninput="updateCatalogItem(${i},'name',this.value)">
@@ -2085,7 +2088,7 @@ function renderCatalogItems() {
 }
 
 function addCatalogItem() {
-  editorState.catalogItems.push({ name: '', amount: 0 });
+  editorState.catalogItems.push({ name: '', amount: 0, icon: '💛' });
   renderCatalogItems();
   markEditorDirty();
   const rows = document.querySelectorAll('#catalogItemsList .catalog-item');
@@ -2213,7 +2216,7 @@ function collectEditorValues() {
   config.gift.catalog.subtitle = document.getElementById('edGiftCatalogSubtitle')?.value.trim() || '';
   config.gift.catalog.items    = editorState.catalogItems
     .filter(it => (it.name || '').trim())
-    .map((it, i) => ({ id: i + 1, name: it.name.trim(), amount: Number(it.amount) || 0 }));
+    .map((it, i) => ({ id: i + 1, name: it.name.trim(), amount: Number(it.amount) || 0, icon: it.icon || '💛' }));
 
   // Fotos & Mídia
   if (!config.media) config.media = {};

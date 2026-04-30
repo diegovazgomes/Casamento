@@ -878,7 +878,8 @@ function renderGiftList(pixKey, qrSrc, paymentBaseUrl) {
   const grid = document.getElementById('giftGridList');
   if (!grid) return;
 
-  grid.innerHTML = GIFT_ITEMS.map(item => `
+  const sortedItems = [...GIFT_ITEMS].sort((a, b) => (a.amount || 0) - (b.amount || 0));
+  grid.innerHTML = sortedItems.map(item => `
     <article
       class="gift-item"
       role="button"
