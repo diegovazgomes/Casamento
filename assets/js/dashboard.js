@@ -2148,7 +2148,7 @@ async function saveEditorConfig() {
     editorState.isDirty = false;
     editorState.originalConfig = JSON.parse(JSON.stringify(savedConfig));
     applySiteConfig(savedConfig);
-    updateEditorSaveStatus('Salvo no servidor ✓');
+    updateEditorSaveStatus('As informações do seu convite foram salvas ✓');
   } catch (error) {
     console.error('[saveEditorConfig]', error);
     updateEditorSaveStatus('Erro ao salvar no servidor');
