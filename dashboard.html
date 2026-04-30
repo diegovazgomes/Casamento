@@ -1085,7 +1085,7 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
         <span class="nav-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
         </span>
-        <span>Grupos</span>
+        <span>Convites</span>
       </button>
       <button class="nav-item" data-tab="confirmacoes" role="tab">
         <span class="nav-icon">
@@ -1152,6 +1152,10 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           <span class="btn-label">Novo grupo</span>
         </button>
+        <button class="btn btn-subtle" id="btnNewSingleInvite" hidden>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+          <span class="btn-label">Criar convite individual</span>
+        </button>
       </div>
     </header>
  
@@ -1208,22 +1212,22 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
         </section>
       </div>
  
-      <!-- TAB: GRUPOS -->
+      <!-- TAB: CONVITES -->
       <div class="tab-content" id="tab-grupos" role="tabpanel">
         <section class="section">
           <div class="section-head">
             <div>
-              <h2 class="section-title">Grupos de convidados</h2>
-              <p class="section-sub">Cada grupo recebe um link único compartilhado entre seus membros</p>
+              <h2 class="section-title">Convites</h2>
+              <p class="section-sub">Crie convites em grupo ou individuais com link único de acesso</p>
             </div>
           </div>
  
           <div class="table-wrap">
-            <div class="loading" id="gruposLoading"><div class="spinner"></div>Carregando grupos...</div>
+            <div class="loading" id="gruposLoading"><div class="spinner"></div>Carregando convites...</div>
             <table class="table" id="gruposTable" hidden>
               <thead>
                 <tr>
-                  <th>Grupo</th>
+                  <th>Convite</th>
                   <th>Vagas</th>
                   <th>Observações</th>
                   <th style="text-align:right">Ações</th>
@@ -1233,8 +1237,8 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
             </table>
             <div class="empty" id="gruposEmpty" hidden>
               <div class="empty-icon">✧</div>
-              <div class="empty-title">Nenhum grupo cadastrado</div>
-              <p class="empty-text">Comece cadastrando os primeiros grupos. Cada grupo terá um link único para compartilhar com os convidados.</p>
+              <div class="empty-title">Nenhum convite cadastrado</div>
+              <p class="empty-text">Crie um convite em grupo ou um convite individual. Cada convite terá um link único para compartilhar.</p>
             </div>
           </div>
         </section>
@@ -1991,7 +1995,7 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
   <div class="modal-dialog">
     <div class="modal-head">
       <div>
-        <div class="modal-tag">Grupo de convidados</div>
+        <div class="modal-tag" id="modalGrupoTag">Convite em grupo</div>
         <h3 class="modal-title" id="modalGrupoTitle">Novo grupo</h3>
       </div>
       <button class="modal-close" onclick="closeModal('modalGrupo')" aria-label="Fechar">
@@ -2001,12 +2005,12 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
     <form id="formGrupo" onsubmit="handleSaveGrupo(event)">
       <div class="modal-body">
         <div class="field">
-          <label class="field-label" for="grupoName">Nome do grupo *</label>
+          <label class="field-label" for="grupoName" id="grupoNameLabel">Nome do grupo *</label>
           <input class="field-input" type="text" id="grupoName" required placeholder="Ex: Família Silva">
         </div>
         <div class="form-row">
           <div class="field">
-            <label class="field-label" for="grupoMaxConfirmations">Vagas *</label>
+            <label class="field-label" for="grupoMaxConfirmations" id="grupoMaxConfirmationsLabel">Vagas *</label>
             <input class="field-input" type="number" id="grupoMaxConfirmations" required min="1" placeholder="Ex: 3">
           </div>
           <div class="field">
@@ -2021,7 +2025,7 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
       </div>
       <div class="modal-foot">
         <button type="button" class="btn btn-subtle" onclick="closeModal('modalGrupo')"><span>Cancelar</span></button>
-        <button type="submit" class="btn btn-primary"><span>Salvar grupo</span></button>
+        <button type="submit" class="btn btn-primary"><span id="modalGrupoSubmitText">Salvar grupo</span></button>
       </div>
     </form>
   </div>

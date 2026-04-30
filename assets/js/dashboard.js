@@ -15,6 +15,7 @@ const state = {
   musicas: [],
   currentPage: 1,
   editingGrupoId: null,
+  grupoModalMode: 'group',
 };
 
 const LEGACY_DASHBOARD_TOKEN_STORAGE_KEY = 'dashboardToken';
@@ -25,7 +26,7 @@ let dashboardSupabaseClientPromise = null;
 
 const TAB_LABELS = {
   overview: { tag: 'Visão Geral', title: 'Painel de controle' },
-  grupos: { tag: 'Grupos', title: 'Gestão de convidados' },
+  grupos: { tag: 'Convites', title: 'Gestão de convites' },
   confirmacoes: { tag: 'Confirmações', title: 'Respostas recebidas' },
   mensagens: { tag: 'Mensagens', title: 'Recados dos convidados' },
   musicas: { tag: 'Músicas', title: 'Sugestões recebidas' },
@@ -155,7 +156,8 @@ function bindUiEvents() {
   });
 
   // Modais
-  document.getElementById('btnNewGroup').addEventListener('click', () => openModal('modalGrupo', 'Novo Grupo'));
+  document.getElementById('btnNewGroup').addEventListener('click', () => openGroupModal('group'));
+  document.getElementById('btnNewSingleInvite')?.addEventListener('click', () => openGroupModal('individual'));
   document.getElementById('btnDownloadCsv').addEventListener('click', handleDownloadCsv);
   document.getElementById('btnRefresh')?.addEventListener('click', () => {
     refreshActiveTab();
@@ -485,8 +487,58 @@ function syncTabActions(tabName) {
   const btnNewGroup = document.getElementById('btnNewGroup');
   if (btnNewGroup) btnNewGroup.hidden = tabName !== 'grupos';
 
+  const btnNewSingleInvite = document.getElementById('btnNewSingleInvite');
+  if (btnNewSingleInvite) btnNewSingleInvite.hidden = tabName !== 'grupos';
+
   const btnRefresh = document.getElementById('btnRefresh');
   if (btnRefresh) btnRefresh.hidden = tabName === 'editar';
+}
+
+function applyGrupoModalMode(mode = 'group') {
+  const normalizedMode = mode === 'individual' ? 'individual' : 'group';
+  state.grupoModalMode = normalizedMode;
+
+  const isIndividual = normalizedMode === 'individual';
+  const titleEl = document.getElementById('modalGrupoTitle');
+  const tagEl = document.getElementById('modalGrupoTag');
+  const submitTextEl = document.getElementById('modalGrupoSubmitText');
+  const nameLabelEl = document.getElementById('grupoNameLabel');
+  const vagasLabelEl = document.getElementById('grupoMaxConfirmationsLabel');
+  const nameInput = document.getElementById('grupoName');
+  const maxInput = document.getElementById('grupoMaxConfirmations');
+
+  if (isIndividual) {
+    if (titleEl) titleEl.textContent = 'Criar convite individual';
+    if (tagEl) tagEl.textContent = 'Convite individual';
+    if (submitTextEl) submitTextEl.textContent = 'Criar convite individual';
+    if (nameLabelEl) nameLabelEl.textContent = 'Nome do convidado *';
+    if (vagasLabelEl) vagasLabelEl.textContent = 'Vagas (fixo em 1)';
+    if (nameInput) nameInput.placeholder = 'Ex: Maria Silva';
+    if (maxInput) {
+      maxInput.value = '1';
+      maxInput.readOnly = true;
+      maxInput.setAttribute('aria-readonly', 'true');
+    }
+    return;
+  }
+
+  if (titleEl) titleEl.textContent = state.editingGrupoId ? 'Editar grupo' : 'Novo grupo';
+  if (tagEl) tagEl.textContent = 'Convite em grupo';
+  if (submitTextEl) submitTextEl.textContent = 'Salvar grupo';
+  if (nameLabelEl) nameLabelEl.textContent = 'Nome do grupo *';
+  if (vagasLabelEl) vagasLabelEl.textContent = 'Vagas *';
+  if (nameInput) nameInput.placeholder = 'Ex: Família Silva';
+  if (maxInput) {
+    maxInput.readOnly = false;
+    maxInput.removeAttribute('aria-readonly');
+  }
+}
+
+function openGroupModal(mode = 'group') {
+  state.editingGrupoId = null;
+  document.getElementById('formGrupo')?.reset();
+  applyGrupoModalMode(mode);
+  openModal('modalGrupo');
 }
 
 // ============================================================
@@ -578,14 +630,19 @@ function editGrupo(grupoId) {
   document.getElementById('grupoPhone').value = grupo.phone || '';
   document.getElementById('grupoNotes').value = grupo.notes || '';
 
+  applyGrupoModalMode('group');
+
   openModal('modalGrupo');
 }
 
 async function handleSaveGrupo(event) {
   event.preventDefault();
 
+  const isIndividualMode = state.grupoModalMode === 'individual';
   const grupoName = document.getElementById('grupoName').value.trim();
-  const grupoMaxConfirmations = parseInt(document.getElementById('grupoMaxConfirmations').value, 10);
+  const grupoMaxConfirmations = isIndividualMode
+    ? 1
+    : parseInt(document.getElementById('grupoMaxConfirmations').value, 10);
   const grupoPhone = document.getElementById('grupoPhone').value.trim();
   const grupoNotes = document.getElementById('grupoNotes').value.trim();
 
@@ -624,7 +681,9 @@ async function handleSaveGrupo(event) {
 
       if (!response.ok) throw new Error(response.statusText);
       const data = await response.json();
-      alert(`Grupo criado! Link: ${data.data.inviteLink}`);
+      alert(isIndividualMode
+        ? `Convite individual criado! Link: ${data.data.inviteLink}`
+        : `Grupo criado! Link: ${data.data.inviteLink}`);
     }
 
     closeModal('modalGrupo');
@@ -1252,6 +1311,7 @@ function closeModal(modalId) {
   document.getElementById(modalId).classList.remove('is-active');
   if (modalId === 'modalGrupo') {
     state.editingGrupoId = null;
+    applyGrupoModalMode('group');
     document.getElementById('formGrupo').reset();
   }
 }
@@ -1260,7 +1320,7 @@ function setupModalListeners() {
   document.querySelectorAll('.modal').forEach(modal => {
     modal.addEventListener('click', (e) => {
       if (e.target === modal) {
-        modal.classList.remove('is-active');
+        closeModal(modal.id);
       }
     });
   });
