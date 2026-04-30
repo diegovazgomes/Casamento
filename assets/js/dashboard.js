@@ -56,8 +56,31 @@ document.addEventListener('DOMContentLoaded', () => {
 
   bindUiEvents();
   setupModalListeners();
+  setupDesktopDatePicker();
   syncActiveTab();
 });
+
+function setupDesktopDatePicker() {
+  const dateInput = document.getElementById('edEventDate');
+  if (!dateInput) return;
+
+  // Mantem o comportamento mobile intacto; melhora somente desktop.
+  const isDesktop = window.matchMedia('(min-width: 761px)').matches;
+  if (!isDesktop) return;
+
+  const openPicker = () => {
+    if (typeof dateInput.showPicker === 'function') {
+      try {
+        dateInput.showPicker();
+      } catch (error) {
+        // Alguns navegadores bloqueiam showPicker fora de gesto do usuario.
+      }
+    }
+  };
+
+  dateInput.addEventListener('click', openPicker);
+  dateInput.addEventListener('focus', openPicker);
+}
 
 function notifyDashboardReady() {
   window.__DASHBOARD_READY__ = true;

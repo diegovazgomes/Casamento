@@ -62,11 +62,12 @@ function buildBadgeHTML(loadTime) {
   <div id="__db_load">🕐 load&nbsp;&nbsp;&nbsp;<span style="color:#fff">${loadTime}</span></div>
   <div id="__db_fetch">⏳ config&nbsp;&nbsp;<span style="color:#aaa">aguardando…</span></div>
   <div id="__db_theme">🎨 tema&nbsp;&nbsp;&nbsp;<span style="color:#aaa">—</span></div>
+    <div id="__db_commit">🔖 commit&nbsp;<span style="color:#aaa">—</span></div>
   <div id="__db_cache">📡 cache&nbsp;&nbsp;<span style="color:#aaa">—</span></div>
 </div>`;
 }
 
-function updateBadge({ fetchTime, theme, cached }) {
+function updateBadge({ fetchTime, theme, cached, commit }) {
     const el = id => document.querySelector(`#__debugBadge #${id} span`);
 
     if (fetchTime !== undefined) {
@@ -78,6 +79,19 @@ function updateBadge({ fetchTime, theme, cached }) {
         if (themeEl) {
             themeEl.textContent = theme || '(desconhecido)';
             themeEl.style.color = '#c9f';
+        }
+    }
+    if (commit !== undefined) {
+        const commitEl = el('__db_commit');
+        if (commitEl) {
+            const short = String(commit || '').trim();
+            if (short) {
+                commitEl.textContent = short.slice(0, 8);
+                commitEl.style.color = '#8fd3ff';
+            } else {
+                commitEl.textContent = 'indisponivel';
+                commitEl.style.color = '#aaa';
+            }
         }
     }
     if (cached !== null && cached !== undefined) {
@@ -94,6 +108,21 @@ function updateBadge({ fetchTime, theme, cached }) {
     }
 }
 
+async function loadCommitInfo() {
+    try {
+        const response = await fetch('/api/config', { cache: 'no-store' });
+        if (!response.ok) {
+            updateBadge({ commit: '' });
+            return;
+        }
+
+        const data = await response.json();
+        updateBadge({ commit: data?.commitSha || '' });
+    } catch {
+        updateBadge({ commit: '' });
+    }
+}
+
 /**
  * Ponto de entrada. Chame assim que o DOM estiver disponível.
  * A atualização com dados de config/tema é feita via onConfigLoaded().
@@ -102,6 +131,7 @@ export function initDebugBadge() {
     if (!isDebugMode()) return;
     const loadTime = fmt(new Date());
     document.body.insertAdjacentHTML('beforeend', buildBadgeHTML(loadTime));
+    loadCommitInfo();
 }
 
 /**
