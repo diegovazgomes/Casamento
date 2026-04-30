@@ -716,6 +716,17 @@ class InvitationExperience {
 
             window.requestAnimationFrame(() => {
                 this.siteShell.classList.add('is-visible');
+
+                // Anima os elementos da hero principal após a shell ficar visível
+                window.requestAnimationFrame(() => {
+                    const heroPhoto = document.getElementById('couplePhoto');
+                    const heroNames = document.getElementById('heroNames');
+                    const heroLabel = document.getElementById('heroLabel');
+
+                    if (heroPhoto) heroPhoto.classList.add('anim-main-photo');
+                    if (heroNames) heroNames.classList.add('anim-main-name');
+                    if (heroLabel) heroLabel.classList.add('anim-main-subtitle');
+                });
             });
         }
 
