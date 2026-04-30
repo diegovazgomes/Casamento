@@ -386,6 +386,12 @@ input[type="date"].field-input{width:100%;min-width:0;box-sizing:border-box;-web
   color:var(--text);line-height:1.15;
 }
 .topbar-actions{display:flex;align-items:center;gap:10px;flex-shrink:0}
+.topbar-actions .top-action-btn{
+  min-height:42px;
+  padding:0 22px;
+  min-width:230px;
+  justify-content:center;
+}
  
 /* Content container */
 .content{
@@ -1148,11 +1154,11 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
           <span class="btn-label">Atualizar</span>
         </button>
-        <button class="btn btn-primary" id="btnNewGroup">
+        <button class="btn btn-primary top-action-btn" id="btnNewGroup">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           <span class="btn-label">Novo grupo</span>
         </button>
-        <button class="btn btn-subtle" id="btnNewSingleInvite" hidden>
+        <button class="btn btn-subtle top-action-btn" id="btnNewSingleInvite" hidden>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
           <span class="btn-label">Criar convite individual</span>
         </button>
