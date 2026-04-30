@@ -227,7 +227,50 @@ export default async function handler(req, res) {
       }
     }
 
-    // 5. Retornar evento atualizado
+    // 4c. Sincronizar event_gifts.config para catalog (itens editados no dashboard)
+    if (incomingGift.catalog?.key) {
+      const catalogKey = incomingGift.catalog.key;
+      const catalogConfig = {
+        key:      catalogKey,
+        title:    incomingGift.catalog.title    ?? '',
+        subtitle: incomingGift.catalog.subtitle ?? '',
+        items:    Array.isArray(incomingGift.catalog.items) ? incomingGift.catalog.items : [],
+      };
+
+      // Busca o id da linha do catálogo ativo para atualizar apenas ela
+      try {
+        const { data: catalogRows, error: fetchErr } = await ownedEvent.supabase
+          .from('event_gifts')
+          .select('id, config')
+          .eq('event_id', ownedEvent.event.id)
+          .eq('type', 'catalog');
+
+        if (fetchErr) {
+          console.warn('[dashboard/event] Falha ao buscar event_gifts catalog:', fetchErr);
+        } else {
+          const targetRow = (catalogRows || []).find(r => r.config?.key === catalogKey);
+          if (targetRow) {
+            const updatedConfig = Object.assign({}, targetRow.config, catalogConfig);
+            const { error: updateErr } = await ownedEvent.supabase
+              .from('event_gifts')
+              .update({ config: updatedConfig })
+              .eq('id', targetRow.id);
+
+            if (updateErr) {
+              console.warn('[dashboard/event] Falha ao atualizar config do catalog:', updateErr);
+            } else {
+              console.log(`[dashboard/event] event_gifts.config synced: catalog key=${catalogKey}`);
+            }
+          } else {
+            console.warn(`[dashboard/event] Nenhuma linha event_gifts com type=catalog key=${catalogKey} encontrada.`);
+          }
+        }
+      } catch (catalogErr) {
+        console.warn('[dashboard/event] Erro inesperado ao sincronizar catalog config:', catalogErr);
+      }
+    }
+
+
     const mappedConfig = buildEventConfigResponse(data);
     const galleryImages = await resolveEventGalleryFromStorage(ownedEvent.supabase, data.id);
     const finalConfig = applyGalleryToHistoriaConfig(mappedConfig, galleryImages);

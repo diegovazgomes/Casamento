@@ -329,7 +329,10 @@ BEGIN
     venue_maps_link = EXCLUDED.venue_maps_link,
     active_theme    = EXCLUDED.active_theme,
     active_layout   = EXCLUDED.active_layout,
-    config          = EXCLUDED.config,
+    config          = EXCLUDED.config || jsonb_build_object(
+                        'media',
+                        COALESCE(public.events.config->'media', EXCLUDED.config->'media')
+                      ),
     updated_at      = now()
   RETURNING id INTO v_event_id;
 

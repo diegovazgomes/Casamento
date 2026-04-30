@@ -2203,6 +2203,7 @@ function collectEditorValues() {
   config.gift.catalogEnabled     = document.getElementById('edGiftCatalogEnabled')?.checked ?? false;
   if (!config.gift.catalog) config.gift.catalog = {};
   config.gift.catalog.key      = window.__catalogType || 'honeymoon';
+  config.gift.activeCatalogKey = window.__catalogType || 'honeymoon';
   config.gift.catalog.title    = document.getElementById('edGiftCatalogTitle')?.value.trim()    || '';
   config.gift.catalog.subtitle = document.getElementById('edGiftCatalogSubtitle')?.value.trim() || '';
   config.gift.catalog.items    = editorState.catalogItems
