@@ -771,22 +771,22 @@ footer {
 
 .anim-hero-photo {
     will-change: opacity, transform;
-    animation: introHeroPhotoReveal 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0s both;
+    animation: introHeroPhotoReveal 2.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0s both;
 }
 
 .anim-hero-name {
     will-change: opacity, transform;
-    animation: introHeroTextReveal 0.9s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.4s both;
+    animation: introHeroTextReveal 1.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.8s both;
 }
 
 .anim-hero-subtitle {
     will-change: opacity, transform;
-    animation: introHeroTextReveal 0.9s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.8s both;
+    animation: introHeroTextReveal 1.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) 1.4s both;
 }
 
 .anim-hero-btn {
     will-change: opacity;
-    animation: introHeroBtnReveal 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94) 1.4s both;
+    animation: introHeroBtnReveal 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) 2.4s both;
 }
 
 @media (prefers-reduced-motion: reduce) {
