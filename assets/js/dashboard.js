@@ -1432,6 +1432,12 @@ function loadEditorTab() {
   editorState.catalogItems = Array.isArray(cat.items)
     ? cat.items.map(it => ({ ...it }))
     : [];
+  // Restaura o radio do tipo de catálogo
+  const activeCatalogKey = cat.key || gift.activeCatalogKey || 'honeymoon';
+  window.__catalogType = activeCatalogKey;
+  document.querySelectorAll('input[name="catalogType"]').forEach(r => {
+    r.checked = (r.value === activeCatalogKey);
+  });
   renderCatalogItems();
 
   // Fotos & Mídia
@@ -1928,6 +1934,127 @@ function onLayoutChange() {
 
 // ── Catálogo de presentes ─────────────────────────────────────
 
+const DASHBOARD_DEFAULT_CATALOGS = {
+  honeymoon: {
+    key: 'honeymoon',
+    title: 'Lista de Lua de Mel',
+    subtitle: 'Sugestões para celebrar nossa primeira viagem como casados.',
+    items: [
+      { id: 'taxas-embarque',        name: 'Taxas de Embarque',           description: 'Ajuda com taxas e bagagens da viagem.',          amount: 140,  icon: '🧳', category: 'Lua de Mel', enabled: true },
+      { id: 'traslado-aeroporto',    name: 'Traslado Aeroporto-Hotel',    description: 'Transporte seguro na chegada e saída.',           amount: 200,  icon: '🚕', category: 'Lua de Mel', enabled: true },
+      { id: 'jantar-romantico',      name: 'Jantar Romântico',            description: 'Um jantar especial a dois na viagem.',            amount: 299,  icon: '🍽️', category: 'Lua de Mel', enabled: true },
+      { id: 'passeio-barco',         name: 'Passeio de Barco',            description: 'Experiência inesquecível em alto-mar.',           amount: 317,  icon: '⛵', category: 'Lua de Mel', enabled: true },
+      { id: 'jantar-celebracao',     name: 'Jantar de Celebração',        description: 'Noite especial para celebrar esse momento.',      amount: 390,  icon: '🥂', category: 'Lua de Mel', enabled: true },
+      { id: 'spa-casal',             name: 'Spa para o Casal',            description: 'Momento de relaxamento durante a lua de mel.',    amount: 470,  icon: '🧖', category: 'Lua de Mel', enabled: true },
+      { id: 'hospedagem-1-noite',    name: 'Hospedagem de 1 Noite',       description: 'Contribuição para uma noite no hotel.',           amount: 560,  icon: '🏨', category: 'Lua de Mel', enabled: true },
+      { id: 'tour-privativo',        name: 'Tour Privativo',              description: 'Um dia de passeio com guia local.',               amount: 650,  icon: '🗺️', category: 'Lua de Mel', enabled: true },
+      { id: 'ensaio-fotografico',    name: 'Ensaio Fotográfico',          description: 'Registro do nosso começo em viagem.',             amount: 740,  icon: '📸', category: 'Lua de Mel', enabled: true },
+      { id: 'experiencia-premium',   name: 'Experiência Premium',         description: 'Uma experiência única na viagem.',                amount: 820,  icon: '✨', category: 'Lua de Mel', enabled: true },
+      { id: 'passagem-aerea-casal',  name: 'Passagem Aérea do Casal',     description: 'Contribuição para nossas passagens de ida.',      amount: 849,  icon: '✈️', category: 'Lua de Mel', enabled: true },
+      { id: 'cota-lua-de-mel',       name: 'Cota Lua de Mel Completa',    description: 'Contribuição para tornar essa viagem perfeita.',  amount: 999,  icon: '💛', category: 'Lua de Mel', enabled: true }
+    ]
+  },
+  home: {
+    key: 'home',
+    title: 'Lista para Casa',
+    subtitle: 'Sugestões para montar e deixar nosso novo lar ainda mais especial.',
+    items: [
+      { id: 'jogo-panelas',   name: 'Jogo de Panelas',      description: 'Para preparar muitas receitas no novo lar.',     amount: 220, icon: '🍳', category: 'Casa', enabled: true },
+      { id: 'airfryer',       name: 'Airfryer',             description: 'Praticidade para o dia a dia da casa.',          amount: 380, icon: '🍟', category: 'Casa', enabled: true },
+      { id: 'liquidificador', name: 'Liquidificador',       description: 'Essencial para sucos, vitaminas e receitas.',    amount: 190, icon: '🥤', category: 'Casa', enabled: true },
+      { id: 'cafeteira',      name: 'Cafeteira',            description: 'Para começar o dia com energia e carinho.',      amount: 260, icon: '☕', category: 'Casa', enabled: true },
+      { id: 'jogo-cama',      name: 'Jogo de Cama',         description: 'Conforto para noites ainda mais especiais.',     amount: 210, icon: '🛏️', category: 'Casa', enabled: true },
+      { id: 'jogo-toalhas',   name: 'Jogo de Toalhas',      description: 'Um mimo útil para o enxoval.',                  amount: 130, icon: '🧺', category: 'Casa', enabled: true },
+      { id: 'faqueiro',       name: 'Faqueiro',             description: 'Para receber visitas com elegância.',            amount: 170, icon: '🍴', category: 'Casa', enabled: true },
+      { id: 'aparelho-jantar',name: 'Aparelho de Jantar',   description: 'Para celebrar refeições em família.',            amount: 320, icon: '🍽️', category: 'Casa', enabled: true },
+      { id: 'aspirador',      name: 'Aspirador de Pó',      description: 'Mais praticidade na rotina da limpeza.',         amount: 450, icon: '🧹', category: 'Casa', enabled: true },
+      { id: 'microondas',     name: 'Micro-ondas',          description: 'Agilidade para refeições e aquecimentos.',       amount: 590, icon: '🔥', category: 'Casa', enabled: true },
+      { id: 'rack-sala',      name: 'Rack para Sala',       description: 'Um toque especial para o cantinho da sala.',     amount: 720, icon: '🛋️', category: 'Casa', enabled: true },
+      { id: 'geladeira',      name: 'Cota Geladeira',       description: 'Contribuição para um item essencial da casa.',   amount: 990, icon: '🧊', category: 'Casa', enabled: true }
+    ]
+  },
+  couple: {
+    key: 'couple',
+    title: 'Nosso Lar',
+    subtitle: 'Itens especiais para elevar o dia a dia de quem já divide o mesmo espaço.',
+    items: [
+      { id: 'c1',  name: 'Jogo de Panelas Premium',     description: 'Linha profissional antiaderente.',       amount: 890,  icon: '🍳', category: 'Nosso Lar', enabled: true },
+      { id: 'c2',  name: 'Máquina de Café Espresso',    description: 'Café de barista em casa.',               amount: 1200, icon: '☕', category: 'Nosso Lar', enabled: true },
+      { id: 'c3',  name: 'Robô Aspirador',              description: 'Limpeza automática e inteligente.',      amount: 1500, icon: '🤖', category: 'Nosso Lar', enabled: true },
+      { id: 'c4',  name: 'Adega Climatizada',           description: 'Para os momentos especiais a dois.',     amount: 1800, icon: '🍷', category: 'Nosso Lar', enabled: true },
+      { id: 'c5',  name: 'Smart TV 55"',                description: 'Experiência cinematográfica em casa.',   amount: 2500, icon: '📺', category: 'Nosso Lar', enabled: true },
+      { id: 'c6',  name: 'Jogo de Cama King Premium',   description: 'Algodão egípcio 400 fios.',             amount: 650,  icon: '🛏️', category: 'Nosso Lar', enabled: true },
+      { id: 'c7',  name: 'Fritadeira Airfryer XL',      description: 'Cozinhar saudável e prático.',          amount: 480,  icon: '🥘', category: 'Nosso Lar', enabled: true },
+      { id: 'c8',  name: 'Purificador de Água',         description: 'Água gelada e filtrada sempre.',        amount: 720,  icon: '💧', category: 'Nosso Lar', enabled: true },
+      { id: 'c9',  name: 'Conjunto de Toalhas Finas',   description: 'Coleção hoteleira de linho.',           amount: 380,  icon: '🛁', category: 'Nosso Lar', enabled: true },
+      { id: 'c10', name: 'Liquidificador de Alta Pot.', description: 'Vitaminas e smoothies perfeitos.',      amount: 560,  icon: '🥤', category: 'Nosso Lar', enabled: true },
+      { id: 'c11', name: 'Jogo de Facas Profissional',  description: 'Aço alemão com estojo.',                amount: 420,  icon: '🔪', category: 'Nosso Lar', enabled: true },
+      { id: 'c12', name: 'Caixa de Som Premium',        description: 'Som ambiente para todo o lar.',         amount: 900,  icon: '🔊', category: 'Nosso Lar', enabled: true }
+    ]
+  },
+  wedding: {
+    key: 'wedding',
+    title: 'Ajuda no Casamento',
+    subtitle: 'Contribua para tornar esse dia ainda mais especial e inesquecível.',
+    items: [
+      { id: 'w1',  name: 'Decoração Floral',            description: 'Flores e arranjos para o grande dia.',  amount: 1500, icon: '💐', category: 'Casamento', enabled: true },
+      { id: 'w2',  name: 'Bolo de Casamento',           description: 'Bolo personalizado para a festa.',      amount: 1200, icon: '🎂', category: 'Casamento', enabled: true },
+      { id: 'w3',  name: 'Fotografia',                  description: 'Registro profissional da cerimônia.',   amount: 3500, icon: '📷', category: 'Casamento', enabled: true },
+      { id: 'w4',  name: 'Filmagem',                    description: 'Vídeo cinematográfico do casamento.',   amount: 3000, icon: '🎥', category: 'Casamento', enabled: true },
+      { id: 'w5',  name: 'DJ e Sonorização',            description: 'Música para animar a festa toda.',      amount: 2500, icon: '🎧', category: 'Casamento', enabled: true },
+      { id: 'w6',  name: 'Bem-casados',                 description: 'Lembrancinhas para os convidados.',     amount: 800,  icon: '🍬', category: 'Casamento', enabled: true },
+      { id: 'w7',  name: 'Convites Impressos',          description: 'Arte e impressão dos convites.',        amount: 600,  icon: '✉️', category: 'Casamento', enabled: true },
+      { id: 'w8',  name: 'Maquiagem da Noiva',          description: 'Make profissional para a noiva.',       amount: 900,  icon: '💄', category: 'Casamento', enabled: true },
+      { id: 'w9',  name: 'Aluguel do Espaço',           description: 'Contribuição para o local da festa.',   amount: 5000, icon: '🏛️', category: 'Casamento', enabled: true },
+      { id: 'w10', name: 'Doces e Mesa de Guloseimas',  description: 'Candy bar para a festa.',               amount: 1000, icon: '🍭', category: 'Casamento', enabled: true },
+      { id: 'w11', name: 'Cerimonialista',              description: 'Coordenação profissional do evento.',   amount: 2000, icon: '📋', category: 'Casamento', enabled: true },
+      { id: 'w12', name: 'Contribuição Livre',          description: 'Qualquer valor é bem-vindo e amado.',   amount: 200,  icon: '💛', category: 'Casamento', enabled: true }
+    ]
+  }
+};
+
+function onCatalogTypeChange(key) {
+  window.__catalogType = key;
+  const currentItems = editorState.catalogItems || [];
+  if (currentItems.length === 0) {
+    loadDefaultCatalogItems(key);
+  } else {
+    const catalog = DASHBOARD_DEFAULT_CATALOGS[key];
+    const label = catalog ? catalog.title : key;
+    if (confirm('Trocar a lista vai substituir os itens atuais pelos itens padrão de "' + label + '". Deseja continuar?')) {
+      loadDefaultCatalogItems(key);
+    } else {
+      // reverte o radio para o valor anterior sem disparar onchange
+      const prev = window.__catalogType || 'honeymoon';
+      const radios = document.querySelectorAll('input[name="catalogType"]');
+      radios.forEach(r => { r.checked = (r.value === prev); });
+    }
+  }
+}
+
+function loadDefaultCatalogItems(key) {
+  const catalog = DASHBOARD_DEFAULT_CATALOGS[key];
+  if (!catalog) return;
+  window.__catalogType = key;
+  // Preenche título e subtítulo com os valores padrão do catálogo escolhido
+  const titleEl = document.getElementById('edGiftCatalogTitle');
+  const subtitleEl = document.getElementById('edGiftCatalogSubtitle');
+  if (titleEl && !titleEl.value.trim()) titleEl.value = catalog.title;
+  if (subtitleEl && !subtitleEl.value.trim()) subtitleEl.value = catalog.subtitle;
+  // Substitui os itens do editor
+  editorState.catalogItems = catalog.items.map(i => ({
+    name: i.name,
+    amount: i.amount,
+    description: i.description || '',
+    icon: i.icon || '💛',
+    category: i.category || '',
+    id: i.id,
+    enabled: true
+  }));
+  renderCatalogItems();
+  markEditorDirty();
+}
+
 function renderCatalogItems() {
   const container = document.getElementById('catalogItemsList');
   if (!container) return;
@@ -2075,6 +2202,7 @@ function collectEditorValues() {
   config.gift.cardPaymentLink    = document.getElementById('edGiftCardLink')?.value.trim() || '';
   config.gift.catalogEnabled     = document.getElementById('edGiftCatalogEnabled')?.checked ?? false;
   if (!config.gift.catalog) config.gift.catalog = {};
+  config.gift.catalog.key      = window.__catalogType || 'honeymoon';
   config.gift.catalog.title    = document.getElementById('edGiftCatalogTitle')?.value.trim()    || '';
   config.gift.catalog.subtitle = document.getElementById('edGiftCatalogSubtitle')?.value.trim() || '';
   config.gift.catalog.items    = editorState.catalogItems

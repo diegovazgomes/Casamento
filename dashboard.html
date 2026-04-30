@@ -973,6 +973,25 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
 .btn-icon-sm:hover{border-color:var(--danger);color:var(--danger)}
 .btn-icon-sm svg{width:11px;height:11px}
 
+/* Catalog type selector */
+.catalog-type-selector{
+  display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px;
+}
+.catalog-type-opt{
+  display:flex;align-items:center;gap:8px;
+  padding:10px 12px;border:1px solid var(--border);
+  background:rgba(0,0,0,0.12);cursor:pointer;
+  transition:border-color 0.2s ease,background 0.2s ease;
+  font-size:13px;color:var(--text-soft);
+}
+.catalog-type-opt:hover{border-color:var(--text-dim)}
+.catalog-type-opt input[type=radio]{accent-color:var(--accent);cursor:pointer}
+.catalog-type-opt:has(input:checked){
+  border-color:var(--accent);
+  background:rgba(var(--accent-rgb,180,140,80),0.08);
+  color:var(--text);
+}
+
 /* Pages grid */
 .pages-grid{
   display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;
@@ -1704,6 +1723,28 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
                     <label class="field-label" for="edGiftCatalogSubtitle">Subtítulo</label>
                     <input type="text" class="field-input sm" id="edGiftCatalogSubtitle"
                            placeholder="Sugestões para a lua de mel" oninput="markEditorDirty()">
+                  </div>
+                </div>
+                <div class="editor-rule"></div>
+                <div class="field" style="margin-bottom:14px">
+                  <label class="field-label">Lista de presentes</label>
+                  <div class="catalog-type-selector">
+                    <label class="catalog-type-opt">
+                      <input type="radio" name="catalogType" value="honeymoon" onchange="onCatalogTypeChange(this.value)">
+                      <span>🌙 Lua de Mel</span>
+                    </label>
+                    <label class="catalog-type-opt">
+                      <input type="radio" name="catalogType" value="home" onchange="onCatalogTypeChange(this.value)">
+                      <span>🏠 Casa</span>
+                    </label>
+                    <label class="catalog-type-opt">
+                      <input type="radio" name="catalogType" value="couple" onchange="onCatalogTypeChange(this.value)">
+                      <span>✨ Nosso Lar</span>
+                    </label>
+                    <label class="catalog-type-opt">
+                      <input type="radio" name="catalogType" value="wedding" onchange="onCatalogTypeChange(this.value)">
+                      <span>💍 Ajuda no Casamento</span>
+                    </label>
                   </div>
                 </div>
                 <div class="editor-rule"></div>
