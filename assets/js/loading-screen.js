@@ -45,21 +45,17 @@ function extractInitials(names) {
 
 // ---------------------------------------------------------------------------
 // HTML da loading screen
-// showBubble = true → fase 3 (bolha visível, coração oculto)
-// showBubble = false → fase 1 (coração visível, bolha oculta)
+//
+// showBubble = false → Fase 1: coração visível, bolha ausente do DOM
+// showBubble = true  → Fase 3: bolha visível imediatamente, coração nunca injetado
+//
+// Estratégia: quando fase 3, o coração NÃO é inserido no DOM (não apenas oculto).
+// Isso elimina qualquer risco de flash ou override de CSS.
 // ---------------------------------------------------------------------------
 
-function buildLoadingHTML(showBubble, initials) {
-    const heartHidden  = showBubble ? ' style="display:none"'                    : '';
-    const bubbleHidden = showBubble ? ' style="display:flex;opacity:1"'          : ' style="display:none;opacity:0"';
-
-    return `
-<div class="loading-screen" id="loadingScreen" aria-hidden="true">
-    <div class="loading-backdrop"></div>
-    <div class="loading-content">
-
+const HEART_HTML = `
         <!-- Fase 1: corações (só primeira visita) -->
-        <div id="lsHeart" class="ls-heart-container"${heartHidden}>
+        <div id="lsHeart" class="ls-heart-container">
             <div class="loading-hearts">
                 <svg class="heart heart-text" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                     <path d="M50,95 C20,75 5,60 5,45 C5,30 15,20 27,20 C35,20 42,25 50,35 C58,25 65,20 73,20 C85,20 95,30 95,45 C95,60 80,75 50,95 Z" fill="currentColor"/>
@@ -69,10 +65,23 @@ function buildLoadingHTML(showBubble, initials) {
                 </svg>
             </div>
             <p class="loading-names" id="loadingNames">Carregando experiências…</p>
-        </div>
+        </div>`;
 
+function buildLoadingHTML(showBubble, initials) {
+    // Fase 3: bolha pequena visível, coração fora do DOM
+    // Fase 1: coração visível, bolha oculta (display:none)
+    const heartSection  = showBubble ? '' : HEART_HTML;
+    const bubbleStyle   = showBubble ? 'display:flex;opacity:1' : 'display:none;opacity:0';
+    // ls-bubble--small reduz para 80% quando aparece direto (sem a transição do coração)
+    const bubbleClass   = showBubble ? 'ls-bubble ls-bubble--small' : 'ls-bubble';
+
+    return `
+<div class="loading-screen" id="loadingScreen" aria-hidden="true">
+    <div class="loading-backdrop"></div>
+    <div class="loading-content">
+${heartSection}
         <!-- Fase 2+: bolha iridescente -->
-        <div id="lsBubble" class="ls-bubble"${bubbleHidden} role="img" aria-label="Iniciais do casal">
+        <div id="lsBubble" class="${bubbleClass}" style="${bubbleStyle}" role="img" aria-label="Iniciais do casal">
             <div class="ls-bubble-glass">
                 <span class="ls-bubble-initials" id="lsBubbleInitials">${initials}</span>
             </div>
@@ -194,16 +203,4 @@ function loadPersistedThemeColors() {
         if (!raw) return false;
         const { bg, text, primary } = JSON.parse(raw);
         if (!bg || !text || !primary) return false;
-        const root = document.documentElement;
-        root.style.setProperty('--ls-bg-color',      bg);
-        root.style.setProperty('--ls-text-color',    text);
-        root.style.setProperty('--ls-primary-color', primary);
-        return true;
-    } catch {
-        return false;
-    }
-}
-
-// ---------------------------------------------------------------------------
-// Cores neutras escuras — estado inicial e fallback
-// ----------------------------------------------------------------------
+        const root = document.docume
