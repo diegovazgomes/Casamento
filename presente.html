@@ -1024,6 +1024,9 @@ function normalizeUrl(url) {
 
 /* ── Integração com app:ready do script.js ──────────────────────────── */
 window.addEventListener('app:ready', ({ detail: { config } }) => {
+  // DEBUG — remover após confirmar que gift.external está chegando corretamente
+  console.log('[presente] app:ready gift config:', JSON.stringify(config?.gift));
+
   const pixKey = config?.gift?.pixKey || '';
   const qrSrc  = config?.gift?.pixQrImage || 'assets/images/icons/pix-placeholder.svg';
   const cardLink = config?.gift?.cardPaymentLink || '';
@@ -1099,9 +1102,19 @@ window.addEventListener('app:ready', ({ detail: { config } }) => {
   /* Lista externa — exibe aba e preenche dados quando habilitada */
   const extGift = config?.gift?.external || {};
   const extEnabled = extGift.enabled && extGift.url;
+
+  // Debug: logar o que chegou do config para diagnóstico
+  console.log('[presente] gift.external:', JSON.stringify(extGift));
+  console.log('[presente] extEnabled:', extEnabled);
+
   if (extEnabled) {
     const tabExternal = document.getElementById('tabExternal');
     if (tabExternal) tabExternal.hidden = false;
+
+    // CRÍTICO: remover hidden do panel também — o atributo hidden
+    // aplica display:none !important que bloqueia a classe is-active
+    const panelExterno = document.getElementById('panel-externo');
+    if (panelExterno) panelExterno.hidden = false;
 
     const normalizedExtUrl = normalizeUrl(extGift.url);
     const extLabel = extGift.label || 'Ver lista completa';
