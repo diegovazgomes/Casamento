@@ -84,6 +84,18 @@ function extractEventTableFields(config) {
   return fields;
 }
 
+function injectAffiliateTag(url) {
+  try {
+    const u = new URL(url.startsWith('http') ? url : 'https://' + url);
+    if (u.hostname.includes('amazon.com') || u.hostname.includes('amzn.to')) {
+      u.searchParams.set('tag', 'casamentoafiliad-20');
+    } else if (u.hostname.includes('magalu.com') || u.hostname.includes('magazineluiza.com')) {
+      u.searchParams.set('utm_source', 'casamento_afiliado');
+    }
+    return u.toString();
+  } catch { return url; }
+}
+
 function setCorsHeaders(res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, PATCH, OPTIONS');
@@ -270,6 +282,45 @@ export default async function handler(req, res) {
       }
     }
 
+
+    // 4d. Sincronizar event_gifts para type='external'
+    if (incomingGift.external !== undefined) {
+      const extData = incomingGift.external || {};
+      if (extData.enabled && extData.url) {
+        const { error: extUpsertError } = await ownedEvent.supabase
+          .from('event_gifts')
+          .upsert(
+            {
+              event_id: ownedEvent.event.id,
+              type: 'external',
+              enabled: true,
+              config: {
+                url:   injectAffiliateTag(extData.url),
+                label: extData.label || 'Ver lista completa',
+                store: extData.store || '',
+              },
+            },
+            { onConflict: 'event_id,type' },
+          );
+
+        if (extUpsertError) {
+          console.warn('[dashboard/event] Falha ao upsert event_gifts external:', extUpsertError);
+        } else {
+          console.log('[dashboard/event] event_gifts.external upserted:', extData.url);
+        }
+      } else {
+        const { error: extDeleteError } = await ownedEvent.supabase
+          .from('event_gifts')
+          .delete()
+          .match({ event_id: ownedEvent.event.id, type: 'external' });
+
+        if (extDeleteError) {
+          console.warn('[dashboard/event] Falha ao deletar event_gifts external:', extDeleteError);
+        } else {
+          console.log('[dashboard/event] event_gifts.external deleted (disabled or no url)');
+        }
+      }
+    }
 
     const mappedConfig = buildEventConfigResponse(data);
     const galleryImages = await resolveEventGalleryFromStorage(ownedEvent.supabase, data.id);

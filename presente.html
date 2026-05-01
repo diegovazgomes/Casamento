@@ -615,6 +615,7 @@
       <button class="gift-tab is-active" data-panel="lista" role="tab">Lista de presentes</button>
       <button class="gift-tab" data-panel="pix" role="tab">Pix direto</button>
       <button class="gift-tab" data-panel="cartao" role="tab">Cartão</button>
+      <button class="gift-tab" data-panel="externo" id="tabExternal" role="tab" hidden>Lista externa</button>
     </div>
   </section>
 
@@ -690,6 +691,28 @@
             rel="noopener noreferrer"
           >
             <span id="giftCardPlaceholder">Ir para pagamento por cartão →</span>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── PANEL: LISTA EXTERNA ────────────────────────────────────────── -->
+    <div class="gift-tab-panel" id="panel-externo" role="tabpanel" hidden>
+      <div class="gift-card-panel-wrap">
+        <div class="gift-card-box reveal" id="giftExternalPanel">
+          <span class="gift-card-box-tag" id="giftExternalTag">Lista externa</span>
+          <h2 class="gift-card-box-title" id="giftExternalTitle">Lista de presentes</h2>
+          <p class="gift-card-box-desc" id="giftExternalBody">
+            Acesse nossa lista de presentes e escolha o que quiser nos presentear.
+          </p>
+          <a
+            class="gift-card-link-btn"
+            id="btnExternalList"
+            href="#"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <span id="giftExternalLabel">Ver lista completa →</span>
           </a>
         </div>
       </div>
@@ -992,6 +1015,13 @@ function showToast(msg) {
   setTimeout(() => t.classList.remove('is-visible'), 2600);
 }
 
+function normalizeUrl(url) {
+  if (!url) return '#';
+  try {
+    return new URL(url.startsWith('http') ? url : 'https://' + url).toString();
+  } catch { return '#'; }
+}
+
 /* ── Integração com app:ready do script.js ──────────────────────────── */
 window.addEventListener('app:ready', ({ detail: { config } }) => {
   const pixKey = config?.gift?.pixKey || '';
@@ -1064,6 +1094,30 @@ window.addEventListener('app:ready', ({ detail: { config } }) => {
     if (listaTab) listaTab.hidden = true;
     const listaPanel = document.getElementById('panel-lista');
     if (listaPanel) listaPanel.hidden = true;
+  }
+
+  /* Lista externa — exibe aba e preenche dados quando habilitada */
+  const extGift = config?.gift?.external || {};
+  const extEnabled = extGift.enabled && extGift.url;
+  if (extEnabled) {
+    const tabExternal = document.getElementById('tabExternal');
+    if (tabExternal) tabExternal.hidden = false;
+
+    const normalizedExtUrl = normalizeUrl(extGift.url);
+    const extLabel = extGift.label || 'Ver lista completa';
+    const extStore = extGift.store || 'Lista externa';
+
+    const btnEl = document.getElementById('btnExternalList');
+    if (btnEl) btnEl.href = normalizedExtUrl;
+
+    const labelEl = document.getElementById('giftExternalLabel');
+    if (labelEl) labelEl.textContent = extLabel + ' →';
+
+    const titleEl = document.getElementById('giftExternalTitle');
+    if (titleEl) titleEl.textContent = extStore;
+
+    const tagEl = document.getElementById('giftExternalTag');
+    if (tagEl) tagEl.textContent = extStore;
   }
 
   /* Ativa o primeiro tab visível caso o padrão tenha sido ocultado */

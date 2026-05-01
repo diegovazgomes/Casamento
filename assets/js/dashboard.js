@@ -1526,6 +1526,15 @@ function loadEditorTab() {
   syncCatalogMetaFields(activeCatalogKey);
   renderCatalogItems();
 
+  // Presentes — lista externa
+  const ext = gift.external || {};
+  const extEnabled = !!ext.enabled;
+  setChk('edExternalEnabled', extEnabled);
+  toggleGiftBlock('giftBlockExternal', extEnabled);
+  setVal('edExternalStore', ext.store ?? '');
+  setVal('edExternalUrl',   ext.url   ?? '');
+  setVal('edExternalLabel', ext.label ?? '');
+
   // Fotos & Mídia
   setVal('edMediaHero',       config.media?.heroImage             ?? '');
   setVal('edTrackMainSrc',    config.media?.tracks?.main?.src     ?? '');
@@ -2304,6 +2313,12 @@ function collectEditorValues() {
   config.gift.cardPaymentEnabled = document.getElementById('edGiftCardEnabled')?.checked ?? false;
   config.gift.cardPaymentLink    = document.getElementById('edGiftCardLink')?.value.trim() || '';
   config.gift.catalogEnabled     = document.getElementById('edGiftCatalogEnabled')?.checked ?? false;
+  config.gift.external = {
+    enabled: document.getElementById('edExternalEnabled')?.checked  ?? false,
+    store:   document.getElementById('edExternalStore')?.value.trim()  || '',
+    url:     document.getElementById('edExternalUrl')?.value.trim()    || '',
+    label:   document.getElementById('edExternalLabel')?.value.trim()  || 'Ver lista completa',
+  };
   if (!config.gift.catalog) config.gift.catalog = {};
   config.gift.catalog.key      = window.__catalogType || 'honeymoon';
   config.gift.activeCatalogKey = window.__catalogType || 'honeymoon';
