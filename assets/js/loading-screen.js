@@ -241,3 +241,15 @@ export async function hideLoadingScreen() {
         }
     }, 700);
 }
+
+export function applyEventDataToLoadingScreen({ names, date } = {}) {
+  const namesEl = document.getElementById('lsCoupleNames');
+  const dateEl  = document.getElementById('lsCoupleDate');
+  const couple  = document.getElementById('lsCouple');
+  if (namesEl && names) namesEl.textContent = names;
+  if (dateEl  && date)  dateEl.textContent  = date;
+  if (couple  && names) {
+    couple.style.transition = 'opacity 0.8s ease 0.2s';
+    couple.style.opacity = '1';
+  }
+}
