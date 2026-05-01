@@ -14,17 +14,22 @@ const LOADING_SCREEN_HTML = `
 <div class="loading-screen" id="loadingScreen" aria-hidden="true">
   <div class="loading-backdrop"></div>
   <div class="loading-content">
-    <!-- Logo/marca — placeholder com coração (será substituído por SVG) -->
-    <div class="ls-logo">
+    <!-- Fase 1: coração (placeholder, some quando dados chegam) -->
+    <div class="ls-logo" id="lsLogo">
       <span class="ls-logo-icon">♥</span>
     </div>
-    <!-- Linha decorativa — aparece 0.4s depois do logo -->
+    <!-- Fase 2: bolha com iniciais (aparece quando dados chegam) -->
+    <div class="ls-bubble" id="lsBubble" style="opacity:0;display:none">
+      <div class="ls-bubble-glass"></div>
+      <span class="ls-bubble-initials" id="lsBubbleInitials"></span>
+    </div>
+    <!-- Linha decorativa -->
     <div class="ls-divider">
       <span class="ls-divider-line"></span>
       <span class="ls-divider-dot">◆</span>
       <span class="ls-divider-line"></span>
     </div>
-    <!-- Dados do casal — hidden até chegarem -->
+    <!-- Nome e data do casal -->
     <div class="ls-couple" id="lsCouple" style="opacity:0">
       <p class="ls-couple-names" id="lsCoupleNames"></p>
       <p class="ls-couple-date" id="lsCoupleDate"></p>
@@ -242,14 +247,54 @@ export async function hideLoadingScreen() {
     }, 700);
 }
 
+function extractInitials(names) {
+  // "Siannah & Diego" → "S & D"
+  const parts = names.split(/\s*[&e]\s*/i).filter(Boolean);
+  if (parts.length >= 2) {
+    return `${parts[0].trim()[0].toUpperCase()} & ${parts[parts.length - 1].trim()[0].toUpperCase()}`;
+  }
+  // Fallback: primeira letra de cada palavra longa
+  return names.split(' ').filter(w => w.length > 2).map(w => w[0]).join(' & ');
+}
+
 export function applyEventDataToLoadingScreen({ names, date } = {}) {
-  const namesEl = document.getElementById('lsCoupleNames');
-  const dateEl  = document.getElementById('lsCoupleDate');
-  const couple  = document.getElementById('lsCouple');
-  if (namesEl && names) namesEl.textContent = names;
-  if (dateEl  && date)  dateEl.textContent  = date;
-  if (couple  && names) {
-    couple.style.transition = 'opacity 0.8s ease 0.2s';
+  const namesEl    = document.getElementById('lsCoupleNames');
+  const dateEl     = document.getElementById('lsCoupleDate');
+  const couple     = document.getElementById('lsCouple');
+  const logo       = document.getElementById('lsLogo');
+  const bubble     = document.getElementById('lsBubble');
+  const initialsEl = document.getElementById('lsBubbleInitials');
+
+  if (names) {
+    // Preenche iniciais na bolha
+    if (initialsEl) initialsEl.textContent = extractInitials(names);
+    // Fade-out do coração
+    if (logo) {
+      logo.style.transition = 'opacity 0.5s ease';
+      logo.style.opacity = '0';
+      setTimeout(() => { logo.style.display = 'none'; }, 500);
+    }
+    // Fade-in da bolha
+    if (bubble) {
+      bubble.style.display = 'flex';
+      bubble.style.alignItems = 'center';
+      bubble.style.justifyContent = 'center';
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          bubble.style.transition = 'opacity 0.6s ease 0.1s';
+          bubble.style.opacity = '1';
+        });
+      });
+    }
+    // Nome completo
+    if (namesEl) namesEl.textContent = names;
+  }
+
+  if (date && dateEl) dateEl.textContent = date;
+
+  // Revela bloco nome+data
+  if (couple && names) {
+    couple.style.transition = 'opacity 0.8s ease 0.4s';
     couple.style.opacity = '1';
   }
 }
