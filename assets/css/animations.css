@@ -276,105 +276,13 @@ a, button, input, select, textarea {
 
 /* ---- Fase 2+: Bolha Iridescente ---- */
 
-        0 0 18px rgba(167, 139, 250, 0.35),
-        0 0 40px rgba(96, 165, 250, 0.20),
-        0 8px 32px rgba(0, 0, 0, 0.45);
-}
-
-/* Versão reduzida (80%) — usada quando a bolha aparece diretamente (fase 3) */
-.ls-bubble--small {
-    width: 88px;
-    height: 88px;
-}
-
-.ls-bubble--small .ls-bubble-initials {
-    font-size: 22px;
-}
-
-/* Borda iridescente animada via conic-gradient */
-.ls-bubble::before {
-    content: '';
-    position: absolute;
-    inset: -3px;
-    border-radius: 50%;
-    background: conic-gradient(
-        from 0deg,
-        #ff6ec7, #a78bfa, #60a5fa, #34d399, #fbbf24, #f87171, #ff6ec7
-    );
-    animation: lsBubbleSpin 4s linear infinite;
-    z-index: 0;
-}
-
-/* Camada de vidro com reflexo e blur */
-.ls-bubble-glass {
-    position: absolute;
-    inset: 3px;
-    border-radius: 50%;
-    background: radial-gradient(
-        circle at 30% 25%,
-        rgba(255, 255, 255, 0.55) 0%,
-        rgba(255, 255, 255, 0.08) 60%,
-        transparent 100%
-    );
-    backdrop-filter: blur(6px);
-    -webkit-backdrop-filter: blur(6px);
-    z-index: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    /* Sutil highlight de borda interna */
-    box-shadow: inset 0 1px 3px rgba(255, 255, 255, 0.3);
-}
-
-/* Iniciais do casal */
-.ls-bubble-initials {
-    font-family: 'Great Vibes', cursive;
-    font-size: 28px;
-    line-height: 1;
-    color: rgba(255, 255, 255, 0.95);
-    text-shadow:
-        0 1px 8px rgba(180, 140, 255, 0.65),
-        0 0 20px rgba(255, 255, 255, 0.30);
+.ls-bubble {
     position: relative;
-    z-index: 2;
-    user-select: none;
-}
-
-/* ---- Animações ---- */
-
-@keyframes lsBubbleSpin {
-    to { transform: rotate(360deg); }
-}
-
-@keyframes heartbeat {
-    0%, 100% {
-        transform: scale(1);
-        opacity: 0.7;
-    }
-    50% {
-        transform: scale(1.15);
-        opacity: 1;
-    }
-}
-
-@keyframes loadingFadeIn {
-    from {
-        opacity: 0;
-        transform: scale(0.9);
-    }
-    to {
-        opacity: 1;
-        transform: scale(1);
-    }
-}
-
-/* ---- Fade-out da tela inteira ---- */
-
-.loading-screen.fade-out {
-    animation: loadingFadeOut 0.6s ease-out forwards;
-}
-
-@keyframes loadingFadeOut {
-    from { opacity: 1; }
-    to   { opacity: 0; visibility: hidden; }
-}
+    width: 110px;
+    height: 110px;
+    border-radius: 50%;
+    margin: 0 auto;
+    /* Halo externo multicamadas para profundidade */
+    box-shadow:
+        0 0 18px rgba(167, 139, 250, 0.35),
+        0 0 4
