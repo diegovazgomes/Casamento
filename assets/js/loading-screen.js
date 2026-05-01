@@ -1,79 +1,171 @@
 /**
  * Loading Screen Module
- * 
- * Gerencia a tela de carregamento de forma centralizada:
- * - Injeta HTML da loading screen no body
- * - Carrega cores do tema dinamicamente
- * - Preenche nomes dos noivos
- * - Coordena com o bootstrap principal
+ *
+ * Gerencia a tela de carregamento em 3 fases:
+ *
+ * FASE 1 — Primeira visita (sem cache):
+ *   Mostra corações animados enquanto o Supabase ainda não respondeu.
+ *
+ * FASE 2 — Dados chegam (transição):
+ *   applyEventDataToLoadingScreen() faz fade-out dos corações,
+ *   fade-in da bolha iridescente com as iniciais do casal e persiste
+ *   ls_data_ready + ls_initials no sessionStorage.
+ *
+ * FASE 3 — Navegações seguintes (com cache):
+ *   initLoadingScreen() detecta ls_data_ready=1 no sessionStorage e
+ *   monta o HTML já com a bolha visível — sem mostrar os corações.
  */
 
 import { resolveSiteConfigSource, resolveThemePath } from './config-source.js';
 
-const LOADING_SCREEN_HTML = `
+// ---------------------------------------------------------------------------
+// Helpers de sessionStorage (silenciosos em modo incógnito bloqueado)
+// ---------------------------------------------------------------------------
+
+function ssGet(key) {
+    try { return sessionStorage.getItem(key); } catch { return null; }
+}
+
+function ssSet(key, value) {
+    try { sessionStorage.setItem(key, value); } catch { /* silencioso */ }
+}
+
+// ---------------------------------------------------------------------------
+// Extração de iniciais
+// "Siannah & Diego" → "S & D"
+// ---------------------------------------------------------------------------
+
+function extractInitials(names) {
+    if (!names || typeof names !== 'string') return '';
+    const parts = names.split('&').map(p => p.trim()).filter(Boolean);
+    if (parts.length === 0) return '';
+    if (parts.length === 1) return parts[0][0]?.toUpperCase() || '';
+    return parts.map(p => p[0]?.toUpperCase() || '').join(' & ');
+}
+
+// ---------------------------------------------------------------------------
+// HTML da loading screen
+// showBubble = true → fase 3 (bolha visível, coração oculto)
+// showBubble = false → fase 1 (coração visível, bolha oculta)
+// ---------------------------------------------------------------------------
+
+function buildLoadingHTML(showBubble, initials) {
+    const heartHidden  = showBubble ? ' style="display:none"'                    : '';
+    const bubbleHidden = showBubble ? ' style="display:flex;opacity:1"'          : ' style="display:none;opacity:0"';
+
+    return `
 <div class="loading-screen" id="loadingScreen" aria-hidden="true">
     <div class="loading-backdrop"></div>
     <div class="loading-content">
-        <div class="loading-hearts">
-            <!-- Heart 1: Text Color (cinza/branco) -->
-            <svg class="heart heart-text" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                <path d="M50,95 C20,75 5,60 5,45 C5,30 15,20 27,20 C35,20 42,25 50,35 C58,25 65,20 73,20 C85,20 95,30 95,45 C95,60 80,75 50,95 Z" fill="currentColor"/>
-            </svg>
-            <!-- Heart 2: Primary Color (prata/ouro) -->
-            <svg class="heart heart-primary" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                <path d="M50,95 C20,75 5,60 5,45 C5,30 15,20 27,20 C35,20 42,25 50,35 C58,25 65,20 73,20 C85,20 95,30 95,45 C95,60 80,75 50,95 Z" fill="currentColor"/>
-            </svg>
+
+        <!-- Fase 1: corações (só primeira visita) -->
+        <div id="lsHeart" class="ls-heart-container"${heartHidden}>
+            <div class="loading-hearts">
+                <svg class="heart heart-text" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <path d="M50,95 C20,75 5,60 5,45 C5,30 15,20 27,20 C35,20 42,25 50,35 C58,25 65,20 73,20 C85,20 95,30 95,45 C95,60 80,75 50,95 Z" fill="currentColor"/>
+                </svg>
+                <svg class="heart heart-primary" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <path d="M50,95 C20,75 5,60 5,45 C5,30 15,20 27,20 C35,20 42,25 50,35 C58,25 65,20 73,20 C85,20 95,30 95,45 C95,60 80,75 50,95 Z" fill="currentColor"/>
+                </svg>
+            </div>
+            <p class="loading-names" id="loadingNames">Carregando experiências…</p>
         </div>
-        <p class="loading-names" id="loadingNames">Carregando experiências…</p>
+
+        <!-- Fase 2+: bolha iridescente -->
+        <div id="lsBubble" class="ls-bubble"${bubbleHidden} role="img" aria-label="Iniciais do casal">
+            <div class="ls-bubble-glass">
+                <span class="ls-bubble-initials" id="lsBubbleInitials">${initials}</span>
+            </div>
+        </div>
+
     </div>
-</div>
-`;
+</div>`;
+}
 
-/**
- * Inicializa a loading screen:
- * 1. Injeta HTML no body (afterbegin para estar antes de tudo)
- * 2. Carrega site.json para descobrir tema e nomes
- * 3. Carrega arquivo de tema para extrair cores
- * 4. Aplica cores via CSS variables
- * 5. Preenche nomes dos noivos
- */
+// ---------------------------------------------------------------------------
+// Injetar Google Fonts no <head> (idempotente)
+// ---------------------------------------------------------------------------
+
+function ensureGreatVibesFont() {
+    if (document.querySelector('link[href*="Great+Vibes"]')) return;
+    const pre = document.createElement('link');
+    pre.rel = 'preconnect';
+    pre.href = 'https://fonts.googleapis.com';
+    document.head.prepend(pre);
+
+    const lnk = document.createElement('link');
+    lnk.rel = 'stylesheet';
+    lnk.href = 'https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap';
+    document.head.appendChild(lnk);
+}
+
+// ---------------------------------------------------------------------------
+// initLoadingScreen — chamada imediatamente, antes do bootstrap
+// ---------------------------------------------------------------------------
+
 export async function initLoadingScreen() {
-    try {
-        // 1. Injetar HTML e aplicar cores imediatamente (sem esperar fetch)
-        //    Prefere cores persistidas da visita anterior (evita flash neutro).
-        document.body.insertAdjacentHTML('afterbegin', LOADING_SCREEN_HTML);
-        if (!loadPersistedThemeColors()) {
-            applyNeutralLoadingColors();
-        }
+    ensureGreatVibesFont();
 
-        // 2. Buscar apenas os nomes do casal — em paralelo com o bootstrap principal
-        //    As cores do tema são aplicadas por bootstrap() via applyThemeToLoadingScreen()
-        //    assim que o tema real for carregado, garantindo timing correto.
-        const configSource = resolveSiteConfigSource();
-        const siteRes = await fetch(configSource.url, {
-            method: 'GET',
-            headers: { Accept: 'application/json' },
-            cache: 'no-store'
-        });
-        if (!siteRes.ok) return;
+    const dataReady     = ssGet('ls_data_ready') === '1';
+    const savedInitials = ssGet('ls_initials') || '';
 
-        const siteConfig = await siteRes.json();
-        preencherNomes(siteConfig?.couple?.names || '');
+    // Monta HTML na fase correta
+    document.body.insertAdjacentHTML('afterbegin', buildLoadingHTML(dataReady, savedInitials));
 
-    } catch (error) {
-        console.warn('[LoadingScreen] Erro ao buscar nomes, usando fallback.', error);
+    // Aplica cores: prefere cache → fallback neutro
+    if (!loadPersistedThemeColors()) {
+        applyNeutralLoadingColors();
     }
 }
 
-/**
- * Aplica as cores do tema ativo na loading screen.
- * Chamada por bootstrap() em script.js logo após applyTheme(),
- * garantindo que as cores estejam aplicadas antes do fade-out.
- *
- * @param {object} theme — objeto de tema resolvido (mesmo passado para applyTheme)
- */
+// ---------------------------------------------------------------------------
+// applyEventDataToLoadingScreen — chamada por script.js quando Supabase responde
+// ---------------------------------------------------------------------------
+
+export function applyEventDataToLoadingScreen({ names = '', date = '' } = {}) {
+    const initials = extractInitials(names);
+
+    // Persistir para próximas navegações
+    ssSet('ls_data_ready', '1');
+    if (initials) ssSet('ls_initials', initials);
+
+    const lsHeart          = document.getElementById('lsHeart');
+    const lsBubble         = document.getElementById('lsBubble');
+    const lsBubbleInitials = document.getElementById('lsBubbleInitials');
+
+    // Atualizar iniciais (sempre, mesmo que já visível na fase 3)
+    if (lsBubbleInitials && initials) {
+        lsBubbleInitials.textContent = initials;
+    }
+
+    // Fase 3: bolha já visível, nada a animar
+    if (!lsHeart || lsHeart.style.display === 'none') return;
+
+    // Fase 2: transição coração → bolha
+    lsHeart.style.transition = 'opacity 0.45s ease';
+    lsHeart.style.opacity    = '0';
+
+    setTimeout(() => {
+        lsHeart.style.display = 'none';
+
+        if (lsBubble) {
+            lsBubble.style.display  = 'flex';
+            lsBubble.style.opacity  = '0';
+            // Forçar reflow para ativar a transition
+            void lsBubble.offsetWidth;
+            lsBubble.style.transition = 'opacity 0.5s ease';
+            lsBubble.style.opacity    = '1';
+        }
+    }, 450);
+}
+
+// ---------------------------------------------------------------------------
+// applyThemeToLoadingScreen — aplica cores do tema ativo
+// Chamada por bootstrap() em script.js logo após applyTheme()
+// ---------------------------------------------------------------------------
+
 export function applyThemeToLoadingScreen(theme) {
-    const colors = theme?.colors ?? {};
+    const colors  = theme?.colors ?? {};
     const bg      = colors.background || NEUTRAL_LOADING_COLORS.bg;
     const text     = colors.text       || NEUTRAL_LOADING_COLORS.text;
     const primary  = colors.primary    || NEUTRAL_LOADING_COLORS.primary;
@@ -83,35 +175,25 @@ export function applyThemeToLoadingScreen(theme) {
     root.style.setProperty('--ls-text-color',    text);
     root.style.setProperty('--ls-primary-color', primary);
 
-    // Persistir para próximas navegações na mesma aba (sem flash neutro)
     persistThemeColors(bg, text, primary);
 }
 
-/**
- * Salva as cores do tema no sessionStorage.
- * sessionStorage dura apenas enquanto a aba estiver aberta, então
- * cada nova aba começa limpa — sem vazar cores de um casal para outro.
- */
+// ---------------------------------------------------------------------------
+// Persistência de cores do tema no sessionStorage
+// ---------------------------------------------------------------------------
+
 function persistThemeColors(bg, text, primary) {
     try {
         sessionStorage.setItem('ls-theme-colors', JSON.stringify({ bg, text, primary }));
-    } catch {
-        // sessionStorage indisponível (ex: modo incógnito bloqueado) — silencioso
-    }
+    } catch { /* silencioso */ }
 }
 
-/**
- * Lê cores persistidas do sessionStorage e aplica imediatamente.
- * Retorna true se encontrou e aplicou cores, false caso contrário.
- */
 function loadPersistedThemeColors() {
     try {
         const raw = sessionStorage.getItem('ls-theme-colors');
         if (!raw) return false;
-
         const { bg, text, primary } = JSON.parse(raw);
         if (!bg || !text || !primary) return false;
-
         const root = document.documentElement;
         root.style.setProperty('--ls-bg-color',      bg);
         root.style.setProperty('--ls-text-color',    text);
@@ -122,110 +204,6 @@ function loadPersistedThemeColors() {
     }
 }
 
-/**
- * Preenche o elemento de nomes com os nomes dos noivos
- * Só atualiza se o nome for real (não genérico e não vazio)
- */
-// Valores genéricos que NÃO devem substituir o placeholder de loading
-const GENERIC_NAME_FALLBACKS = ['Noiva & Noivo', 'Casal', 'Nome & Nome', ''];
-
-function preencherNomes(coupleNames) {
-    const loadingNames = document.getElementById('loadingNames');
-    const nome = (coupleNames || '').trim();
-    if (loadingNames && nome && !GENERIC_NAME_FALLBACKS.includes(nome)) {
-        loadingNames.textContent = nome;
-    }
-    // Caso contrário, mantém "Carregando experiências…"
-}
-
-/**
- * Cores neutras escuras — estado inicial e fallback de erro.
- * Evitam o flash de branco antes do tema ser carregado.
- */
-const NEUTRAL_LOADING_COLORS = {
-    bg:      '#1a1714',   // escuro neutro (compatível com qualquer tema)
-    text:    '#f0ede8',   // off-white quente
-    primary: '#c9a84c',   // dourado sutil
-};
-
-function applyNeutralLoadingColors() {
-    const root = document.documentElement;
-    root.style.setProperty('--ls-bg-color',      NEUTRAL_LOADING_COLORS.bg);
-    root.style.setProperty('--ls-text-color',    NEUTRAL_LOADING_COLORS.text);
-    root.style.setProperty('--ls-primary-color', NEUTRAL_LOADING_COLORS.primary);
-}
-
-/**
- * Aplica cores neutras se o carregamento do tema falhar.
- * Garante que a loading screen sempre apareça com cores legíveis.
- */
-function applyFallbackLoadingColors() {
-    applyNeutralLoadingColors();
-}
-
-/**
- * Gerencia o desaparecimento da loading screen
- * Aguarda:
- * 1. Bootstrap completar
- * 2. Delay mínimo de 1000ms (para percepção do usuário)
- * 3. Fade-out de 600ms
- * 
- * Deve ser chamada ao final do bootstrap em script.js
- */
-export let bootstrapComplete = false;
-
-/**
- * Marca bootstrap como completo
- * Chamada por script.js para sincronizar o desaparecimento da loading screen
- */
-export function markBootstrapComplete() {
-    bootstrapComplete = true;
-}
-
-/**
- * Flag que indica quando o conteúdo foi renderizado
- * Usado por páginas extras para indicar que estão prontas
- */
-export let contentReady = false;
-
-/**
- * Marca o conteúdo da página como pronto
- * Chamada por páginas extras após renderizar seu conteúdo
- */
-export function markContentReady() {
-    contentReady = true;
-}
-
-export async function hideLoadingScreen() {
-    const loadingScreen = document.getElementById('loadingScreen');
-    if (!loadingScreen) return;
-
-    // Aguarda bootstrap completar (se não tiver completado)
-    while (!bootstrapComplete) {
-        await new Promise(r => setTimeout(r, 100));
-    }
-
-    // Se for uma página extra, aguarda o conteúdo estar pronto
-    // Timeout de 5 segundos como failsafe para não ficar travado
-    const contentTimeout = new Promise(r => setTimeout(r, 5000));
-    const contentCheck = new Promise(r => {
-        const checkInterval = setInterval(() => {
-            if (contentReady || !document.body.classList.contains('extra-page')) {
-                clearInterval(checkInterval);
-                r();
-            }
-        }, 100);
-    });
-    await Promise.race([contentTimeout, contentCheck]);
-
-    // Espera MAIS 1000ms mesmo que tudo pronto (delay mínimo obrigatório)
-    await new Promise(r => setTimeout(r, 1500));
-
-    // Aí sim desaparece com fade-out de 600ms
-    loadingScreen.classList.add('fade-out');
-    setTimeout(() => {
-        if (loadingScreen.parentNode) {
-            loadingScreen.remove();
-        }
-    }, 600);
-}
+// ---------------------------------------------------------------------------
+// Cores neutras escuras — estado inicial e fallback
+// ----------------------------------------------------------------------
