@@ -5,7 +5,7 @@ import { PresentPage } from './presente.js';
 import { AudioController } from './audio.js';
 import { cloneDeep, mergeDeep, setInputPlaceholder, setText } from './utils.js';
 import { resolveSiteConfigSource, resolveThemePath } from './config-source.js';
-import { markBootstrapComplete, hideLoadingScreen, applyThemeToLoadingScreen, applyEventDataToLoadingScreen } from './loading-screen.js';
+import { markBootstrapComplete, hideLoadingScreen, applyThemeToLoadingScreen } from './loading-screen.js';
 import { onConfigLoaded } from './debug-badge.js';
 
 const TYPOGRAPHY_CONFIG_URL = 'assets/config/typography.json';
@@ -1180,12 +1180,6 @@ async function bootstrap() {
         // Feito aqui (após applyTheme) garante timing: tema já carregado,
         // loading screen ainda visível, zero race condition.
         applyThemeToLoadingScreen(effectiveTheme);
-        // Transição coração → bolha: passa os nomes reais do Supabase para a loading screen.
-        // config.couple.names já está mapeado pelo buildEventConfigResponse (eventRecord.couple_names).
-        applyEventDataToLoadingScreen({
-            names: config.couple?.names || '',
-            date:  config.event?.heroDate || config.event?.detailDate || '',
-        });
         // Atualiza badge de debug com tema e status de cache (no-op se não estiver em modo debug)
         onConfigLoaded({ configUrl: finalConfigUrl, theme: config.activeTheme || 'classic-gold' });
         const experience = new InvitationExperience(config, effectiveTheme, navigationState);
@@ -1196,4 +1190,20 @@ async function bootstrap() {
     } catch (error) {
         console.error('Falha ao carregar a configuracao da pagina.', error);
         renderBootstrapError(error, configSource);
-        markBootstrapComplete
+        markBootstrapComplete();
+        await hideLoadingScreen();
+    }
+}
+
+const shouldAutoBootstrap =
+    typeof window !== 'undefined' &&
+    typeof document !== 'undefined' &&
+    window.__INVITATION_DISABLE_BOOTSTRAP__ !== true;
+
+if (shouldAutoBootstrap) {
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', bootstrap, { once: true });
+    } else {
+        bootstrap();
+    }
+}

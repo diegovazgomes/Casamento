@@ -58,26 +58,6 @@ export async function initLoadingScreen() {
         if (!siteRes.ok) return;
 
         const siteConfig = await siteRes.json();
-        const layoutKey = siteConfig?.activeLayout;
-        const themePath = resolveThemePath(siteConfig?.activeTheme, layoutKey);
-
-        try {
-            const themeRes = await fetch(themePath, {
-                method: 'GET',
-                headers: { Accept: 'application/json' },
-                cache: 'no-store'
-            });
-
-            if (themeRes.ok) {
-                const theme = await themeRes.json();
-                applyThemeToLoadingScreen(theme);
-            } else {
-                applyFallbackLoadingColors();
-            }
-        } catch {
-            applyFallbackLoadingColors();
-        }
-
         preencherNomes(siteConfig?.couple?.names || '');
 
     } catch (error) {
