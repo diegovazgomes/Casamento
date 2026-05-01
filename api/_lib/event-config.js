@@ -175,6 +175,16 @@ function mapGiftConfig(giftRecords, baseGiftConfig) {
       return;
     }
 
+    if (giftRecord?.type === 'external') {
+      gift.external = {
+        enabled: Boolean(giftRecord.enabled),
+        url:     config.url   || '',
+        label:   config.label || 'Ver lista completa',
+        store:   config.store || '',
+      };
+      return;
+    }
+
     if (giftRecord?.type === 'catalog') {
       const catalogKey = resolveCatalogKey(config, index);
       catalogLists[catalogKey] = mergeDeep(config, { enabled: Boolean(giftRecord.enabled) });
