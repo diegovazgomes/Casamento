@@ -86,6 +86,7 @@ function extractEventTableFields(config) {
 
 function injectAffiliateTag(url) {
   try {
+    if (url && !/^https?:\/\//i.test(url)) url = 'https://' + url;
     const u = new URL(url);
     if (u.hostname.includes('amazon.com.br')) {
       u.searchParams.set('tag', 'casamentoafiliad-20');

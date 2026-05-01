@@ -1099,8 +1099,14 @@ window.addEventListener('app:ready', ({ detail: { config } }) => {
   if (allPanels.length) allPanels[0].classList.add('is-active');
 
   /* Lista Externa */
+  function normalizeUrl(url) {
+    if (!url) return '#';
+    if (/^https?:\/\//i.test(url)) return url;
+    return 'https://' + url;
+  }
+
   const externalEnabled = config?.gift?.external?.enabled === true;
-  const externalUrl = String(config?.gift?.external?.url || '').trim();
+  const externalUrl = normalizeUrl(String(config?.gift?.external?.url || '').trim());
   const externalLabel = String(config?.gift?.external?.label || 'Ver lista de presentes').trim();
   const externalStore = String(config?.gift?.external?.store || '').trim();
 
