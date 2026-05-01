@@ -615,6 +615,7 @@
       <button class="gift-tab is-active" data-panel="lista" role="tab">Lista de presentes</button>
       <button class="gift-tab" data-panel="pix" role="tab">Pix direto</button>
       <button class="gift-tab" data-panel="cartao" role="tab">Cartão</button>
+      <button class="gift-tab" data-panel="externa" role="tab" id="tabExterna" hidden>🔗 Lista</button>
     </div>
   </section>
 
@@ -690,6 +691,29 @@
             rel="noopener noreferrer"
           >
             <span id="giftCardPlaceholder">Ir para pagamento por cartão →</span>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── PANEL: LISTA EXTERNA ────────────────────────────────────── -->
+    <div class="gift-tab-panel" id="panel-externa" role="tabpanel" hidden>
+      <div class="gift-card-panel-wrap">
+        <div class="gift-card-box reveal" id="giftExternalPanel">
+          <span class="gift-card-box-tag" id="giftExternalTag">Lista externa · Loja parceira</span>
+          <h2 class="gift-card-box-title" id="giftExternalTitle">Lista de presentes</h2>
+          <p class="gift-card-box-desc" id="giftExternalBody">
+            Preparamos uma lista de presentes em uma loja parceira. Clique abaixo para ver os itens e presentear o casal.
+          </p>
+          <a
+            class="gift-card-link-btn"
+            id="giftExternalLink"
+            href="#"
+            target="_blank"
+            rel="noopener noreferrer"
+            style="display:none"
+          >
+            <span id="giftExternalLinkLabel">Ver lista de presentes</span>
           </a>
         </div>
       </div>
@@ -1073,6 +1097,27 @@ window.addEventListener('app:ready', ({ detail: { config } }) => {
   document.querySelectorAll('.gift-tab-panel').forEach(p => p.classList.remove('is-active'));
   if (allTabs.length)   allTabs[0].classList.add('is-active');
   if (allPanels.length) allPanels[0].classList.add('is-active');
+
+  /* Lista Externa */
+  const externalEnabled = config?.gift?.external?.enabled === true;
+  const externalUrl = String(config?.gift?.external?.url || '').trim();
+  const externalLabel = String(config?.gift?.external?.label || 'Ver lista de presentes').trim();
+  const externalStore = String(config?.gift?.external?.store || '').trim();
+
+  if (externalEnabled && externalUrl) {
+    const extTab = document.getElementById('tabExterna');
+    const extPanel = document.getElementById('panel-externa');
+    const extLink = document.getElementById('giftExternalLink');
+    const extLinkLabel = document.getElementById('giftExternalLinkLabel');
+    const extTitle = document.getElementById('giftExternalTitle');
+    const extTag = document.getElementById('giftExternalTag');
+    if (extTab)   { extTab.hidden = false; extTab.textContent = '🔗 ' + (externalStore || 'Lista'); }
+    if (extPanel) extPanel.hidden = false;
+    if (extLink)  { extLink.href = externalUrl; extLink.style.display = ''; }
+    if (extLinkLabel) extLinkLabel.textContent = externalLabel;
+    if (externalStore && extTitle) extTitle.textContent = 'Lista ' + externalStore;
+    if (externalStore && extTag)   extTag.textContent = '🔗 ' + externalStore;
+  }
 
   /* Renderiza lista com chave Pix carregada */
   if (catalogEnabled) renderGiftList(pixKey, qrSrc, cardLink);

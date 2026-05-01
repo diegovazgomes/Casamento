@@ -84,6 +84,20 @@ function extractEventTableFields(config) {
   return fields;
 }
 
+function injectAffiliateTag(url) {
+  try {
+    const u = new URL(url);
+    if (u.hostname.includes('amazon.com.br')) {
+      u.searchParams.set('tag', 'casamentoafiliad-20');
+    } else if (u.hostname.includes('magazineluiza.com.br') || u.hostname.includes('magalu.com.br')) {
+      u.searchParams.set('utm_source', 'casamento_afiliado');
+    }
+    return u.toString();
+  } catch {
+    return url;
+  }
+}
+
 function setCorsHeaders(res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, PATCH, OPTIONS');
@@ -208,6 +222,36 @@ export default async function handler(req, res) {
     }
     if ('cardPaymentEnabled' in incomingGift) {
       giftSyncs.push({ type: 'card', enabled: Boolean(incomingGift.cardPaymentEnabled) });
+    }
+
+
+    if ('external' in incomingGift) {
+      const ext = incomingGift.external || {};
+      const extEnabled = Boolean(ext.enabled);
+      const extUrl = String(ext.url || '').trim();
+      const extLabel = String(ext.label || 'Ver lista de presentes').trim();
+      const extStore = String(ext.store || '').trim();
+      const extConfig = {
+        url: extUrl ? injectAffiliateTag(extUrl) : '',
+        label: extLabel,
+        store: extStore,
+      };
+      const { error: extUpsertError } = await ownedEvent.supabase
+        .from('event_gifts')
+        .upsert(
+          {
+            event_id: ownedEvent.event.id,
+            type: 'external',
+            enabled: extEnabled,
+            config: extConfig,
+          },
+          { onConflict: 'event_id,type', ignoreDuplicates: false }
+        );
+      if (extUpsertError) {
+        console.warn('[dashboard/event] Falha ao sincronizar event_gifts external:', extUpsertError);
+      } else {
+        console.log(`[dashboard/event] event_gifts.external synced: enabled=${extEnabled} url=${extConfig.url}`);
+      }
     }
 
     for (const sync of giftSyncs) {

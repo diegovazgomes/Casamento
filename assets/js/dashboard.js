@@ -1526,6 +1526,15 @@ function loadEditorTab() {
   syncCatalogMetaFields(activeCatalogKey);
   renderCatalogItems();
 
+  // Lista Externa
+  const ext = gift.external || {};
+  const extOn = Boolean(ext.enabled);
+  setChk('edGiftExternalEnabled', extOn);
+  toggleGiftBlock('giftBlockExternal', extOn);
+  setVal('edGiftExternalStore', ext.store || '');
+  setVal('edGiftExternalUrl', ext.url || '');
+  setVal('edGiftExternalLabel', ext.label || 'Ver lista de presentes');
+
   // Fotos & Mídia
   setVal('edMediaHero',       config.media?.heroImage             ?? '');
   setVal('edTrackMainSrc',    config.media?.tracks?.main?.src     ?? '');
@@ -2315,6 +2324,13 @@ function collectEditorValues() {
   config.gift.catalog.items    = editorState.catalogItems
     .filter(it => (it.name || '').trim())
     .map((it, i) => ({ id: i + 1, name: it.name.trim(), amount: Number(it.amount) || 0, icon: it.icon || '💛' }));
+
+  // Lista Externa
+  if (!config.gift.external) config.gift.external = {};
+  config.gift.external.enabled = document.getElementById('edGiftExternalEnabled')?.checked ?? false;
+  config.gift.external.store   = document.getElementById('edGiftExternalStore')?.value.trim() || '';
+  config.gift.external.url     = document.getElementById('edGiftExternalUrl')?.value.trim()   || '';
+  config.gift.external.label   = document.getElementById('edGiftExternalLabel')?.value.trim() || 'Ver lista de presentes';
 
   // Fotos & Mídia
   if (!config.media) config.media = {};
