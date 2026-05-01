@@ -1,10 +1,10 @@
 /**
  * Loading Screen Module
- * 
+ *
  * Gerencia a tela de carregamento de forma centralizada:
  * - Injeta HTML da loading screen no body
  * - Carrega cores do tema dinamicamente
- * - Preenche nomes dos noivos
+ * - Preenche nomes e data dos noivos (fase 2)
  * - Coordena com o bootstrap principal
  */
 
@@ -12,20 +12,24 @@ import { resolveSiteConfigSource, resolveThemePath } from './config-source.js';
 
 const LOADING_SCREEN_HTML = `
 <div class="loading-screen" id="loadingScreen" aria-hidden="true">
-    <div class="loading-backdrop"></div>
-    <div class="loading-content">
-        <div class="loading-hearts">
-            <!-- Heart 1: Text Color (cinza/branco) -->
-            <svg class="heart heart-text" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                <path d="M50,95 C20,75 5,60 5,45 C5,30 15,20 27,20 C35,20 42,25 50,35 C58,25 65,20 73,20 C85,20 95,30 95,45 C95,60 80,75 50,95 Z" fill="currentColor"/>
-            </svg>
-            <!-- Heart 2: Primary Color (prata/ouro) -->
-            <svg class="heart heart-primary" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                <path d="M50,95 C20,75 5,60 5,45 C5,30 15,20 27,20 C35,20 42,25 50,35 C58,25 65,20 73,20 C85,20 95,30 95,45 C95,60 80,75 50,95 Z" fill="currentColor"/>
-            </svg>
-        </div>
-        <p class="loading-names" id="loadingNames">Carregando experiências…</p>
+  <div class="loading-backdrop"></div>
+  <div class="loading-content">
+    <!-- Logo/marca — placeholder com coração (será substituído por SVG) -->
+    <div class="ls-logo">
+      <span class="ls-logo-icon">♥</span>
     </div>
+    <!-- Linha decorativa — aparece 0.4s depois do logo -->
+    <div class="ls-divider">
+      <span class="ls-divider-line"></span>
+      <span class="ls-divider-dot">◆</span>
+      <span class="ls-divider-line"></span>
+    </div>
+    <!-- Dados do casal — hidden até chegarem -->
+    <div class="ls-couple" id="lsCouple" style="opacity:0">
+      <p class="ls-couple-names" id="lsCoupleNames"></p>
+      <p class="ls-couple-date" id="lsCoupleDate"></p>
+    </div>
+  </div>
 </div>
 `;
 
@@ -35,7 +39,7 @@ const LOADING_SCREEN_HTML = `
  * 2. Carrega site.json para descobrir tema e nomes
  * 3. Carrega arquivo de tema para extrair cores
  * 4. Aplica cores via CSS variables
- * 5. Preenche nomes dos noivos
+ * 5. Preenche nomes e data dos noivos (fase 2)
  */
 export async function initLoadingScreen() {
     try {
@@ -46,7 +50,7 @@ export async function initLoadingScreen() {
             applyNeutralLoadingColors();
         }
 
-        // 2. Buscar apenas os nomes do casal — em paralelo com o bootstrap principal
+        // 2. Buscar dados do casal — em paralelo com o bootstrap principal
         //    As cores do tema são aplicadas por bootstrap() via applyThemeToLoadingScreen()
         //    assim que o tema real for carregado, garantindo timing correto.
         const configSource = resolveSiteConfigSource();
@@ -58,10 +62,10 @@ export async function initLoadingScreen() {
         if (!siteRes.ok) return;
 
         const siteConfig = await siteRes.json();
-        preencherNomes(siteConfig?.couple?.names || '');
+        preencherNomes(siteConfig);
 
     } catch (error) {
-        console.warn('[LoadingScreen] Erro ao buscar nomes, usando fallback.', error);
+        console.warn('[LoadingScreen] Erro ao buscar dados do casal, usando fallback.', error);
     }
 }
 
@@ -123,19 +127,35 @@ function loadPersistedThemeColors() {
 }
 
 /**
- * Preenche o elemento de nomes com os nomes dos noivos
- * Só atualiza se o nome for real (não genérico e não vazio)
+ * Preenche os elementos de nomes e data com os dados do casal.
+ * Exibe o bloco .ls-couple apenas quando os dados chegarem.
+ *
+ * @param {object} config — objeto site.json completo
  */
-// Valores genéricos que NÃO devem substituir o placeholder de loading
 const GENERIC_NAME_FALLBACKS = ['Noiva & Noivo', 'Casal', 'Nome & Nome', ''];
 
-function preencherNomes(coupleNames) {
-    const loadingNames = document.getElementById('loadingNames');
-    const nome = (coupleNames || '').trim();
-    if (loadingNames && nome && !GENERIC_NAME_FALLBACKS.includes(nome)) {
-        loadingNames.textContent = nome;
+function preencherNomes(config) {
+    const coupleEl = document.getElementById('lsCouple');
+    const namesEl  = document.getElementById('lsCoupleNames');
+    const dateEl   = document.getElementById('lsCoupleDate');
+
+    if (!coupleEl || !namesEl || !dateEl) return;
+
+    const nome = (config?.couple?.names || '').trim();
+    const data = (config?.event?.heroDate || config?.event?.detailDate || '').trim();
+
+    // Preenche apenas valores não-genéricos
+    if (nome && !GENERIC_NAME_FALLBACKS.includes(nome)) {
+        namesEl.textContent = nome;
     }
-    // Caso contrário, mantém "Carregando experiências…"
+    if (data) {
+        dateEl.textContent = data;
+    }
+
+    // Revela o bloco se tiver pelo menos o nome
+    if (nome && !GENERIC_NAME_FALLBACKS.includes(nome)) {
+        coupleEl.style.opacity = '1';
+    }
 }
 
 /**
@@ -156,41 +176,33 @@ function applyNeutralLoadingColors() {
 }
 
 /**
- * Aplica cores neutras se o carregamento do tema falhar.
- * Garante que a loading screen sempre apareça com cores legíveis.
- */
-function applyFallbackLoadingColors() {
-    applyNeutralLoadingColors();
-}
-
-/**
- * Gerencia o desaparecimento da loading screen
+ * Gerencia o desaparecimento da loading screen.
  * Aguarda:
  * 1. Bootstrap completar
- * 2. Delay mínimo de 1000ms (para percepção do usuário)
- * 3. Fade-out de 600ms
- * 
+ * 2. Delay mínimo de 1500ms (para percepção do usuário)
+ * 3. Fade-out de 700ms
+ *
  * Deve ser chamada ao final do bootstrap em script.js
  */
 export let bootstrapComplete = false;
 
 /**
- * Marca bootstrap como completo
- * Chamada por script.js para sincronizar o desaparecimento da loading screen
+ * Marca bootstrap como completo.
+ * Chamada por script.js para sincronizar o desaparecimento da loading screen.
  */
 export function markBootstrapComplete() {
     bootstrapComplete = true;
 }
 
 /**
- * Flag que indica quando o conteúdo foi renderizado
- * Usado por páginas extras para indicar que estão prontas
+ * Flag que indica quando o conteúdo foi renderizado.
+ * Usado por páginas extras para indicar que estão prontas.
  */
 export let contentReady = false;
 
 /**
- * Marca o conteúdo da página como pronto
- * Chamada por páginas extras após renderizar seu conteúdo
+ * Marca o conteúdo da página como pronto.
+ * Chamada por páginas extras após renderizar seu conteúdo.
  */
 export function markContentReady() {
     contentReady = true;
@@ -218,14 +230,14 @@ export async function hideLoadingScreen() {
     });
     await Promise.race([contentTimeout, contentCheck]);
 
-    // Espera MAIS 1000ms mesmo que tudo pronto (delay mínimo obrigatório)
+    // Espera MAIS 1500ms mesmo que tudo pronto (delay mínimo obrigatório)
     await new Promise(r => setTimeout(r, 1500));
 
-    // Aí sim desaparece com fade-out de 600ms
+    // Desaparece com fade-out de 700ms
     loadingScreen.classList.add('fade-out');
     setTimeout(() => {
         if (loadingScreen.parentNode) {
             loadingScreen.remove();
         }
-    }, 600);
+    }, 700);
 }

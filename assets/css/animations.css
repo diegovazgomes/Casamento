@@ -198,102 +198,92 @@ a, button, input, select, textarea {
     animation: fadeInUp var(--fade-duration) ease-out;
 }
 
-/* Loading Screen */
+
+/* ── Loading Screen Redesign ───────────────────── */
 .loading-screen {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 9999;
+  position: fixed; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  z-index: 9999;
 }
-
 .loading-backdrop {
-    position: absolute;
-    inset: 0;
-    background: var(--ls-bg-color, var(--color-bg, #1a1714));
-    opacity: 1;
+  position: absolute; inset: 0;
+  background: var(--ls-bg-color, #1a1714);
+  transition: background 0.6s ease;
 }
-
 .loading-content {
-    position: relative;
-    text-align: center;
-    animation: loadingFadeIn 0.6s ease-out;
+  position: relative;
+  text-align: center;
+  display: flex; flex-direction: column; align-items: center; gap: 0;
 }
 
-.loading-hearts {
-    display: flex;
-    justify-content: center;
-    gap: 0.4rem;
-    margin-bottom: 0.6rem;
-    height: 3.5rem;
+/* Logo */
+.ls-logo {
+  animation: lsLogoIn 0.9s cubic-bezier(0.25,0.46,0.45,0.94) both;
+  margin-bottom: 1.2rem;
+}
+.ls-logo-icon {
+  font-size: 2.6rem;
+  color: var(--ls-primary-color, #c9a84c);
+  display: block;
+  line-height: 1;
+  filter: drop-shadow(0 0 12px color-mix(in srgb, var(--ls-primary-color, #c9a84c) 40%, transparent));
 }
 
-/* SVG Hearts */
-.heart {
-    width: 2.8rem;
-    height: 2.8rem;
-    display: block;
-    animation: heartbeat 1.4s infinite ease-in-out;
+/* Linha decorativa */
+.ls-divider {
+  display: flex; align-items: center; gap: 0.5rem;
+  margin-bottom: 1rem;
+  animation: lsDividerIn 0.7s cubic-bezier(0.25,0.46,0.45,0.94) 0.4s both;
+}
+.ls-divider-line {
+  display: block; height: 1px; width: 48px;
+  background: var(--ls-primary-color, #c9a84c);
+  opacity: 0.4;
+}
+.ls-divider-dot {
+  font-size: 0.45rem;
+  color: var(--ls-primary-color, #c9a84c);
+  opacity: 0.7;
+  line-height: 1;
 }
 
-.heart-text {
-    color: var(--ls-text-color, #f5f5f5);
-    animation-delay: 0s;
+/* Dados do casal */
+.ls-couple {
+  transition: opacity 0.8s ease 0.2s;
+}
+.ls-couple-names {
+  font-family: 'Great Vibes', cursive;
+  font-size: clamp(1.3rem, 4vw, 1.8rem);
+  color: var(--ls-text-color, #f0ede8);
+  letter-spacing: 0.05em;
+  margin: 0 0 0.35rem;
+  opacity: 0.9;
+}
+.ls-couple-date {
+  font-family: inherit;
+  font-size: 0.65rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--ls-text-color, #f0ede8);
+  opacity: 0.4;
+  margin: 0;
 }
 
-.heart-primary {
-    color: var(--ls-primary-color, #d4a574);
-    animation-delay: 0.7s;
+/* Keyframes */
+@keyframes lsLogoIn {
+  from { opacity: 0; transform: scale(0.85); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes lsDividerIn {
+  from { opacity: 0; transform: scaleX(0.3); }
+  to   { opacity: 1; transform: scaleX(1); }
 }
 
-/* Nome dos noivos na loading screen */
-.loading-names {
-    font-family: 'Great Vibes', cursive;
-    font-size: 1rem;
-    color: var(--ls-text-color, #f5f5f5);
-    letter-spacing: 0.08em;
-    font-weight: 400;
-    opacity: 0.75;
-    margin: 0;
-    padding: 0 1.5rem;
-}
-
-@keyframes heartbeat {
-    0%, 100% {
-        transform: scale(1);
-        opacity: 0.7;
-    }
-    50% {
-        transform: scale(1.15);
-        opacity: 1;
-    }
-}
-
-@keyframes loadingFadeIn {
-    from {
-        opacity: 0;
-        transform: scale(0.9);
-    }
-    to {
-        opacity: 1;
-        transform: scale(1);
-    }
-}
-
+/* Fade-out */
 .loading-screen.fade-out {
-    animation: loadingFadeOut 0.6s ease-out forwards;
+  animation: loadingFadeOut 0.7s ease-out forwards;
 }
-
 @keyframes loadingFadeOut {
-    from {
-        opacity: 1;
-    }
-    to {
-        opacity: 0;
-        visibility: hidden;
-    }
+  from { opacity: 1; }
+  to   { opacity: 0; visibility: hidden; }
 }
