@@ -8,6 +8,8 @@
 
 import { resolveSiteConfigSource } from './config-source.js';
 
+const LOADING_VISIT_KEY_VERSION = 'v2';
+
 const LOADING_SCREEN_HTML = `
 <div class="loading-screen" id="loadingScreen" aria-hidden="true">
     <div class="loading-backdrop"></div>
@@ -94,7 +96,8 @@ export async function initLoadingScreen() {
         }
 
         const configSource = resolveSiteConfigSource();
-        const visitKey = `ls-first-open:${configSource.slug || 'default'}`;
+        const visitScope = configSource.slug || getVisitScopeFromPathname(window.location.pathname);
+        const visitKey = `ls-first-open:${LOADING_VISIT_KEY_VERSION}:${visitScope}`;
         const isFirstVisit = !hasVisited(visitKey);
         if (isFirstVisit) markVisited(visitKey);
 
@@ -292,6 +295,14 @@ function hasVisited(key) {
     } catch {
         return false;
     }
+}
+
+function getVisitScopeFromPathname(pathname) {
+    const normalizedPath = String(pathname || '/').trim() || '/';
+    return normalizedPath
+        .replace(/^\/+/, '')
+        .replace(/\/+$/, '')
+        .replace(/\//g, '__') || 'default';
 }
 
 function markVisited(key) {
