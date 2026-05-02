@@ -1,30 +1,76 @@
 /**
  * Loading Screen Module
- * 
- * Gerencia a tela de carregamento de forma centralizada:
- * - Injeta HTML da loading screen no body
- * - Carrega cores do tema dinamicamente
- * - Preenche nomes dos noivos
- * - Coordena com o bootstrap principal
+ *
+ * Gerencia a tela de carregamento em duas fases:
+ * - Fase 1: identidade Devasi antes de carregar config
+ * - Fase 2: visual do convite com iniciais/data dinamicas
  */
 
-import { resolveSiteConfigSource, resolveThemePath } from './config-source.js';
+import { resolveSiteConfigSource } from './config-source.js';
 
 const LOADING_SCREEN_HTML = `
 <div class="loading-screen" id="loadingScreen" aria-hidden="true">
     <div class="loading-backdrop"></div>
-    <div class="loading-content">
-        <div class="loading-hearts">
-            <!-- Heart 1: Text Color (cinza/branco) -->
-            <svg class="heart heart-text" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                <path d="M50,95 C20,75 5,60 5,45 C5,30 15,20 27,20 C35,20 42,25 50,35 C58,25 65,20 73,20 C85,20 95,30 95,45 C95,60 80,75 50,95 Z" fill="currentColor"/>
-            </svg>
-            <!-- Heart 2: Primary Color (prata/ouro) -->
-            <svg class="heart heart-primary" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                <path d="M50,95 C20,75 5,60 5,45 C5,30 15,20 27,20 C35,20 42,25 50,35 C58,25 65,20 73,20 C85,20 95,30 95,45 C95,60 80,75 50,95 Z" fill="currentColor"/>
+    <div class="loading-phase loading-phase--brand" id="loadingPhaseBrand" role="status" aria-live="polite" aria-label="Carregando">
+        <div class="brand-loader-art" aria-hidden="true">
+            <svg viewBox="0 0 1080 1920" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
+                <rect width="1080" height="1920" fill="#0e0d0b"></rect>
+                <text x="540" y="820" font-size="16" font-weight="500" letter-spacing="7" fill="#c9a55a" fill-opacity="0.7" text-anchor="middle">- DEVAZI STUDIO -</text>
+                <text x="540" y="970" font-size="180" font-weight="400" fill="#f0ebe1" text-anchor="middle" letter-spacing="2">Devazi</text>
+                <line x1="470" y1="1010" x2="610" y2="1010" stroke="#c9a55a" stroke-opacity="0.7" stroke-width="0.75"></line>
+                <text x="540" y="1060" font-size="14" font-weight="500" fill="#c9a55a" text-anchor="middle" letter-spacing="6">EXPERIENCIAS DIGITAIS DE CASAMENTO</text>
             </svg>
         </div>
-        <p class="loading-names" id="loadingNames">Carregando experiências…</p>
+        <div class="brand-loader-ring" aria-hidden="true">
+            <svg viewBox="0 0 220 220">
+                <circle class="brand-loader-ring-track" cx="110" cy="110" r="105"></circle>
+                <circle class="brand-loader-ring-arc" cx="110" cy="110" r="105"></circle>
+            </svg>
+            <span class="brand-loader-ring-letter">D</span>
+        </div>
+    </div>
+
+    <div class="loading-phase loading-phase--couple" id="loadingPhaseCouple" hidden>
+        <div class="loader-progress-ring" aria-hidden="true">
+            <svg viewBox="0 0 220 220">
+                <circle class="loader-progress-track" cx="110" cy="110" r="105"></circle>
+                <circle class="loader-progress-arc" cx="110" cy="110" r="105"></circle>
+            </svg>
+        </div>
+
+        <div class="bubble-wrap">
+            <div class="bubble-shadow"></div>
+            <div class="bubble">
+                <div class="bubble-iridescence"></div>
+                <div class="bubble-highlight"></div>
+                <div class="bubble-highlight-small"></div>
+            </div>
+            <div class="bubble-content" aria-hidden="true">
+                <span class="bubble-letter" id="loadingInitialA">S</span>
+                <span class="bubble-amp">&amp;</span>
+                <span class="bubble-letter" id="loadingInitialB">D</span>
+            </div>
+        </div>
+
+        <div class="loader-status">
+            <span class="loader-status-text">Carregando convite</span>
+            <div class="loader-dots" aria-hidden="true">
+                <span class="loader-dot"></span>
+                <span class="loader-dot"></span>
+                <span class="loader-dot"></span>
+            </div>
+        </div>
+
+        <div class="loader-bar-wrap" aria-hidden="true">
+            <div class="loader-bar-track">
+                <div class="loader-bar-fill"></div>
+            </div>
+        </div>
+
+        <div class="loader-date-wrap">
+            <div class="loader-date-line"></div>
+            <p class="loader-date" id="loadingEventDate">-- . -- . ----</p>
+        </div>
     </div>
 </div>
 `;
@@ -39,16 +85,11 @@ const LOADING_SCREEN_HTML = `
  */
 export async function initLoadingScreen() {
     try {
-        // 1. Injetar HTML e aplicar cores imediatamente (sem esperar fetch)
-        //    Prefere cores persistidas da visita anterior (evita flash neutro).
         document.body.insertAdjacentHTML('afterbegin', LOADING_SCREEN_HTML);
         if (!loadPersistedThemeColors()) {
             applyNeutralLoadingColors();
         }
 
-        // 2. Buscar apenas os nomes do casal — em paralelo com o bootstrap principal
-        //    As cores do tema são aplicadas por bootstrap() via applyThemeToLoadingScreen()
-        //    assim que o tema real for carregado, garantindo timing correto.
         const configSource = resolveSiteConfigSource();
         const siteRes = await fetch(configSource.url, {
             method: 'GET',
@@ -58,10 +99,14 @@ export async function initLoadingScreen() {
         if (!siteRes.ok) return;
 
         const siteConfig = await siteRes.json();
-        preencherNomes(siteConfig?.couple?.names || '');
+        const initials = extractCoupleInitials(siteConfig?.couple?.names || '');
+        const formattedDate = formatEventDate(siteConfig?.event?.date, siteConfig?.event?.displayDate, siteConfig?.event?.heroDate);
+
+        updateCouplePhaseData(initials, formattedDate);
+        switchToCouplePhase();
 
     } catch (error) {
-        console.warn('[LoadingScreen] Erro ao buscar nomes, usando fallback.', error);
+        console.warn('[LoadingScreen] Erro ao carregar dados dinamicos do loader.', error);
     }
 }
 
@@ -85,6 +130,66 @@ export function applyThemeToLoadingScreen(theme) {
 
     // Persistir para próximas navegações na mesma aba (sem flash neutro)
     persistThemeColors(bg, text, primary);
+}
+
+function switchToCouplePhase() {
+    const loadingScreen = document.getElementById('loadingScreen');
+    const brandPhase = document.getElementById('loadingPhaseBrand');
+    const couplePhase = document.getElementById('loadingPhaseCouple');
+
+    if (!loadingScreen || !brandPhase || !couplePhase) {
+        return;
+    }
+
+    loadingScreen.classList.add('loading-screen--phase-couple');
+    brandPhase.hidden = true;
+    couplePhase.hidden = false;
+}
+
+function extractCoupleInitials(coupleNames) {
+    const name = String(coupleNames || '').trim();
+    if (!name) {
+        return { first: 'S', second: 'D' };
+    }
+
+    const parts = name.split('&').map((part) => part.trim()).filter(Boolean);
+    const first = extractInitial(parts[0] || name);
+    const second = extractInitial(parts[1] || parts[0] || name);
+
+    return { first, second };
+}
+
+function extractInitial(value) {
+    const normalized = String(value || '').trim();
+    const match = normalized.match(/[A-Za-zÀ-ÿ]/u);
+
+    if (!match) {
+        return 'S';
+    }
+
+    return match[0].toUpperCase();
+}
+
+function formatEventDate(eventDate, displayDate, heroDate) {
+    const sourceDate = String(eventDate || '').trim();
+    const dateMatch = sourceDate.match(/^(\d{4})-(\d{2})-(\d{2})/);
+
+    if (dateMatch) {
+        const [, year, month, day] = dateMatch;
+        return `${day} . ${month} . ${year}`;
+    }
+
+    return String(displayDate || heroDate || '-- . -- . ----').trim();
+}
+
+function updateCouplePhaseData(initials, formattedDate) {
+    const first = document.getElementById('loadingInitialA');
+    const second = document.getElementById('loadingInitialB');
+    const eventDate = document.getElementById('loadingEventDate');
+
+    if (first) first.textContent = initials.first;
+    if (second) second.textContent = initials.second;
+    if (eventDate && formattedDate) eventDate.textContent = formattedDate;
 }
 
 /**
@@ -123,29 +228,13 @@ function loadPersistedThemeColors() {
 }
 
 /**
- * Preenche o elemento de nomes com os nomes dos noivos
- * Só atualiza se o nome for real (não genérico e não vazio)
- */
-// Valores genéricos que NÃO devem substituir o placeholder de loading
-const GENERIC_NAME_FALLBACKS = ['Noiva & Noivo', 'Casal', 'Nome & Nome', ''];
-
-function preencherNomes(coupleNames) {
-    const loadingNames = document.getElementById('loadingNames');
-    const nome = (coupleNames || '').trim();
-    if (loadingNames && nome && !GENERIC_NAME_FALLBACKS.includes(nome)) {
-        loadingNames.textContent = nome;
-    }
-    // Caso contrário, mantém "Carregando experiências…"
-}
-
-/**
  * Cores neutras escuras — estado inicial e fallback de erro.
  * Evitam o flash de branco antes do tema ser carregado.
  */
 const NEUTRAL_LOADING_COLORS = {
-    bg:      '#1a1714',   // escuro neutro (compatível com qualquer tema)
-    text:    '#f0ede8',   // off-white quente
-    primary: '#c9a84c',   // dourado sutil
+    bg:      '#1a1714',
+    text:    '#f0ede8',
+    primary: '#c9a84c',
 };
 
 function applyNeutralLoadingColors() {
@@ -153,14 +242,6 @@ function applyNeutralLoadingColors() {
     root.style.setProperty('--ls-bg-color',      NEUTRAL_LOADING_COLORS.bg);
     root.style.setProperty('--ls-text-color',    NEUTRAL_LOADING_COLORS.text);
     root.style.setProperty('--ls-primary-color', NEUTRAL_LOADING_COLORS.primary);
-}
-
-/**
- * Aplica cores neutras se o carregamento do tema falhar.
- * Garante que a loading screen sempre apareça com cores legíveis.
- */
-function applyFallbackLoadingColors() {
-    applyNeutralLoadingColors();
 }
 
 /**

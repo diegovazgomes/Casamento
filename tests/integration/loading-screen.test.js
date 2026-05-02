@@ -8,24 +8,13 @@ beforeEach(() => {
 });
 
 describe('loading screen config source', () => {
-  it('uses the slug API and resolves a theme file from layout + theme key', async () => {
+  it('uses the slug API and switches to couple phase with initials and date', async () => {
     global.fetch = vi.fn()
       .mockResolvedValueOnce({
         ok: true,
         json: async () => ({
-          activeLayout: 'modern',
-          activeTheme: 'black-silver',
           couple: { names: 'Ana & Leo' },
-        }),
-      })
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
-          colors: {
-            background: '#111111',
-            text: '#eeeeee',
-            primary: '#cccccc',
-          },
+          event: { date: '2026-09-06T17:00:00' },
         }),
       });
 
@@ -33,8 +22,12 @@ describe('loading screen config source', () => {
 
     await initLoadingScreen();
 
-    expect(global.fetch).toHaveBeenNthCalledWith(1, '/api/event-config?slug=ana-leo-2026', expect.any(Object));
-    expect(global.fetch).toHaveBeenNthCalledWith(2, 'assets/layouts/modern/themes/black-silver.json', expect.any(Object));
-    expect(document.getElementById('loadingNames')?.textContent).toBe('Ana & Leo');
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+    expect(global.fetch).toHaveBeenCalledWith('/api/event-config?slug=ana-leo-2026', expect.any(Object));
+    expect(document.getElementById('loadingInitialA')?.textContent).toBe('A');
+    expect(document.getElementById('loadingInitialB')?.textContent).toBe('L');
+    expect(document.getElementById('loadingEventDate')?.textContent).toBe('06 . 09 . 2026');
+    expect(document.getElementById('loadingPhaseBrand')?.hidden).toBe(true);
+    expect(document.getElementById('loadingPhaseCouple')?.hidden).toBe(false);
   });
 });

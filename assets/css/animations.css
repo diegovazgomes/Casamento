@@ -201,75 +201,377 @@ a, button, input, select, textarea {
 /* Loading Screen */
 .loading-screen {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100vh;
+    inset: 0;
     display: flex;
     align-items: center;
     justify-content: center;
     z-index: 9999;
+    overflow: hidden;
 }
 
 .loading-backdrop {
     position: absolute;
     inset: 0;
-    background: var(--ls-bg-color, var(--color-bg, #1a1714));
+    background: #0e0d0b;
     opacity: 1;
 }
 
-.loading-content {
+.loading-phase {
     position: relative;
+    z-index: 1;
+}
+
+.loading-phase[hidden] {
+    display: none !important;
+}
+
+.loading-phase--brand {
+    width: min(100vw, 540px);
+    aspect-ratio: 9 / 16;
+    animation: loadingFadeIn 0.6s ease-out;
+}
+
+.brand-loader-art {
+    position: absolute;
+    inset: 0;
+}
+
+.brand-loader-art svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+    font-family: 'Cormorant Garamond', serif;
+}
+
+.brand-loader-ring {
+    position: absolute;
+    left: 50%;
+    bottom: 28%;
+    transform: translateX(-50%);
+    width: 66px;
+    height: 66px;
+    display: grid;
+    place-items: center;
+}
+
+.brand-loader-ring svg {
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+    animation: ringRotate 2.4s linear infinite;
+}
+
+.brand-loader-ring-track {
+    fill: none;
+    stroke: rgba(201, 165, 90, 0.18);
+    stroke-width: 2;
+}
+
+.brand-loader-ring-arc {
+    fill: none;
+    stroke: #c9a55a;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-dasharray: 80 235;
+}
+
+.brand-loader-ring-letter {
+    position: absolute;
+    color: #f0ebe1;
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 30px;
+    line-height: 1;
+}
+
+.loading-phase--couple {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
     text-align: center;
     animation: loadingFadeIn 0.6s ease-out;
 }
 
-.loading-hearts {
+.loading-screen.loading-screen--phase-couple .loading-backdrop {
+    background:
+        radial-gradient(ellipse at top, color-mix(in srgb, var(--ls-primary-color, #c9a84c) 16%, transparent), transparent 60%),
+        linear-gradient(180deg, var(--ls-bg-color, #1a1714) 0%, color-mix(in srgb, var(--ls-bg-color, #1a1714) 78%, #000 22%) 100%);
+}
+
+.loader-progress-ring {
+    position: absolute;
+    width: 220px;
+    height: 220px;
+    pointer-events: none;
+    animation: ringRotate 2.4s linear infinite;
+}
+
+.loader-progress-ring svg {
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+}
+
+.loader-progress-track {
+    fill: none;
+    stroke: color-mix(in srgb, var(--ls-primary-color, #c9a84c) 24%, transparent);
+    stroke-width: 1;
+}
+
+.loader-progress-arc {
+    fill: none;
+    stroke: var(--ls-primary-color, #c9a84c);
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-dasharray: 660;
+    stroke-dashoffset: 495;
+    filter: drop-shadow(0 0 6px color-mix(in srgb, var(--ls-primary-color, #c9a84c) 55%, transparent));
+    animation: arcPulse 2.4s ease-in-out infinite;
+}
+
+.bubble-wrap {
+    position: relative;
+    width: 160px;
+    height: 160px;
+    animation: bubbleFloat 6s ease-in-out infinite;
+}
+
+.bubble-shadow {
+    position: absolute;
+    bottom: -28px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 120px;
+    height: 16px;
+    background: radial-gradient(ellipse at center, color-mix(in srgb, var(--ls-primary-color, #c9a84c) 32%, transparent) 0%, transparent 72%);
+    filter: blur(6px);
+    animation: shadowPulse 6s ease-in-out infinite;
+}
+
+.bubble {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: radial-gradient(circle at 30% 25%, rgba(255,255,255,0.25) 0%, color-mix(in srgb, var(--ls-primary-color, #c9a84c) 35%, transparent) 42%, rgba(255,255,255,0.03) 100%);
+    border: 1px solid rgba(255,255,255,0.18);
+    box-shadow:
+        inset 0 0 60px rgba(255,255,255,0.08),
+        0 0 60px color-mix(in srgb, var(--ls-primary-color, #c9a84c) 35%, transparent);
+    overflow: hidden;
+}
+
+.bubble-iridescence {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: conic-gradient(from 0deg at 50% 50%, rgba(232,208,138,0.18) 0%, rgba(180,200,255,0.14) 25%, rgba(180,255,220,0.12) 50%, rgba(255,220,180,0.14) 72%, rgba(232,208,138,0.18) 100%);
+    mix-blend-mode: screen;
+    opacity: 0.7;
+    animation: iridescentSpin 14s linear infinite;
+}
+
+.bubble-highlight {
+    position: absolute;
+    top: 12%;
+    left: 18%;
+    width: 38%;
+    height: 28%;
+    background: radial-gradient(ellipse at center, rgba(255,255,255,0.55) 0%, transparent 70%);
+    border-radius: 50%;
+    filter: blur(3px);
+    transform: rotate(-25deg);
+}
+
+.bubble-highlight-small {
+    position: absolute;
+    bottom: 22%;
+    right: 25%;
+    width: 14%;
+    height: 10%;
+    background: radial-gradient(ellipse at center, rgba(255,255,255,0.4) 0%, transparent 70%);
+    border-radius: 50%;
+    filter: blur(2px);
+}
+
+.bubble-content {
+    position: absolute;
+    inset: 0;
     display: flex;
+    align-items: center;
     justify-content: center;
-    gap: 0.4rem;
-    margin-bottom: 0.6rem;
-    height: 3.5rem;
+    gap: 4px;
+    z-index: 2;
 }
 
-/* SVG Hearts */
-.heart {
-    width: 2.8rem;
-    height: 2.8rem;
-    display: block;
-    animation: heartbeat 1.4s infinite ease-in-out;
-}
-
-.heart-text {
-    color: var(--ls-text-color, #f5f5f5);
-    animation-delay: 0s;
-}
-
-.heart-primary {
-    color: var(--ls-primary-color, #d4a574);
-    animation-delay: 0.7s;
-}
-
-/* Nome dos noivos na loading screen */
-.loading-names {
-    font-family: 'Great Vibes', cursive;
-    font-size: 1rem;
-    color: var(--ls-text-color, #f5f5f5);
-    letter-spacing: 0.08em;
+.bubble-letter {
+    font-family: var(--font-serif, 'Cormorant Garamond', serif);
+    font-style: italic;
+    font-size: 50px;
     font-weight: 400;
-    opacity: 0.75;
-    margin: 0;
-    padding: 0 1.5rem;
+    color: color-mix(in srgb, var(--ls-text-color, #faf7f2) 75%, var(--ls-primary-color, #c9a84c) 25%);
+    text-shadow: 0 0 18px color-mix(in srgb, var(--ls-primary-color, #c9a84c) 38%, transparent);
+    line-height: 1;
 }
 
-@keyframes heartbeat {
+.bubble-amp {
+    font-family: var(--font-serif, 'Cormorant Garamond', serif);
+    font-style: italic;
+    font-size: 24px;
+    font-weight: 300;
+    color: color-mix(in srgb, var(--ls-text-color, #faf7f2) 65%, transparent);
+    margin: 0 2px;
+    transform: translateY(-2px);
+}
+
+.loader-status {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 16px;
+}
+
+.loader-status-text {
+    font-family: var(--font-primary, 'Jost', sans-serif);
+    font-size: 10px;
+    font-weight: 300;
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    color: color-mix(in srgb, var(--ls-text-color, #faf7f2) 45%, transparent);
+}
+
+.loader-dots {
+    display: flex;
+    gap: 5px;
+    align-items: center;
+}
+
+.loader-dot {
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--ls-primary-color, #c9a84c);
+    opacity: 0.3;
+    animation: dotPulse 1.4s ease-in-out infinite;
+}
+
+.loader-dot:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.loader-dot:nth-child(3) {
+    animation-delay: 0.4s;
+}
+
+.loader-bar-wrap {
+    width: 200px;
+    margin-top: 8px;
+}
+
+.loader-bar-track {
+    position: relative;
+    width: 100%;
+    height: 1px;
+    background: color-mix(in srgb, var(--ls-primary-color, #c9a84c) 24%, transparent);
+    overflow: hidden;
+}
+
+.loader-bar-fill {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 30%;
+    background: linear-gradient(to right, transparent, var(--ls-primary-color, #c9a84c), var(--ls-text-color, #faf7f2), var(--ls-primary-color, #c9a84c), transparent);
+    animation: barSlide 1.8s ease-in-out infinite;
+}
+
+.loader-date-wrap {
+    text-align: center;
+    margin-top: 16px;
+}
+
+.loader-date-line {
+    width: 50px;
+    height: 1px;
+    background: linear-gradient(to right, transparent, var(--ls-primary-color, #c9a84c), transparent);
+    margin: 0 auto 12px;
+    opacity: 0.5;
+}
+
+.loader-date {
+    font-family: var(--font-primary, 'Jost', sans-serif);
+    font-size: 11px;
+    font-weight: 300;
+    letter-spacing: 0.42em;
+    text-transform: uppercase;
+    color: color-mix(in srgb, var(--ls-text-color, #faf7f2) 75%, transparent);
+}
+
+@keyframes ringRotate {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes arcPulse {
     0%, 100% {
-        transform: scale(1);
-        opacity: 0.7;
+        stroke-dashoffset: 495;
+        opacity: 0.9;
     }
     50% {
-        transform: scale(1.15);
+        stroke-dashoffset: 380;
         opacity: 1;
+    }
+}
+
+@keyframes bubbleFloat {
+    0%, 100% {
+        transform: translateY(0) rotate(0deg);
+    }
+    50% {
+        transform: translateY(-6px) rotate(-0.2deg);
+    }
+}
+
+@keyframes shadowPulse {
+    0%, 100% {
+        transform: translateX(-50%) scale(1);
+        opacity: 0.8;
+    }
+    50% {
+        transform: translateX(-50%) scale(0.85);
+        opacity: 0.5;
+    }
+}
+
+@keyframes iridescentSpin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes dotPulse {
+    0%, 60%, 100% {
+        opacity: 0.3;
+        transform: scale(1);
+    }
+    30% {
+        opacity: 1;
+        transform: scale(1.4);
+    }
+}
+
+@keyframes barSlide {
+    0% {
+        left: -30%;
+    }
+    100% {
+        left: 100%;
     }
 }
 
@@ -281,6 +583,48 @@ a, button, input, select, textarea {
     to {
         opacity: 1;
         transform: scale(1);
+    }
+}
+
+@media (max-width: 480px) {
+    .loading-phase--brand {
+        width: 100vw;
+    }
+
+    .brand-loader-ring {
+        bottom: 26%;
+    }
+
+    .loader-progress-ring {
+        width: 200px;
+        height: 200px;
+    }
+
+    .bubble-wrap {
+        width: 140px;
+        height: 140px;
+    }
+
+    .bubble-letter {
+        font-size: 42px;
+    }
+
+    .bubble-amp {
+        font-size: 20px;
+    }
+
+    .loader-status-text {
+        font-size: 9px;
+        letter-spacing: 0.35em;
+    }
+
+    .loader-bar-wrap {
+        width: 180px;
+    }
+
+    .loader-date {
+        font-size: 10px;
+        letter-spacing: 0.36em;
     }
 }
 
