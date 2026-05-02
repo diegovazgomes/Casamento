@@ -80,7 +80,7 @@ describe('loading screen — first visit (Devazi only)', () => {
 });
 
 describe('loading screen — second visit (couple phase)', () => {
-  it('switches to couple phase immediately on second visit with valid config', async () => {
+  it('shows couple phase immediately (no Devazi) on second visit with valid config', async () => {
     // Pre-mark as already visited
     window.localStorage.setItem('ls-first-open:ana-leo-2026', '1');
 
@@ -97,11 +97,13 @@ describe('loading screen — second visit (couple phase)', () => {
 
     await initLoadingScreen();
 
+    // Couple phase visible immediately (Devazi never shown on second visit)
+    expect(document.getElementById('loadingPhaseBrand')?.hidden).toBe(true);
+    expect(document.getElementById('loadingPhaseCouple')?.hidden).toBe(false);
+    // Data is populated
     expect(document.getElementById('loadingInitialA')?.textContent).toBe('A');
     expect(document.getElementById('loadingInitialB')?.textContent).toBe('L');
     expect(document.getElementById('loadingEventDate')?.textContent).toBe('06 . 09 . 2026');
-    expect(document.getElementById('loadingPhaseBrand')?.hidden).toBe(true);
-    expect(document.getElementById('loadingPhaseCouple')?.hidden).toBe(false);
   });
 
   it('upgrades to couple phase via app:ready on second visit', async () => {
@@ -120,8 +122,9 @@ describe('loading screen — second visit (couple phase)', () => {
 
     await initLoadingScreen();
 
-    // Generic name from fetch — still Devazi because generic
-    expect(document.getElementById('loadingPhaseBrand')?.hidden).toBe(false);
+    // Already showing couple phase (generic name from fetch — data is S&D but phase is visible)
+    expect(document.getElementById('loadingPhaseBrand')?.hidden).toBe(true);
+    expect(document.getElementById('loadingPhaseCouple')?.hidden).toBe(false);
 
     // app:ready brings the real names
     window.dispatchEvent(new CustomEvent('app:ready', {
@@ -133,6 +136,7 @@ describe('loading screen — second visit (couple phase)', () => {
       },
     }));
 
+    // Couple phase still visible with updated names
     expect(document.getElementById('loadingInitialA')?.textContent).toBe('S');
     expect(document.getElementById('loadingInitialB')?.textContent).toBe('D');
     expect(document.getElementById('loadingPhaseBrand')?.hidden).toBe(true);

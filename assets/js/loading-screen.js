@@ -98,6 +98,11 @@ export async function initLoadingScreen() {
         const isFirstVisit = !hasVisited(visitKey);
         if (isFirstVisit) markVisited(visitKey);
 
+        // Na segunda visita em diante: já começa com os noivos visíveis (Devazi escondido)
+        if (!isFirstVisit) {
+            switchToCouplePhase();
+        }
+
         bindAppReadyPhaseUpgrade(!isFirstVisit);
 
         const siteRes = await fetch(configSource.url, {
