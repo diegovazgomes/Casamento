@@ -31,24 +31,26 @@ const LOADING_SCREEN_HTML = `
     </div>
 
     <div class="loading-phase loading-phase--couple" id="loadingPhaseCouple" hidden>
-        <div class="loader-progress-ring" aria-hidden="true">
-            <svg viewBox="0 0 220 220">
-                <circle class="loader-progress-track" cx="110" cy="110" r="105"></circle>
-                <circle class="loader-progress-arc" cx="110" cy="110" r="105"></circle>
-            </svg>
-        </div>
-
-        <div class="bubble-wrap">
-            <div class="bubble-shadow"></div>
-            <div class="bubble">
-                <div class="bubble-iridescence"></div>
-                <div class="bubble-highlight"></div>
-                <div class="bubble-highlight-small"></div>
+        <div class="loader-center" aria-hidden="true">
+            <div class="loader-progress-ring">
+                <svg viewBox="0 0 220 220">
+                    <circle class="loader-progress-track" cx="110" cy="110" r="105"></circle>
+                    <circle class="loader-progress-arc" cx="110" cy="110" r="105"></circle>
+                </svg>
             </div>
-            <div class="bubble-content" aria-hidden="true">
-                <span class="bubble-letter" id="loadingInitialA">S</span>
-                <span class="bubble-amp">&amp;</span>
-                <span class="bubble-letter" id="loadingInitialB">D</span>
+
+            <div class="bubble-wrap">
+                <div class="bubble-shadow"></div>
+                <div class="bubble">
+                    <div class="bubble-iridescence"></div>
+                    <div class="bubble-highlight"></div>
+                    <div class="bubble-highlight-small"></div>
+                </div>
+                <div class="bubble-content">
+                    <span class="bubble-letter" id="loadingInitialA">S</span>
+                    <span class="bubble-amp">&amp;</span>
+                    <span class="bubble-letter" id="loadingInitialB">D</span>
+                </div>
             </div>
         </div>
 
@@ -103,6 +105,12 @@ export async function initLoadingScreen() {
         const formattedDate = formatEventDate(siteConfig?.event?.date, siteConfig?.event?.displayDate, siteConfig?.event?.heroDate);
 
         updateCouplePhaseData(initials, formattedDate);
+
+        // So troca para fase do casal quando o nome veio valido (nao placeholder).
+        if (!initials.isValid) {
+            return;
+        }
+
         switchToCouplePhase();
 
     } catch (error) {
@@ -149,14 +157,40 @@ function switchToCouplePhase() {
 function extractCoupleInitials(coupleNames) {
     const name = String(coupleNames || '').trim();
     if (!name) {
-        return { first: 'S', second: 'D' };
+        return { first: 'S', second: 'D', isValid: false };
     }
 
-    const parts = name.split('&').map((part) => part.trim()).filter(Boolean);
+    if (isGenericCoupleName(name)) {
+        return { first: 'S', second: 'D', isValid: false };
+    }
+
+    const parts = splitCoupleName(name);
     const first = extractInitial(parts[0] || name);
     const second = extractInitial(parts[1] || parts[0] || name);
 
-    return { first, second };
+    return {
+        first,
+        second,
+        isValid: true
+    };
+}
+
+function splitCoupleName(name) {
+    const byConnector = name
+        .split(/\s*(?:&|\be\b|\band\b|\/)\s*/iu)
+        .map((part) => part.trim())
+        .filter(Boolean);
+
+    if (byConnector.length >= 2) {
+        return [byConnector[0], byConnector[1]];
+    }
+
+    const words = name.split(/\s+/).map((part) => part.trim()).filter(Boolean);
+    if (words.length >= 2) {
+        return [words[0], words[words.length - 1]];
+    }
+
+    return [name, name];
 }
 
 function extractInitial(value) {
@@ -168,6 +202,30 @@ function extractInitial(value) {
     }
 
     return match[0].toUpperCase();
+}
+
+const GENERIC_COUPLE_NAMES = new Set([
+    'noiva & noivo',
+    'noivo & noiva',
+    'noiva e noivo',
+    'noivo e noiva',
+    'nome & nome',
+    'nome e nome',
+    'casal'
+]);
+
+function normalizeComparableText(value) {
+    return String(value || '')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/\s+/g, ' ')
+        .trim()
+        .toLowerCase();
+}
+
+function isGenericCoupleName(value) {
+    const normalized = normalizeComparableText(value);
+    return GENERIC_COUPLE_NAMES.has(normalized);
 }
 
 function formatEventDate(eventDate, displayDate, heroDate) {

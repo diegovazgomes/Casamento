@@ -294,6 +294,15 @@ a, button, input, select, textarea {
     animation: loadingFadeIn 0.6s ease-out;
 }
 
+.loader-center {
+    position: relative;
+    width: 220px;
+    height: 220px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
 .loading-screen.loading-screen--phase-couple .loading-backdrop {
     background:
         radial-gradient(ellipse at top, color-mix(in srgb, var(--ls-primary-color, #c9a84c) 16%, transparent), transparent 60%),
@@ -302,6 +311,8 @@ a, button, input, select, textarea {
 
 .loader-progress-ring {
     position: absolute;
+    inset: 0;
+    margin: auto;
     width: 220px;
     height: 220px;
     pointer-events: none;
@@ -333,6 +344,7 @@ a, button, input, select, textarea {
 
 .bubble-wrap {
     position: relative;
+    z-index: 1;
     width: 160px;
     height: 160px;
     animation: bubbleFloat 6s ease-in-out infinite;
@@ -596,6 +608,11 @@ a, button, input, select, textarea {
     }
 
     .loader-progress-ring {
+        width: 200px;
+        height: 200px;
+    }
+
+    .loader-center {
         width: 200px;
         height: 200px;
     }

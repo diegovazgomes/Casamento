@@ -30,4 +30,24 @@ describe('loading screen config source', () => {
     expect(document.getElementById('loadingPhaseBrand')?.hidden).toBe(true);
     expect(document.getElementById('loadingPhaseCouple')?.hidden).toBe(false);
   });
+
+  it('keeps Devasi phase when couple name is a generic placeholder', async () => {
+    global.fetch = vi.fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          couple: { names: 'Noiva & Noivo' },
+          event: { date: '2026-09-06T17:00:00' },
+        }),
+      });
+
+    const { initLoadingScreen } = await import('../../assets/js/loading-screen.js');
+
+    await initLoadingScreen();
+
+    expect(document.getElementById('loadingInitialA')?.textContent).toBe('S');
+    expect(document.getElementById('loadingInitialB')?.textContent).toBe('D');
+    expect(document.getElementById('loadingPhaseBrand')?.hidden).toBe(false);
+    expect(document.getElementById('loadingPhaseCouple')?.hidden).toBe(true);
+  });
 });
