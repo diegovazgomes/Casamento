@@ -88,13 +88,18 @@ const LOADING_SCREEN_HTML = `
 export async function initLoadingScreen() {
     try {
         document.body.insertAdjacentHTML('afterbegin', LOADING_SCREEN_HTML);
-        bindAppReadyPhaseUpgrade();
 
         if (!loadPersistedThemeColors()) {
             applyNeutralLoadingColors();
         }
 
         const configSource = resolveSiteConfigSource();
+        const visitKey = `ls-first-open:${configSource.slug || 'default'}`;
+        const isFirstVisit = !hasVisited(visitKey);
+        if (isFirstVisit) markVisited(visitKey);
+
+        bindAppReadyPhaseUpgrade(!isFirstVisit);
+
         const siteRes = await fetch(configSource.url, {
             method: 'GET',
             headers: { Accept: 'application/json' },
@@ -103,33 +108,35 @@ export async function initLoadingScreen() {
         if (!siteRes.ok) return;
 
         const siteConfig = await siteRes.json();
-        tryActivateCouplePhaseFromConfig(siteConfig);
+        tryActivateCouplePhaseFromConfig(siteConfig, !isFirstVisit);
 
     } catch (error) {
         console.warn('[LoadingScreen] Erro ao carregar dados dinamicos do loader.', error);
     }
 }
 
-function bindAppReadyPhaseUpgrade() {
+function bindAppReadyPhaseUpgrade(allowCouplePhase) {
+    if (!allowCouplePhase) return;
+
     const onReady = ({ detail }) => {
-        tryActivateCouplePhaseFromConfig(detail?.config);
+        tryActivateCouplePhaseFromConfig(detail?.config, true);
     };
 
     window.addEventListener('app:ready', onReady, { once: true });
 
     // Quando init roda tardiamente, usa o config final ja resolvido.
     if (window.CONFIG) {
-        tryActivateCouplePhaseFromConfig(window.CONFIG);
+        tryActivateCouplePhaseFromConfig(window.CONFIG, true);
     }
 }
 
-function tryActivateCouplePhaseFromConfig(config) {
+function tryActivateCouplePhaseFromConfig(config, allowSwitch = true) {
     const initials = extractCoupleInitials(config?.couple?.names || '');
     const formattedDate = formatEventDate(config?.event?.date, config?.event?.displayDate, config?.event?.heroDate);
 
     updateCouplePhaseData(initials, formattedDate);
 
-    if (!initials.isValid) {
+    if (!allowSwitch || !initials.isValid) {
         return false;
     }
 
@@ -274,6 +281,22 @@ function updateCouplePhaseData(initials, formattedDate) {
  * sessionStorage dura apenas enquanto a aba estiver aberta, então
  * cada nova aba começa limpa — sem vazar cores de um casal para outro.
  */
+function hasVisited(key) {
+    try {
+        return !!localStorage.getItem(key);
+    } catch {
+        return false;
+    }
+}
+
+function markVisited(key) {
+    try {
+        localStorage.setItem(key, '1');
+    } catch {
+        // localStorage indisponível — silencioso
+    }
+}
+
 function persistThemeColors(bg, text, primary) {
     try {
         sessionStorage.setItem('ls-theme-colors', JSON.stringify({ bg, text, primary }));

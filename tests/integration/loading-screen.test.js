@@ -5,10 +5,12 @@ beforeEach(() => {
   vi.restoreAllMocks();
   document.documentElement.innerHTML = '<head></head><body></body>';
   window.history.replaceState({}, '', '/ana-leo-2026');
+  window.localStorage.clear();
+  window.sessionStorage.clear();
 });
 
-describe('loading screen config source', () => {
-  it('uses the slug API and switches to couple phase with initials and date', async () => {
+describe('loading screen — first visit (Devazi only)', () => {
+  it('stays on Devazi phase even with valid couple data on first visit', async () => {
     global.fetch = vi.fn()
       .mockResolvedValueOnce({
         ok: true,
@@ -22,8 +24,79 @@ describe('loading screen config source', () => {
 
     await initLoadingScreen();
 
-    expect(global.fetch).toHaveBeenCalledTimes(1);
     expect(global.fetch).toHaveBeenCalledWith('/api/event-config?slug=ana-leo-2026', expect.any(Object));
+    // Data is populated but phase must NOT switch on first visit
+    expect(document.getElementById('loadingInitialA')?.textContent).toBe('A');
+    expect(document.getElementById('loadingInitialB')?.textContent).toBe('L');
+    expect(document.getElementById('loadingPhaseBrand')?.hidden).toBe(false);
+    expect(document.getElementById('loadingPhaseCouple')?.hidden).toBe(true);
+  });
+
+  it('stays on Devazi phase even when app:ready fires with valid config on first visit', async () => {
+    global.fetch = vi.fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          couple: { names: 'Ana & Leo' },
+          event: { date: '2026-09-06T17:00:00' },
+        }),
+      });
+
+    const { initLoadingScreen } = await import('../../assets/js/loading-screen.js');
+
+    await initLoadingScreen();
+
+    // Fire app:ready — must NOT switch on first visit
+    window.dispatchEvent(new CustomEvent('app:ready', {
+      detail: {
+        config: {
+          couple: { names: 'Siannah & Diego' },
+          event: { date: '2026-09-06T17:00:00' },
+        },
+      },
+    }));
+
+    expect(document.getElementById('loadingPhaseBrand')?.hidden).toBe(false);
+    expect(document.getElementById('loadingPhaseCouple')?.hidden).toBe(true);
+  });
+
+  it('keeps Devazi phase when couple name is a generic placeholder', async () => {
+    global.fetch = vi.fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          couple: { names: 'Noiva & Noivo' },
+          event: { date: '2026-09-06T17:00:00' },
+        }),
+      });
+
+    const { initLoadingScreen } = await import('../../assets/js/loading-screen.js');
+
+    await initLoadingScreen();
+
+    expect(document.getElementById('loadingPhaseBrand')?.hidden).toBe(false);
+    expect(document.getElementById('loadingPhaseCouple')?.hidden).toBe(true);
+  });
+});
+
+describe('loading screen — second visit (couple phase)', () => {
+  it('switches to couple phase immediately on second visit with valid config', async () => {
+    // Pre-mark as already visited
+    window.localStorage.setItem('ls-first-open:ana-leo-2026', '1');
+
+    global.fetch = vi.fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          couple: { names: 'Ana & Leo' },
+          event: { date: '2026-09-06T17:00:00' },
+        }),
+      });
+
+    const { initLoadingScreen } = await import('../../assets/js/loading-screen.js');
+
+    await initLoadingScreen();
+
     expect(document.getElementById('loadingInitialA')?.textContent).toBe('A');
     expect(document.getElementById('loadingInitialB')?.textContent).toBe('L');
     expect(document.getElementById('loadingEventDate')?.textContent).toBe('06 . 09 . 2026');
@@ -31,7 +104,9 @@ describe('loading screen config source', () => {
     expect(document.getElementById('loadingPhaseCouple')?.hidden).toBe(false);
   });
 
-  it('keeps Devasi phase when couple name is a generic placeholder', async () => {
+  it('upgrades to couple phase via app:ready on second visit', async () => {
+    window.localStorage.setItem('ls-first-open:ana-leo-2026', '1');
+
     global.fetch = vi.fn()
       .mockResolvedValueOnce({
         ok: true,
@@ -45,29 +120,10 @@ describe('loading screen config source', () => {
 
     await initLoadingScreen();
 
-    expect(document.getElementById('loadingInitialA')?.textContent).toBe('S');
-    expect(document.getElementById('loadingInitialB')?.textContent).toBe('D');
+    // Generic name from fetch — still Devazi because generic
     expect(document.getElementById('loadingPhaseBrand')?.hidden).toBe(false);
-    expect(document.getElementById('loadingPhaseCouple')?.hidden).toBe(true);
-  });
 
-  it('upgrades to couple phase when app:ready brings final valid config', async () => {
-    global.fetch = vi.fn()
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
-          couple: { names: 'Noiva & Noivo' },
-          event: { date: '2026-09-06T17:00:00' },
-        }),
-      });
-
-    const { initLoadingScreen } = await import('../../assets/js/loading-screen.js');
-
-    await initLoadingScreen();
-
-    expect(document.getElementById('loadingPhaseBrand')?.hidden).toBe(false);
-    expect(document.getElementById('loadingPhaseCouple')?.hidden).toBe(true);
-
+    // app:ready brings the real names
     window.dispatchEvent(new CustomEvent('app:ready', {
       detail: {
         config: {
