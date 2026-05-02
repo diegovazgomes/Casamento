@@ -8,7 +8,7 @@
 
 import { resolveSiteConfigSource } from './config-source.js';
 
-const LOADING_VISIT_KEY_VERSION = 'v2';
+const LOADING_VISIT_KEY_VERSION = 'v3';
 const VISIT_COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 365;
 
 const LOADING_SCREEN_HTML = `
@@ -50,9 +50,9 @@ const LOADING_SCREEN_HTML = `
                     <div class="bubble-highlight-small"></div>
                 </div>
                 <div class="bubble-content">
-                    <span class="bubble-letter" id="loadingInitialA">S</span>
+                    <span class="bubble-letter" id="loadingInitialA">-</span>
                     <span class="bubble-amp">&amp;</span>
-                    <span class="bubble-letter" id="loadingInitialB">D</span>
+                    <span class="bubble-letter" id="loadingInitialB">-</span>
                 </div>
             </div>
         </div>
@@ -101,12 +101,17 @@ export async function initLoadingScreen() {
         const isFirstVisit = !hasVisited(visitKey);
         if (isFirstVisit) markVisited(visitKey);
 
+        const cachedCoupleData = loadPersistedCoupleData(visitKey);
+        if (cachedCoupleData) {
+            updateCouplePhaseData(cachedCoupleData.initials, cachedCoupleData.formattedDate);
+        }
+
         // Na segunda visita em diante: já começa com os noivos visíveis (Devazi escondido)
         if (!isFirstVisit) {
             switchToCouplePhase();
         }
 
-        bindAppReadyPhaseUpgrade(!isFirstVisit);
+        bindAppReadyPhaseUpgrade(!isFirstVisit, visitKey);
 
         const siteRes = await fetch(configSource.url, {
             method: 'GET',
@@ -116,33 +121,37 @@ export async function initLoadingScreen() {
         if (!siteRes.ok) return;
 
         const siteConfig = await siteRes.json();
-        tryActivateCouplePhaseFromConfig(siteConfig, !isFirstVisit);
+        tryActivateCouplePhaseFromConfig(siteConfig, !isFirstVisit, visitKey);
 
     } catch (error) {
         console.warn('[LoadingScreen] Erro ao carregar dados dinamicos do loader.', error);
     }
 }
 
-function bindAppReadyPhaseUpgrade(allowCouplePhase) {
+function bindAppReadyPhaseUpgrade(allowCouplePhase, persistKey) {
     if (!allowCouplePhase) return;
 
     const onReady = ({ detail }) => {
-        tryActivateCouplePhaseFromConfig(detail?.config, true);
+        tryActivateCouplePhaseFromConfig(detail?.config, true, persistKey);
     };
 
     window.addEventListener('app:ready', onReady, { once: true });
 
     // Quando init roda tardiamente, usa o config final ja resolvido.
     if (window.CONFIG) {
-        tryActivateCouplePhaseFromConfig(window.CONFIG, true);
+        tryActivateCouplePhaseFromConfig(window.CONFIG, true, persistKey);
     }
 }
 
-function tryActivateCouplePhaseFromConfig(config, allowSwitch = true) {
+function tryActivateCouplePhaseFromConfig(config, allowSwitch = true, persistKey = '') {
     const initials = extractCoupleInitials(config?.couple?.names || '');
     const formattedDate = formatEventDate(config?.event?.date, config?.event?.displayDate, config?.event?.heroDate);
 
     updateCouplePhaseData(initials, formattedDate);
+
+    if (initials.isValid && persistKey) {
+        persistCoupleData(persistKey, initials, formattedDate);
+    }
 
     if (!allowSwitch || !initials.isValid) {
         return false;
@@ -191,11 +200,11 @@ function switchToCouplePhase() {
 function extractCoupleInitials(coupleNames) {
     const name = String(coupleNames || '').trim();
     if (!name) {
-        return { first: 'S', second: 'D', isValid: false };
+        return { first: '-', second: '-', isValid: false };
     }
 
     if (isGenericCoupleName(name)) {
-        return { first: 'S', second: 'D', isValid: false };
+        return { first: '-', second: '-', isValid: false };
     }
 
     const parts = splitCoupleName(name);
@@ -232,7 +241,7 @@ function extractInitial(value) {
     const match = normalized.match(/[A-Za-zÀ-ÿ]/u);
 
     if (!match) {
-        return 'S';
+        return '-';
     }
 
     return match[0].toUpperCase();
@@ -290,23 +299,63 @@ function updateCouplePhaseData(initials, formattedDate) {
  * cada nova aba começa limpa — sem vazar cores de um casal para outro.
  */
 function hasVisited(key) {
-    const cookieVisited = getCookieValue(key) === '1';
+    const storedValue = getPersistentValue(key);
 
-    try {
-        return !!localStorage.getItem(key) || cookieVisited;
-    } catch {
-        return cookieVisited;
-    }
+    return storedValue === '1';
 }
 
 function markVisited(key) {
-    setCookieValue(key, '1', VISIT_COOKIE_MAX_AGE_SECONDS);
+    setPersistentValue(key, '1', VISIT_COOKIE_MAX_AGE_SECONDS);
+}
+
+function persistCoupleData(visitKey, initials, formattedDate) {
+    const dataKey = `${visitKey}:couple-data`;
+    const payload = JSON.stringify({ initials, formattedDate });
+    setPersistentValue(dataKey, payload, VISIT_COOKIE_MAX_AGE_SECONDS);
+}
+
+function loadPersistedCoupleData(visitKey) {
+    const dataKey = `${visitKey}:couple-data`;
+    const raw = getPersistentValue(dataKey);
+
+    if (!raw) return null;
 
     try {
-        localStorage.setItem(key, '1');
+        const parsed = JSON.parse(raw);
+        const first = String(parsed?.initials?.first || '').trim();
+        const second = String(parsed?.initials?.second || '').trim();
+        const formattedDate = String(parsed?.formattedDate || '').trim();
+
+        if (!first || !second) return null;
+
+        return {
+            initials: { first, second, isValid: true },
+            formattedDate: formattedDate || '-- . -- . ----'
+        };
+    } catch {
+        return null;
+    }
+}
+
+function setPersistentValue(key, value, maxAgeSeconds) {
+    setCookieValue(key, value, maxAgeSeconds);
+
+    try {
+        localStorage.setItem(key, value);
     } catch {
         // localStorage indisponível — cookie já foi persistido
     }
+}
+
+function getPersistentValue(key) {
+    try {
+        const localValue = localStorage.getItem(key);
+        if (localValue) return localValue;
+    } catch {
+        // localStorage indisponível
+    }
+
+    return getCookieValue(key);
 }
 
 function setCookieValue(name, value, maxAgeSeconds) {

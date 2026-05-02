@@ -89,7 +89,7 @@ describe('loading screen — first visit (Devazi only)', () => {
 describe('loading screen — second visit (couple phase)', () => {
   it('shows couple phase immediately (no Devazi) on second visit with valid config', async () => {
     // Pre-mark as already visited
-    window.localStorage.setItem('ls-first-open:v2:ana-leo-2026', '1');
+    window.localStorage.setItem('ls-first-open:v3:ana-leo-2026', '1');
 
     global.fetch = vi.fn()
       .mockResolvedValueOnce({
@@ -114,7 +114,7 @@ describe('loading screen — second visit (couple phase)', () => {
   });
 
   it('upgrades to couple phase via app:ready on second visit', async () => {
-    window.localStorage.setItem('ls-first-open:v2:ana-leo-2026', '1');
+    window.localStorage.setItem('ls-first-open:v3:ana-leo-2026', '1');
 
     global.fetch = vi.fn()
       .mockResolvedValueOnce({
