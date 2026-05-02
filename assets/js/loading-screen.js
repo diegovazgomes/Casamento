@@ -88,6 +88,8 @@ const LOADING_SCREEN_HTML = `
 export async function initLoadingScreen() {
     try {
         document.body.insertAdjacentHTML('afterbegin', LOADING_SCREEN_HTML);
+        bindAppReadyPhaseUpgrade();
+
         if (!loadPersistedThemeColors()) {
             applyNeutralLoadingColors();
         }
@@ -101,21 +103,38 @@ export async function initLoadingScreen() {
         if (!siteRes.ok) return;
 
         const siteConfig = await siteRes.json();
-        const initials = extractCoupleInitials(siteConfig?.couple?.names || '');
-        const formattedDate = formatEventDate(siteConfig?.event?.date, siteConfig?.event?.displayDate, siteConfig?.event?.heroDate);
-
-        updateCouplePhaseData(initials, formattedDate);
-
-        // So troca para fase do casal quando o nome veio valido (nao placeholder).
-        if (!initials.isValid) {
-            return;
-        }
-
-        switchToCouplePhase();
+        tryActivateCouplePhaseFromConfig(siteConfig);
 
     } catch (error) {
         console.warn('[LoadingScreen] Erro ao carregar dados dinamicos do loader.', error);
     }
+}
+
+function bindAppReadyPhaseUpgrade() {
+    const onReady = ({ detail }) => {
+        tryActivateCouplePhaseFromConfig(detail?.config);
+    };
+
+    window.addEventListener('app:ready', onReady, { once: true });
+
+    // Quando init roda tardiamente, usa o config final ja resolvido.
+    if (window.CONFIG) {
+        tryActivateCouplePhaseFromConfig(window.CONFIG);
+    }
+}
+
+function tryActivateCouplePhaseFromConfig(config) {
+    const initials = extractCoupleInitials(config?.couple?.names || '');
+    const formattedDate = formatEventDate(config?.event?.date, config?.event?.displayDate, config?.event?.heroDate);
+
+    updateCouplePhaseData(initials, formattedDate);
+
+    if (!initials.isValid) {
+        return false;
+    }
+
+    switchToCouplePhase();
+    return true;
 }
 
 /**

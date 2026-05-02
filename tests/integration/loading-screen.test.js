@@ -50,4 +50,36 @@ describe('loading screen config source', () => {
     expect(document.getElementById('loadingPhaseBrand')?.hidden).toBe(false);
     expect(document.getElementById('loadingPhaseCouple')?.hidden).toBe(true);
   });
+
+  it('upgrades to couple phase when app:ready brings final valid config', async () => {
+    global.fetch = vi.fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          couple: { names: 'Noiva & Noivo' },
+          event: { date: '2026-09-06T17:00:00' },
+        }),
+      });
+
+    const { initLoadingScreen } = await import('../../assets/js/loading-screen.js');
+
+    await initLoadingScreen();
+
+    expect(document.getElementById('loadingPhaseBrand')?.hidden).toBe(false);
+    expect(document.getElementById('loadingPhaseCouple')?.hidden).toBe(true);
+
+    window.dispatchEvent(new CustomEvent('app:ready', {
+      detail: {
+        config: {
+          couple: { names: 'Siannah & Diego' },
+          event: { date: '2026-09-06T17:00:00' },
+        },
+      },
+    }));
+
+    expect(document.getElementById('loadingInitialA')?.textContent).toBe('S');
+    expect(document.getElementById('loadingInitialB')?.textContent).toBe('D');
+    expect(document.getElementById('loadingPhaseBrand')?.hidden).toBe(true);
+    expect(document.getElementById('loadingPhaseCouple')?.hidden).toBe(false);
+  });
 });
