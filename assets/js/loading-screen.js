@@ -9,6 +9,7 @@
 import { resolveSiteConfigSource } from './config-source.js';
 
 const LOADING_VISIT_KEY_VERSION = 'v2';
+const VISIT_COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 365;
 
 const LOADING_SCREEN_HTML = `
 <div class="loading-screen" id="loadingScreen" aria-hidden="true">
@@ -96,8 +97,7 @@ export async function initLoadingScreen() {
         }
 
         const configSource = resolveSiteConfigSource();
-        const visitScope = configSource.slug || getVisitScopeFromPathname(window.location.pathname);
-        const visitKey = `ls-first-open:${LOADING_VISIT_KEY_VERSION}:${visitScope}`;
+        const visitKey = `ls-first-open:${LOADING_VISIT_KEY_VERSION}:${configSource.slug || 'default'}`;
         const isFirstVisit = !hasVisited(visitKey);
         if (isFirstVisit) markVisited(visitKey);
 
@@ -290,26 +290,48 @@ function updateCouplePhaseData(initials, formattedDate) {
  * cada nova aba começa limpa — sem vazar cores de um casal para outro.
  */
 function hasVisited(key) {
+    const cookieVisited = getCookieValue(key) === '1';
+
     try {
-        return !!localStorage.getItem(key);
+        return !!localStorage.getItem(key) || cookieVisited;
     } catch {
-        return false;
+        return cookieVisited;
     }
 }
 
-function getVisitScopeFromPathname(pathname) {
-    const normalizedPath = String(pathname || '/').trim() || '/';
-    return normalizedPath
-        .replace(/^\/+/, '')
-        .replace(/\/+$/, '')
-        .replace(/\//g, '__') || 'default';
-}
-
 function markVisited(key) {
+    setCookieValue(key, '1', VISIT_COOKIE_MAX_AGE_SECONDS);
+
     try {
         localStorage.setItem(key, '1');
     } catch {
-        // localStorage indisponível — silencioso
+        // localStorage indisponível — cookie já foi persistido
+    }
+}
+
+function setCookieValue(name, value, maxAgeSeconds) {
+    try {
+        const safeName = encodeURIComponent(name);
+        const safeValue = encodeURIComponent(value);
+        document.cookie = `${safeName}=${safeValue}; path=/; max-age=${maxAgeSeconds}; SameSite=Lax`;
+    } catch {
+        // cookies indisponíveis — silencioso
+    }
+}
+
+function getCookieValue(name) {
+    try {
+        const safeName = encodeURIComponent(name);
+        const cookieEntry = document.cookie
+            .split(';')
+            .map((item) => item.trim())
+            .find((item) => item.startsWith(`${safeName}=`));
+
+        if (!cookieEntry) return '';
+        const rawValue = cookieEntry.slice(safeName.length + 1);
+        return decodeURIComponent(rawValue);
+    } catch {
+        return '';
     }
 }
 

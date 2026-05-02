@@ -7,6 +7,13 @@ beforeEach(() => {
   window.history.replaceState({}, '', '/ana-leo-2026');
   window.localStorage.clear();
   window.sessionStorage.clear();
+  // Clear cookies to isolate visit-tracking state between tests
+  document.cookie.split(';').forEach((cookie) => {
+    const [rawName] = cookie.split('=');
+    const name = rawName?.trim();
+    if (!name) return;
+    document.cookie = `${name}=; Max-Age=0; path=/`;
+  });
 });
 
 describe('loading screen — first visit (Devazi only)', () => {
