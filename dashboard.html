@@ -829,6 +829,8 @@ input[type="date"].field-input{width:100%;min-width:0;box-sizing:border-box;-web
   .filters{grid-template-columns:1fr}
   .topbar-actions .btn-label{display:none}
   .topbar-actions .btn{padding:10px 14px}
+  #btnNewGroup .btn-label,#btnNewSingleInvite .btn-label{display:inline}
+  #btnNewGroup,#btnNewSingleInvite{min-width:0;padding:8px 12px;font-size:12px}
   .topbar-left{overflow:hidden}
   .topbar-title{font-size:18px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   #gruposTable th:nth-child(3),#gruposTable td:nth-child(3){display:none}
@@ -1117,7 +1119,7 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
         </span>
         <span>Relatórios</span>
       </button>
-      <button class="nav-item" data-tab="export" role="tab">
+      <button class="nav-item" data-tab="export" role="tab" hidden>
         <span class="nav-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         </span>

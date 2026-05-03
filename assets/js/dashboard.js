@@ -2262,27 +2262,13 @@ function renderPagesGrid(pages) {
     return `
     <div class="page-card">
       <div class="page-card-key">${escapeHtml(key)}</div>
-      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:14px">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">
         <span class="page-card-name">${escapeHtml(PAGE_LABELS[key] || key)}</span>
         <label class="toggle" style="flex-shrink:0" onclick="event.stopPropagation()">
           <input type="checkbox" class="toggle-input" id="edPage_${key}_enabled"
                  ${enabled ? 'checked' : ''} onchange="markEditorDirty()">
           <span class="toggle-track"><span class="toggle-thumb"></span></span>
         </label>
-      </div>
-      <div class="form-group" style="margin-bottom:10px">
-        <div class="field">
-          <label class="field-label" for="edPage_${key}_label">Label do card</label>
-          <input type="text" class="field-input sm" id="edPage_${key}_label"
-                 value="${escapeHtml(page.cardLabel || '')}"
-                 placeholder="ex: Nossa história" oninput="markEditorDirty()">
-        </div>
-      </div>
-      <div class="field">
-        <label class="field-label" for="edPage_${key}_hint">Descrição do card</label>
-        <input type="text" class="field-input sm" id="edPage_${key}_hint"
-               value="${escapeHtml(page.cardHint || '')}"
-               placeholder="Frase de convite" oninput="markEditorDirty()">
       </div>
     </div>`;
   }).join('');
@@ -2383,9 +2369,7 @@ function collectEditorValues() {
   if (!config.pages) config.pages = {};
   ['historia', 'faq', 'hospedagem', 'mensagem', 'musica', 'presente'].forEach(key => {
     if (!config.pages[key]) config.pages[key] = {};
-    config.pages[key].enabled   = document.getElementById(`edPage_${key}_enabled`)?.checked ?? false;
-    config.pages[key].cardLabel = document.getElementById(`edPage_${key}_label`)?.value.trim() || '';
-    config.pages[key].cardHint  = document.getElementById(`edPage_${key}_hint`)?.value.trim()  || '';
+    config.pages[key].enabled = document.getElementById(`edPage_${key}_enabled`)?.checked ?? false;
   });
 
   // Capítulos de Nossa História
