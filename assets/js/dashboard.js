@@ -265,6 +265,15 @@ async function handleAuth(event) {
     showDashboard();
     await hydrateDashboardEventContext();
     await loadAllData();
+
+    // Exibir nome do casal vindo do profile (não-bloqueante)
+    fetchUserProfile().then(profile => {
+      if (profile?.couple_name) {
+        const sidebarCouple = document.getElementById('sidebarCouple');
+        if (sidebarCouple) sidebarCouple.textContent = profile.couple_name;
+      }
+    }).catch(() => {});
+
     notifyDashboardReady();
   } catch (error) {
     console.error('[auth]', error);
@@ -382,6 +391,21 @@ async function clearDashboardSession() {
     await supabase.auth.signOut();
   } catch (error) {
     console.warn('[dashboard] Não foi possível encerrar a sessão Supabase.', error);
+  }
+}
+
+async function fetchUserProfile() {
+  const token = state.authToken;
+  if (!token) return null;
+
+  try {
+    const response = await fetch('/api/dashboard/profile', {
+      headers: { 'Authorization': `Bearer ${token}` },
+    });
+    if (!response.ok) return null;
+    return await response.json();
+  } catch {
+    return null;
   }
 }
 

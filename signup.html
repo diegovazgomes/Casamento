@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Criar conta — Convites Digitais</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Great+Vibes&family=Jost:wght@200;300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:            #0f0d0b;
+  --surface:       #1a1714;
+  --surface-2:     #201c18;
+  --primary:       #c0a060;
+  --primary-soft:  #d4b480;
+  --text:          #faf7f2;
+  --text-soft:     rgba(250,247,242,0.75);
+  --text-dim:      rgba(250,247,242,0.50);
+  --border:        rgba(192,160,96,0.20);
+  --border-strong: rgba(192,160,96,0.40);
+  --success:       #7fb88f;
+  --danger:        #c97878;
+  --font-display:  'Cormorant Garamond', serif;
+  --font-accent:   'Great Vibes', cursive;
+  --font-sans:     'Jost', sans-serif;
+  --radius:        4px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-weight: 300;
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
+}
+
+.signup-wrap {
+  width: 100%;
+  max-width: 460px;
+}
+
+.signup-brand {
+  text-align: center;
+  margin-bottom: 2.5rem;
+}
+
+.signup-brand-title {
+  font-family: var(--font-accent);
+  font-size: 2.4rem;
+  color: var(--primary-soft);
+  display: block;
+  line-height: 1;
+  margin-bottom: .35rem;
+}
+
+.signup-brand-sub {
+  font-size: .78rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+.signup-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 2.5rem 2rem;
+}
+
+.signup-card-title {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 400;
+  color: var(--primary-soft);
+  margin-bottom: .35rem;
+}
+
+.signup-card-sub {
+  font-size: .82rem;
+  color: var(--text-dim);
+  margin-bottom: 2rem;
+}
+
+.field {
+  margin-bottom: 1.25rem;
+}
+
+.field label {
+  display: block;
+  font-size: .78rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--text-soft);
+  margin-bottom: .5rem;
+}
+
+.field input {
+  width: 100%;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: .9rem;
+  font-weight: 300;
+  padding: .7rem 1rem;
+  outline: none;
+  transition: border-color .2s;
+  -webkit-appearance: none;
+}
+
+.field input:focus {
+  border-color: var(--primary);
+}
+
+.field input.is-invalid {
+  border-color: var(--danger);
+}
+
+.field-error {
+  font-size: .75rem;
+  color: var(--danger);
+  margin-top: .35rem;
+  display: none;
+}
+
+.field-error.visible {
+  display: block;
+}
+
+.consent-wrap {
+  margin: 1.5rem 0;
+  display: flex;
+  gap: .75rem;
+  align-items: flex-start;
+}
+
+.consent-wrap input[type="checkbox"] {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  margin-top: .15rem;
+  accent-color: var(--primary);
+  cursor: pointer;
+}
+
+.consent-wrap label {
+  font-size: .8rem;
+  color: var(--text-soft);
+  line-height: 1.55;
+  cursor: pointer;
+}
+
+.consent-wrap a {
+  color: var(--primary-soft);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color .2s;
+}
+
+.consent-wrap a:hover {
+  border-color: var(--primary-soft);
+}
+
+.consent-error {
+  font-size: .75rem;
+  color: var(--danger);
+  margin-top: -.75rem;
+  margin-bottom: 1rem;
+  display: none;
+}
+
+.consent-error.visible {
+  display: block;
+}
+
+.btn-submit {
+  width: 100%;
+  background: transparent;
+  border: 1px solid var(--primary);
+  border-radius: var(--radius);
+  color: var(--primary-soft);
+  font-family: var(--font-sans);
+  font-size: .8rem;
+  font-weight: 400;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  padding: .85rem 1rem;
+  cursor: pointer;
+  transition: background .2s, color .2s;
+}
+
+.btn-submit:hover:not(:disabled) {
+  background: var(--primary);
+  color: var(--bg);
+}
+
+.btn-submit:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+}
+
+.alert {
+  border-radius: var(--radius);
+  padding: .85rem 1rem;
+  font-size: .82rem;
+  line-height: 1.55;
+  display: none;
+  margin-bottom: 1.25rem;
+}
+
+.alert.visible { display: block; }
+.alert-error   { background: rgba(201,120,120,.12); border: 1px solid rgba(201,120,120,.35); color: #e8a0a0; }
+.alert-success { background: rgba(127,184,143,.12); border: 1px solid rgba(127,184,143,.35); color: #a0d4af; }
+
+.divider {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 1.75rem 0;
+}
+
+.signin-link {
+  text-align: center;
+  font-size: .8rem;
+  color: var(--text-dim);
+}
+
+.signin-link a {
+  color: var(--primary-soft);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color .2s;
+}
+
+.signin-link a:hover {
+  border-color: var(--primary-soft);
+}
+</style>
+</head>
+<body>
+
+<div class="signup-wrap">
+
+  <div class="signup-brand">
+    <span class="signup-brand-title">Convites</span>
+    <span class="signup-brand-sub">Crie o convite do seu casamento</span>
+  </div>
+
+  <div class="signup-card">
+
+    <h1 class="signup-card-title">Criar conta</h1>
+    <p class="signup-card-sub">Preencha os dados abaixo para começar.</p>
+
+    <div class="alert alert-error" id="alertError" role="alert"></div>
+    <div class="alert alert-success" id="alertSuccess" role="status"></div>
+
+    <form id="signupForm" novalidate>
+
+      <div class="field">
+        <label for="coupleNameInput">Nome do casal</label>
+        <input
+          type="text"
+          id="coupleNameInput"
+          name="couple_name"
+          placeholder="Ex: Ana & João"
+          autocomplete="name"
+          maxlength="80"
+          required
+        >
+        <span class="field-error" id="errCoupleName"></span>
+      </div>
+
+      <div class="field">
+        <label for="emailInput">E-mail</label>
+        <input
+          type="email"
+          id="emailInput"
+          name="email"
+          placeholder="casal@email.com"
+          autocomplete="email"
+          maxlength="120"
+          required
+        >
+        <span class="field-error" id="errEmail"></span>
+      </div>
+
+      <div class="field">
+        <label for="whatsappInput">WhatsApp (com DDD)</label>
+        <input
+          type="tel"
+          id="whatsappInput"
+          name="whatsapp"
+          placeholder="11999999999"
+          autocomplete="tel"
+          maxlength="20"
+          inputmode="numeric"
+          required
+        >
+        <span class="field-error" id="errWhatsapp"></span>
+      </div>
+
+      <div class="field">
+        <label for="passwordInput">Senha</label>
+        <input
+          type="password"
+          id="passwordInput"
+          name="password"
+          placeholder="Mínimo 8 caracteres"
+          autocomplete="new-password"
+          minlength="8"
+          maxlength="128"
+          required
+        >
+        <span class="field-error" id="errPassword"></span>
+      </div>
+
+      <div class="consent-wrap">
+        <input type="checkbox" id="consentCheckbox" name="consent" required>
+        <label for="consentCheckbox">
+          Concordo com a
+          <a href="/privacy.html" target="_blank" rel="noopener noreferrer">Política de Privacidade</a>
+          e os
+          <a href="/terms.html" target="_blank" rel="noopener noreferrer">Termos de Uso</a>.
+          Entendo que meus dados (nome, e-mail e WhatsApp) serão usados para
+          gerenciar meu convite digital.
+        </label>
+      </div>
+      <span class="consent-error" id="errConsent">Você precisa aceitar os termos para continuar.</span>
+
+      <button type="submit" class="btn-submit" id="submitBtn">
+        Criar minha conta
+      </button>
+
+    </form>
+
+    <hr class="divider">
+
+    <p class="signin-link">
+      Já tem uma conta? <a href="/dashboard.html">Fazer login</a>
+    </p>
+
+  </div>
+</div>
+
+<script>
+(function () {
+  const EMAIL_RE    = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const WHATSAPP_RE = /^\d{10,15}$/;
+
+  const form          = document.getElementById('signupForm');
+  const submitBtn     = document.getElementById('submitBtn');
+  const alertError    = document.getElementById('alertError');
+  const alertSuccess  = document.getElementById('alertSuccess');
+
+  function showError(id, msg) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.textContent = msg;
+    el.classList.toggle('visible', !!msg);
+    const input = el.previousElementSibling;
+    if (input?.tagName === 'INPUT') {
+      input.classList.toggle('is-invalid', !!msg);
+    }
+  }
+
+  function clearErrors() {
+    ['errCoupleName', 'errEmail', 'errWhatsapp', 'errPassword', 'errConsent'].forEach(id => showError(id, ''));
+    alertError.textContent = '';
+    alertError.classList.remove('visible');
+    alertSuccess.classList.remove('visible');
+  }
+
+  function validate(data) {
+    let ok = true;
+
+    if (!data.couple_name || data.couple_name.length < 2) {
+      showError('errCoupleName', 'Informe o nome do casal (mínimo 2 caracteres).');
+      ok = false;
+    }
+
+    if (!data.email || !EMAIL_RE.test(data.email)) {
+      showError('errEmail', 'Informe um e-mail válido.');
+      ok = false;
+    }
+
+    const digitsOnly = data.whatsapp.replace(/\D/g, '');
+    if (!digitsOnly || !WHATSAPP_RE.test(digitsOnly)) {
+      showError('errWhatsapp', 'Informe o WhatsApp com DDD (10 a 15 dígitos).');
+      ok = false;
+    }
+
+    if (!data.password || data.password.length < 8) {
+      showError('errPassword', 'A senha deve ter no mínimo 8 caracteres.');
+      ok = false;
+    }
+
+    if (!data.consent) {
+      const el = document.getElementById('errConsent');
+      if (el) el.classList.add('visible');
+      ok = false;
+    }
+
+    return ok;
+  }
+
+  form.addEventListener('submit', async function (e) {
+    e.preventDefault();
+    clearErrors();
+
+    const data = {
+      couple_name: document.getElementById('coupleNameInput').value.trim(),
+      email:       document.getElementById('emailInput').value.trim().toLowerCase(),
+      whatsapp:    document.getElementById('whatsappInput').value.replace(/\D/g, ''),
+      password:    document.getElementById('passwordInput').value,
+      consent:     document.getElementById('consentCheckbox').checked,
+    };
+
+    if (!validate(data)) return;
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Criando conta…';
+
+    try {
+      const response = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          couple_name: data.couple_name,
+          email:       data.email,
+          whatsapp:    data.whatsapp,
+          password:    data.password,
+        }),
+      });
+
+      const json = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        alertError.textContent = json.error || 'Erro ao criar conta. Tente novamente.';
+        alertError.classList.add('visible');
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Criar minha conta';
+        return;
+      }
+
+      // Sucesso
+      form.style.display = 'none';
+      alertSuccess.textContent = json.message || 'Conta criada com sucesso! Verifique seu e-mail.';
+      alertSuccess.classList.add('visible');
+
+    } catch (err) {
+      alertError.textContent = 'Não foi possível conectar ao servidor. Tente novamente.';
+      alertError.classList.add('visible');
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Criar minha conta';
+    }
+  });
+})();
+</script>
+
+</body>
+</html>
