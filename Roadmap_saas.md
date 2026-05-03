@@ -71,6 +71,17 @@ O roadmap correto começa em:
 
 ---
 
+## STATUS EXECUTADO (MAIO 2026)
+
+- Cadastro SaaS funcional com criação de usuário, profile e evento inicial.
+- Dashboard autenticado com Supabase Auth, sessão persistida, login/logout e isolamento por usuário.
+- Edição de configuração do convite funcionando com persistência no banco.
+- Navegação interna do convite preservando contexto por slug entre páginas estáticas.
+- Upload de mídia funcional com criação de estrutura no Supabase Storage por evento.
+- Fluxo de publicação por slug validado em teste manual de ponta a ponta.
+
+---
+
 ## ROADMAP AJUSTADO
 
 ## FASE 1 — Fechar a base SaaS
@@ -79,15 +90,15 @@ O roadmap correto começa em:
 
 ### DEV
 
-- [ ] Criar a tabela `profiles` vinculada ao `auth.users`.
-- [ ] Criar trigger `handle_new_user` para popular `profiles` no cadastro.
-- [ ] Revisar a modelagem atual para operar sobre `events` como entidade principal, sem recriar `weddings`.
-- [ ] Padronizar ownership entre `profiles`, `events` e demais tabelas relacionadas.
-- [ ] Substituir a autenticação simples do dashboard por Supabase Auth real.
-- [ ] Implementar sessão do casal no dashboard com login, logout e proteção de rotas.
+- [x] Criar a tabela `profiles` vinculada ao `auth.users`.
+- [x] Criar trigger `handle_new_user` para popular `profiles` no cadastro.
+- [x] Revisar a modelagem atual para operar sobre `events` como entidade principal, sem recriar `weddings`.
+- [x] Padronizar ownership entre `profiles`, `events` e demais tabelas relacionadas.
+- [x] Substituir a autenticação simples do dashboard por Supabase Auth real.
+- [x] Implementar sessão do casal no dashboard com login, logout e proteção de rotas.
 - [ ] Configurar ambiente de produção separado no Supabase.
 - [ ] Configurar variáveis de ambiente de produção no Vercel.
-- [ ] Validar RLS de ponta a ponta com usuário autenticado vendo apenas o próprio evento.
+- [x] Validar RLS de ponta a ponta com usuário autenticado vendo apenas o próprio evento.
 
 **Entregável:** qualquer casal autenticado consegue entrar com a própria conta e acessar apenas seu evento.
 
@@ -111,15 +122,15 @@ O roadmap correto começa em:
 ### DEV
 
 - [ ] Criar landing page comercial com CTA para cadastro.
-- [ ] Implementar formulário de cadastro com nome, WhatsApp, e-mail e senha.
-- [ ] Integrar cadastro com Supabase Auth.
+- [x] Implementar formulário de cadastro com nome, WhatsApp, e-mail e senha.
+- [x] Integrar cadastro com Supabase Auth.
 - [ ] Implementar confirmação de e-mail.
 - [ ] Criar página de confirmação e estados de sucesso e erro.
 - [ ] Criar fluxo de recuperação de senha.
 - [ ] Criar wizard inicial no dashboard para dados do casal, evento e tema.
 - [ ] Implementar verificação de disponibilidade de `slug`.
-- [ ] Implementar publicação do convite por `slug`.
-- [ ] Garantir que o convite publicado carregue por API e mantenha fallback controlado.
+- [x] Implementar publicação do convite por `slug`.
+- [x] Garantir que o convite publicado carregue por API e mantenha fallback controlado.
 
 **Entregável:** casal entra na landing, cria conta, confirma e-mail, configura o básico e publica o convite sozinho.
 
