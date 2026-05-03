@@ -114,9 +114,9 @@ async function initializeDashboard() {
     const savedToken = await ensureDashboardAccessToken();
     if (savedToken) {
       try {
-        showDashboard();
         await hydrateDashboardEventContext();
         await loadAllData();
+        showDashboard();
       } catch (error) {
         console.error('[dashboard] Falha ao hidratar evento com token salvo.', error);
         await clearDashboardSession();
@@ -209,7 +209,7 @@ async function hydrateDashboardEventContext() {
   if (data?.event?.slug) {
     state.eventSlug = data.event.slug;
     const previewBtn = document.getElementById('btnPreviewInvite');
-    if (previewBtn) previewBtn.href = window.location.origin;
+    if (previewBtn) previewBtn.href = `${window.location.origin}/${state.eventSlug}`;
   }
 
   if (data?.config) {
@@ -294,6 +294,12 @@ async function handleLogout() {
 async function getDashboardSupabaseClient() {
   if (!dashboardSupabaseClientPromise) {
     dashboardSupabaseClientPromise = (async () => {
+      // Aguarda carregamento assíncrono do SDK para evitar erro intermitente na primeira abertura.
+      const waitStart = Date.now();
+      while (!window.supabase?.createClient && Date.now() - waitStart < 5000) {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      }
+
       if (!window.supabase?.createClient) {
         throw new Error('SDK do Supabase não carregado no dashboard');
       }

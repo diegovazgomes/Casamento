@@ -52,6 +52,13 @@ function buildInitialEventConfig({ coupleName, slug, whatsapp }) {
     couple: {
       names: coupleName || 'Novo Casal',
     },
+    event: {
+      date: `${new Date().toISOString().slice(0, 10)}T17:00:00-03:00`,
+      time: '17:00',
+      locationName: 'Definir local',
+      venueAddress: 'Definir endereço',
+      mapsLink: '',
+    },
     rsvp: {
       eventId: slug,
       supabaseEnabled: true,
@@ -59,6 +66,16 @@ function buildInitialEventConfig({ coupleName, slug, whatsapp }) {
     whatsapp: {
       destinationPhone: whatsapp || '',
     },
+  };
+}
+
+function buildInitialEventTableFields() {
+  return {
+    event_date: new Date().toISOString().slice(0, 10),
+    event_time: '17:00',
+    venue_name: 'Definir local',
+    venue_address: 'Definir endereço',
+    venue_maps_link: '',
   };
 }
 
@@ -91,6 +108,7 @@ async function ensureOwnedEventExists(supabase, user) {
   const whatsapp = String(profile?.whatsapp || '').replace(/\D/g, '');
   const slug = buildDefaultEventSlug(coupleName, user.id);
   const config = buildInitialEventConfig({ coupleName, slug, whatsapp });
+  const seedFields = buildInitialEventTableFields();
 
   const { data: createdEvent, error: createError } = await supabase
     .from('events')
@@ -100,6 +118,7 @@ async function ensureOwnedEventExists(supabase, user) {
       couple_names: coupleName,
       active_theme: 'classic-gold',
       active_layout: 'classic',
+      ...seedFields,
       config,
     })
     .select('id,slug')
