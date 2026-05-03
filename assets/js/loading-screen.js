@@ -430,6 +430,7 @@ export async function hideLoadingScreen() {
     loadingScreen.classList.add('fade-out');
     setTimeout(() => {
         if (loadingScreen.parentNode) {
+            document.documentElement.classList.remove('ls-pending');
             loadingScreen.remove();
         }
     }, 600);

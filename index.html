@@ -58,6 +58,7 @@
                 if (sessionStorage.getItem('ls_data_ready') === '1') {
                     var d = JSON.parse(sessionStorage.getItem('ls_couple') || 'null');
                     if (d && d.first && d.second) { window.__LS_COUPLE_DATA__ = d; }
+                    document.documentElement.classList.add('ls-pending');
                 }
             } catch (e) { window.__LS_COUPLE_DATA__ = null; }
         })();

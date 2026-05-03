@@ -198,6 +198,16 @@ a, button, input, select, textarea {
     animation: fadeInUp var(--fade-duration) ease-out;
 }
 
+/* Flash guard: cobre o body antes do módulo de loading executar (módulos são sempre diferidos) */
+html.ls-pending body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: 9998;
+    background: var(--ls-bg-color, #0e0d0b);
+    pointer-events: none;
+}
+
 /* Loading Screen */
 .loading-screen {
     position: fixed;
