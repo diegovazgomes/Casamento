@@ -4,7 +4,7 @@ import { RSVP } from './rsvp.js';
 import { PresentPage } from './presente.js';
 import { AudioController } from './audio.js';
 import { cloneDeep, mergeDeep, setInputPlaceholder, setText } from './utils.js';
-import { resolveSiteConfigSource, resolveThemePath } from './config-source.js';
+import { getEventSlugFromPath, resolveSiteConfigSource, resolveThemePath } from './config-source.js';
 import { markBootstrapComplete, hideLoadingScreen, applyThemeToLoadingScreen, applyEventDataToLoadingScreen } from './loading-screen.js';
 import { onConfigLoaded } from './debug-badge.js';
 
@@ -77,11 +77,24 @@ export function buildInternalUrl(path, guestToken = null, currentUrl = window.lo
 
     try {
         const url = new URL(path, currentUrl);
+        const current = new URL(currentUrl);
+        const slug =
+            current.searchParams.get('slug') ||
+            current.searchParams.get('event') ||
+            getEventSlugFromPath(current.pathname);
 
         if (guestToken) {
             url.searchParams.set('g', guestToken);
         } else {
             url.searchParams.delete('g');
+        }
+
+        if (slug) {
+            url.searchParams.set('slug', slug);
+            url.searchParams.delete('event');
+        } else {
+            url.searchParams.delete('slug');
+            url.searchParams.delete('event');
         }
 
         return url.toString();
