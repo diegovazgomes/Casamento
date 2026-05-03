@@ -68,15 +68,17 @@ function buildLoadingHTML(prefill = null) {
                     <div class="bubble-highlight-small"></div>
                 </div>
                 <div class="bubble-content">
-                    <span class="bubble-letter" id="loadingInitialA">${initialA}</span>
-                    <span class="bubble-amp">&amp;</span>
-                    <span class="bubble-letter" id="loadingInitialB">${initialB}</span>
+                    <div class="bubble-monogram">
+                        <span class="bubble-letter" id="loadingInitialA">${initialA}</span>
+                        <span class="bubble-amp">&amp;</span>
+                        <span class="bubble-letter" id="loadingInitialB">${initialB}</span>
+                    </div>
+                    <p class="loader-date loader-date--inside-bubble" id="loadingEventDate">${dateText}</p>
                 </div>
             </div>
         </div>
 
         <div class="loader-status">
-            <span class="loader-status-text">Carregando convite</span>
             <div class="loader-dots" aria-hidden="true">
                 <span class="loader-dot"></span>
                 <span class="loader-dot"></span>
@@ -88,11 +90,6 @@ function buildLoadingHTML(prefill = null) {
             <div class="loader-bar-track">
                 <div class="loader-bar-fill"></div>
             </div>
-        </div>
-
-        <div class="loader-date-wrap">
-            <div class="loader-date-line"></div>
-            <p class="loader-date" id="loadingEventDate">${dateText}</p>
         </div>
     </div>
 </div>

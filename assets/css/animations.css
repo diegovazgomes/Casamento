@@ -289,15 +289,15 @@ a, button, input, select, textarea {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 18px;
+    gap: 14px;
     text-align: center;
     animation: loadingFadeIn 0.6s ease-out;
 }
 
 .loader-center {
     position: relative;
-    width: 220px;
-    height: 220px;
+    width: 264px;
+    height: 264px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -313,8 +313,8 @@ a, button, input, select, textarea {
     position: absolute;
     inset: 0;
     margin: auto;
-    width: 220px;
-    height: 220px;
+    width: 264px;
+    height: 264px;
     pointer-events: none;
     animation: ringRotate 2.4s linear infinite;
 }
@@ -345,18 +345,18 @@ a, button, input, select, textarea {
 .bubble-wrap {
     position: relative;
     z-index: 1;
-    width: 160px;
-    height: 160px;
+    width: 192px;
+    height: 192px;
     animation: bubbleFloat 6s ease-in-out infinite;
 }
 
 .bubble-shadow {
     position: absolute;
-    bottom: -28px;
+    bottom: -32px;
     left: 50%;
     transform: translateX(-50%);
-    width: 120px;
-    height: 16px;
+    width: 144px;
+    height: 19px;
     background: radial-gradient(ellipse at center, color-mix(in srgb, var(--ls-primary-color, #c9a84c) 32%, transparent) 0%, transparent 72%);
     filter: blur(6px);
     animation: shadowPulse 6s ease-in-out infinite;
@@ -411,16 +411,25 @@ a, button, input, select, textarea {
     position: absolute;
     inset: 0;
     display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    z-index: 2;
+    padding: 28px 20px 24px;
+}
+
+.bubble-monogram {
+    display: flex;
     align-items: center;
     justify-content: center;
     gap: 4px;
-    z-index: 2;
 }
 
 .bubble-letter {
     font-family: var(--font-serif, 'Cormorant Garamond', serif);
     font-style: italic;
-    font-size: 50px;
+    font-size: 60px;
     font-weight: 400;
     color: color-mix(in srgb, var(--ls-text-color, #faf7f2) 75%, var(--ls-primary-color, #c9a84c) 25%);
     text-shadow: 0 0 18px color-mix(in srgb, var(--ls-primary-color, #c9a84c) 38%, transparent);
@@ -430,7 +439,7 @@ a, button, input, select, textarea {
 .bubble-amp {
     font-family: var(--font-serif, 'Cormorant Garamond', serif);
     font-style: italic;
-    font-size: 24px;
+    font-size: 28px;
     font-weight: 300;
     color: color-mix(in srgb, var(--ls-text-color, #faf7f2) 65%, transparent);
     margin: 0 2px;
@@ -440,8 +449,9 @@ a, button, input, select, textarea {
 .loader-status {
     display: flex;
     align-items: center;
-    gap: 10px;
-    margin-top: 16px;
+    justify-content: center;
+    min-height: 8px;
+    margin-top: 8px;
 }
 
 .loader-status-text {
@@ -478,7 +488,7 @@ a, button, input, select, textarea {
 
 .loader-bar-wrap {
     width: 200px;
-    margin-top: 8px;
+    margin-top: 4px;
 }
 
 .loader-bar-track {
@@ -519,6 +529,13 @@ a, button, input, select, textarea {
     letter-spacing: 0.42em;
     text-transform: uppercase;
     color: color-mix(in srgb, var(--ls-text-color, #faf7f2) 75%, transparent);
+}
+
+.loader-date--inside-bubble {
+    margin: 0;
+    max-width: 100%;
+    text-align: center;
+    line-height: 1.5;
 }
 
 @keyframes ringRotate {
@@ -608,26 +625,31 @@ a, button, input, select, textarea {
     }
 
     .loader-progress-ring {
-        width: 200px;
-        height: 200px;
+        width: 240px;
+        height: 240px;
     }
 
     .loader-center {
-        width: 200px;
-        height: 200px;
+        width: 240px;
+        height: 240px;
     }
 
     .bubble-wrap {
-        width: 140px;
-        height: 140px;
+        width: 168px;
+        height: 168px;
     }
 
     .bubble-letter {
-        font-size: 42px;
+        font-size: 50px;
     }
 
     .bubble-amp {
-        font-size: 20px;
+        font-size: 24px;
+    }
+
+    .bubble-content {
+        gap: 8px;
+        padding: 24px 16px 20px;
     }
 
     .loader-status-text {
@@ -641,7 +663,7 @@ a, button, input, select, textarea {
 
     .loader-date {
         font-size: 10px;
-        letter-spacing: 0.36em;
+        letter-spacing: 0.26em;
     }
 }
 
