@@ -50,6 +50,77 @@ function validateBody({ couple_name, email, whatsapp, password }) {
   return null;
 }
 
+function slugify(value) {
+  return String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .replace(/-{2,}/g, '-');
+}
+
+function buildDefaultEventSlug(coupleName, userId) {
+  const baseSlug = slugify(coupleName) || 'casal';
+  const userSuffix = slugify(String(userId || '').slice(0, 8)) || Date.now().toString(36);
+  return `${baseSlug}-${userSuffix}`;
+}
+
+function buildInitialEventConfig({ coupleName, slug, whatsapp }) {
+  return {
+    activeTheme: 'classic-gold',
+    activeLayout: 'classic',
+    couple: {
+      names: coupleName || 'Novo Casal',
+    },
+    rsvp: {
+      eventId: slug,
+      supabaseEnabled: true,
+    },
+    whatsapp: {
+      destinationPhone: whatsapp || '',
+    },
+  };
+}
+
+async function ensureInitialEventForUser(supabase, { userId, coupleName, whatsapp }) {
+  const { data: existingEvent, error: existingError } = await supabase
+    .from('events')
+    .select('id,slug')
+    .eq('user_id', userId)
+    .maybeSingle();
+
+  if (existingError) {
+    throw existingError;
+  }
+
+  if (existingEvent) {
+    return existingEvent;
+  }
+
+  const slug = buildDefaultEventSlug(coupleName, userId);
+  const config = buildInitialEventConfig({ coupleName, slug, whatsapp });
+
+  const { data: createdEvent, error: createError } = await supabase
+    .from('events')
+    .insert({
+      slug,
+      user_id: userId,
+      couple_names: coupleName || 'Novo Casal',
+      active_theme: 'classic-gold',
+      active_layout: 'classic',
+      config,
+    })
+    .select('id,slug')
+    .maybeSingle();
+
+  if (createError) {
+    throw createError;
+  }
+
+  return createdEvent;
+}
+
 export default async function handler(req, res) {
   res.setHeader('Content-Type', 'application/json');
 
@@ -114,6 +185,19 @@ export default async function handler(req, res) {
   if (profileError) {
     // Não bloqueia o cadastro, mas loga para investigação
     console.error('[signup] Erro ao atualizar profile:', profileError.message);
+  }
+
+  try {
+    await ensureInitialEventForUser(supabase, {
+      userId,
+      coupleName: couple_name,
+      whatsapp,
+    });
+  } catch (initialEventError) {
+    console.error('[signup] Erro ao inicializar evento do casal:', initialEventError?.message || initialEventError);
+    return res.status(500).json({
+      error: 'Conta criada, mas não foi possível inicializar o evento do casal.',
+    });
   }
 
   return res.status(201).json({

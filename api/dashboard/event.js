@@ -29,6 +29,89 @@ const EVENT_RESPONSE_SELECT = [
   'updated_at',
 ].join(',');
 
+function slugify(value) {
+  return String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .replace(/-{2,}/g, '-');
+}
+
+function buildDefaultEventSlug(coupleName, userId) {
+  const baseSlug = slugify(coupleName) || 'casal';
+  const userSuffix = slugify(String(userId || '').slice(0, 8)) || Date.now().toString(36);
+  return `${baseSlug}-${userSuffix}`;
+}
+
+function buildInitialEventConfig({ coupleName, slug, whatsapp }) {
+  return {
+    activeTheme: 'classic-gold',
+    activeLayout: 'classic',
+    couple: {
+      names: coupleName || 'Novo Casal',
+    },
+    rsvp: {
+      eventId: slug,
+      supabaseEnabled: true,
+    },
+    whatsapp: {
+      destinationPhone: whatsapp || '',
+    },
+  };
+}
+
+async function ensureOwnedEventExists(supabase, user) {
+  const { data: existingEvent, error: existingError } = await supabase
+    .from('events')
+    .select('id,slug')
+    .eq('user_id', user.id)
+    .maybeSingle();
+
+  if (existingError) {
+    throw existingError;
+  }
+
+  if (existingEvent) {
+    return existingEvent;
+  }
+
+  const { data: profile, error: profileError } = await supabase
+    .from('profiles')
+    .select('couple_name,whatsapp')
+    .eq('id', user.id)
+    .maybeSingle();
+
+  if (profileError) {
+    throw profileError;
+  }
+
+  const coupleName = String(profile?.couple_name || 'Novo Casal').trim() || 'Novo Casal';
+  const whatsapp = String(profile?.whatsapp || '').replace(/\D/g, '');
+  const slug = buildDefaultEventSlug(coupleName, user.id);
+  const config = buildInitialEventConfig({ coupleName, slug, whatsapp });
+
+  const { data: createdEvent, error: createError } = await supabase
+    .from('events')
+    .insert({
+      slug,
+      user_id: user.id,
+      couple_names: coupleName,
+      active_theme: 'classic-gold',
+      active_layout: 'classic',
+      config,
+    })
+    .select('id,slug')
+    .maybeSingle();
+
+  if (createError) {
+    throw createError;
+  }
+
+  return createdEvent;
+}
+
 /**
  * Extrai campos que vão direto na tabela events a partir do config completo
  */
@@ -116,10 +199,18 @@ export default async function handler(req, res) {
 
   try {
     if (req.method === 'GET') {
-      const ownedEvent = await requireOwnedEvent(req, {
+      let ownedEvent = await requireOwnedEvent(req, {
         allowFallbackOwnedEvent: true,
         selectClause: `${EVENT_RESPONSE_SELECT},event_gifts(id,type,enabled,sort_order,config)`,
       });
+
+      if (!ownedEvent.ok && ownedEvent.status === 404 && ownedEvent.supabase && ownedEvent.user) {
+        await ensureOwnedEventExists(ownedEvent.supabase, ownedEvent.user);
+        ownedEvent = await requireOwnedEvent(req, {
+          allowFallbackOwnedEvent: true,
+          selectClause: `${EVENT_RESPONSE_SELECT},event_gifts(id,type,enabled,sort_order,config)`,
+        });
+      }
 
       if (!ownedEvent.ok) {
         return res.status(ownedEvent.status).json({ error: ownedEvent.error });
