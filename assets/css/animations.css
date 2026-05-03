@@ -645,12 +645,12 @@ a, button, input, select, textarea {
     }
 }
 
-/* Loading phase couple: iniciais e data aparecem com fade apos 1.5s.
+/* Loading phase couple: iniciais e data aparecem com fade apos 2s.
    animation-fill-mode: both aplica o from{} durante o delay (opacity:0). */
 .loading-phase--couple .bubble-content,
 .loading-phase--couple .loader-date {
     opacity: 0;
-    animation: lsFadeIn 0.8s ease 1.5s both;
+    animation: lsFadeIn 2s ease 2s both;
 }
 
 @keyframes lsFadeIn {
@@ -671,3 +671,4 @@ a, button, input, select, textarea {
         visibility: hidden;
     }
 }
+      

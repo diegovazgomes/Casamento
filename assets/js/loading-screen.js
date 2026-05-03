@@ -151,10 +151,14 @@ export function initLoadingScreen() {
  *   date  — event.date ISO (ex: "2026-09-07") — usado para formatar a data
  */
 export function applyEventDataToLoadingScreen({ names = '', date = '' } = {}) {
+    // Verificar se é primeira visita ANTES de qualquer alteração visual.
+    // Na primeira visita o Devazi deve permanecer visível até hideLoadingScreen().
+    const isFirstVisit = ssGet(LOADING_DATA_READY_KEY) !== '1';
+
     const initials = extractCoupleInitials(names);
     const formattedDate = formatEventDate(date, '', '');
 
-    // Preencher iniciais se válidas
+    // Preencher iniciais se válidas (necessário para o prefill na próxima visita)
     if (initials.isValid) {
         const elA = document.getElementById('loadingInitialA');
         const elB = document.getElementById('loadingInitialB');
@@ -162,19 +166,23 @@ export function applyEventDataToLoadingScreen({ names = '', date = '' } = {}) {
         if (elB) elB.textContent = initials.second;
     }
 
-    // Preencher data
+    // Preencher data (necessário para o prefill na próxima visita)
     const elDate = document.getElementById('loadingEventDate');
     if (elDate && formattedDate && formattedDate !== '-- . -- . ----') {
         elDate.textContent = formattedDate;
     }
 
-    // Garantir que a fase couple está visível antes de revelar os dados
-    const couplePhase = document.getElementById('loadingPhaseCouple');
-    if (couplePhase?.hidden) {
-        switchToCouplePhase();
+    // Na primeira visita: NÃO trocar de fase. Devazi permanece ativo e some
+    // diretamente para o conteúdo via hideLoadingScreen(). A fase couple só
+    // aparece em visitas subsequentes (quando ls_data_ready já estava '1').
+    if (!isFirstVisit) {
+        const couplePhase = document.getElementById('loadingPhaseCouple');
+        if (couplePhase?.hidden) {
+            switchToCouplePhase();
+        }
     }
 
-    // Opacity é gerenciada pelo CSS (animation-delay: 1.5s em animations.css).
+    // Opacity é gerenciada pelo CSS (animation-delay: 2s em animations.css).
     // Não manipular opacity aqui — evita conflito com a animação CSS.
 
     // Persistir dados do casal para leitura síncrona no <head> na próxima visita.
@@ -423,18 +431,4 @@ export async function hideLoadingScreen() {
     await Promise.race([contentTimeout, contentCheck]);
 
     // Garantir mínimo de 4s desde o início da loading screen.
-    // Isso assegura que o Supabase já respondeu (~500ms) e o fade-in das iniciais
-    // (CSS animation-delay: 1.5s + 0.8s) completou antes de fechar.
-    const MIN_DURATION = 4000;
-    const elapsed = Date.now() - loadingStartTime;
-    const remaining = Math.max(0, MIN_DURATION - elapsed);
-    await new Promise(r => setTimeout(r, remaining));
-
-    // Aí sim desaparece com fade-out de 600ms
-    loadingScreen.classList.add('fade-out');
-    setTimeout(() => {
-        if (loadingScreen.parentNode) {
-            loadingScreen.remove();
-        }
-    }, 600);
-}
+    // Isso assegura que o Supabase já respondeu (~500ms) e
