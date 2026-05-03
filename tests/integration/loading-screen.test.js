@@ -32,7 +32,7 @@ describe('loading screen — first visit (Devazi only)', () => {
     // Data is populated but phase must NOT switch on first visit
     expect(document.getElementById('loadingInitialA')?.textContent).toBe('A');
     expect(document.getElementById('loadingInitialB')?.textContent).toBe('L');
-    expect(document.getElementById('loadingEventDate')?.textContent).toBe('06 . 09 . 2026');
+    expect(document.getElementById('loadingEventDate')?.textContent).toBe('06.09.2026');
     expect(document.getElementById('loadingPhaseBrand')?.hidden).toBe(false);
     expect(document.getElementById('loadingPhaseCouple')?.hidden).toBe(true);
   });
@@ -52,7 +52,7 @@ describe('loading screen — first visit (Devazi only)', () => {
     expect(JSON.parse(window.sessionStorage.getItem('ls_couple'))).toEqual({
       first: 'S',
       second: 'D',
-      date: '06 . 09 . 2026',
+      date: '06.09.2026',
     });
     expect(window.sessionStorage.getItem('ls_data_ready')).toBe('1');
     expect(document.getElementById('loadingPhaseBrand')?.hidden).toBe(false);
@@ -95,9 +95,11 @@ describe('loading screen — second visit (couple phase)', () => {
     // Data is populated
     expect(document.getElementById('loadingInitialA')?.textContent).toBe('A');
     expect(document.getElementById('loadingInitialB')?.textContent).toBe('L');
-    expect(document.getElementById('loadingEventDate')?.textContent).toBe('06 . 09 . 2026');
+    expect(document.getElementById('loadingEventDate')?.textContent).toBe('06.09.2026');
     expect(document.getElementById('loadingEventDate')?.closest('.bubble-content')).not.toBeNull();
     expect(document.querySelector('.loader-status-text')).toBeNull();
+    expect(document.querySelector('.loader-dots')).toBeNull();
+    expect(document.querySelector('.loader-bar-wrap')).toBeNull();
   });
 
   it('updates couple data while keeping the couple phase visible on second visit', async () => {

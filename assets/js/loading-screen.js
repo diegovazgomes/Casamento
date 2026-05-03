@@ -19,20 +19,22 @@ let loadingStartTime = 0;
  * Gera o HTML da loading screen.
  *
  * @param {{ first: string, second: string, date: string }|null} prefill
+ * @param {{ showCouplePhase?: boolean }} options
  *   Dados do casal lidos sincronamente do sessionStorage no <head>.
  *   Quando fornecidos, pré-preenche o texto das iniciais e data antes do
  *   módulo ES executar — o CSS cuida de revelar com fade (animation-delay:1.5s).
  *   Quando null (primeira visita), usa placeholders "-" e "--. --. ----".
  */
-function buildLoadingHTML(prefill = null) {
+function buildLoadingHTML(prefill = null, options = {}) {
+    const showCouplePhase = options.showCouplePhase === true;
     const initialA = prefill?.first  || '';
     const initialB = prefill?.second || '';
-    const dateText = prefill?.date   || '';
+    const dateText = normalizeLoadingDateText(prefill?.date || '');
 
     return `
-<div class="loading-screen" id="loadingScreen" aria-hidden="true">
+<div class="loading-screen${showCouplePhase ? ' loading-screen--phase-couple' : ''}" id="loadingScreen" aria-hidden="true">
     <div class="loading-backdrop"></div>
-    <div class="loading-phase loading-phase--brand" id="loadingPhaseBrand" role="status" aria-live="polite" aria-label="Carregando">
+    <div class="loading-phase loading-phase--brand" id="loadingPhaseBrand" role="status" aria-live="polite" aria-label="Carregando"${showCouplePhase ? ' hidden' : ''}>
         <div class="brand-loader-art" aria-hidden="true">
             <svg viewBox="0 0 1080 1920" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
                 <rect width="1080" height="1920" fill="#0e0d0b"></rect>
@@ -51,7 +53,7 @@ function buildLoadingHTML(prefill = null) {
         </div>
     </div>
 
-    <div class="loading-phase loading-phase--couple" id="loadingPhaseCouple" hidden>
+    <div class="loading-phase loading-phase--couple" id="loadingPhaseCouple"${showCouplePhase ? '' : ' hidden'}>
         <div class="loader-center" aria-hidden="true">
             <div class="loader-progress-ring">
                 <svg viewBox="0 0 220 220">
@@ -75,20 +77,6 @@ function buildLoadingHTML(prefill = null) {
                     </div>
                     <p class="loader-date loader-date--inside-bubble" id="loadingEventDate">${dateText}</p>
                 </div>
-            </div>
-        </div>
-
-        <div class="loader-status">
-            <div class="loader-dots" aria-hidden="true">
-                <span class="loader-dot"></span>
-                <span class="loader-dot"></span>
-                <span class="loader-dot"></span>
-            </div>
-        </div>
-
-        <div class="loader-bar-wrap" aria-hidden="true">
-            <div class="loader-bar-track">
-                <div class="loader-bar-fill"></div>
             </div>
         </div>
     </div>
@@ -126,13 +114,10 @@ export function initLoadingScreen() {
             ? window.__LS_COUPLE_DATA__
             : null;
 
-        document.body.insertAdjacentHTML('afterbegin', buildLoadingHTML(prefill));
-
-        // Flag de sessão: mostra couple direto se já carregou nesta sessão
         const dataReady = ssGet(LOADING_DATA_READY_KEY) === '1';
-        if (dataReady) {
-            switchToCouplePhase();
-        }
+        document.body.insertAdjacentHTML('afterbegin', buildLoadingHTML(prefill, {
+            showCouplePhase: dataReady,
+        }));
     } catch (error) {
         console.warn('[LoadingScreen] Erro ao inicializar.', error);
     }
@@ -165,7 +150,7 @@ export function applyEventDataToLoadingScreen({ names = '', date = '' } = {}) {
 
     // Preencher data (necessário para o prefill na próxima visita)
     const elDate = document.getElementById('loadingEventDate');
-    if (elDate && formattedDate && formattedDate !== '-- . -- . ----') {
+    if (elDate && formattedDate && formattedDate !== '--.--.----') {
         elDate.textContent = formattedDate;
     }
 
@@ -188,7 +173,7 @@ export function applyEventDataToLoadingScreen({ names = '', date = '' } = {}) {
         sessionStorage.setItem('ls_couple', JSON.stringify({
             first:  initials.isValid ? initials.first  : '',
             second: initials.isValid ? initials.second : '',
-            date:   (formattedDate && formattedDate !== '-- . -- . ----') ? formattedDate : '',
+            date:   (formattedDate && formattedDate !== '--.--.----') ? formattedDate : '',
         }));
     } catch { /* silencioso */ }
 
@@ -311,10 +296,16 @@ function formatEventDate(eventDate, displayDate, heroDate) {
 
     if (dateMatch) {
         const [, year, month, day] = dateMatch;
-        return `${day} . ${month} . ${year}`;
+        return `${day}.${month}.${year}`;
     }
 
-    return String(displayDate || heroDate || '-- . -- . ----').trim();
+    return normalizeLoadingDateText(String(displayDate || heroDate || '--.--.----').trim());
+}
+
+function normalizeLoadingDateText(value) {
+    return String(value || '')
+        .replace(/\s*\.\s*/g, '.')
+        .trim();
 }
 
 /** Helpers silenciosos para sessionStorage */
