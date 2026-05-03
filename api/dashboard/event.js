@@ -66,6 +66,10 @@ function buildInitialEventConfig({ coupleName, slug, whatsapp }) {
     whatsapp: {
       destinationPhone: whatsapp || '',
     },
+    gift: {
+      pixEnabled: false,
+      cardPaymentEnabled: false,
+    },
   };
 }
 
@@ -77,6 +81,60 @@ function buildInitialEventTableFields() {
     venue_address: 'Definir endereço',
     venue_maps_link: '',
   };
+}
+
+async function seedDefaultEventGifts(supabase, eventId) {
+  if (!eventId) {
+    return;
+  }
+
+  try {
+    const { data: existingRows, error: existingRowsError } = await supabase
+      .from('event_gifts')
+      .select('type')
+      .eq('event_id', eventId);
+
+    if (existingRowsError) {
+      throw existingRowsError;
+    }
+
+    const existingTypes = new Set((existingRows || []).map((row) => String(row?.type || '')));
+    const rowsToInsert = [];
+
+    if (!existingTypes.has('pix')) {
+      rowsToInsert.push({
+        event_id: eventId,
+        type: 'pix',
+        enabled: false,
+        sort_order: 1,
+        config: {},
+      });
+    }
+
+    if (!existingTypes.has('card')) {
+      rowsToInsert.push({
+        event_id: eventId,
+        type: 'card',
+        enabled: false,
+        sort_order: 2,
+        config: {},
+      });
+    }
+
+    if (!rowsToInsert.length) {
+      return;
+    }
+
+    const { error: insertError } = await supabase
+      .from('event_gifts')
+      .insert(rowsToInsert);
+
+    if (insertError) {
+      throw insertError;
+    }
+  } catch (error) {
+    console.warn('[dashboard/event] Falha ao criar presentes padrão do evento:', error?.message || error);
+  }
 }
 
 async function ensureOwnedEventExists(supabase, user) {
@@ -127,6 +185,8 @@ async function ensureOwnedEventExists(supabase, user) {
   if (createError) {
     throw createError;
   }
+
+  await seedDefaultEventGifts(supabase, createdEvent?.id);
 
   return createdEvent;
 }
@@ -258,6 +318,7 @@ export default async function handler(req, res) {
 
     const ownedEvent = await requireOwnedEvent(req, {
       lookup,
+      allowFallbackOwnedEvent: true,
       selectClause: 'id,user_id,config,slug',
     });
 
@@ -458,6 +519,8 @@ export default async function handler(req, res) {
     });
   } catch (error) {
     console.error('[dashboard/event] Failed to update event', error);
-    return res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({
+      error: error?.message || error?.code || 'Internal server error',
+    });
   }
 }

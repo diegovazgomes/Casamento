@@ -45,6 +45,24 @@ function createSelectBuilder(result) {
   };
 }
 
+function createOrderedSelectBuilder(result) {
+  return {
+    select: vi.fn(function select() {
+      return this;
+    }),
+    eq: vi.fn(function eq() {
+      return this;
+    }),
+    order: vi.fn(function order() {
+      return this;
+    }),
+    limit: vi.fn(function limit() {
+      return this;
+    }),
+    maybeSingle: vi.fn().mockResolvedValue(result),
+  };
+}
+
 function createUpdateBuilder(result) {
   return {
     update: vi.fn(function update() {
@@ -257,6 +275,73 @@ describe('/api/dashboard/event', () => {
             },
           },
         },
+      },
+    });
+  });
+
+  it('falls back to the latest owned event on PATCH when the lookup is missing', async () => {
+    const latestOwnedEventBuilder = createOrderedSelectBuilder({
+      data: {
+        id: 'event-1',
+        user_id: 'user-1',
+        slug: 'test-event',
+        config: {
+          texts: { metaTitle: 'Antes' },
+        },
+      },
+      error: null,
+    });
+    const updatedEventBuilder = createUpdateBuilder({
+      data: {
+        id: 'event-1',
+        user_id: 'user-1',
+        slug: 'test-event',
+        couple_names: 'Test Couple',
+        bride_name: 'Bride',
+        groom_name: 'Groom',
+        event_date: '2026-09-06',
+        event_time: '17:00',
+        venue_name: 'Venue',
+        venue_address: 'Address',
+        venue_maps_link: 'https://maps.google.com',
+        active_theme: 'classic-gold',
+        active_layout: 'classic',
+        updated_at: '2026-04-26T10:00:00Z',
+        config: {
+          texts: { metaTitle: 'Depois' },
+        },
+      },
+      error: null,
+    });
+    const fromMock = vi.fn()
+      .mockReturnValueOnce(latestOwnedEventBuilder)
+      .mockReturnValueOnce(updatedEventBuilder);
+
+    createClientMock.mockReturnValue({
+      auth: {
+        getUser: vi.fn().mockResolvedValue({ data: { user: { id: 'user-1' } }, error: null }),
+      },
+      from: fromMock,
+      storage: createStorageMock(),
+    });
+
+    const { default: handler } = await import('../../api/dashboard/event.js');
+    const res = createMockResponse();
+
+    await handler({
+      method: 'PATCH',
+      headers: { authorization: 'Bearer valid-token' },
+      body: {
+        config: {
+          texts: { metaTitle: 'Depois' },
+        },
+      },
+    }, res);
+
+    expect(res.statusCode).toBe(200);
+    expect(updatedEventBuilder.update).toHaveBeenCalledWith({
+      config: {
+        texts: { metaTitle: 'Depois' },
       },
     });
   });

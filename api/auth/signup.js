@@ -87,6 +87,10 @@ function buildInitialEventConfig({ coupleName, slug, whatsapp }) {
     whatsapp: {
       destinationPhone: whatsapp || '',
     },
+    gift: {
+      pixEnabled: false,
+      cardPaymentEnabled: false,
+    },
   };
 }
 
@@ -98,6 +102,60 @@ function buildInitialEventTableFields() {
     venue_address: 'Definir endereço',
     venue_maps_link: '',
   };
+}
+
+async function seedDefaultEventGifts(supabase, eventId) {
+  if (!eventId) {
+    return;
+  }
+
+  try {
+    const { data: existingRows, error: existingRowsError } = await supabase
+      .from('event_gifts')
+      .select('type')
+      .eq('event_id', eventId);
+
+    if (existingRowsError) {
+      throw existingRowsError;
+    }
+
+    const existingTypes = new Set((existingRows || []).map((row) => String(row?.type || '')));
+    const rowsToInsert = [];
+
+    if (!existingTypes.has('pix')) {
+      rowsToInsert.push({
+        event_id: eventId,
+        type: 'pix',
+        enabled: false,
+        sort_order: 1,
+        config: {},
+      });
+    }
+
+    if (!existingTypes.has('card')) {
+      rowsToInsert.push({
+        event_id: eventId,
+        type: 'card',
+        enabled: false,
+        sort_order: 2,
+        config: {},
+      });
+    }
+
+    if (!rowsToInsert.length) {
+      return;
+    }
+
+    const { error: insertError } = await supabase
+      .from('event_gifts')
+      .insert(rowsToInsert);
+
+    if (insertError) {
+      throw insertError;
+    }
+  } catch (error) {
+    console.warn('[signup] Falha ao criar presentes padrão do evento:', error?.message || error);
+  }
 }
 
 async function ensureInitialEventForUser(supabase, { userId, coupleName, whatsapp }) {
@@ -137,6 +195,8 @@ async function ensureInitialEventForUser(supabase, { userId, coupleName, whatsap
     throw createError;
   }
 
+  await seedDefaultEventGifts(supabase, createdEvent?.id);
+
   return createdEvent;
 }
 
@@ -167,7 +227,7 @@ export default async function handler(req, res) {
   const { data: signUpData, error: signUpError } = await supabase.auth.admin.createUser({
     email,
     password,
-    email_confirm: false, // Supabase enviará e-mail de confirmação
+    email_confirm: true,
   });
 
   if (signUpError) {
