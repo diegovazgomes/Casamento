@@ -431,4 +431,18 @@ export async function hideLoadingScreen() {
     await Promise.race([contentTimeout, contentCheck]);
 
     // Garantir mínimo de 4s desde o início da loading screen.
-    // Isso assegura que o Supabase já respondeu (~500ms) e
+    // Isso assegura que o Supabase já respondeu (~500ms) e o fade-in das iniciais
+    // (CSS animation-delay: 2s + duração 2s) completou antes de fechar.
+    const MIN_DURATION = 4000;
+    const elapsed = Date.now() - loadingStartTime;
+    const remaining = Math.max(0, MIN_DURATION - elapsed);
+    await new Promise(r => setTimeout(r, remaining));
+
+    // Aí sim desaparece com fade-out de 600ms
+    loadingScreen.classList.add('fade-out');
+    setTimeout(() => {
+        if (loadingScreen.parentNode) {
+            loadingScreen.remove();
+        }
+    }, 600);
+}
