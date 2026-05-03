@@ -198,13 +198,16 @@ a, button, input, select, textarea {
     animation: fadeInUp var(--fade-duration) ease-out;
 }
 
-/* Flash guard: cobre o body antes do módulo de loading executar (módulos são sempre diferidos) */
-html.ls-pending body::before {
+/* Flash guard: cobre tudo antes do módulo de loading executar (módulos são sempre diferidos).
+   Usa html::before para não conflitar com body::before da grade de pontos em style.css
+   (que tem opacity: 0.35 — sem esse fix, o guard ficaria semitransparente). */
+html.ls-pending::before {
     content: '';
     position: fixed;
     inset: 0;
     z-index: 9998;
     background: var(--ls-bg-color, #0e0d0b);
+    opacity: 1;
     pointer-events: none;
 }
 
