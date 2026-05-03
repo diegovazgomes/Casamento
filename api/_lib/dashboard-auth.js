@@ -76,6 +76,23 @@ export async function findOwnedEventRecord(supabase, userId, lookup, selectClaus
   return data;
 }
 
+export async function findLatestOwnedEventRecord(supabase, userId, selectClause) {
+  const { data, error } = await supabase
+    .from('events')
+    .select(selectClause)
+    .eq('user_id', userId)
+    .order('updated_at', { ascending: false })
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    throw error;
+  }
+
+  return data;
+}
+
 export async function requireOwnedEvent(req, options = {}) {
   const auth = await authenticateDashboardRequest(req);
 
@@ -84,8 +101,14 @@ export async function requireOwnedEvent(req, options = {}) {
   }
 
   const lookup = options.lookup || getDashboardEventLookup(req);
+  const allowFallbackOwnedEvent = options.allowFallbackOwnedEvent === true;
+  const hasLookup = Boolean(lookup.eventId || lookup.slug);
+  const selectClause = options.selectClause || 'id,slug,user_id,config';
+  let event = null;
 
-  if (!lookup.eventId && !lookup.slug) {
+  if (hasLookup) {
+    event = await findOwnedEventRecord(auth.supabase, auth.user.id, lookup, selectClause);
+  } else if (!allowFallbackOwnedEvent) {
     return {
       ok: false,
       status: 400,
@@ -95,8 +118,9 @@ export async function requireOwnedEvent(req, options = {}) {
     };
   }
 
-  const selectClause = options.selectClause || 'id,slug,user_id,config';
-  const event = await findOwnedEventRecord(auth.supabase, auth.user.id, lookup, selectClause);
+  if (!event && allowFallbackOwnedEvent) {
+    event = await findLatestOwnedEventRecord(auth.supabase, auth.user.id, selectClause);
+  }
 
   if (!event) {
     return {
@@ -114,7 +138,7 @@ export async function requireOwnedEvent(req, options = {}) {
     user: auth.user,
     token: auth.token,
     event,
-    lookup,
+    lookup: hasLookup ? lookup : { eventId: event.id, slug: event.slug || '' },
   };
 }
 

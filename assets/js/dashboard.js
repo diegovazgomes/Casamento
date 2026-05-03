@@ -7,7 +7,7 @@
 const state = {
   authToken: null,
   eventId: '',
-  eventSlug: window.location.pathname.replace(/^\//, '').split('/')[0] || null,
+  eventSlug: new URLSearchParams(window.location.search).get('slug') || null,
   grupos: [],
   confirmacoes: [],
   allConfirmacoes: [],
@@ -184,11 +184,6 @@ function applySiteConfig(siteConfig) {
     return;
   }
 
-  const eventSlug = siteConfig?.rsvp?.eventId;
-  if (eventSlug) {
-    state.eventSlug = eventSlug;
-  }
-
   const coupleNames = siteConfig?.couple?.names;
   const heroDate = siteConfig?.event?.heroDate || siteConfig?.event?.displayDate || '';
 
@@ -199,13 +194,8 @@ function applySiteConfig(siteConfig) {
 }
 
 async function hydrateDashboardEventContext() {
-  const lookupSlug = state.eventSlug || window.__SITE_CONFIG__?.rsvp?.eventId;
-
-  if (!lookupSlug) {
-    throw new Error('Slug do evento não disponível para o dashboard');
-  }
-
-  const response = await fetchWithAuth(`/api/dashboard/event?slug=${encodeURIComponent(lookupSlug)}`);
+  const slugQuery = state.eventSlug ? `?slug=${encodeURIComponent(state.eventSlug)}` : '';
+  const response = await fetchWithAuth(`/api/dashboard/event${slugQuery}`);
   const data = await response.json();
 
   if (!response.ok) {
@@ -261,10 +251,20 @@ async function handleAuth(event) {
     // Limpar form
     authForm.reset();
 
+    try {
+      await hydrateDashboardEventContext();
+      await loadAllData();
+    } catch (hydrateError) {
+      console.error('[auth] Falha ao hidratar dashboard após login', hydrateError);
+      await clearDashboardSession();
+      showAuthScreen();
+      showAuthError(hydrateError?.message || 'Não foi possível carregar os dados do evento.');
+      notifyDashboardReady();
+      return;
+    }
+
     // Mostrar dashboard
     showDashboard();
-    await hydrateDashboardEventContext();
-    await loadAllData();
 
     // Exibir nome do casal vindo do profile (não-bloqueante)
     fetchUserProfile().then(profile => {
@@ -1469,6 +1469,11 @@ const LAYOUT_THEMES = {
 };
 
 function loadEditorTab() {
+  if (!state.eventId) {
+    setEditorStatusText('Evento não carregado — faça login novamente.');
+    return;
+  }
+
   const config = window.__SITE_CONFIG__;
   if (!config) {
     setEditorStatusText('Configuração não disponível — recarregue a página');

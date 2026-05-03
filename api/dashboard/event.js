@@ -117,6 +117,7 @@ export default async function handler(req, res) {
   try {
     if (req.method === 'GET') {
       const ownedEvent = await requireOwnedEvent(req, {
+        allowFallbackOwnedEvent: true,
         selectClause: `${EVENT_RESPONSE_SELECT},event_gifts(id,type,enabled,sort_order,config)`,
       });
 
