@@ -8,6 +8,25 @@
     <title>Sugerir Música</title>
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="assets/css/animations.css">
+    <script>
+        /* Loading Screen — leitura síncrona para zero flash de iniciais/tema */
+        (function () {
+            try {
+                var c = JSON.parse(sessionStorage.getItem('ls-theme-colors') || 'null');
+                if (c && c.bg && c.text && c.primary) {
+                    var r = document.documentElement;
+                    r.style.setProperty('--ls-bg-color',      c.bg);
+                    r.style.setProperty('--ls-text-color',    c.text);
+                    r.style.setProperty('--ls-primary-color', c.primary);
+                }
+                window.__LS_COUPLE_DATA__ = null;
+                if (sessionStorage.getItem('ls_data_ready') === '1') {
+                    var d = JSON.parse(sessionStorage.getItem('ls_couple') || 'null');
+                    if (d && d.first && d.second) { window.__LS_COUPLE_DATA__ = d; }
+                }
+            } catch (e) { window.__LS_COUPLE_DATA__ = null; }
+        })();
+    </script>
     <script type="module">
         import { initLoadingScreen } from './assets/js/loading-screen.js';
         initLoadingScreen();

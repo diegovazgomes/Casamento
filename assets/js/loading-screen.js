@@ -8,10 +8,28 @@
 
 import { resolveSiteConfigSource } from './config-source.js';
 
-const LOADING_VISIT_KEY_VERSION = 'v3';
-const VISIT_COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 365;
+// Chave sessionStorage: apenas o FLAG de que já foi carregado antes.
+// Nunca persiste os valores em si para evitar dados stale.
+const LOADING_DATA_READY_KEY = 'ls_data_ready';
 
-const LOADING_SCREEN_HTML = `
+// Timestamp do início da loading screen — usado para garantir mínimo de 4s
+let loadingStartTime = 0;
+
+/**
+ * Gera o HTML da loading screen.
+ *
+ * @param {{ first: string, second: string, date: string }|null} prefill
+ *   Dados do casal lidos sincronamente do sessionStorage no <head>.
+ *   Quando fornecidos, pré-preenche o texto das iniciais e data antes do
+ *   módulo ES executar — o CSS cuida de revelar com fade (animation-delay:1.5s).
+ *   Quando null (primeira visita), usa placeholders "-" e "--. --. ----".
+ */
+function buildLoadingHTML(prefill = null) {
+    const initialA = prefill?.first  || '';
+    const initialB = prefill?.second || '';
+    const dateText = prefill?.date   || '';
+
+    return `
 <div class="loading-screen" id="loadingScreen" aria-hidden="true">
     <div class="loading-backdrop"></div>
     <div class="loading-phase loading-phase--brand" id="loadingPhaseBrand" role="status" aria-live="polite" aria-label="Carregando">
@@ -50,9 +68,9 @@ const LOADING_SCREEN_HTML = `
                     <div class="bubble-highlight-small"></div>
                 </div>
                 <div class="bubble-content">
-                    <span class="bubble-letter" id="loadingInitialA">-</span>
+                    <span class="bubble-letter" id="loadingInitialA">${initialA}</span>
                     <span class="bubble-amp">&amp;</span>
-                    <span class="bubble-letter" id="loadingInitialB">-</span>
+                    <span class="bubble-letter" id="loadingInitialB">${initialB}</span>
                 </div>
             </div>
         </div>
@@ -74,91 +92,102 @@ const LOADING_SCREEN_HTML = `
 
         <div class="loader-date-wrap">
             <div class="loader-date-line"></div>
-            <p class="loader-date" id="loadingEventDate">-- . -- . ----</p>
+            <p class="loader-date" id="loadingEventDate">${dateText}</p>
         </div>
     </div>
 </div>
 `;
+}
 
 /**
- * Inicializa a loading screen:
- * 1. Injeta HTML no body (afterbegin para estar antes de tudo)
- * 2. Carrega site.json para descobrir tema e nomes
- * 3. Carrega arquivo de tema para extrair cores
- * 4. Aplica cores via CSS variables
- * 5. Preenche nomes dos noivos
+ * Inicializa a loading screen.
+ *
+ * Fase brand → fase couple é decidida pelo flag sessionStorage 'ls_data_ready':
+ * - Ausente (primeira visita nesta sessão): mostra brand (Devazi).
+ * - Presente (já carregou antes): mostra couple direto, dados em opacity:0.
+ *
+ * Os valores (iniciais e data) são sempre preenchidos por applyEventDataToLoadingScreen(),
+ * que recebe dados frescos do Supabase e os revela com fade de 150ms.
  */
-export async function initLoadingScreen() {
-    try {
-        document.body.insertAdjacentHTML('afterbegin', LOADING_SCREEN_HTML);
+export function initLoadingScreen() {
+    loadingStartTime = Date.now();
 
+    try {
         if (!loadPersistedThemeColors()) {
             applyNeutralLoadingColors();
         }
 
-        const configSource = resolveSiteConfigSource();
-        const visitKey = `ls-first-open:${LOADING_VISIT_KEY_VERSION}:${configSource.slug || 'default'}`;
-        const isFirstVisit = !hasVisited(visitKey);
-        if (isFirstVisit) markVisited(visitKey);
-
-        const cachedCoupleData = loadPersistedCoupleData(visitKey);
-        if (cachedCoupleData) {
-            updateCouplePhaseData(cachedCoupleData.initials, cachedCoupleData.formattedDate);
+        // Guard: o script síncrono no <head> pode ter injetado o HTML antes
+        // deste módulo executar. Nesse caso, não duplicar.
+        if (document.getElementById('loadingScreen')) {
+            return;
         }
 
-        // Na segunda visita em diante: já começa com os noivos visíveis (Devazi escondido)
-        if (!isFirstVisit) {
+        // Ler dados pré-carregados pelo script síncrono no <head>.
+        // Quando presentes, buildLoadingHTML injeta os valores já visíveis (opacity:1).
+        const prefill = (window.__LS_COUPLE_DATA__ && window.__LS_COUPLE_DATA__.first)
+            ? window.__LS_COUPLE_DATA__
+            : null;
+
+        document.body.insertAdjacentHTML('afterbegin', buildLoadingHTML(prefill));
+
+        // Flag de sessão: mostra couple direto se já carregou nesta sessão
+        const dataReady = ssGet(LOADING_DATA_READY_KEY) === '1';
+        if (dataReady) {
             switchToCouplePhase();
         }
-
-        bindAppReadyPhaseUpgrade(!isFirstVisit, visitKey);
-
-        const siteRes = await fetch(configSource.url, {
-            method: 'GET',
-            headers: { Accept: 'application/json' },
-            cache: 'no-store'
-        });
-        if (!siteRes.ok) return;
-
-        const siteConfig = await siteRes.json();
-        tryActivateCouplePhaseFromConfig(siteConfig, !isFirstVisit, visitKey);
-
     } catch (error) {
-        console.warn('[LoadingScreen] Erro ao carregar dados dinamicos do loader.', error);
+        console.warn('[LoadingScreen] Erro ao inicializar.', error);
     }
 }
 
-function bindAppReadyPhaseUpgrade(allowCouplePhase, persistKey) {
-    if (!allowCouplePhase) return;
+/**
+ * Preenche os dados do casal na fase couple e os revela com fade suave.
+ * Deve ser chamada por script.js logo após o config do Supabase ser resolvido.
+ * Salva apenas o FLAG 'ls_data_ready' — nunca os valores (evita stale data).
+ *
+ * @param {{ names: string, date: string }} param
+ *   names — couple.names do config (ex: "Siannah & Diego")
+ *   date  — event.date ISO (ex: "2026-09-07") — usado para formatar a data
+ */
+export function applyEventDataToLoadingScreen({ names = '', date = '' } = {}) {
+    const initials = extractCoupleInitials(names);
+    const formattedDate = formatEventDate(date, '', '');
 
-    const onReady = ({ detail }) => {
-        tryActivateCouplePhaseFromConfig(detail?.config, true, persistKey);
-    };
-
-    window.addEventListener('app:ready', onReady, { once: true });
-
-    // Quando init roda tardiamente, usa o config final ja resolvido.
-    if (window.CONFIG) {
-        tryActivateCouplePhaseFromConfig(window.CONFIG, true, persistKey);
-    }
-}
-
-function tryActivateCouplePhaseFromConfig(config, allowSwitch = true, persistKey = '') {
-    const initials = extractCoupleInitials(config?.couple?.names || '');
-    const formattedDate = formatEventDate(config?.event?.date, config?.event?.displayDate, config?.event?.heroDate);
-
-    updateCouplePhaseData(initials, formattedDate);
-
-    if (initials.isValid && persistKey) {
-        persistCoupleData(persistKey, initials, formattedDate);
+    // Preencher iniciais se válidas
+    if (initials.isValid) {
+        const elA = document.getElementById('loadingInitialA');
+        const elB = document.getElementById('loadingInitialB');
+        if (elA) elA.textContent = initials.first;
+        if (elB) elB.textContent = initials.second;
     }
 
-    if (!allowSwitch || !initials.isValid) {
-        return false;
+    // Preencher data
+    const elDate = document.getElementById('loadingEventDate');
+    if (elDate && formattedDate && formattedDate !== '-- . -- . ----') {
+        elDate.textContent = formattedDate;
     }
 
-    switchToCouplePhase();
-    return true;
+    // Garantir que a fase couple está visível antes de revelar os dados
+    const couplePhase = document.getElementById('loadingPhaseCouple');
+    if (couplePhase?.hidden) {
+        switchToCouplePhase();
+    }
+
+    // Opacity é gerenciada pelo CSS (animation-delay: 1.5s em animations.css).
+    // Não manipular opacity aqui — evita conflito com a animação CSS.
+
+    // Persistir dados do casal para leitura síncrona no <head> na próxima visita.
+    // sessionStorage é descartado ao fechar o browser — sem risco de stale data entre eventos.
+    try {
+        sessionStorage.setItem('ls_couple', JSON.stringify({
+            first:  initials.isValid ? initials.first  : '',
+            second: initials.isValid ? initials.second : '',
+            date:   (formattedDate && formattedDate !== '-- . -- . ----') ? formattedDate : '',
+        }));
+    } catch { /* silencioso */ }
+
+    ssSet(LOADING_DATA_READY_KEY, '1');
 }
 
 /**
@@ -283,105 +312,12 @@ function formatEventDate(eventDate, displayDate, heroDate) {
     return String(displayDate || heroDate || '-- . -- . ----').trim();
 }
 
-function updateCouplePhaseData(initials, formattedDate) {
-    const first = document.getElementById('loadingInitialA');
-    const second = document.getElementById('loadingInitialB');
-    const eventDate = document.getElementById('loadingEventDate');
-
-    if (first) first.textContent = initials.first;
-    if (second) second.textContent = initials.second;
-    if (eventDate && formattedDate) eventDate.textContent = formattedDate;
+/** Helpers silenciosos para sessionStorage */
+function ssGet(key) {
+    try { return sessionStorage.getItem(key) || ''; } catch { return ''; }
 }
-
-/**
- * Salva as cores do tema no sessionStorage.
- * sessionStorage dura apenas enquanto a aba estiver aberta, então
- * cada nova aba começa limpa — sem vazar cores de um casal para outro.
- */
-function hasVisited(key) {
-    const storedValue = getPersistentValue(key);
-
-    return storedValue === '1';
-}
-
-function markVisited(key) {
-    setPersistentValue(key, '1', VISIT_COOKIE_MAX_AGE_SECONDS);
-}
-
-function persistCoupleData(visitKey, initials, formattedDate) {
-    const dataKey = `${visitKey}:couple-data`;
-    const payload = JSON.stringify({ initials, formattedDate });
-    setPersistentValue(dataKey, payload, VISIT_COOKIE_MAX_AGE_SECONDS);
-}
-
-function loadPersistedCoupleData(visitKey) {
-    const dataKey = `${visitKey}:couple-data`;
-    const raw = getPersistentValue(dataKey);
-
-    if (!raw) return null;
-
-    try {
-        const parsed = JSON.parse(raw);
-        const first = String(parsed?.initials?.first || '').trim();
-        const second = String(parsed?.initials?.second || '').trim();
-        const formattedDate = String(parsed?.formattedDate || '').trim();
-
-        if (!first || !second) return null;
-
-        return {
-            initials: { first, second, isValid: true },
-            formattedDate: formattedDate || '-- . -- . ----'
-        };
-    } catch {
-        return null;
-    }
-}
-
-function setPersistentValue(key, value, maxAgeSeconds) {
-    setCookieValue(key, value, maxAgeSeconds);
-
-    try {
-        localStorage.setItem(key, value);
-    } catch {
-        // localStorage indisponível — cookie já foi persistido
-    }
-}
-
-function getPersistentValue(key) {
-    try {
-        const localValue = localStorage.getItem(key);
-        if (localValue) return localValue;
-    } catch {
-        // localStorage indisponível
-    }
-
-    return getCookieValue(key);
-}
-
-function setCookieValue(name, value, maxAgeSeconds) {
-    try {
-        const safeName = encodeURIComponent(name);
-        const safeValue = encodeURIComponent(value);
-        document.cookie = `${safeName}=${safeValue}; path=/; max-age=${maxAgeSeconds}; SameSite=Lax`;
-    } catch {
-        // cookies indisponíveis — silencioso
-    }
-}
-
-function getCookieValue(name) {
-    try {
-        const safeName = encodeURIComponent(name);
-        const cookieEntry = document.cookie
-            .split(';')
-            .map((item) => item.trim())
-            .find((item) => item.startsWith(`${safeName}=`));
-
-        if (!cookieEntry) return '';
-        const rawValue = cookieEntry.slice(safeName.length + 1);
-        return decodeURIComponent(rawValue);
-    } catch {
-        return '';
-    }
+function ssSet(key, value) {
+    try { sessionStorage.setItem(key, value); } catch { /* silencioso */ }
 }
 
 function persistThemeColors(bg, text, primary) {
@@ -486,8 +422,13 @@ export async function hideLoadingScreen() {
     });
     await Promise.race([contentTimeout, contentCheck]);
 
-    // Espera MAIS 1000ms mesmo que tudo pronto (delay mínimo obrigatório)
-    await new Promise(r => setTimeout(r, 1500));
+    // Garantir mínimo de 4s desde o início da loading screen.
+    // Isso assegura que o Supabase já respondeu (~500ms) e o fade-in das iniciais
+    // (CSS animation-delay: 1.5s + 0.8s) completou antes de fechar.
+    const MIN_DURATION = 4000;
+    const elapsed = Date.now() - loadingStartTime;
+    const remaining = Math.max(0, MIN_DURATION - elapsed);
+    await new Promise(r => setTimeout(r, remaining));
 
     // Aí sim desaparece com fade-out de 600ms
     loadingScreen.classList.add('fade-out');
