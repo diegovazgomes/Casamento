@@ -37,9 +37,16 @@ function buildLoadingHTML(prefill = null, options = {}) {
     <div class="loading-phase loading-phase--brand" id="loadingPhaseBrand" role="status" aria-live="polite" aria-label="Carregando"${showCouplePhase ? ' hidden' : ''}>
         <div class="brand-loader-art" aria-hidden="true">
             <svg viewBox="0 0 1080 1920" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
+                <defs>
+                    <clipPath id="brandLogoReveal">
+                        <rect x="0" y="780" width="0" height="230">
+                            <animate attributeName="width" from="0" to="1080" dur="1.4s" begin="0.3s" fill="freeze" calcMode="spline" keySplines="0.4 0 0.2 1" />
+                        </rect>
+                    </clipPath>
+                </defs>
                 <rect width="1080" height="1920" fill="#0e0d0b"></rect>
                 <text x="540" y="820" font-size="16" font-weight="500" letter-spacing="7" fill="#c9a55a" fill-opacity="0.7" text-anchor="middle">- DEVAZI STUDIO -</text>
-                <text x="540" y="970" font-size="180" font-weight="400" fill="#f0ebe1" text-anchor="middle" letter-spacing="2">Devazi</text>
+                <text x="540" y="970" font-size="180" font-weight="400" fill="#f0ebe1" text-anchor="middle" letter-spacing="2" clip-path="url(#brandLogoReveal)">Devazi</text>
                 <line x1="470" y1="1010" x2="610" y2="1010" stroke="#c9a55a" stroke-opacity="0.7" stroke-width="0.75"></line>
                 <text x="540" y="1060" font-size="14" font-weight="500" fill="#c9a55a" text-anchor="middle" letter-spacing="6">EXPERIENCIAS DIGITAIS DE CASAMENTO</text>
             </svg>
@@ -422,16 +429,4 @@ export async function hideLoadingScreen() {
     // Isso assegura que o Supabase já respondeu (~500ms) e o fade-in das iniciais
     // (CSS animation-delay: 2s + duração 2s) completou antes de fechar.
     const MIN_DURATION = 4000;
-    const elapsed = Date.now() - loadingStartTime;
-    const remaining = Math.max(0, MIN_DURATION - elapsed);
-    await new Promise(r => setTimeout(r, remaining));
-
-    // Aí sim desaparece com fade-out de 600ms
-    loadingScreen.classList.add('fade-out');
-    setTimeout(() => {
-        if (loadingScreen.parentNode) {
-            document.documentElement.classList.remove('ls-pending');
-            loadingScreen.remove();
-        }
-    }, 600);
-}
+    const elapsed = Date.now()
