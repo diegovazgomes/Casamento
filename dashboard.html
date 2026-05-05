@@ -1045,6 +1045,17 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
   font-size:9px;letter-spacing:0.2em;text-transform:uppercase;
   color:var(--primary,#c9a84c);font-weight:600;
 }
+.faq-item-block{
+  border:1px solid var(--border);background:rgba(0,0,0,0.1);
+  padding:14px 16px;margin-bottom:10px;
+}
+.faq-item-header{
+  display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;
+}
+.faq-item-num{
+  font-size:9px;letter-spacing:0.2em;text-transform:uppercase;
+  color:var(--primary,#c9a84c);font-weight:600;
+}
 </style>
 </head>
 <body>
@@ -2016,7 +2027,30 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
           </div>
         </div>
 
-        <!-- ── SEÇÃO 7: PÁGINAS EXTRAS ────────────────── -->
+        <!-- ── SEÇÃO 7: FAQ ───────────────────────────── -->
+        <div class="editor-section is-open" id="edSectionFaq">
+          <button class="editor-section-header" type="button" onclick="toggleEditorSection('edSectionFaq')">
+            <div>
+              <div class="editor-section-tag">Conteúdo</div>
+              <div class="editor-section-title">Perguntas Frequentes</div>
+            </div>
+            <svg class="editor-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="editor-section-body">
+            <p style="font-size:11px;color:var(--text-dim);margin-bottom:16px;letter-spacing:0.03em;line-height:1.7">
+              Adicione ou edite as perguntas frequentes que aparecem na página de FAQ do convite.
+            </p>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+              <span class="editor-sub-label" style="margin-bottom:0">Perguntas</span>
+              <button type="button" class="btn btn-subtle" style="padding:6px 14px;font-size:10px" onclick="addFaqItem()">
+                + Adicionar pergunta
+              </button>
+            </div>
+            <div id="faqItemsList"></div>
+          </div>
+        </div>
+
+        <!-- ── SEÇÃO 8: PÁGINAS EXTRAS ────────────────── -->
         <div class="editor-section is-open" id="edSectionPages">
           <button class="editor-section-header" type="button" onclick="toggleEditorSection('edSectionPages')">
             <div>

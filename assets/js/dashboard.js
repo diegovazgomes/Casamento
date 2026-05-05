@@ -1447,8 +1447,20 @@ async function loadAllData() {
 const editorState = {
   isDirty: false,
   catalogItems: [],
+  faqItems: [],
   originalConfig: null,
 };
+
+const DEFAULT_FAQ_ITEMS = [
+  {
+    question: 'Tem estacionamento no local?',
+    answer: 'Sim, contamos com estacionamento gratuito no local para todos os convidados.',
+  },
+  {
+    question: 'Crianças até quantos anos contam como convidado?',
+    answer: 'Crianças a partir de 7 anos contam como convidado. Menores que isso são bem-vindas sem ocupar vaga.',
+  },
+];
 
 const PAGE_LABELS = {
   historia:   'Nossa História',
@@ -1593,6 +1605,13 @@ function loadEditorTab() {
     setVal(`edChapter${_i}Title`, _ch.title ?? '');
     setVal(`edChapter${_i}Text`,  _ch.text  ?? '');
   }
+
+  // FAQ
+  const _savedFaq = config.pages?.faq?.content?.items;
+  editorState.faqItems = (Array.isArray(_savedFaq) && _savedFaq.length > 0)
+    ? _savedFaq.map(it => ({ question: it.question || '', answer: it.answer || '' }))
+    : DEFAULT_FAQ_ITEMS.map(it => ({ ...it }));
+  renderFaqItems();
 
   updateEditorSaveStatus();
 }
@@ -2249,6 +2268,64 @@ function updateCatalogItem(index, field, value) {
   }
 }
 
+// ── FAQ ───────────────────────────────────────────────────────
+
+function renderFaqItems() {
+  const container = document.getElementById('faqItemsList');
+  if (!container) return;
+
+  if (editorState.faqItems.length === 0) {
+    container.innerHTML = `<p class="field-hint" style="text-align:center;padding:12px 0">
+      Nenhuma pergunta. Clique em "+ Adicionar pergunta" para começar.</p>`;
+    return;
+  }
+
+  container.innerHTML = editorState.faqItems.map((item, i) => `
+    <div class="faq-item-block">
+      <div class="faq-item-header">
+        <span class="faq-item-num">Pergunta ${i + 1}</span>
+        <button type="button" class="btn-icon-sm" onclick="removeFaqItem(${i})" aria-label="Remover pergunta">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+      <div class="field" style="margin-bottom:8px">
+        <label class="field-label">Pergunta</label>
+        <input type="text" class="field-input sm" value="${escapeHtml(item.question || '')}"
+               placeholder="ex: Tem estacionamento no local?"
+               oninput="updateFaqItem(${i},'question',this.value)">
+      </div>
+      <div class="field">
+        <label class="field-label">Resposta</label>
+        <textarea class="field-input sm" rows="3"
+                  placeholder="Digite a resposta..."
+                  oninput="updateFaqItem(${i},'answer',this.value)">${escapeHtml(item.answer || '')}</textarea>
+      </div>
+    </div>`).join('');
+}
+
+function addFaqItem() {
+  editorState.faqItems.push({ question: '', answer: '' });
+  renderFaqItems();
+  markEditorDirty();
+  const blocks = document.querySelectorAll('#faqItemsList .faq-item-block');
+  if (blocks.length > 0) blocks[blocks.length - 1].querySelector('input')?.focus();
+}
+
+function removeFaqItem(index) {
+  editorState.faqItems.splice(index, 1);
+  renderFaqItems();
+  markEditorDirty();
+}
+
+function updateFaqItem(index, field, value) {
+  if (editorState.faqItems[index]) {
+    editorState.faqItems[index][field] = value;
+    markEditorDirty();
+  }
+}
+
 // ── Grid de páginas extras ────────────────────────────────────
 
 function renderPagesGrid(pages) {
@@ -2380,6 +2457,13 @@ function collectEditorValues() {
     title: document.getElementById(`edChapter${i}Title`)?.value.trim() || '',
     text:  document.getElementById(`edChapter${i}Text`)?.value.trim()  || '',
   }));
+
+  // FAQ
+  if (!config.pages.faq) config.pages.faq = {};
+  if (!config.pages.faq.content) config.pages.faq.content = {};
+  config.pages.faq.content.items = editorState.faqItems
+    .filter(it => (it.question || '').trim())
+    .map(it => ({ question: it.question.trim(), answer: it.answer.trim() }));
 
   // Imagens da galeria não têm campo de formulário — vivem em window.__SITE_CONFIG__
   // (modificado pelos uploads). Preserva o estado vivo para não descartar ao salvar.
