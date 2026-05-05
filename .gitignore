@@ -16,3 +16,6 @@ Thumbs.db
 .env
 # Scripts locais com credenciais
 push.bat
+
+# Worktrees temporários criados pelo Claude
+.claude/worktrees/
