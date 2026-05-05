@@ -40,7 +40,7 @@ function buildLoadingHTML(prefill = null, options = {}) {
                 <defs>
                     <clipPath id="brandLogoReveal">
                         <rect x="0" y="780" width="0" height="230">
-                            <animate attributeName="width" from="0" to="1080" dur="1.4s" begin="0.3s" fill="freeze" calcMode="spline" keySplines="0.4 0 0.2 1" />
+                            <animate attributeName="width" from="0" to="1080" dur="4s" begin="0.3s" fill="freeze" calcMode="spline" keySplines="0.4 0 0.2 1" />
                         </rect>
                     </clipPath>
                 </defs>
@@ -428,7 +428,7 @@ export async function hideLoadingScreen() {
     // Garantir mínimo de 4s desde o início da loading screen.
     // Isso assegura que o Supabase já respondeu (~500ms) e o fade-in das iniciais
     // (CSS animation-delay: 2s + duração 2s) completou antes de fechar.
-    const MIN_DURATION = 4000;
+    const MIN_DURATION = 5000;
     const elapsed = Date.now() - loadingStartTime;
     const remaining = Math.max(0, MIN_DURATION - elapsed);
     await new Promise(r => setTimeout(r, remaining));
