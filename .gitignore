@@ -19,3 +19,5 @@ push.bat
 
 # Worktrees temporários criados pelo Claude
 .claude/worktrees/
+# Configuração local por usuário — não versionada
+.claude/settings.local.json
