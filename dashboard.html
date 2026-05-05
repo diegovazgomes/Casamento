@@ -171,6 +171,7 @@ input[type="date"].field-input{width:100%;min-width:0;box-sizing:border-box;-web
 }
 .btn-full{width:100%;margin-top:8px}
 .btn-danger{border-color:var(--danger);color:var(--danger)}
+.btn-label-mobile{display:none}
 .btn-danger::before{background:var(--danger)}
 .btn-danger:hover{color:var(--bg);border-color:var(--danger)}
  
@@ -828,11 +829,13 @@ input[type="date"].field-input{width:100%;min-width:0;box-sizing:border-box;-web
   .stats{grid-template-columns:1fr}
   .filters{grid-template-columns:1fr}
   .topbar{flex-wrap:wrap;row-gap:8px}
-  .topbar-actions{margin-left:auto;flex-shrink:1;min-width:0}
+  .topbar-actions{width:100%;flex-shrink:1;min-width:0;justify-content:flex-end}
   .topbar-actions .btn-label{display:none}
   .topbar-actions .btn{padding:10px 14px}
-  #btnNewGroup .btn-label,#btnNewSingleInvite .btn-label{display:inline}
-  #btnNewGroup,#btnNewSingleInvite{min-width:0;padding:8px 12px;font-size:12px}
+  #btnNewGroup .btn-label-mobile,#btnNewSingleInvite .btn-label-mobile{display:inline}
+  #btnNewGroup svg,#btnNewSingleInvite svg{display:none}
+  #btnNewGroup,#btnNewSingleInvite{flex:1 1 0;max-width:160px;padding:8px 6px;font-size:12px;min-width:0;justify-content:center}
+  #btnNewSingleInvite .btn-label-mobile{font-size:10px;letter-spacing:0.15em}
   .topbar-left{overflow:hidden}
   .topbar-title{font-size:18px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   #gruposTable th:nth-child(3),#gruposTable td:nth-child(3){display:none}
@@ -1161,10 +1164,12 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
         <button class="btn btn-primary top-action-btn" id="btnNewGroup">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           <span class="btn-label">Novo grupo</span>
+          <span class="btn-label-mobile">+ Criar grupo</span>
         </button>
         <button class="btn btn-subtle top-action-btn" id="btnNewSingleInvite" hidden>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
           <span class="btn-label">Criar convite individual</span>
+          <span class="btn-label-mobile">+ Convite individual</span>
         </button>
       </div>
     </header>
