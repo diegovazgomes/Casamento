@@ -14,3 +14,5 @@ Thumbs.db
 
 .env.local
 .env
+# Scripts locais com credenciais
+push.bat
