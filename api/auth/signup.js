@@ -108,6 +108,24 @@ function normalizeAuthErrorMessage(error) {
     return 'Não foi possível enviar o e-mail de confirmação. Verifique SMTP/Resend no Supabase.';
   }
 
+  if (message.includes('invalid login credentials')) {
+    return 'Credenciais inválidas para operação de autenticação.';
+  }
+
+  return '';
+}
+
+function normalizeUnexpectedErrorMessage(error) {
+  const message = String(error?.message || '').toLowerCase();
+
+  if (!message) {
+    return '';
+  }
+
+  if (message.includes('fetch failed') || message.includes('network') || message.includes('getaddrinfo')) {
+    return 'Falha de conexão com o Supabase. Verifique SUPABASE_URL e conectividade do ambiente.';
+  }
+
   return '';
 }
 
@@ -305,11 +323,20 @@ export default async function handler(req, res) {
 
       if (normalizedMessage) {
         const status = normalizedMessage === 'E-mail já cadastrado.' ? 409 : 400;
-        return res.status(status).json({ error: normalizedMessage });
+        return res.status(status).json({
+          error: normalizedMessage,
+          code: signUpError.code || null,
+          providerMessage: signUpError.message || null,
+        });
       }
 
-      console.error('[signup] Erro ao criar usuário:', signUpError.message);
-      return res.status(500).json({ error: 'Erro interno ao criar conta.' });
+      // Erro conhecido do provedor de auth sem mapeamento explícito.
+      console.error('[signup] Erro ao criar usuário (não mapeado):', signUpError.message);
+      return res.status(400).json({
+        error: 'Falha no cadastro no provedor de autenticação.',
+        code: signUpError.code || null,
+        providerMessage: signUpError.message || null,
+      });
     }
 
     const userId = signUpData?.user?.id;
@@ -355,9 +382,17 @@ export default async function handler(req, res) {
     });
   } catch (unexpectedError) {
     console.error('[signup] Erro inesperado:', unexpectedError?.message || unexpectedError);
+    const normalizedMessage = normalizeUnexpectedErrorMessage(unexpectedError);
+    if (normalizedMessage) {
+      return res.status(503).json({
+        error: normalizedMessage,
+        detail: unexpectedError?.message || null,
+      });
+    }
+
     return res.status(500).json({
       error: 'Erro interno ao criar conta.',
-      detail: 'Falha inesperada no endpoint de cadastro.',
+      detail: unexpectedError?.message || 'Falha inesperada no endpoint de cadastro.',
     });
   }
 }

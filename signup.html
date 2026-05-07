@@ -442,7 +442,13 @@ body {
       const json = await response.json().catch(() => ({}));
 
       if (!response.ok) {
-        alertError.textContent = json.error || 'Erro ao criar conta. Tente novamente.';
+        const details = [
+          json.error,
+          json.code ? `Código: ${json.code}` : '',
+          json.providerMessage ? `Detalhe: ${json.providerMessage}` : '',
+          json.detail ? `Contexto: ${json.detail}` : '',
+        ].filter(Boolean);
+        alertError.textContent = details.join(' | ') || 'Erro ao criar conta. Tente novamente.';
         alertError.classList.add('visible');
         submitBtn.disabled = false;
         submitBtn.textContent = 'Criar minha conta';
