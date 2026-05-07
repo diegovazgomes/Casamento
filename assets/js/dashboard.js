@@ -121,7 +121,7 @@ async function initializeDashboard() {
         console.error('[dashboard] Falha ao hidratar evento com token salvo.', error);
         await clearDashboardSession();
         showAuthScreen();
-        showAuthError(error?.message || 'Não foi possível conectar ao evento no Supabase.');
+        showAuthError(normalizeDashboardAuthMessage(error?.message || 'Não foi possível conectar ao evento no Supabase.'));
       }
       notifyDashboardReady();
       return;
@@ -133,7 +133,7 @@ async function initializeDashboard() {
     console.error('[dashboard] Falha ao inicializar autenticação do dashboard.', error);
     await clearDashboardSession();
     showAuthScreen();
-    showAuthError(error?.message || 'Não foi possível inicializar a autenticação do dashboard.');
+    showAuthError(normalizeDashboardAuthMessage(error?.message || 'Não foi possível inicializar a autenticação do dashboard.'));
     notifyDashboardReady();
   }
 }
@@ -241,7 +241,7 @@ async function handleAuth(event) {
     });
 
     if (error || !data?.session?.access_token) {
-      showAuthError(error?.message || 'Erro na autenticação');
+      showAuthError(normalizeDashboardAuthMessage(error?.message || 'Erro na autenticação'));
       return;
     }
 
@@ -277,9 +277,45 @@ async function handleAuth(event) {
     notifyDashboardReady();
   } catch (error) {
     console.error('[auth]', error);
-    showAuthError(error?.message || 'Erro ao conectar ao servidor');
+    showAuthError(normalizeDashboardAuthMessage(error?.message || 'Erro ao conectar ao servidor'));
     notifyDashboardReady();
   }
+}
+
+function normalizeDashboardAuthMessage(message) {
+  const rawMessage = String(message || '').trim();
+  const normalized = rawMessage.toLowerCase();
+
+  if (!normalized) {
+    return 'Não foi possível autenticar. Tente novamente.';
+  }
+
+  if (normalized.includes('invalid login credentials')) {
+    return 'E-mail ou senha inválidos. Confira os dados e tente novamente.';
+  }
+
+  if (normalized.includes('email not confirmed')) {
+    return 'Confirme seu e-mail antes de acessar o dashboard.';
+  }
+
+  if (normalized.includes('too many requests') || normalized.includes('rate limit')) {
+    return 'Muitas tentativas de login. Aguarde alguns minutos e tente novamente.';
+  }
+
+  if (
+    normalized.includes('network') ||
+    normalized.includes('fetch') ||
+    normalized.includes('failed to fetch') ||
+    normalized.includes('getaddrinfo')
+  ) {
+    return 'Falha de conexão. Verifique sua internet e tente novamente.';
+  }
+
+  if (normalized.includes('jwt') || normalized.includes('token') || normalized.includes('session')) {
+    return 'Sua sessão expirou. Faça login novamente.';
+  }
+
+  return 'Não foi possível autenticar no momento. Tente novamente.';
 }
 
 async function handleLogout() {

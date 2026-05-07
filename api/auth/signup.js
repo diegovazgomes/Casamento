@@ -100,6 +100,15 @@ function normalizeAuthErrorMessage(error) {
     return 'Falha na validação anti-bot. Verifique a configuração de CAPTCHA no Supabase.';
   }
 
+  if (
+    message.includes('weak password') ||
+    message.includes('password should be at least') ||
+    message.includes('password is too weak') ||
+    message.includes('password not strong enough')
+  ) {
+    return 'A senha informada é fraca. Use pelo menos 8 caracteres, com letras e números.';
+  }
+
   if (message.includes('redirect') && message.includes('not allowed')) {
     return 'URL de redirecionamento de confirmação não permitida no Supabase Auth.';
   }
@@ -323,20 +332,16 @@ export default async function handler(req, res) {
 
       if (normalizedMessage) {
         const status = normalizedMessage === 'E-mail já cadastrado.' ? 409 : 400;
-        return res.status(status).json({
-          error: normalizedMessage,
+        console.error('[signup] Erro de cadastro mapeado:', {
           code: signUpError.code || null,
           providerMessage: signUpError.message || null,
         });
+        return res.status(status).json({ error: normalizedMessage });
       }
 
       // Erro conhecido do provedor de auth sem mapeamento explícito.
       console.error('[signup] Erro ao criar usuário (não mapeado):', signUpError.message);
-      return res.status(400).json({
-        error: 'Falha no cadastro no provedor de autenticação.',
-        code: signUpError.code || null,
-        providerMessage: signUpError.message || null,
-      });
+      return res.status(400).json({ error: 'Não foi possível concluir o cadastro. Tente novamente em instantes.' });
     }
 
     const userId = signUpData?.user?.id;
@@ -384,15 +389,9 @@ export default async function handler(req, res) {
     console.error('[signup] Erro inesperado:', unexpectedError?.message || unexpectedError);
     const normalizedMessage = normalizeUnexpectedErrorMessage(unexpectedError);
     if (normalizedMessage) {
-      return res.status(503).json({
-        error: normalizedMessage,
-        detail: unexpectedError?.message || null,
-      });
+      return res.status(503).json({ error: normalizedMessage });
     }
 
-    return res.status(500).json({
-      error: 'Erro interno ao criar conta.',
-      detail: unexpectedError?.message || 'Falha inesperada no endpoint de cadastro.',
-    });
+    return res.status(500).json({ error: 'Erro interno ao criar conta.' });
   }
 }
