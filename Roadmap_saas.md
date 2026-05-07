@@ -97,7 +97,7 @@ O roadmap correto começa em:
 - [x] Substituir a autenticação simples do dashboard por Supabase Auth real.
 - [x] Implementar sessão do casal no dashboard com login, logout e proteção de rotas.
 - [ ] Configurar ambiente de produção separado no Supabase.
-- [ ] Configurar variáveis de ambiente de produção no Vercel.
+- [x] Configurar variáveis de ambiente de produção no Vercel.
 - [x] Validar RLS de ponta a ponta com usuário autenticado vendo apenas o próprio evento.
 
 **Entregável:** qualquer casal autenticado consegue entrar com a própria conta e acessar apenas seu evento.

@@ -23,6 +23,7 @@
  *   { error: "Erro interno ao criar conta." }
  */
 
+import { createClient } from '@supabase/supabase-js';
 import { createSupabaseServerClient } from '../_lib/supabase-server.js';
 
 const WHATSAPP_RE = /^\d{10,15}$/;
@@ -48,6 +49,38 @@ function validateBody({ couple_name, email, whatsapp, password }) {
     return 'Senha deve ter no mínimo 8 caracteres.';
   }
   return null;
+}
+
+function getAuthSignupClient() {
+  const supabaseUrl = process.env.SUPABASE_URL;
+  const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
+
+  if (!supabaseUrl || !supabaseAnonKey) {
+    return null;
+  }
+
+  return createClient(supabaseUrl, supabaseAnonKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+    },
+  });
+}
+
+function resolveEmailRedirectTo(req) {
+  const explicitAppUrl = process.env.APP_URL || process.env.SITE_URL || process.env.PUBLIC_SITE_URL;
+  const host = req?.headers?.host || '';
+  const protocol = req?.headers?.['x-forwarded-proto'] || (host.includes('localhost') ? 'http' : 'https');
+
+  if (explicitAppUrl) {
+    return `${explicitAppUrl.replace(/\/$/, '')}/dashboard.html`;
+  }
+
+  if (host) {
+    return `${protocol}://${host}/dashboard.html`;
+  }
+
+  return 'https://www.devazi.app/dashboard.html';
 }
 
 function slugify(value) {
@@ -219,15 +252,20 @@ export default async function handler(req, res) {
   }
 
   const supabase = createSupabaseServerClient();
-  if (!supabase) {
+  const signUpClient = getAuthSignupClient();
+
+  if (!supabase || !signUpClient) {
     return res.status(503).json({ error: 'Serviço temporariamente indisponível.' });
   }
 
-  // 1. Criar usuário no Supabase Auth
-  const { data: signUpData, error: signUpError } = await supabase.auth.admin.createUser({
+  // 1. Criar usuário e disparar confirmação por e-mail
+  const emailRedirectTo = resolveEmailRedirectTo(req);
+  const { data: signUpData, error: signUpError } = await signUpClient.auth.signUp({
     email,
     password,
-    email_confirm: true,
+    options: {
+      emailRedirectTo,
+    },
   });
 
   if (signUpError) {
@@ -282,5 +320,6 @@ export default async function handler(req, res) {
   return res.status(201).json({
     ok: true,
     message: 'Cadastro realizado com sucesso. Verifique seu e-mail para ativar a conta.',
+    emailRedirectTo,
   });
 }
