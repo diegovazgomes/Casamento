@@ -68,19 +68,17 @@ function getAuthSignupClient() {
 }
 
 function resolveEmailRedirectTo(req) {
-  const explicitAppUrl = process.env.APP_URL || process.env.SITE_URL || process.env.PUBLIC_SITE_URL;
-  const host = req?.headers?.host || '';
-  const protocol = req?.headers?.['x-forwarded-proto'] || (host.includes('localhost') ? 'http' : 'https');
+  const explicitAppUrl = process.env.APP_URL || process.env.SITE_URL || process.env.PUBLIC_SITE_URL || process.env.SUPABASE_EMAIL_REDIRECT_TO;
 
   if (explicitAppUrl) {
-    return `${explicitAppUrl.replace(/\/$/, '')}/dashboard.html`;
+    if (/^https?:\/\//i.test(explicitAppUrl)) {
+      return `${explicitAppUrl.replace(/\/$/, '')}/dashboard.html`;
+    }
+    return explicitAppUrl;
   }
 
-  if (host) {
-    return `${protocol}://${host}/dashboard.html`;
-  }
-
-  return 'https://www.devazi.app/dashboard.html';
+  // Sem redirect explícito: Supabase usa o Site URL configurado no projeto Auth.
+  return '';
 }
 
 function slugify(value) {
@@ -260,13 +258,16 @@ export default async function handler(req, res) {
 
   // 1. Criar usuário e disparar confirmação por e-mail
   const emailRedirectTo = resolveEmailRedirectTo(req);
-  const { data: signUpData, error: signUpError } = await signUpClient.auth.signUp({
+  const signUpPayload = {
     email,
     password,
-    options: {
-      emailRedirectTo,
-    },
-  });
+  };
+
+  if (emailRedirectTo) {
+    signUpPayload.options = { emailRedirectTo };
+  }
+
+  const { data: signUpData, error: signUpError } = await signUpClient.auth.signUp(signUpPayload);
 
   if (signUpError) {
     // Erro de email duplicado
@@ -277,6 +278,13 @@ export default async function handler(req, res) {
     ) {
       return res.status(409).json({ error: 'E-mail já cadastrado.' });
     }
+
+    if (signUpError.message?.toLowerCase().includes('redirect') && signUpError.message?.toLowerCase().includes('not allowed')) {
+      return res.status(400).json({
+        error: 'URL de redirecionamento de confirmação não permitida no Supabase Auth.',
+      });
+    }
+
     console.error('[signup] Erro ao criar usuário:', signUpError.message);
     return res.status(500).json({ error: 'Erro interno ao criar conta.' });
   }
@@ -320,6 +328,6 @@ export default async function handler(req, res) {
   return res.status(201).json({
     ok: true,
     message: 'Cadastro realizado com sucesso. Verifique seu e-mail para ativar a conta.',
-    emailRedirectTo,
+    emailRedirectTo: emailRedirectTo || null,
   });
 }
