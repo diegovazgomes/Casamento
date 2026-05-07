@@ -81,6 +81,36 @@ function resolveEmailRedirectTo(req) {
   return '';
 }
 
+function normalizeAuthErrorMessage(error) {
+  const message = String(error?.message || '').toLowerCase();
+
+  if (!message) {
+    return '';
+  }
+
+  if (message.includes('already registered') || message.includes('already exists')) {
+    return 'E-mail já cadastrado.';
+  }
+
+  if (message.includes('email signups are disabled')) {
+    return 'Cadastro por e-mail está desativado no Supabase Auth.';
+  }
+
+  if (message.includes('captcha')) {
+    return 'Falha na validação anti-bot. Verifique a configuração de CAPTCHA no Supabase.';
+  }
+
+  if (message.includes('redirect') && message.includes('not allowed')) {
+    return 'URL de redirecionamento de confirmação não permitida no Supabase Auth.';
+  }
+
+  if (message.includes('error sending confirmation email')) {
+    return 'Não foi possível enviar o e-mail de confirmação. Verifique SMTP/Resend no Supabase.';
+  }
+
+  return '';
+}
+
 function slugify(value) {
   return String(value || '')
     .normalize('NFD')
@@ -249,85 +279,85 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: validationError });
   }
 
-  const supabase = createSupabaseServerClient();
-  const signUpClient = getAuthSignupClient();
-
-  if (!supabase || !signUpClient) {
-    return res.status(503).json({ error: 'Serviço temporariamente indisponível.' });
-  }
-
-  // 1. Criar usuário e disparar confirmação por e-mail
-  const emailRedirectTo = resolveEmailRedirectTo(req);
-  const signUpPayload = {
-    email,
-    password,
-  };
-
-  if (emailRedirectTo) {
-    signUpPayload.options = { emailRedirectTo };
-  }
-
-  const { data: signUpData, error: signUpError } = await signUpClient.auth.signUp(signUpPayload);
-
-  if (signUpError) {
-    // Erro de email duplicado
-    if (
-      signUpError.message?.toLowerCase().includes('already registered') ||
-      signUpError.message?.toLowerCase().includes('already exists') ||
-      signUpError.code === '23505'
-    ) {
-      return res.status(409).json({ error: 'E-mail já cadastrado.' });
-    }
-
-    if (signUpError.message?.toLowerCase().includes('redirect') && signUpError.message?.toLowerCase().includes('not allowed')) {
-      return res.status(400).json({
-        error: 'URL de redirecionamento de confirmação não permitida no Supabase Auth.',
-      });
-    }
-
-    console.error('[signup] Erro ao criar usuário:', signUpError.message);
-    return res.status(500).json({ error: 'Erro interno ao criar conta.' });
-  }
-
-  const userId = signUpData?.user?.id;
-  if (!userId) {
-    return res.status(500).json({ error: 'Erro interno ao criar conta.' });
-  }
-
-  // 2. Atualizar profile com dados do casal (trigger já criou o registro base)
-  const clientIp = getClientIp(req);
-  const { error: profileError } = await supabase
-    .from('profiles')
-    .update({
-      couple_name,
-      whatsapp,
-      lgpd_accepted_at: new Date().toISOString(),
-      lgpd_ip: clientIp,
-      updated_at: new Date().toISOString(),
-    })
-    .eq('id', userId);
-
-  if (profileError) {
-    // Não bloqueia o cadastro, mas loga para investigação
-    console.error('[signup] Erro ao atualizar profile:', profileError.message);
-  }
-
   try {
-    await ensureInitialEventForUser(supabase, {
-      userId,
-      coupleName: couple_name,
-      whatsapp,
+    const supabase = createSupabaseServerClient();
+    const signUpClient = getAuthSignupClient();
+
+    if (!supabase || !signUpClient) {
+      return res.status(503).json({ error: 'Serviço temporariamente indisponível.' });
+    }
+
+    // 1. Criar usuário e disparar confirmação por e-mail
+    const emailRedirectTo = resolveEmailRedirectTo(req);
+    const signUpPayload = {
+      email,
+      password,
+    };
+
+    if (emailRedirectTo) {
+      signUpPayload.options = { emailRedirectTo };
+    }
+
+    const { data: signUpData, error: signUpError } = await signUpClient.auth.signUp(signUpPayload);
+
+    if (signUpError) {
+      const normalizedMessage = normalizeAuthErrorMessage(signUpError);
+
+      if (normalizedMessage) {
+        const status = normalizedMessage === 'E-mail já cadastrado.' ? 409 : 400;
+        return res.status(status).json({ error: normalizedMessage });
+      }
+
+      console.error('[signup] Erro ao criar usuário:', signUpError.message);
+      return res.status(500).json({ error: 'Erro interno ao criar conta.' });
+    }
+
+    const userId = signUpData?.user?.id;
+    if (!userId) {
+      return res.status(400).json({ error: 'Não foi possível identificar o usuário após o cadastro.' });
+    }
+
+    // 2. Atualizar profile com dados do casal (trigger já criou o registro base)
+    const clientIp = getClientIp(req);
+    const { error: profileError } = await supabase
+      .from('profiles')
+      .update({
+        couple_name,
+        whatsapp,
+        lgpd_accepted_at: new Date().toISOString(),
+        lgpd_ip: clientIp,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', userId);
+
+    if (profileError) {
+      // Não bloqueia o cadastro, mas loga para investigação
+      console.error('[signup] Erro ao atualizar profile:', profileError.message);
+    }
+
+    let initialEventWarning = null;
+    try {
+      await ensureInitialEventForUser(supabase, {
+        userId,
+        coupleName: couple_name,
+        whatsapp,
+      });
+    } catch (initialEventError) {
+      console.error('[signup] Erro ao inicializar evento do casal:', initialEventError?.message || initialEventError);
+      initialEventWarning = 'Conta criada, mas não foi possível inicializar o evento automaticamente.';
+    }
+
+    return res.status(201).json({
+      ok: true,
+      message: 'Cadastro realizado com sucesso. Verifique seu e-mail para ativar a conta.',
+      emailRedirectTo: emailRedirectTo || null,
+      warning: initialEventWarning,
     });
-  } catch (initialEventError) {
-    console.error('[signup] Erro ao inicializar evento do casal:', initialEventError?.message || initialEventError);
+  } catch (unexpectedError) {
+    console.error('[signup] Erro inesperado:', unexpectedError?.message || unexpectedError);
     return res.status(500).json({
-      error: 'Conta criada, mas não foi possível inicializar o evento do casal.',
+      error: 'Erro interno ao criar conta.',
+      detail: 'Falha inesperada no endpoint de cadastro.',
     });
   }
-
-  return res.status(201).json({
-    ok: true,
-    message: 'Cadastro realizado com sucesso. Verifique seu e-mail para ativar a conta.',
-    emailRedirectTo: emailRedirectTo || null,
-  });
 }
