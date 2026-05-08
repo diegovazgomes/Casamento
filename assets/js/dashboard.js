@@ -24,6 +24,35 @@ const DASHBOARD_ACCESS_TOKEN_STORAGE_KEY = 'dashboard-access-token';
 
 let dashboardSupabaseClientPromise = null;
 
+function sanitizeDashboardAuthUrlParams() {
+  const currentUrl = new URL(window.location.href);
+  const hashParams = new URLSearchParams(currentUrl.hash.startsWith('#') ? currentUrl.hash.slice(1) : currentUrl.hash);
+  const queryParams = new URLSearchParams(currentUrl.search);
+  const authKeys = ['access_token', 'refresh_token', 'type', 'code', 'error_code', 'error_description'];
+
+  let changed = false;
+
+  authKeys.forEach((key) => {
+    if (hashParams.has(key)) {
+      hashParams.delete(key);
+      changed = true;
+    }
+    if (queryParams.has(key)) {
+      queryParams.delete(key);
+      changed = true;
+    }
+  });
+
+  if (!changed) {
+    return;
+  }
+
+  const nextSearch = queryParams.toString();
+  const nextHash = hashParams.toString();
+  const sanitizedUrl = `${currentUrl.pathname}${nextSearch ? `?${nextSearch}` : ''}${nextHash ? `#${nextHash}` : ''}`;
+  history.replaceState(null, '', sanitizedUrl);
+}
+
 const TAB_LABELS = {
   overview: { tag: 'Visão Geral', title: 'Painel de controle' },
   grupos: { tag: 'Convites', title: 'Gestão de convites' },
@@ -99,6 +128,8 @@ function notifyDashboardReady() {
 
 async function initializeDashboard() {
   try {
+    sanitizeDashboardAuthUrlParams();
+
     const bootstrapPromise = window.__DASHBOARD_BOOTSTRAP_PROMISE__;
     if (bootstrapPromise && typeof bootstrapPromise.then === 'function') {
       try {
@@ -355,7 +386,7 @@ async function getDashboardSupabaseClient() {
         auth: {
           autoRefreshToken: true,
           persistSession: true,
-          detectSessionInUrl: true,
+          detectSessionInUrl: false,
           storage: window.sessionStorage,
           storageKey: DASHBOARD_SUPABASE_STORAGE_KEY,
         },
