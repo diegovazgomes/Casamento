@@ -2620,80 +2620,153 @@ async function saveEditorConfig() {
 // WIZARD DE ONBOARDING
 // ============================================================
 
-const WIZARD_THEMES = [
-  { key: 'classic-gold',         label: 'Ouro Clássico',    bg: '#0c0a06', primary: '#c9a84c', text: '#faf7f2' },
-  { key: 'classic-silver',       label: 'Prata Elegante',   bg: '#0f0d0b', primary: '#c0c0c0', text: '#faf7f2' },
-  { key: 'classic-purple',       label: 'Roxo Sofisticado', bg: '#0d0a12', primary: '#a080c0', text: '#faf7f2' },
-  { key: 'classic-blue',         label: 'Azul Real',        bg: '#080c18', primary: '#6b9fd4', text: '#faf7f2' },
-  { key: 'classic-gold-light',   label: 'Ouro Claro',       bg: '#faf8f3', primary: '#c9a84c', text: '#1a1410' },
-  { key: 'classic-silver-light', label: 'Prata Clara',      bg: '#f5f5f5', primary: '#7a7a7a', text: '#1a1a1a' },
+// Adicione novas chaves aqui quando criar novos temas em assets/layouts/classic/themes/
+const WIZARD_THEME_KEYS = [
+  'classic-gold',
+  'classic-silver',
+  'classic-purple',
+  'classic-blue',
+  'classic-gold-light',
+  'classic-silver-light',
 ];
 
 let _wizardStep = 1;
 let _wizardSelectedTheme = 'classic-gold';
+let _wizardLoadedThemes = [];
 
 function isFirstTimeUser(config) {
   const loc = config?.event?.locationName || '';
   return loc === '' || loc === 'Definir local';
 }
 
-function maybeShowWizard(config) {
-  if (!config || !isFirstTimeUser(config)) return;
+async function _loadWizardThemes() {
+  if (_wizardLoadedThemes.length) return _wizardLoadedThemes;
+  const results = await Promise.allSettled(
+    WIZARD_THEME_KEYS.map(key =>
+      fetch(`/assets/layouts/classic/themes/${key}.json`)
+        .then(r => r.ok ? r.json() : null)
+        .then(data => data ? { key, data } : null)
+        .catch(() => null)
+    )
+  );
+  _wizardLoadedThemes = results
+    .map(r => (r.status === 'fulfilled' ? r.value : null))
+    .filter(Boolean);
+  return _wizardLoadedThemes;
+}
 
-  // Pré-preencher com dados existentes
-  const nameInput = document.getElementById('wzCoupleName');
-  const subtitleInput = document.getElementById('wzSubtitle');
-  const names = config?.couple?.names || '';
-  if (nameInput && names && names !== 'Novo Casal') nameInput.value = names;
-  if (subtitleInput && config?.couple?.subtitle) subtitleInput.value = config.couple.subtitle;
+function _themeColors(themeData) {
+  const c = themeData?.colors || {};
+  return {
+    bg:         c.background    || '#0f0d0b',
+    primary:    c.primary       || '#c9a84c',
+    primarySoft:c.primarySoft   || c.primary || '#d4b480',
+    text:       c.text          || '#faf7f2',
+    textDim:    c.textDim       || 'rgba(250,247,242,.45)',
+    grid:       c.pageGridLine  || 'rgba(255,255,255,.015)',
+    border:     c.border        || 'rgba(192,160,96,.25)',
+  };
+}
 
-  _wizardSelectedTheme = config.activeTheme || 'classic-gold';
+function _updateWizardPreview() {
+  const previewCard = document.getElementById('wzPreviewCard');
+  if (!previewCard) return;
 
-  renderWizardThemes();
-  _wizardGoToStep(1);
+  const theme = _wizardLoadedThemes.find(t => t.key === _wizardSelectedTheme);
+  const names  = document.getElementById('wzCoupleName')?.value.trim() || '';
+  const dateRaw = document.getElementById('wzDate')?.value || '';
 
-  document.getElementById('wizardOverlay').classList.add('is-active');
-  document.getElementById('wizardBtnNext').onclick = wizardNext;
-  document.getElementById('wizardBtnBack').onclick = wizardBack;
+  const previewNames = document.getElementById('wzPreviewNames');
+  if (previewNames) previewNames.textContent = names || 'Nome & Nome';
+
+  const previewDate = document.getElementById('wzPreviewDate');
+  if (previewDate && dateRaw) {
+    const d = new Date(`${dateRaw}T12:00:00`);
+    if (!isNaN(d.getTime())) {
+      const dd = String(d.getDate()).padStart(2, '0');
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      const yy = d.getFullYear();
+      previewDate.textContent = `${dd} · ${mm} · ${yy}`;
+    }
+  } else if (previewDate && !dateRaw) {
+    previewDate.textContent = '· · ·';
+  }
+
+  if (theme) {
+    const cols = _themeColors(theme.data);
+    previewCard.style.background   = cols.bg;
+    previewCard.style.borderColor  = cols.border;
+    previewCard.style.setProperty('--wz-primary',   cols.primarySoft);
+    previewCard.style.setProperty('--wz-text',      cols.text);
+    previewCard.style.setProperty('--wz-text-dim',  cols.textDim);
+    previewCard.style.setProperty('--wz-grid',      cols.grid);
+  }
 }
 
 function renderWizardThemes() {
   const container = document.getElementById('wizardThemes');
   if (!container) return;
-  container.innerHTML = '';
+  container.innerHTML = '<div class="wizard-themes-loading">Carregando temas…</div>';
 
-  WIZARD_THEMES.forEach(theme => {
-    const card = document.createElement('button');
-    card.type = 'button';
-    card.className = 'wizard-theme-card' + (theme.key === _wizardSelectedTheme ? ' is-selected' : '');
-    card.dataset.themeKey = theme.key;
-    card.innerHTML = `
-      <div class="wizard-theme-swatch" style="background:${theme.bg}">
-        <div class="wizard-theme-accent" style="background:${theme.primary}"></div>
-        <div class="wizard-theme-lines">
-          <div style="background:${theme.text}40;width:60%;height:4px;border-radius:2px;margin-bottom:5px"></div>
-          <div style="background:${theme.text}25;width:80%;height:3px;border-radius:2px;margin-bottom:5px"></div>
-          <div style="background:${theme.primary}80;width:40%;height:3px;border-radius:2px"></div>
+  _loadWizardThemes().then(themes => {
+    container.innerHTML = '';
+
+    themes.forEach(({ key, data }) => {
+      const cols  = _themeColors(data);
+      const label = data?.meta?.name || data?.meta?.displayName || key;
+
+      const card = document.createElement('button');
+      card.type = 'button';
+      card.className = 'wizard-theme-card' + (key === _wizardSelectedTheme ? ' is-selected' : '');
+      card.dataset.themeKey = key;
+      card.innerHTML = `
+        <div class="wizard-theme-swatch" style="background:${cols.bg};border-color:${key === _wizardSelectedTheme ? cols.primary : 'transparent'}">
+          <div class="wizard-theme-accent" style="background:${cols.primary}"></div>
+          <div class="wizard-theme-lines">
+            <div style="background:${cols.text}40;width:60%;height:4px;border-radius:2px;margin-bottom:5px"></div>
+            <div style="background:${cols.text}25;width:80%;height:3px;border-radius:2px;margin-bottom:5px"></div>
+            <div style="background:${cols.primary}80;width:40%;height:3px;border-radius:2px"></div>
+          </div>
         </div>
-      </div>
-      <span class="wizard-theme-label">${theme.label}</span>
-    `;
-    card.addEventListener('click', () => {
-      _wizardSelectedTheme = theme.key;
-      container.querySelectorAll('.wizard-theme-card').forEach(c => c.classList.remove('is-selected'));
-      card.classList.add('is-selected');
+        <span class="wizard-theme-label">${label}</span>
+      `;
+      card.addEventListener('click', () => {
+        _wizardSelectedTheme = key;
+        container.querySelectorAll('.wizard-theme-card').forEach(c => {
+          const isSelected = c.dataset.themeKey === key;
+          c.classList.toggle('is-selected', isSelected);
+          const swatch = c.querySelector('.wizard-theme-swatch');
+          if (swatch) {
+            const ct = themes.find(t => t.key === c.dataset.themeKey);
+            const cc = ct ? _themeColors(ct.data) : {};
+            swatch.style.borderColor = isSelected ? (cc.primary || 'transparent') : 'transparent';
+          }
+        });
+        _updateWizardPreview();
+      });
+      container.appendChild(card);
     });
-    container.appendChild(card);
+
+    _updateWizardPreview();
   });
 }
 
 function _wizardGoToStep(step) {
   _wizardStep = step;
-  const total = 3;
 
-  for (let i = 1; i <= total; i++) {
+  for (let i = 1; i <= 4; i++) {
     const el = document.getElementById(`wizardStep${i}`);
     if (el) el.classList.toggle('is-active', i === step);
+  }
+
+  const progressEl = document.getElementById('wizardProgress');
+  const footerEl   = document.getElementById('wizardFooter');
+  if (progressEl) progressEl.style.display = step === 4 ? 'none' : '';
+  if (footerEl)   footerEl.style.display   = step === 4 ? 'none' : '';
+
+  if (step === 4) {
+    _bindStep4Actions();
+    return;
   }
 
   document.querySelectorAll('.wizard-dot').forEach(dot => {
@@ -2703,12 +2776,30 @@ function _wizardGoToStep(step) {
   const backBtn = document.getElementById('wizardBtnBack');
   const nextBtn = document.getElementById('wizardBtnNext');
   if (backBtn) backBtn.style.display = step > 1 ? '' : 'none';
-  if (nextBtn) nextBtn.textContent = step === total ? 'Salvar e publicar' : 'Próximo';
+  if (nextBtn) nextBtn.textContent   = step === 3 ? 'Salvar e publicar' : 'Próximo';
+
+  if (step === 3) _updateWizardPreview();
+}
+
+function _bindStep4Actions() {
+  const slug = window.__SITE_CONFIG__?.slug || state?.slug || '';
+
+  const gotoEditar  = document.getElementById('wzGotoEditar');
+  const gotoPreview = document.getElementById('wzGotoPreview');
+  const gotoGrupos  = document.getElementById('wzGotoGrupos');
+  const closeBtn    = document.getElementById('wzCloseBtn');
+
+  const closeOverlay = () => document.getElementById('wizardOverlay').classList.remove('is-active');
+
+  if (gotoEditar)  gotoEditar.onclick  = () => { closeOverlay(); document.querySelector('[data-tab="editor"]')?.click(); };
+  if (gotoPreview) gotoPreview.onclick = () => { closeOverlay(); if (slug) window.open(`/${slug}`, '_blank'); };
+  if (gotoGrupos)  gotoGrupos.onclick  = () => { closeOverlay(); document.querySelector('[data-tab="grupos"]')?.click(); };
+  if (closeBtn)    closeBtn.onclick    = closeOverlay;
 }
 
 function wizardNext() {
   if (_wizardStep === 1) {
-    const name = document.getElementById('wzCoupleName')?.value.trim() || '';
+    const name  = document.getElementById('wzCoupleName')?.value.trim() || '';
     const errEl = document.getElementById('wzCoupleNameError');
     if (name.length < 2) {
       errEl?.classList.add('is-visible');
@@ -2726,16 +2817,16 @@ function wizardNext() {
 }
 
 function wizardBack() {
-  if (_wizardStep > 1) _wizardGoToStep(_wizardStep - 1);
+  if (_wizardStep > 1 && _wizardStep < 4) _wizardGoToStep(_wizardStep - 1);
 }
 
 function _wizardDeriveDateLabels(dateOnly) {
   const MS = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
   const MF = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
   const WD = ['Domingo','Segunda-feira','Terça-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sábado'];
-  const p = new Date(`${dateOnly}T12:00:00`);
+  const p  = new Date(`${dateOnly}T12:00:00`);
   if (isNaN(p.getTime())) return {};
-  const d = String(p.getDate()).padStart(2, '0');
+  const d  = String(p.getDate()).padStart(2, '0');
   const mi = p.getMonth();
   const mn = String(mi + 1).padStart(2, '0');
   const yr = p.getFullYear();
@@ -2747,18 +2838,42 @@ function _wizardDeriveDateLabels(dateOnly) {
   };
 }
 
+async function maybeShowWizard(config) {
+  if (!config || !isFirstTimeUser(config)) return;
+
+  _loadWizardThemes();
+
+  const nameInput     = document.getElementById('wzCoupleName');
+  const subtitleInput = document.getElementById('wzSubtitle');
+  const names = config?.couple?.names || '';
+  if (nameInput && names && names !== 'Novo Casal') nameInput.value = names;
+  if (subtitleInput && config?.couple?.subtitle) subtitleInput.value = config.couple.subtitle;
+
+  _wizardSelectedTheme = config.activeTheme || 'classic-gold';
+
+  renderWizardThemes();
+  _wizardGoToStep(1);
+
+  document.getElementById('wizardOverlay').classList.add('is-active');
+  document.getElementById('wizardBtnNext').onclick = wizardNext;
+  document.getElementById('wizardBtnBack').onclick = wizardBack;
+
+  document.getElementById('wzCoupleName')?.addEventListener('input',  _updateWizardPreview);
+  document.getElementById('wzDate')?.addEventListener('change', _updateWizardPreview);
+}
+
 async function _saveWizard() {
   const nextBtn = document.getElementById('wizardBtnNext');
   const backBtn = document.getElementById('wizardBtnBack');
   if (nextBtn) { nextBtn.disabled = true; nextBtn.textContent = 'Salvando…'; }
   if (backBtn) backBtn.disabled = true;
 
-  const coupleName   = document.getElementById('wzCoupleName')?.value.trim() || '';
-  const subtitle     = document.getElementById('wzSubtitle')?.value.trim() || '';
-  const dateVal      = document.getElementById('wzDate')?.value || '';
-  const timeVal      = document.getElementById('wzTime')?.value || '17:00';
-  const venueName    = document.getElementById('wzVenueName')?.value.trim() || '';
-  const venueAddress = document.getElementById('wzVenueAddress')?.value.trim() || '';
+  const coupleName   = document.getElementById('wzCoupleName')?.value.trim()   || '';
+  const subtitle     = document.getElementById('wzSubtitle')?.value.trim()      || '';
+  const dateVal      = document.getElementById('wzDate')?.value                 || '';
+  const timeVal      = document.getElementById('wzTime')?.value                 || '17:00';
+  const venueName    = document.getElementById('wzVenueName')?.value.trim()     || '';
+  const venueAddress = document.getElementById('wzVenueAddress')?.value.trim()  || '';
 
   const dateLabels = dateVal ? _wizardDeriveDateLabels(dateVal) : {};
 
@@ -2775,20 +2890,18 @@ async function _saveWizard() {
         time:    timeVal,
         ...dateLabels,
       }),
-      locationName: venueName  || 'A definir',
+      locationName: venueName   || 'A definir',
       venueAddress: venueAddress || 'A definir',
     },
   };
 
   try {
-    const res = await fetchWithAuth('/api/dashboard/event', {
+    const res  = await fetchWithAuth('/api/dashboard/event', {
       method:  'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body:    JSON.stringify({ config: configPatch }),
     });
-
     const data = await res.json().catch(() => ({}));
-
     if (!res.ok) throw new Error(data.error || 'Falha ao salvar');
 
     if (data.config) {
@@ -2796,8 +2909,8 @@ async function _saveWizard() {
       applySiteConfig(data.config);
     }
 
-    document.getElementById('wizardOverlay').classList.remove('is-active');
     await loadAllData();
+    _wizardGoToStep(4);
 
   } catch (err) {
     console.error('[wizard] Erro ao salvar:', err);
