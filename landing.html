@@ -1,0 +1,2129 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="description" content="Devazi — Convites digitais, sites cerimoniais e RSVPs para casamentos. Experiências premium desenhadas à medida para o seu dia.">
+<meta property="og:title" content="Devazi — Experiências digitais de casamento">
+<meta property="og:description" content="Convite interativo, RSVP em tempo real e painel de gestão de convidados. Publique em minutos, impressione para sempre.">
+<meta property="og:type" content="website">
+<title>Devazi — Experiências digitais de casamento</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500;1,600&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+
+/* ══════════════════════════════════════════════════════════════════════════
+   TOKENS — Devazi brand system
+══════════════════════════════════════════════════════════════════════════ */
+:root {
+  --marfim:      #f0ebe1;
+  --linho:       #ece5d6;
+  --linho-deep:  #e2dac7;
+  --ouro-velho:  #b08a3e;
+  --ouro-soft:   #c9a55a;
+  --ouro-deep:   #8a6c2c;
+  --carvao:      #1a1714;
+  --nanquim:     #0e0d0b;
+  --tinta:       #2a2520;
+  --tinta-soft:  #4a3f33;
+  --tinta-mid:   #7a6b5a;
+  --tinta-faint: #b5a896;
+  --line:        rgba(26,23,20,0.10);
+  --line-soft:   rgba(26,23,20,0.06);
+  --ease:        cubic-bezier(0.16, 1, 0.3, 1);
+  --serif:       'Cormorant Garamond', Georgia, serif;
+  --mono:        'DM Mono', 'Courier New', monospace;
+}
+
+*,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--marfim);
+  color: var(--carvao);
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: 17px;
+  line-height: 1.6;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Textura de papel sutil */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+  opacity: 0.032;
+  pointer-events: none;
+  z-index: 9000;
+  mix-blend-mode: multiply;
+}
+
+img { display: block; max-width: 100%; }
+button { font: inherit; border: 0; cursor: pointer; background: none; color: inherit; }
+a { color: inherit; text-decoration: none; }
+
+/* ══ TIPOGRAFIA UTILITÁRIA ═══════════════════════════════════════════════ */
+.eyebrow {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--ouro-velho);
+}
+
+/* ══ NAV ═════════════════════════════════════════════════════════════════ */
+.nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 500;
+  padding: 24px clamp(20px, 5vw, 64px);
+  background: rgba(240, 235, 225, 0.88);
+  backdrop-filter: blur(20px) saturate(1.1);
+  -webkit-backdrop-filter: blur(20px) saturate(1.1);
+  border-bottom: 1px solid transparent;
+  transition: padding 0.4s var(--ease), border-color 0.4s, background 0.4s;
+}
+.nav.is-scrolled {
+  padding: 14px clamp(20px, 5vw, 64px);
+  border-bottom-color: var(--line);
+}
+.nav-inner {
+  max-width: 1320px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.nav-brand {
+  font-family: var(--serif);
+  font-size: 26px;
+  font-weight: 400;
+  color: var(--carvao);
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+.nav-links {
+  display: flex;
+  gap: 32px;
+  align-items: center;
+}
+.nav-links a {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--tinta-soft);
+  transition: color 0.3s;
+}
+.nav-links a:hover { color: var(--ouro-velho); }
+.nav-login {
+  padding: 10px 20px;
+  border: 1px solid var(--line);
+  color: var(--tinta-soft) !important;
+  transition: border-color 0.3s, color 0.3s !important;
+}
+.nav-login:hover {
+  border-color: var(--ouro-velho) !important;
+  color: var(--ouro-velho) !important;
+}
+.nav-cta {
+  padding: 12px 24px;
+  background: var(--carvao);
+  color: var(--marfim) !important;
+  border: 1px solid var(--carvao);
+  transition: background 0.4s, color 0.4s, border-color 0.4s !important;
+  font-size: 10px !important;
+}
+.nav-cta:hover {
+  background: var(--ouro-velho);
+  border-color: var(--ouro-velho);
+}
+
+/* Mobile nav */
+.nav-hamburger {
+  display: none;
+  flex-direction: column;
+  gap: 5px;
+  padding: 4px;
+  cursor: pointer;
+}
+.nav-hamburger span {
+  display: block;
+  width: 24px;
+  height: 1px;
+  background: var(--carvao);
+  transition: all 0.3s var(--ease);
+}
+.nav-hamburger.is-open span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+.nav-hamburger.is-open span:nth-child(2) { opacity: 0; }
+.nav-hamburger.is-open span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+
+.nav-drawer {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 490;
+  background: var(--marfim);
+  padding: 100px 32px 48px;
+  flex-direction: column;
+  gap: 0;
+  transform: translateX(100%);
+  transition: transform 0.4s var(--ease);
+}
+.nav-drawer.is-open { transform: none; }
+.nav-drawer a {
+  display: block;
+  font-family: var(--serif);
+  font-size: 36px;
+  font-weight: 400;
+  color: var(--carvao);
+  padding: 18px 0;
+  border-bottom: 1px solid var(--line);
+  transition: color 0.3s;
+}
+.nav-drawer a:hover { color: var(--ouro-velho); }
+.nav-drawer .drawer-cta {
+  margin-top: 32px;
+  display: inline-flex;
+  padding: 18px 32px;
+  background: var(--carvao);
+  color: var(--marfim);
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+@media (max-width: 860px) {
+  .nav-links a:not(.nav-cta):not(.nav-login) { display: none; }
+  .nav-hamburger { display: flex; }
+  .nav-drawer { display: flex; }
+}
+
+/* ══ HERO ════════════════════════════════════════════════════════════════ */
+.hero {
+  min-height: 100vh;
+  padding: 140px clamp(20px, 5vw, 64px) 80px;
+  display: grid;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Grid decorativo de fundo */
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(var(--line-soft) 1px, transparent 1px),
+    linear-gradient(90deg, var(--line-soft) 1px, transparent 1px);
+  background-size: 48px 48px;
+  pointer-events: none;
+}
+
+.hero::after {
+  content: '';
+  position: absolute;
+  bottom: 60px; left: 50%;
+  transform: translateX(-50%);
+  width: 80px; height: 1px;
+  background: var(--ouro-velho);
+  opacity: 0.4;
+}
+
+.hero-grid {
+  max-width: 1320px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  gap: 80px;
+  align-items: center;
+  width: 100%;
+  position: relative;
+  z-index: 1;
+}
+@media (max-width: 960px) {
+  .hero-grid { grid-template-columns: 1fr; gap: 56px; }
+}
+
+.hero-eyebrow-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 32px;
+  opacity: 0;
+  animation: fadeUp 1s var(--ease) 0.1s forwards;
+}
+.hero-eyebrow-row::before {
+  content: ''; width: 36px; height: 1px;
+  background: var(--ouro-velho);
+}
+
+.hero-title {
+  font-family: var(--serif);
+  font-size: clamp(44px, 6.5vw, 90px);
+  font-weight: 400;
+  line-height: 1.02;
+  letter-spacing: -0.02em;
+  color: var(--carvao);
+  margin-bottom: 36px;
+  opacity: 0;
+  animation: fadeUp 1.2s var(--ease) 0.25s forwards;
+}
+.hero-title em {
+  font-style: italic;
+  color: var(--ouro-velho);
+}
+
+.hero-sub {
+  font-family: var(--serif);
+  font-size: clamp(17px, 1.4vw, 20px);
+  line-height: 1.7;
+  color: var(--tinta-soft);
+  font-weight: 400;
+  font-style: italic;
+  max-width: 480px;
+  margin-bottom: 48px;
+  opacity: 0;
+  animation: fadeUp 1.2s var(--ease) 0.4s forwards;
+}
+
+.hero-ctas {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+  align-items: center;
+  opacity: 0;
+  animation: fadeUp 1.2s var(--ease) 0.55s forwards;
+}
+
+.hero-meta {
+  margin-top: 56px;
+  display: flex;
+  gap: 40px;
+  flex-wrap: wrap;
+  opacity: 0;
+  animation: fadeUp 1.2s var(--ease) 0.7s forwards;
+}
+.hero-meta-item {
+  display: flex; flex-direction: column; gap: 4px;
+}
+.hero-meta-label {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--tinta-mid);
+}
+.hero-meta-value {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 16px;
+  color: var(--carvao);
+}
+
+/* ══ BOTÕES ══════════════════════════════════════════════════════════════ */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 32px;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.5s var(--ease);
+  position: relative;
+  overflow: hidden;
+  white-space: nowrap;
+}
+.btn-primary {
+  background: var(--carvao);
+  color: var(--marfim);
+  border: 1px solid var(--carvao);
+}
+.btn-primary::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: var(--ouro-velho);
+  transform: translateY(101%);
+  transition: transform 0.5s var(--ease);
+}
+.btn-primary:hover::before { transform: translateY(0); }
+.btn-primary > * { position: relative; z-index: 1; }
+.btn-primary:hover { border-color: var(--ouro-velho); }
+
+.btn-ghost {
+  background: transparent;
+  color: var(--carvao);
+  padding: 18px 0;
+  border-bottom: 1px solid var(--carvao);
+  letter-spacing: 0.22em;
+}
+.btn-ghost:hover { color: var(--ouro-velho); border-bottom-color: var(--ouro-velho); }
+
+.btn .arrow { transition: transform 0.4s var(--ease); }
+.btn:hover .arrow { transform: translateX(6px); }
+
+/* ══ HERO VISUAL — anel de brilhante ═══════════════════════════════════ */
+.ring-wrap {
+  position: relative;
+  aspect-ratio: 1;
+  width: 100%;
+  max-width: 500px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  animation: fadeIn 1.6s var(--ease) 0.5s forwards;
+}
+
+.ring-halo {
+  position: absolute;
+  inset: 5%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 50%,
+    rgba(201,165,90,0.20) 0%,
+    rgba(176,138,62,0.10) 30%,
+    transparent 65%);
+  filter: blur(24px);
+  animation: haloPulse 6s ease-in-out infinite;
+}
+@keyframes haloPulse {
+  0%,100% { transform: scale(1); opacity: 0.7; }
+  50%      { transform: scale(1.1); opacity: 1; }
+}
+
+.ring-rays {
+  position: absolute;
+  inset: 0;
+  animation: raysSpin 32s linear infinite;
+  opacity: 0.65;
+}
+@keyframes raysSpin { to { transform: rotate(360deg); } }
+
+.ring-ray {
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 1px;
+  height: 50%;
+  background: linear-gradient(to top,
+    transparent 30%,
+    rgba(201,165,90,0.3) 70%,
+    rgba(232,208,138,0.6) 95%,
+    transparent 100%);
+  transform-origin: top center;
+}
+.ring-ray:nth-child(1) { transform: translate(-50%, -100%) rotate(0deg); }
+.ring-ray:nth-child(2) { transform: translate(-50%, -100%) rotate(45deg); }
+.ring-ray:nth-child(3) { transform: translate(-50%, -100%) rotate(90deg); }
+.ring-ray:nth-child(4) { transform: translate(-50%, -100%) rotate(135deg); }
+.ring-ray:nth-child(5) { transform: translate(-50%, -100%) rotate(180deg); }
+.ring-ray:nth-child(6) { transform: translate(-50%, -100%) rotate(225deg); }
+.ring-ray:nth-child(7) { transform: translate(-50%, -100%) rotate(270deg); }
+.ring-ray:nth-child(8) { transform: translate(-50%, -100%) rotate(315deg); }
+
+.ring-svg {
+  width: 65%;
+  height: 65%;
+  position: relative;
+  z-index: 2;
+  animation: ringSlowRotate 60s linear infinite;
+  filter:
+    drop-shadow(0 8px 24px rgba(176,138,62,0.35))
+    drop-shadow(0 4px 12px rgba(0,0,0,0.15));
+}
+@keyframes ringSlowRotate { to { transform: rotate(-360deg); } }
+
+.sparkle {
+  position: absolute;
+  width: 4px; height: 4px;
+  background: var(--marfim);
+  border-radius: 50%;
+  box-shadow: 0 0 8px rgba(255,255,255,0.9), 0 0 16px var(--ouro-soft);
+  opacity: 0;
+}
+.sparkle::before, .sparkle::after {
+  content: '';
+  position: absolute;
+  background: var(--marfim);
+}
+.sparkle::before { width: 1px; height: 16px; left: 50%; top: -6px; transform: translateX(-50%); }
+.sparkle::after  { width: 16px; height: 1px; top: 50%; left: -6px; transform: translateY(-50%); }
+.sparkle:nth-child(1) { top: 18%; left: 22%; animation: sparkle 4s ease-in-out infinite 0s; }
+.sparkle:nth-child(2) { top: 28%; right: 20%; animation: sparkle 4s ease-in-out infinite 1.2s; }
+.sparkle:nth-child(3) { bottom: 30%; left: 24%; animation: sparkle 4s ease-in-out infinite 2.4s; }
+.sparkle:nth-child(4) { bottom: 22%; right: 28%; animation: sparkle 4s ease-in-out infinite 3.2s; }
+.sparkle:nth-child(5) { top: 50%; left: 12%; animation: sparkle 4s ease-in-out infinite 0.6s; }
+.sparkle:nth-child(6) { top: 46%; right: 14%; animation: sparkle 4s ease-in-out infinite 2.8s; }
+@keyframes sparkle {
+  0%, 90%, 100% { opacity: 0; transform: scale(0.4); }
+  10%, 30%      { opacity: 1; transform: scale(1); }
+  40%, 80%      { opacity: 0; transform: scale(0.4); }
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(28px); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes fadeIn { to { opacity: 1; } }
+
+/* ══ MARQUEE STRIP ═══════════════════════════════════════════════════════ */
+.marquee-strip {
+  overflow: hidden;
+  background: var(--linho-deep);
+  padding: 20px 0;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  position: relative;
+  z-index: 1;
+}
+.marquee-track {
+  display: flex;
+  gap: 0;
+  animation: marquee 28s linear infinite;
+  white-space: nowrap;
+  width: max-content;
+}
+.marquee-item {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.38em;
+  text-transform: uppercase;
+  color: var(--ouro-velho);
+  padding: 0 40px;
+  display: flex;
+  align-items: center;
+  gap: 40px;
+}
+.marquee-item::after {
+  content: '';
+  display: block;
+  width: 4px; height: 4px;
+  border-radius: 50%;
+  background: var(--ouro-velho);
+  opacity: 0.5;
+}
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+/* ══ SEÇÃO BASE ══════════════════════════════════════════════════════════ */
+.section {
+  padding: clamp(96px, 13vw, 160px) clamp(20px, 5vw, 64px);
+  position: relative;
+}
+.section-inner {
+  max-width: 1320px;
+  margin: 0 auto;
+}
+.section-num {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--ouro-velho);
+  margin-bottom: 28px;
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+}
+.section-num::before {
+  content: ''; width: 36px; height: 1px;
+  background: var(--ouro-velho);
+}
+.section-title {
+  font-family: var(--serif);
+  font-size: clamp(38px, 5.5vw, 70px);
+  font-weight: 400;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  color: var(--carvao);
+  margin-bottom: 28px;
+  max-width: 920px;
+}
+.section-title em { font-style: italic; color: var(--ouro-velho); }
+.section-sub {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: clamp(17px, 1.4vw, 19px);
+  line-height: 1.65;
+  color: var(--tinta-soft);
+  font-weight: 400;
+  max-width: 580px;
+}
+
+/* Reveal */
+.reveal {
+  opacity: 0;
+  transform: translateY(32px);
+  transition: opacity 1.1s var(--ease), transform 1.1s var(--ease);
+}
+.reveal.is-visible { opacity: 1; transform: none; }
+.reveal-delay-1 { transition-delay: 0.1s; }
+.reveal-delay-2 { transition-delay: 0.2s; }
+.reveal-delay-3 { transition-delay: 0.3s; }
+
+/* ══ NÚMEROS / PROVA SOCIAL ══════════════════════════════════════════════ */
+.numeros {
+  background: var(--carvao);
+  padding: clamp(64px, 8vw, 96px) clamp(20px, 5vw, 64px);
+}
+.numeros-inner {
+  max-width: 1320px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0;
+}
+@media (max-width: 768px) {
+  .numeros-inner { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 460px) {
+  .numeros-inner { grid-template-columns: 1fr; }
+}
+.numero-item {
+  padding: 40px 32px;
+  border-right: 1px solid rgba(240,235,225,0.08);
+  position: relative;
+}
+.numero-item:last-child { border-right: none; }
+@media (max-width: 768px) {
+  .numero-item { border-right: none; border-bottom: 1px solid rgba(240,235,225,0.08); }
+  .numero-item:nth-child(2) { border-right: none; }
+}
+.numero-value {
+  font-family: var(--serif);
+  font-size: clamp(48px, 6vw, 72px);
+  font-weight: 400;
+  color: var(--marfim);
+  line-height: 1;
+  letter-spacing: -0.02em;
+  margin-bottom: 8px;
+}
+.numero-value em {
+  font-style: italic;
+  color: var(--ouro-soft);
+}
+.numero-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: rgba(240,235,225,0.45);
+}
+
+/* ══ MANIFESTO ═══════════════════════════════════════════════════════════ */
+.manifesto {
+  background: var(--linho);
+  position: relative;
+}
+.manifesto::before, .manifesto::after {
+  content: '';
+  position: absolute;
+  left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(to right, transparent 20%, var(--ouro-velho) 50%, transparent 80%);
+  opacity: 0.25;
+}
+.manifesto::before { top: 0; }
+.manifesto::after  { bottom: 0; }
+.manifesto-inner {
+  max-width: 960px;
+  margin: 0 auto;
+}
+.manifesto-text {
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 400;
+  font-size: clamp(32px, 4.5vw, 60px);
+  line-height: 1.18;
+  letter-spacing: -0.01em;
+  color: var(--carvao);
+}
+.manifesto-text span { color: var(--ouro-velho); }
+.manifesto-byline {
+  margin-top: 56px;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--tinta-mid);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.manifesto-byline::before {
+  content: ''; width: 36px; height: 1px;
+  background: var(--ouro-velho);
+}
+
+/* ══ OFÍCIO ═══════════════════════════════════════════════════════════════ */
+.oficio { background: var(--marfim); }
+.oficio-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 100px;
+  align-items: start;
+}
+@media (max-width: 960px) {
+  .oficio-grid { grid-template-columns: 1fr; gap: 48px; }
+}
+.oficio-text {
+  font-family: var(--serif);
+  font-size: 17px;
+  line-height: 1.8;
+  color: var(--tinta-soft);
+  font-weight: 400;
+}
+.oficio-text + .oficio-text { margin-top: 24px; }
+.oficio-text em { font-style: italic; color: var(--carvao); }
+
+/* ══ EXPERIÊNCIA ═════════════════════════════════════════════════════════ */
+.experiencia {
+  background: var(--carvao);
+  color: var(--marfim);
+  position: relative;
+  overflow: hidden;
+}
+.experiencia::before {
+  content: '';
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(circle at 80% 20%, rgba(201,165,90,0.06), transparent 50%),
+    radial-gradient(circle at 20% 80%, rgba(176,138,62,0.04), transparent 50%);
+}
+.experiencia .section-num   { color: var(--ouro-soft); }
+.experiencia .section-num::before { background: var(--ouro-soft); }
+.experiencia .section-title { color: var(--marfim); }
+.experiencia .section-title em { color: var(--ouro-soft); }
+.experiencia .section-sub   { color: rgba(240,235,225,0.6); }
+
+.experiencia-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 80px;
+  align-items: center;
+  margin-top: 80px;
+  position: relative;
+  z-index: 1;
+}
+@media (max-width: 960px) {
+  .experiencia-grid { grid-template-columns: 1fr; gap: 64px; }
+}
+
+.experience-list {
+  list-style: none;
+  display: flex; flex-direction: column;
+  gap: 36px;
+}
+.experience-item {
+  display: grid;
+  grid-template-columns: 56px 1fr;
+  gap: 24px;
+  align-items: start;
+  padding-bottom: 36px;
+  border-bottom: 1px solid rgba(240,235,225,0.08);
+}
+.experience-item:last-child { border-bottom: none; }
+.experience-num {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 34px;
+  font-weight: 400;
+  color: var(--ouro-soft);
+  line-height: 1;
+}
+.experience-text-title {
+  font-family: var(--serif);
+  font-size: 22px;
+  font-weight: 500;
+  color: var(--marfim);
+  margin-bottom: 6px;
+}
+.experience-text-desc {
+  font-family: var(--serif);
+  font-size: 15px;
+  color: rgba(240,235,225,0.65);
+  line-height: 1.65;
+}
+
+/* Mockup celular */
+.phone-frame {
+  width: 100%;
+  max-width: 340px;
+  margin: 0 auto;
+  aspect-ratio: 9/19.5;
+  background: linear-gradient(165deg, #2a2520, #1a1714);
+  border-radius: 44px;
+  padding: 14px;
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.06) inset,
+    0 60px 100px rgba(0,0,0,0.5),
+    0 30px 60px rgba(0,0,0,0.3);
+}
+.phone-screen {
+  width: 100%; height: 100%;
+  background: var(--marfim);
+  border-radius: 32px;
+  overflow: hidden;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 48px 32px;
+  position: relative;
+}
+.phone-screen::before {
+  content: '';
+  position: absolute;
+  top: 12px; left: 50%;
+  transform: translateX(-50%);
+  width: 100px; height: 24px;
+  background: #1a1714;
+  border-radius: 0 0 16px 16px;
+}
+.phone-tag {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.42em;
+  text-transform: uppercase;
+  color: var(--ouro-velho);
+  margin-bottom: 24px;
+  text-align: center;
+}
+.phone-tag-line {
+  width: 32px; height: 1px;
+  background: var(--ouro-velho);
+  margin: 14px auto;
+}
+.phone-names {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: clamp(36px, 8vw, 46px);
+  font-weight: 400;
+  line-height: 1.05;
+  color: var(--carvao);
+  text-align: center;
+}
+.phone-amp {
+  display: block;
+  font-family: var(--serif);
+  font-size: 0.55em;
+  color: var(--ouro-velho);
+  font-weight: 300;
+  margin: 4px 0;
+}
+.phone-date {
+  margin-top: 28px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.3em;
+  color: var(--tinta-mid);
+}
+.phone-place {
+  margin-top: 4px;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 13px;
+  color: var(--tinta-soft);
+}
+
+/* ══ DEPOIMENTOS ═════════════════════════════════════════════════════════ */
+.depoimentos { background: var(--linho); }
+.depoimentos-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  margin-top: 64px;
+}
+@media (max-width: 860px) {
+  .depoimentos-grid { grid-template-columns: 1fr; }
+}
+.depoimento {
+  background: var(--marfim);
+  border: 1px solid var(--line);
+  padding: 48px 40px;
+  position: relative;
+  transition: box-shadow 0.4s var(--ease);
+}
+.depoimento::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; width: 0; height: 2px;
+  background: var(--ouro-velho);
+  transition: width 0.5s var(--ease);
+}
+.depoimento:hover::before { width: 100%; }
+.depoimento:hover { box-shadow: 0 20px 40px rgba(26,23,20,0.08); }
+.depoimento-aspas {
+  font-family: var(--serif);
+  font-size: 72px;
+  line-height: 0.8;
+  color: var(--ouro-velho);
+  opacity: 0.4;
+  margin-bottom: 24px;
+  display: block;
+}
+.depoimento-texto {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 18px;
+  line-height: 1.7;
+  color: var(--tinta);
+  font-weight: 400;
+  margin-bottom: 32px;
+}
+.depoimento-casal {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: var(--ouro-velho);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.depoimento-casal::before {
+  content: ''; width: 24px; height: 1px;
+  background: var(--ouro-velho);
+}
+.depoimento-data {
+  margin-top: 6px;
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--tinta-mid);
+  padding-left: 36px;
+}
+
+/* ══ APLICAÇÕES ══════════════════════════════════════════════════════════ */
+.aplicacoes { background: var(--marfim); }
+.aplicacoes-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  margin-top: 80px;
+  background: var(--line);
+  border: 1px solid var(--line);
+}
+@media (max-width: 768px) {
+  .aplicacoes-grid { grid-template-columns: 1fr; }
+}
+.aplicacao {
+  background: var(--marfim);
+  padding: 56px 40px;
+  position: relative;
+  transition: background 0.5s var(--ease);
+}
+.aplicacao:hover { background: var(--linho); }
+.aplicacao::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; width: 0; height: 2px;
+  background: var(--ouro-velho);
+  transition: width 0.5s var(--ease);
+}
+.aplicacao:hover::before { width: 100%; }
+.aplicacao-num {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.3em;
+  color: var(--ouro-velho);
+  margin-bottom: 32px;
+}
+.aplicacao-title {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 30px;
+  font-weight: 400;
+  color: var(--carvao);
+  margin-bottom: 14px;
+  line-height: 1.15;
+}
+.aplicacao-desc {
+  font-family: var(--serif);
+  font-size: 15px;
+  line-height: 1.75;
+  color: var(--tinta-soft);
+}
+.aplicacao-meta {
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+  display: flex; flex-direction: column; gap: 8px;
+}
+.aplicacao-meta-row {
+  display: flex; justify-content: space-between; gap: 16px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+}
+.aplicacao-meta-label { color: var(--tinta-mid); text-transform: uppercase; }
+.aplicacao-meta-value { color: var(--carvao); }
+
+/* ══ ENCOMENDAS ══════════════════════════════════════════════════════════ */
+.encomendas {
+  background: var(--linho);
+  padding-bottom: 0;
+  overflow: hidden;
+}
+.encomendas-head {
+  max-width: 1320px;
+  margin: 0 auto 64px;
+  padding: 0 clamp(20px, 5vw, 64px);
+}
+.encomendas-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-top: 24px;
+  flex-wrap: wrap;
+  gap: 24px;
+}
+.encomendas-hint {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--tinta-mid);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.encomendas-hint::after {
+  content: '→';
+  font-family: var(--serif);
+  font-size: 16px;
+  color: var(--ouro-velho);
+  animation: hintArrow 2s ease-in-out infinite;
+}
+@keyframes hintArrow {
+  0%,100% { transform: translateX(0); }
+  50%      { transform: translateX(6px); }
+}
+
+.encomendas-track {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: clamp(300px, 36vw, 440px);
+  gap: 24px;
+  padding: 0 clamp(20px, 5vw, 64px) 100px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-padding-left: clamp(20px, 5vw, 64px);
+  scrollbar-width: thin;
+  scrollbar-color: var(--ouro-velho) transparent;
+}
+.encomendas-track::-webkit-scrollbar { height: 4px; }
+.encomendas-track::-webkit-scrollbar-thumb { background: var(--ouro-velho); border-radius: 2px; }
+.encomendas-track::-webkit-scrollbar-track { background: transparent; }
+
+.plan {
+  scroll-snap-align: start;
+  background: var(--marfim);
+  border: 1px solid var(--line);
+  padding: 48px 40px 40px;
+  display: flex; flex-direction: column;
+  position: relative;
+  transition: transform 0.5s var(--ease), border-color 0.5s, box-shadow 0.5s var(--ease);
+}
+.plan:hover {
+  transform: translateY(-6px);
+  border-color: var(--ouro-velho);
+  box-shadow: 0 24px 48px rgba(74,63,51,0.1);
+}
+.plan-num {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--ouro-velho);
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.plan-num::before { content: ''; width: 24px; height: 1px; background: var(--ouro-velho); }
+.plan-name {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 42px;
+  font-weight: 400;
+  color: var(--carvao);
+  line-height: 1;
+  margin-bottom: 12px;
+}
+.plan-pitch {
+  font-family: var(--serif);
+  font-size: 15px;
+  color: var(--tinta-mid);
+  margin-bottom: 36px;
+  line-height: 1.65;
+  font-style: italic;
+}
+.plan-price-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding-bottom: 28px;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 28px;
+}
+.plan-currency {
+  font-family: var(--mono);
+  font-size: 14px;
+  color: var(--tinta-mid);
+  margin-bottom: 12px;
+  align-self: flex-start;
+}
+.plan-price {
+  font-family: var(--serif);
+  font-size: 60px;
+  font-weight: 400;
+  color: var(--carvao);
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+.plan-price-detail {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--tinta-mid);
+  align-self: flex-end;
+  margin-bottom: 6px;
+  margin-left: 8px;
+}
+.plan-features {
+  list-style: none;
+  flex: 1;
+  margin-bottom: 32px;
+}
+.plan-features li {
+  font-family: var(--serif);
+  font-size: 15px;
+  color: var(--tinta-soft);
+  padding: 14px 0;
+  border-bottom: 1px solid var(--line-soft);
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  line-height: 1.5;
+}
+.plan-features li:last-child { border-bottom: none; }
+.plan-features li::before {
+  content: '';
+  flex-shrink: 0;
+  width: 5px; height: 5px;
+  margin-top: 9px;
+  border-radius: 50%;
+  background: var(--ouro-velho);
+}
+.plan-cta {
+  display: block;
+  text-align: center;
+  padding: 18px;
+  background: transparent;
+  color: var(--carvao);
+  border: 1px solid var(--carvao);
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: color 0.5s var(--ease), border-color 0.5s;
+}
+.plan-cta::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: var(--carvao);
+  transform: translateY(101%);
+  transition: transform 0.5s var(--ease);
+}
+.plan-cta:hover::before { transform: translateY(0); }
+.plan-cta:hover { color: var(--marfim); }
+.plan-cta span { position: relative; z-index: 1; }
+
+.plan.is-featured {
+  background: var(--carvao);
+  color: var(--marfim);
+  border-color: var(--carvao);
+}
+.plan.is-featured .plan-num { color: var(--ouro-soft); }
+.plan.is-featured .plan-num::before { background: var(--ouro-soft); }
+.plan.is-featured .plan-name { color: var(--marfim); }
+.plan.is-featured .plan-pitch { color: rgba(240,235,225,0.65); }
+.plan.is-featured .plan-currency { color: rgba(240,235,225,0.5); }
+.plan.is-featured .plan-price { color: var(--marfim); }
+.plan.is-featured .plan-price-detail { color: rgba(240,235,225,0.5); }
+.plan.is-featured .plan-price-row { border-color: rgba(240,235,225,0.15); }
+.plan.is-featured .plan-features li { color: rgba(240,235,225,0.8); border-color: rgba(240,235,225,0.1); }
+.plan.is-featured .plan-features li::before { background: var(--ouro-soft); }
+.plan.is-featured .plan-cta {
+  border-color: var(--ouro-velho);
+  background: var(--ouro-velho);
+  color: var(--carvao);
+}
+.plan.is-featured .plan-cta::before { background: var(--ouro-soft); }
+.plan.is-featured .plan-cta:hover { color: var(--carvao); }
+
+.plan-badge {
+  position: absolute;
+  top: 24px; right: 24px;
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--ouro-soft);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.plan-badge::before {
+  content: '';
+  width: 5px; height: 5px;
+  background: var(--ouro-soft);
+  border-radius: 50%;
+}
+
+/* ══ FAQ ══════════════════════════════════════════════════════════════════ */
+.faq { background: var(--marfim); }
+.faq-list {
+  margin-top: 64px;
+  border-top: 1px solid var(--line);
+}
+details.faq-item {
+  border-bottom: 1px solid var(--line);
+}
+details.faq-item summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+  padding: 32px 0;
+  cursor: pointer;
+  list-style: none;
+  font-family: var(--serif);
+  font-size: clamp(18px, 1.8vw, 22px);
+  font-weight: 400;
+  color: var(--carvao);
+  transition: color 0.3s;
+}
+details.faq-item summary::-webkit-details-marker { display: none; }
+details.faq-item summary:hover { color: var(--ouro-velho); }
+.faq-icon {
+  flex-shrink: 0;
+  width: 28px; height: 28px;
+  border: 1px solid var(--line);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--mono);
+  font-size: 16px;
+  color: var(--ouro-velho);
+  transition: transform 0.4s var(--ease), background 0.3s, border-color 0.3s;
+}
+details.faq-item[open] .faq-icon {
+  transform: rotate(45deg);
+  background: var(--ouro-velho);
+  border-color: var(--ouro-velho);
+  color: var(--marfim);
+}
+.faq-answer {
+  padding: 0 0 36px;
+  font-family: var(--serif);
+  font-size: 17px;
+  line-height: 1.75;
+  color: var(--tinta-soft);
+  max-width: 800px;
+}
+
+/* ══ FINAL CTA ════════════════════════════════════════════════════════════ */
+.final-cta {
+  padding: clamp(120px, 16vw, 200px) clamp(20px, 5vw, 64px);
+  background: var(--carvao);
+  color: var(--marfim);
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.final-cta::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(circle at 50% 0%, rgba(201,165,90,0.10), transparent 50%);
+}
+.final-cta-mark {
+  font-family: var(--serif);
+  font-size: clamp(120px, 22vw, 280px);
+  font-weight: 400;
+  color: rgba(240,235,225,0.02);
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  letter-spacing: -0.04em;
+  pointer-events: none;
+  line-height: 1;
+}
+.final-cta-inner {
+  max-width: 760px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+}
+.final-cta-eyebrow {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--ouro-soft);
+  margin-bottom: 32px;
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+}
+.final-cta-eyebrow::before, .final-cta-eyebrow::after {
+  content: ''; width: 36px; height: 1px;
+  background: var(--ouro-velho);
+}
+.final-cta-title {
+  font-family: var(--serif);
+  font-size: clamp(44px, 7vw, 84px);
+  font-weight: 400;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  margin-bottom: 32px;
+}
+.final-cta-title em { font-style: italic; color: var(--ouro-soft); }
+.final-cta-sub {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 19px;
+  color: rgba(240,235,225,0.65);
+  line-height: 1.65;
+  margin-bottom: 56px;
+  max-width: 520px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.final-cta-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 16px;
+  padding: 22px 52px;
+  background: var(--ouro-velho);
+  color: var(--carvao);
+  border: 1px solid var(--ouro-velho);
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  transition: all 0.5s var(--ease);
+  position: relative;
+  overflow: hidden;
+}
+.final-cta-btn::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: var(--ouro-soft);
+  transform: translateY(101%);
+  transition: transform 0.5s var(--ease);
+}
+.final-cta-btn:hover::before { transform: translateY(0); }
+.final-cta-btn > * { position: relative; z-index: 1; }
+.final-cta-note {
+  margin-top: 28px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(240,235,225,0.35);
+}
+.final-cta-note span { color: var(--ouro-soft); }
+
+/* ══ FOOTER ══════════════════════════════════════════════════════════════ */
+footer {
+  padding: 72px clamp(20px, 5vw, 64px) 40px;
+  background: var(--carvao);
+  border-top: 1px solid rgba(240,235,225,0.08);
+}
+.footer-inner {
+  max-width: 1320px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1.5fr auto auto auto;
+  gap: 48px;
+  align-items: start;
+}
+@media (max-width: 860px) {
+  .footer-inner { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 480px) {
+  .footer-inner { grid-template-columns: 1fr; }
+}
+.footer-brand {
+  font-family: var(--serif);
+  font-size: 32px;
+  color: var(--marfim);
+  letter-spacing: -0.02em;
+}
+.footer-tagline {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--ouro-velho);
+  margin-top: 12px;
+  margin-bottom: 20px;
+}
+.footer-social {
+  display: flex;
+  gap: 20px;
+  margin-top: 4px;
+}
+.footer-social a {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(240,235,225,0.4);
+  transition: color 0.3s;
+}
+.footer-social a:hover { color: var(--ouro-velho); }
+.footer-col-label {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--ouro-velho);
+  margin-bottom: 12px;
+}
+.footer-col-links {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.footer-col-links a {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 15px;
+  color: rgba(240,235,225,0.7);
+  transition: color 0.3s;
+}
+.footer-col-links a:hover { color: var(--marfim); }
+.footer-bottom {
+  max-width: 1320px;
+  margin: 56px auto 0;
+  padding-top: 24px;
+  border-top: 1px solid rgba(240,235,225,0.08);
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(240,235,225,0.3);
+}
+.footer-bottom a {
+  color: rgba(240,235,225,0.3);
+  transition: color 0.3s;
+}
+.footer-bottom a:hover { color: var(--ouro-velho); }
+
+</style>
+</head>
+<body>
+
+<!-- ══ NAV ════════════════════════════════════════════════════════════════ -->
+<nav class="nav" id="nav">
+  <div class="nav-inner">
+    <a href="landing.html" class="nav-brand">Devazi</a>
+    <div class="nav-links">
+      <a href="#oficio">Ofício</a>
+      <a href="#aplicacoes">Aplicações</a>
+      <a href="#encomendas">Encomendas</a>
+      <a href="dashboard.html" class="nav-login">Login</a>
+      <a href="signup.html" class="nav-cta">Começar gratuitamente</a>
+    </div>
+    <button class="nav-hamburger" id="hamburger" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</nav>
+
+<!-- Drawer mobile -->
+<div class="nav-drawer" id="navDrawer">
+  <a href="#oficio">Ofício</a>
+  <a href="#aplicacoes">Aplicações</a>
+  <a href="#encomendas">Encomendas</a>
+  <a href="#faq">FAQ</a>
+  <a href="dashboard.html">Login</a>
+  <a href="signup.html" class="drawer-cta">Começar gratuitamente</a>
+</div>
+
+<!-- ══ HERO ════════════════════════════════════════════════════════════════ -->
+<section class="hero">
+  <div class="hero-grid">
+
+    <div class="hero-content">
+      <div class="hero-eyebrow-row">
+        <span class="eyebrow">Mais de 200 casais · MMXXVI</span>
+      </div>
+
+      <h1 class="hero-title">
+        A primeira página<br>
+        do livro que <em>começa no sim.</em>
+      </h1>
+
+      <p class="hero-sub">
+        Convites digitais, sites cerimoniais e RSVPs desenhados à medida —
+        com a mesma atenção que um ateliê dedica a um vestido feito à mão.
+      </p>
+
+      <div class="hero-ctas">
+        <a href="signup.html" class="btn btn-primary">
+          <span>Criar meu convite</span>
+          <span class="arrow">→</span>
+        </a>
+        <a href="#oficio" class="btn btn-ghost">
+          Conhecer o ofício
+        </a>
+      </div>
+
+      <div class="hero-meta">
+        <div class="hero-meta-item">
+          <span class="hero-meta-label">Publicação</span>
+          <span class="hero-meta-value">Em minutos</span>
+        </div>
+        <div class="hero-meta-item">
+          <span class="hero-meta-label">Pagamento</span>
+          <span class="hero-meta-value">Único, sem mensalidade</span>
+        </div>
+        <div class="hero-meta-item">
+          <span class="hero-meta-label">Suporte</span>
+          <span class="hero-meta-value">Via WhatsApp</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Anel de brilhante animado -->
+    <div class="ring-wrap">
+      <div class="ring-halo"></div>
+      <div class="ring-rays">
+        <div class="ring-ray"></div>
+        <div class="ring-ray"></div>
+        <div class="ring-ray"></div>
+        <div class="ring-ray"></div>
+        <div class="ring-ray"></div>
+        <div class="ring-ray"></div>
+        <div class="ring-ray"></div>
+        <div class="ring-ray"></div>
+      </div>
+      <span class="sparkle"></span>
+      <span class="sparkle"></span>
+      <span class="sparkle"></span>
+      <span class="sparkle"></span>
+      <span class="sparkle"></span>
+      <span class="sparkle"></span>
+      <svg class="ring-svg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%"   stop-color="#e8d08a"/>
+            <stop offset="40%"  stop-color="#c9a55a"/>
+            <stop offset="60%"  stop-color="#b08a3e"/>
+            <stop offset="100%" stop-color="#8a6c2c"/>
+          </linearGradient>
+          <linearGradient id="diamondGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%"   stop-color="#ffffff" stop-opacity="0.95"/>
+            <stop offset="50%"  stop-color="#f0ebe1" stop-opacity="0.8"/>
+            <stop offset="100%" stop-color="#c9a55a" stop-opacity="0.6"/>
+          </linearGradient>
+          <radialGradient id="sparkleGrad" cx="50%" cy="50%">
+            <stop offset="0%"   stop-color="#ffffff" stop-opacity="1"/>
+            <stop offset="50%"  stop-color="#f0ebe1" stop-opacity="0.6"/>
+            <stop offset="100%" stop-color="#c9a55a" stop-opacity="0"/>
+          </radialGradient>
+        </defs>
+        <ellipse cx="100" cy="120" rx="58" ry="56" fill="none" stroke="url(#goldGrad)" stroke-width="6"/>
+        <ellipse cx="100" cy="120" rx="58" ry="56" fill="none" stroke="#ffffff" stroke-width="0.5" opacity="0.5"/>
+        <path d="M 60 100 Q 100 88 140 100" fill="none" stroke="#ffffff" stroke-width="2" opacity="0.55" stroke-linecap="round"/>
+        <path d="M 88 70 L 85 50 L 100 30 L 115 50 L 112 70 Z" fill="url(#goldGrad)" stroke="#8a6c2c" stroke-width="0.5"/>
+        <polygon points="100,28 118,52 100,82 82,52" fill="url(#diamondGrad)" stroke="#ffffff" stroke-width="0.8" opacity="0.95"/>
+        <line x1="100" y1="28" x2="100" y2="82" stroke="#ffffff" stroke-width="0.5" opacity="0.6"/>
+        <line x1="82"  y1="52" x2="118" y2="52" stroke="#ffffff" stroke-width="0.5" opacity="0.6"/>
+        <line x1="92"  y1="40" x2="108" y2="64" stroke="#ffffff" stroke-width="0.4" opacity="0.5"/>
+        <line x1="108" y1="40" x2="92"  y2="64" stroke="#ffffff" stroke-width="0.4" opacity="0.5"/>
+        <ellipse cx="96" cy="44" rx="6" ry="10" fill="#ffffff" opacity="0.7"/>
+        <circle cx="100" cy="55" r="14" fill="url(#sparkleGrad)" opacity="0.6"/>
+      </svg>
+    </div>
+
+  </div>
+</section>
+
+<!-- ══ MARQUEE ═════════════════════════════════════════════════════════════ -->
+<div class="marquee-strip" aria-hidden="true">
+  <div class="marquee-track">
+    <span class="marquee-item">Tipografia à medida</span>
+    <span class="marquee-item">Animações cinematográficas</span>
+    <span class="marquee-item">RSVP em tempo real</span>
+    <span class="marquee-item">Trilha sonora personalizada</span>
+    <span class="marquee-item">Experiência premium</span>
+    <span class="marquee-item">Painel cerimonial</span>
+    <span class="marquee-item">Publicação em minutos</span>
+    <span class="marquee-item">Tipografia à medida</span>
+    <span class="marquee-item">Animações cinematográficas</span>
+    <span class="marquee-item">RSVP em tempo real</span>
+    <span class="marquee-item">Trilha sonora personalizada</span>
+    <span class="marquee-item">Experiência premium</span>
+    <span class="marquee-item">Painel cerimonial</span>
+    <span class="marquee-item">Publicação em minutos</span>
+  </div>
+</div>
+
+<!-- ══ NÚMEROS ════════════════════════════════════════════════════════════ -->
+<section class="numeros" id="numeros">
+  <div class="numeros-inner reveal">
+    <div class="numero-item">
+      <div class="numero-value" data-count="200" data-suffix="+">0</div>
+      <div class="numero-label">Casais que confiaram</div>
+    </div>
+    <div class="numero-item">
+      <div class="numero-value" data-count="98" data-suffix="%">0</div>
+      <div class="numero-label">Nota de satisfação</div>
+    </div>
+    <div class="numero-item">
+      <div class="numero-value" data-count="6" data-suffix="h"><em>menos de</em></div>
+      <div class="numero-label">Para publicar o convite</div>
+    </div>
+    <div class="numero-item">
+      <div class="numero-value" data-count="49" data-suffix="" data-decimal="4.">0</div>
+      <div class="numero-label">Avaliação média ★</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ MANIFESTO ══════════════════════════════════════════════════════════ -->
+<section class="section manifesto">
+  <div class="manifesto-inner reveal">
+    <div class="section-num">— Manifesto</div>
+    <p class="manifesto-text">
+      Um casamento não começa no altar.
+      <span>Começa</span> no convite, na expectativa,
+      na primeira imagem que os convidados guardam do seu dia.
+    </p>
+    <div class="manifesto-byline">Filosofia do estúdio · Devazi</div>
+  </div>
+</section>
+
+<!-- ══ OFÍCIO ══════════════════════════════════════════════════════════════ -->
+<section class="section oficio" id="oficio">
+  <div class="section-inner">
+    <div class="oficio-grid">
+      <div class="reveal">
+        <div class="section-num">01 — O ofício</div>
+        <h2 class="section-title">
+          Desenhamos a <em>primeira página</em><br>
+          do livro que começa no sim.
+        </h2>
+      </div>
+      <div class="reveal reveal-delay-1">
+        <p class="oficio-text">
+          A Devazi é um estúdio dedicado inteiramente ao território digital
+          do casamento. Convites interativos, sites de cerimônia, RSVPs —
+          cada peça pensada como um objeto editorial,
+          <em>não como um formulário preenchido às pressas.</em>
+        </p>
+        <p class="oficio-text">
+          Acreditamos que a tecnologia pode carregar emoção. Por isso cada
+          detalhe é escolhido com cuidado — a fonte, o tempo da animação,
+          a música que toca quando o convite abre. <em>Nada é aleatório.</em>
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ EXPERIÊNCIA ════════════════════════════════════════════════════════ -->
+<section class="section experiencia" id="experiencia">
+  <div class="section-inner">
+    <div class="reveal">
+      <div class="section-num">02 — A experiência</div>
+      <h2 class="section-title">
+        O convite como <em>primeira cena.</em>
+      </h2>
+      <p class="section-sub">
+        Cada peça é desenhada à medida — tipografia escolhida para o casal,
+        sistema próprio de cores, micro-animações que revelam a data como
+        uma cortina se abrindo.
+      </p>
+    </div>
+
+    <div class="experiencia-grid">
+      <ul class="experience-list reveal reveal-delay-1">
+        <li class="experience-item">
+          <div class="experience-num">i</div>
+          <div>
+            <h4 class="experience-text-title">Tipografia escolhida a dedo</h4>
+            <p class="experience-text-desc">Cada casal recebe um sistema tipográfico próprio, pensado para refletir a personalidade do seu casamento.</p>
+          </div>
+        </li>
+        <li class="experience-item">
+          <div class="experience-num">ii</div>
+          <div>
+            <h4 class="experience-text-title">Animações cinematográficas</h4>
+            <p class="experience-text-desc">A data se revela. Os nomes ganham vida. Cada interação foi orquestrada para parecer natural e memorável.</p>
+          </div>
+        </li>
+        <li class="experience-item">
+          <div class="experience-num">iii</div>
+          <div>
+            <h4 class="experience-text-title">RSVP com presença</h4>
+            <p class="experience-text-desc">Confirmação direto pelo convite. Acompanhe tudo em tempo real no painel — sem planilhas ou conversas dispersas.</p>
+          </div>
+        </li>
+        <li class="experience-item">
+          <div class="experience-num">iv</div>
+          <div>
+            <h4 class="experience-text-title">Tudo num único link</h4>
+            <p class="experience-text-desc">Presentes, mensagens, sugestões de música, hospedagem — uma experiência completa para os seus convidados.</p>
+          </div>
+        </li>
+      </ul>
+
+      <div class="reveal reveal-delay-2">
+        <div class="phone-frame">
+          <div class="phone-screen">
+            <span class="phone-tag">— Convidamos vocês —</span>
+            <div class="phone-tag-line"></div>
+            <h3 class="phone-names">
+              Laura
+              <span class="phone-amp">&amp;</span>
+              Rafael
+            </h3>
+            <div class="phone-tag-line"></div>
+            <p class="phone-date">12 · IV · MMXXVI</p>
+            <p class="phone-place">Quinta das Oliveiras</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ DEPOIMENTOS ════════════════════════════════════════════════════════ -->
+<section class="section depoimentos" id="depoimentos">
+  <div class="section-inner">
+    <div class="reveal">
+      <div class="section-num">03 — Depoimentos</div>
+      <h2 class="section-title">
+        O que os casais <em>dizem.</em>
+      </h2>
+    </div>
+
+    <div class="depoimentos-grid">
+      <div class="depoimento reveal reveal-delay-1">
+        <span class="depoimento-aspas">"</span>
+        <p class="depoimento-texto">
+          Os nossos convidados ficaram encantados com o convite. Vários nos disseram que era o mais bonito que já tinham recebido. A atenção aos detalhes fez toda a diferença.
+        </p>
+        <div class="depoimento-casal">Ana &amp; Pedro</div>
+        <div class="depoimento-data">Casamento em março de 2026 · São Paulo</div>
+      </div>
+      <div class="depoimento reveal reveal-delay-2">
+        <span class="depoimento-aspas">"</span>
+        <p class="depoimento-texto">
+          Em menos de uma hora o convite estava publicado e já estava compartilhando com todos. O painel de confirmações nos salvou — acompanhamos tudo pelo celular em tempo real.
+        </p>
+        <div class="depoimento-casal">Camila &amp; Lucas</div>
+        <div class="depoimento-data">Casamento em janeiro de 2026 · Rio de Janeiro</div>
+      </div>
+      <div class="depoimento reveal reveal-delay-3">
+        <span class="depoimento-aspas">"</span>
+        <p class="depoimento-texto">
+          A música que toca quando o convite abre foi nossa trilha do primeiro encontro. Este nível de personalização não encontramos em nenhuma outra plataforma.
+        </p>
+        <div class="depoimento-casal">Isabela &amp; Matheus</div>
+        <div class="depoimento-data">Casamento em fevereiro de 2026 · Curitiba</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ APLICAÇÕES ══════════════════════════════════════════════════════════ -->
+<section class="section aplicacoes" id="aplicacoes">
+  <div class="section-inner">
+    <div class="reveal">
+      <div class="section-num">04 — As peças</div>
+      <h2 class="section-title">
+        Três peças <em>desenhadas à medida.</em>
+      </h2>
+    </div>
+
+    <div class="aplicacoes-grid reveal reveal-delay-1">
+      <div class="aplicacao">
+        <div class="aplicacao-num">04.01 · Convite</div>
+        <h3 class="aplicacao-title">Convite digital</h3>
+        <p class="aplicacao-desc">A primeira cena. Convite interativo com tipografia escolhida para o casal, animações de entrada e trilha sonora personalizada.</p>
+        <div class="aplicacao-meta">
+          <div class="aplicacao-meta-row">
+            <span class="aplicacao-meta-label">Entrega</span>
+            <span class="aplicacao-meta-value">Link privado por slug</span>
+          </div>
+          <div class="aplicacao-meta-row">
+            <span class="aplicacao-meta-label">Dispositivos</span>
+            <span class="aplicacao-meta-value">Mobile · Desktop</span>
+          </div>
+        </div>
+      </div>
+      <div class="aplicacao">
+        <div class="aplicacao-num">04.02 · Site</div>
+        <h3 class="aplicacao-title">Site cerimonial</h3>
+        <p class="aplicacao-desc">A casa digital do casamento. RSVP, lista de presentes, história do casal e detalhes da cerimônia em um endereço único.</p>
+        <div class="aplicacao-meta">
+          <div class="aplicacao-meta-row">
+            <span class="aplicacao-meta-label">RSVP</span>
+            <span class="aplicacao-meta-value">Tempo real</span>
+          </div>
+          <div class="aplicacao-meta-row">
+            <span class="aplicacao-meta-label">Formato</span>
+            <span class="aplicacao-meta-value">Web responsivo</span>
+          </div>
+        </div>
+      </div>
+      <div class="aplicacao">
+        <div class="aplicacao-num">04.03 · Painel</div>
+        <h3 class="aplicacao-title">Painel cerimonial</h3>
+        <p class="aplicacao-desc">Gestão completa de convidados, confirmações em tempo real, mensagens, músicas e exportação de dados. Tudo no celular.</p>
+        <div class="aplicacao-meta">
+          <div class="aplicacao-meta-row">
+            <span class="aplicacao-meta-label">Acesso</span>
+            <span class="aplicacao-meta-value">Privado e seguro</span>
+          </div>
+          <div class="aplicacao-meta-row">
+            <span class="aplicacao-meta-label">Disponível</span>
+            <span class="aplicacao-meta-value">24h por dia</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ ENCOMENDAS ══════════════════════════════════════════════════════════ -->
+<section class="encomendas" id="encomendas">
+  <div class="encomendas-head reveal">
+    <div class="section-num">05 — Encomendas</div>
+    <h2 class="section-title">Comece com uma <em>cortesia.</em></h2>
+    <p class="section-sub">
+      Três níveis de encomenda — pagamento único, sem mensalidade.
+      Comece gratuitamente e escolha o cuidado que seu dia merece.
+    </p>
+    <div class="encomendas-meta">
+      <span class="encomendas-hint">Arraste para explorar</span>
+    </div>
+  </div>
+
+  <div class="encomendas-track">
+
+    <!-- CORTESIA -->
+    <article class="plan">
+      <div class="plan-num">— Cortesia</div>
+      <h3 class="plan-name">Início</h3>
+      <p class="plan-pitch">Conheça o estúdio sem compromisso.</p>
+      <div class="plan-price-row">
+        <span class="plan-currency">R$</span>
+        <span class="plan-price">0</span>
+        <span class="plan-price-detail">Para sempre</span>
+      </div>
+      <ul class="plan-features">
+        <li>Convite digital essencial</li>
+        <li>Até 50 convidados</li>
+        <li>RSVP por WhatsApp</li>
+        <li>Tema editorial padrão</li>
+        <li>Assinatura discreta Devazi</li>
+      </ul>
+      <a href="signup.html" class="plan-cta"><span>Começar gratuitamente</span></a>
+    </article>
+
+    <!-- CLASSIC — DESTAQUE -->
+    <article class="plan is-featured">
+      <div class="plan-badge">Mais escolhido</div>
+      <div class="plan-num">— Encomenda essencial</div>
+      <h3 class="plan-name">Classic</h3>
+      <p class="plan-pitch">Tudo o que seu dia merece, com a discrição de um ateliê.</p>
+      <div class="plan-price-row">
+        <span class="plan-currency">R$</span>
+        <span class="plan-price">187</span>
+        <span class="plan-price-detail">Pagamento único</span>
+      </div>
+      <ul class="plan-features">
+        <li>Convidados ilimitados</li>
+        <li>Sem assinatura Devazi</li>
+        <li>Lista de presentes com Pix</li>
+        <li>Personalização completa</li>
+        <li>Painel cerimonial completo</li>
+        <li>Exportação de dados</li>
+        <li>Suporte prioritário</li>
+      </ul>
+      <a href="signup.html" class="plan-cta"><span>Encomendar Classic</span></a>
+    </article>
+
+    <!-- PREMIUM -->
+    <article class="plan">
+      <div class="plan-num">— Encomenda completa</div>
+      <h3 class="plan-name">Premium</h3>
+      <p class="plan-pitch">Para casais que querem cada detalhe pensado à mão.</p>
+      <div class="plan-price-row">
+        <span class="plan-currency">R$</span>
+        <span class="plan-price">297</span>
+        <span class="plan-price-detail">Pagamento único</span>
+      </div>
+      <ul class="plan-features">
+        <li>Tudo do plano Classic</li>
+        <li>Intro animada cinematográfica</li>
+        <li>Trilha sonora personalizada</li>
+        <li>QR Code de Pix integrado</li>
+        <li>Links únicos por convidado</li>
+        <li>Relatórios cerimoniais</li>
+        <li>Acompanhamento dedicado</li>
+      </ul>
+      <a href="signup.html" class="plan-cta"><span>Encomendar Premium</span></a>
+    </article>
+
+    <!-- ATELIER -->
+    <article class="plan">
+      <div class="plan-num">— Sob convite</div>
+      <h3 class="plan-name">Atelier</h3>
+      <p class="plan-pitch">Encomenda exclusiva, desenhada do zero para o casal.</p>
+      <div class="plan-price-row">
+        <span class="plan-price" style="font-size:28px;font-style:italic;">Sob orçamento</span>
+      </div>
+      <ul class="plan-features">
+        <li>Identidade visual exclusiva</li>
+        <li>Tipografia desenhada para o casal</li>
+        <li>Sistema de cores próprio</li>
+        <li>Micro-animações originais</li>
+        <li>Domínio personalizado</li>
+        <li>Atendimento direto com o estúdio</li>
+        <li>Encomendas limitadas por temporada</li>
+      </ul>
+      <a href="signup.html" class="plan-cta"><span>Solicitar conversa</span></a>
+    </article>
+
+  </div>
+</section>
+
+<!-- ══ FAQ ════════════════════════════════════════════════════════════════ -->
+<section class="section faq" id="faq">
+  <div class="section-inner">
+    <div class="reveal">
+      <div class="section-num">06 — Perguntas</div>
+      <h2 class="section-title">
+        As dúvidas mais <em>frequentes.</em>
+      </h2>
+    </div>
+
+    <div class="faq-list reveal reveal-delay-1">
+      <details class="faq-item">
+        <summary>
+          Quanto tempo leva para publicar meu convite?
+          <span class="faq-icon">+</span>
+        </summary>
+        <p class="faq-answer">
+          Com o plano Início, você pode publicar em menos de uma hora — basta preencher os dados do casal, escolher o tema e compartilhar o link. Os planos Classic e Premium têm um processo guiado de personalização que leva em média 3 a 6 horas, podendo ser feito no seu próprio ritmo.
+        </p>
+      </details>
+
+      <details class="faq-item">
+        <summary>
+          Posso mudar o tema ou o conteúdo depois de publicar?
+          <span class="faq-icon">+</span>
+        </summary>
+        <p class="faq-answer">
+          Sim, sempre. O painel cerimonial permite editar textos, datas, fotos e configurações do convite a qualquer momento, sem precisar republicar. As alterações aparecem instantaneamente para todos os convidados.
+        </p>
+      </details>
+
+      <details class="faq-item">
+        <summary>
+          Como funciona o pagamento?
+          <span class="faq-icon">+</span>
+        </summary>
+        <p class="faq-answer">
+          É um pagamento único — sem mensalidade, sem surpresas. Você paga uma vez e o convite fica ativo por todo o período do casamento. Aceitamos Pix e cartão de crédito via Mercado Pago. O acesso ao plano escolhido é liberado automaticamente após a confirmação do pagamento.
+        </p>
+      </details>
+
+      <details class="faq-item">
+        <summary>
+          O convite funciona bem no celular dos meus convidados?
+          <span class="faq-icon">+</span>
+        </summary>
+        <p class="faq-answer">
+          Sim. Todos os convites Devazi são totalmente responsivos e testados em iOS e Android. A experiência foi desenhada para ser fluida no celular — incluindo animações, música e RSVP. Basta abrir o link no navegador; nenhum app é necessário.
+        </p>
+      </details>
+
+      <details class="faq-item">
+        <summary>
+          Posso usar meu próprio domínio?
+          <span class="faq-icon">+</span>
+        </summary>
+        <p class="faq-answer">
+          O domínio personalizado está disponível no plano Atelier. Nos demais planos, seu convite fica em um endereço do tipo <em>devazi.com/seu-casal</em> — elegante, curto e fácil de compartilhar.
+        </p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- ══ FINAL CTA ══════════════════════════════════════════════════════════ -->
+<section class="final-cta" id="cta-final">
+  <span class="final-cta-mark" aria-hidden="true">D</span>
+  <div class="final-cta-inner reveal">
+    <div class="final-cta-eyebrow">Encomendas · MMXXVI</div>
+    <h2 class="final-cta-title">
+      Será uma honra <em>desenhar seu dia.</em>
+    </h2>
+    <p class="final-cta-sub">
+      Comece gratuitamente. Sem cartão de crédito,
+      sem compromisso — só o convite que o seu casamento merece.
+    </p>
+    <a href="signup.html" class="final-cta-btn">
+      <span>Criar meu convite agora</span>
+      <span class="arrow">→</span>
+    </a>
+    <p class="final-cta-note">
+      <span>Plano gratuito disponível</span> · Sem cartão de crédito · Suporte por WhatsApp
+    </p>
+  </div>
+</section>
+
+<!-- ══ FOOTER ══════════════════════════════════════════════════════════════ -->
+<footer>
+  <div class="footer-inner">
+    <div>
+      <div class="footer-brand">Devazi</div>
+      <div class="footer-tagline">Experiências digitais de casamento</div>
+      <div class="footer-social">
+        <a href="#">Instagram</a>
+        <a href="#">WhatsApp</a>
+      </div>
+    </div>
+    <div>
+      <div class="footer-col-label">Produto</div>
+      <div class="footer-col-links">
+        <a href="#oficio">O ofício</a>
+        <a href="#aplicacoes">Aplicações</a>
+        <a href="#encomendas">Encomendas</a>
+        <a href="#faq">Perguntas</a>
+      </div>
+    </div>
+    <div>
+      <div class="footer-col-label">Área do casal</div>
+      <div class="footer-col-links">
+        <a href="signup.html">Criar conta</a>
+        <a href="dashboard.html">Entrar no painel</a>
+      </div>
+    </div>
+    <div>
+      <div class="footer-col-label">Legal</div>
+      <div class="footer-col-links">
+        <a href="terms.html">Termos de uso</a>
+        <a href="privacy.html">Privacidade</a>
+      </div>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2026 Devazi · Casa editorial de casamentos</span>
+    <span>
+      <a href="terms.html">Termos</a> ·
+      <a href="privacy.html">Privacidade</a>
+    </span>
+  </div>
+</footer>
+
+<script>
+// ── Nav scroll
+const nav = document.getElementById('nav');
+window.addEventListener('scroll', () => {
+  nav.classList.toggle('is-scrolled', window.scrollY > 30);
+}, { passive: true });
+
+// ── Mobile hamburger
+const hamburger = document.getElementById('hamburger');
+const drawer = document.getElementById('navDrawer');
+hamburger.addEventListener('click', () => {
+  const open = hamburger.classList.toggle('is-open');
+  drawer.classList.toggle('is-open', open);
+  document.body.style.overflow = open ? 'hidden' : '';
+});
+drawer.querySelectorAll('a').forEach(a => {
+  a.addEventListener('click', () => {
+    hamburger.classList.remove('is-open');
+    drawer.classList.remove('is-open');
+    document.body.style.overflow = '';
+  });
+});
+
+// ── Reveal on scroll
+const revealObserver = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.classList.add('is-visible');
+      revealObserver.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.08, rootMargin: '0px 0px -48px 0px' });
+document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+// ── Count-up animation
+function animateCount(el) {
+  const target  = parseInt(el.dataset.count, 10);
+  const suffix  = el.dataset.suffix || '';
+  const decimal = el.dataset.decimal || '';
+  const duration = 1800;
+  const start = performance.now();
+
+  function tick(now) {
+    const progress = Math.min((now - start) / duration, 1);
+    const ease = 1 - Math.pow(1 - progress, 3);
+    const value = Math.round(ease * target);
+    if (decimal) {
+      el.textContent = decimal + String(value).slice(-1) + suffix;
+    } else {
+      el.textContent = value + suffix;
+    }
+    if (progress < 1) requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+}
+
+const countObserver = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.querySelectorAll('[data-count]').forEach(animateCount);
+      countObserver.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.3 });
+const numerosSection = document.getElementById('numeros');
+if (numerosSection) countObserver.observe(numerosSection);
+</script>
+
+</body>
+</html>
