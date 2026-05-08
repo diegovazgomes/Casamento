@@ -127,7 +127,7 @@ O roadmap correto começa em:
 - [x] Implementar confirmação de e-mail.
 - [x] Criar página de confirmação e estados de sucesso e erro.
 - [x] Criar fluxo de recuperação de senha.
-- [ ] Criar wizard inicial no dashboard para dados do casal, evento e tema.
+- [x] Criar wizard inicial no dashboard para dados do casal, evento e tema.
 - [ ] Implementar verificação de disponibilidade de `slug`.
 - [x] Implementar publicação do convite por `slug`.
 - [x] Garantir que o convite publicado carregue por API e mantenha fallback controlado.
