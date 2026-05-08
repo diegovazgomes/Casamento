@@ -24,6 +24,27 @@ const DASHBOARD_ACCESS_TOKEN_STORAGE_KEY = 'dashboard-access-token';
 
 let dashboardSupabaseClientPromise = null;
 
+function redirectRecoveryCallbackToResetPage() {
+  const currentUrl = new URL(window.location.href);
+  const hashParams = new URLSearchParams(currentUrl.hash.startsWith('#') ? currentUrl.hash.slice(1) : currentUrl.hash);
+  const queryParams = new URLSearchParams(currentUrl.search);
+
+  const hasCode = queryParams.has('code');
+  const hasRecoveryType = hashParams.get('type') === 'recovery' || queryParams.get('type') === 'recovery';
+  const hasRecoveryTokens = hashParams.has('access_token') || hashParams.has('refresh_token');
+  const shouldRedirectToReset = hasCode || hasRecoveryType || hasRecoveryTokens;
+
+  if (!shouldRedirectToReset) {
+    return false;
+  }
+
+  const nextSearch = queryParams.toString();
+  const nextHash = hashParams.toString();
+  const resetUrl = `reset-password.html${nextSearch ? `?${nextSearch}` : ''}${nextHash ? `#${nextHash}` : ''}`;
+  window.location.replace(resetUrl);
+  return true;
+}
+
 function sanitizeDashboardAuthUrlParams() {
   const currentUrl = new URL(window.location.href);
   const hashParams = new URLSearchParams(currentUrl.hash.startsWith('#') ? currentUrl.hash.slice(1) : currentUrl.hash);
@@ -128,6 +149,10 @@ function notifyDashboardReady() {
 
 async function initializeDashboard() {
   try {
+    if (redirectRecoveryCallbackToResetPage()) {
+      return;
+    }
+
     sanitizeDashboardAuthUrlParams();
 
     const bootstrapPromise = window.__DASHBOARD_BOOTSTRAP_PROMISE__;
