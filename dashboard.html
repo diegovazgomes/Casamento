@@ -1292,6 +1292,63 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
   display:flex;justify-content:center;
   padding-top:20px;border-top:1px solid var(--border);margin-top:24px;
 }
+
+/* ── Exemplos de nome ─────────────────────────────────────── */
+.wizard-name-examples{
+  display:flex;flex-wrap:wrap;gap:6px;align-items:center;
+  margin-top:8px;
+}
+.wizard-name-examples>span{
+  font-size:.7rem;color:var(--text-dim);letter-spacing:.05em;flex-shrink:0;
+}
+.wizard-name-ex{
+  background:none;border:1px solid var(--border);
+  color:rgba(250,247,242,.35);
+  font-family:var(--font-sans);font-size:.72rem;letter-spacing:.04em;
+  padding:3px 10px;cursor:pointer;
+  transition:border-color .2s,color .2s;
+}
+.wizard-name-ex:hover{border-color:var(--primary);color:var(--primary-soft);}
+
+/* ── Preview — estilo tela de abertura ───────────────────── */
+.wz-preview-tag{
+  font-size:7px;letter-spacing:.35em;text-transform:uppercase;
+  color:var(--wz-primary);margin-bottom:14px;display:block;
+  transition:color .45s;
+}
+.wz-preview-cta{
+  margin-top:14px;display:inline-block;
+  border:1px solid var(--wz-primary);
+  color:var(--wz-primary);
+  font-size:.5rem;letter-spacing:.28em;text-transform:uppercase;
+  padding:5px 16px;
+  transition:border-color .45s,color .45s;
+  pointer-events:none;
+}
+
+/* ── Instruções etapa 4 ──────────────────────────────────── */
+.wizard-instructions{
+  display:flex;flex-direction:column;gap:18px;
+  margin-bottom:4px;
+}
+.wizard-instruction-item{
+  display:flex;gap:18px;align-items:flex-start;
+}
+.wizard-instruction-num{
+  font-family:var(--font-display);font-style:italic;
+  font-size:1.35rem;color:var(--primary-soft);opacity:.45;
+  flex-shrink:0;line-height:1.2;min-width:24px;padding-top:1px;
+}
+.wizard-instruction-item strong{
+  display:block;font-size:.82rem;font-weight:400;letter-spacing:.05em;
+  color:var(--text);margin-bottom:4px;
+}
+.wizard-instruction-item p{
+  font-size:.77rem;color:var(--text-dim);line-height:1.65;margin:0;
+}
+.wizard-instruction-item em{
+  font-style:normal;color:var(--primary-soft);
+}
 </style>
 </head>
 <body>
@@ -1342,17 +1399,28 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
     <!-- Etapa 1: Casal -->
     <div class="wizard-step is-active" id="wizardStep1">
       <h2 class="wizard-title">Bem-vindos!</h2>
-      <p class="wizard-sub">Vamos configurar o convite em 3 passos rápidos. Comece pelos nomes do casal.</p>
+      <p class="wizard-sub">Vamos configurar o convite. Comece pelos nomes do casal.</p>
       <div class="field" style="margin-bottom:1rem">
-        <label class="field-label">Nome do casal *</label>
-        <input type="text" class="field-input" id="wzCoupleName"
-               placeholder="Ex: Ana &amp; João" maxlength="80" autocomplete="off">
-        <span class="wizard-error" id="wzCoupleNameError">Informe o nome do casal.</span>
+        <label class="field-label">Nome da noiva *</label>
+        <input type="text" class="field-input" id="wzBrideName"
+               placeholder="Ex: Siannah" maxlength="60" autocomplete="off">
+      </div>
+      <div class="field" style="margin-bottom:1rem">
+        <label class="field-label">Nome do noivo *</label>
+        <input type="text" class="field-input" id="wzGroomName"
+               placeholder="Ex: Diego" maxlength="60" autocomplete="off">
+        <span class="wizard-error" id="wzCoupleNameError">Informe ao menos um dos nomes.</span>
       </div>
       <div class="field">
-        <label class="field-label">Subtítulo <span style="opacity:.5;font-weight:300">(opcional)</span></label>
-        <input type="text" class="field-input" id="wzSubtitle"
-               placeholder="Ex: Convidamos para nossa celebração" maxlength="120" autocomplete="off">
+        <label class="field-label">Como aparecem no convite *</label>
+        <input type="text" class="field-input" id="wzDisplayName"
+               placeholder="Ex: Siannah &amp; Diego" maxlength="80" autocomplete="off">
+        <div class="wizard-name-examples">
+          <span>Exemplos:</span>
+          <button type="button" class="wizard-name-ex" data-sep=" e ">Siannah e Diego</button>
+          <button type="button" class="wizard-name-ex" data-sep=" &amp; ">Siannah &amp; Diego</button>
+          <button type="button" class="wizard-name-ex" data-sep=" + ">Siannah + Diego</button>
+        </div>
       </div>
     </div>
 
@@ -1393,10 +1461,11 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
           <div class="wizard-preview-card" id="wzPreviewCard">
             <div class="wizard-preview-bg-grid"></div>
             <div class="wizard-preview-inner">
-              <span class="wz-preview-ornament">✦ &nbsp; ✦ &nbsp; ✦</span>
+              <span class="wz-preview-tag">Você está convidado</span>
               <div class="wz-preview-names" id="wzPreviewNames">Nome &amp; Nome</div>
               <div class="wz-preview-sep"></div>
               <div class="wz-preview-date" id="wzPreviewDate">· · ·</div>
+              <span class="wz-preview-cta">Abrir Convite</span>
             </div>
           </div>
         </div>
@@ -1407,34 +1476,34 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
     <div class="wizard-step" id="wizardStep4">
       <div class="wizard-success-icon">✦</div>
       <h2 class="wizard-title" style="text-align:center">Convite criado!</h2>
-      <p class="wizard-sub" style="text-align:center;margin-bottom:20px">
-        As informações foram salvas. Agora personalize os detalhes e compartilhe com seus convidados.
+      <p class="wizard-sub" style="text-align:center;margin-bottom:28px">
+        As informações foram salvas. Veja o que fazer para deixar o convite pronto.
       </p>
-      <div class="wizard-next-cards">
-        <button class="wizard-next-card" id="wzGotoEditar" type="button">
-          <span class="wizard-next-card-icon">✎</span>
-          <span class="wizard-next-card-content">
-            <span class="wizard-next-card-title">Editar o convite</span>
-            <span class="wizard-next-card-sub">Textos, fotos, presentes, RSVP e muito mais</span>
-          </span>
-        </button>
-        <button class="wizard-next-card" id="wzGotoPreview" type="button">
-          <span class="wizard-next-card-icon">◉</span>
-          <span class="wizard-next-card-content">
-            <span class="wizard-next-card-title">Ver o convite publicado</span>
-            <span class="wizard-next-card-sub">Abrir como seus convidados irão ver</span>
-          </span>
-        </button>
-        <button class="wizard-next-card" id="wzGotoGrupos" type="button">
-          <span class="wizard-next-card-icon">✉</span>
-          <span class="wizard-next-card-content">
-            <span class="wizard-next-card-title">Convidar os convidados</span>
-            <span class="wizard-next-card-sub">Criar grupos e compartilhar o link personalizado</span>
-          </span>
-        </button>
+      <div class="wizard-instructions">
+        <div class="wizard-instruction-item">
+          <span class="wizard-instruction-num">01</span>
+          <div>
+            <strong>Personalize o convite</strong>
+            <p>Acesse <em>Editar Evento</em> no menu lateral para adicionar fotos, textos, configurar o RSVP e os presentes.</p>
+          </div>
+        </div>
+        <div class="wizard-instruction-item">
+          <span class="wizard-instruction-num">02</span>
+          <div>
+            <strong>Veja como ficou</strong>
+            <p>No topo do painel há o link do seu convite. Clique para visualizá-lo exatamente como os convidados irão ver.</p>
+          </div>
+        </div>
+        <div class="wizard-instruction-item">
+          <span class="wizard-instruction-num">03</span>
+          <div>
+            <strong>Envie os convites</strong>
+            <p>Acesse <em>Convites</em> no menu para criar grupos e gerar um link personalizado para cada família.</p>
+          </div>
+        </div>
       </div>
       <div class="wizard-footer-step4">
-        <button class="btn btn-subtle" id="wzCloseBtn" type="button">Fechar e explorar o painel</button>
+        <button class="btn btn-primary" id="wzCloseBtn" type="button">Ir para o painel</button>
       </div>
     </div>
 

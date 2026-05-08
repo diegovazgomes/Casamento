@@ -2658,49 +2658,76 @@ async function _loadWizardThemes() {
 function _themeColors(themeData) {
   const c = themeData?.colors || {};
   return {
-    bg:         c.background    || '#0f0d0b',
-    primary:    c.primary       || '#c9a84c',
-    primarySoft:c.primarySoft   || c.primary || '#d4b480',
-    text:       c.text          || '#faf7f2',
-    textDim:    c.textDim       || 'rgba(250,247,242,.45)',
-    grid:       c.pageGridLine  || 'rgba(255,255,255,.015)',
-    border:     c.border        || 'rgba(192,160,96,.25)',
+    bg:          c.background   || '#0f0d0b',
+    primary:     c.primary      || '#c9a84c',
+    primarySoft: c.primarySoft  || c.primary || '#d4b480',
+    text:        c.text         || '#faf7f2',
+    textDim:     c.textDim      || 'rgba(250,247,242,.45)',
+    grid:        c.pageGridLine || 'rgba(255,255,255,.015)',
+    border:      c.border       || 'rgba(192,160,96,.25)',
   };
+}
+
+function _wizardDisplayName() {
+  return document.getElementById('wzDisplayName')?.value.trim() || '';
 }
 
 function _updateWizardPreview() {
   const previewCard = document.getElementById('wzPreviewCard');
   if (!previewCard) return;
 
-  const theme = _wizardLoadedThemes.find(t => t.key === _wizardSelectedTheme);
-  const names  = document.getElementById('wzCoupleName')?.value.trim() || '';
+  const theme   = _wizardLoadedThemes.find(t => t.key === _wizardSelectedTheme);
+  const display = _wizardDisplayName();
   const dateRaw = document.getElementById('wzDate')?.value || '';
 
   const previewNames = document.getElementById('wzPreviewNames');
-  if (previewNames) previewNames.textContent = names || 'Nome & Nome';
+  if (previewNames) previewNames.textContent = display || 'Nome & Nome';
 
   const previewDate = document.getElementById('wzPreviewDate');
-  if (previewDate && dateRaw) {
-    const d = new Date(`${dateRaw}T12:00:00`);
-    if (!isNaN(d.getTime())) {
-      const dd = String(d.getDate()).padStart(2, '0');
-      const mm = String(d.getMonth() + 1).padStart(2, '0');
-      const yy = d.getFullYear();
-      previewDate.textContent = `${dd} · ${mm} · ${yy}`;
+  if (previewDate) {
+    if (dateRaw) {
+      const d = new Date(`${dateRaw}T12:00:00`);
+      if (!isNaN(d.getTime())) {
+        const dd = String(d.getDate()).padStart(2, '0');
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        previewDate.textContent = `${dd} · ${mm} · ${d.getFullYear()}`;
+      }
+    } else {
+      previewDate.textContent = '· · ·';
     }
-  } else if (previewDate && !dateRaw) {
-    previewDate.textContent = '· · ·';
   }
 
   if (theme) {
     const cols = _themeColors(theme.data);
-    previewCard.style.background   = cols.bg;
-    previewCard.style.borderColor  = cols.border;
-    previewCard.style.setProperty('--wz-primary',   cols.primarySoft);
-    previewCard.style.setProperty('--wz-text',      cols.text);
-    previewCard.style.setProperty('--wz-text-dim',  cols.textDim);
-    previewCard.style.setProperty('--wz-grid',      cols.grid);
+    previewCard.style.background  = cols.bg;
+    previewCard.style.borderColor = cols.border;
+    previewCard.style.setProperty('--wz-primary',  cols.primarySoft);
+    previewCard.style.setProperty('--wz-text',     cols.text);
+    previewCard.style.setProperty('--wz-text-dim', cols.textDim);
+    previewCard.style.setProperty('--wz-grid',     cols.grid);
   }
+}
+
+function _updateExampleButtons() {
+  const bride = document.getElementById('wzBrideName')?.value.trim();
+  const groom = document.getElementById('wzGroomName')?.value.trim();
+  const b = bride || 'Siannah';
+  const g = groom || 'Diego';
+  const seps = [' e ', ' & ', ' + '];
+  document.querySelectorAll('.wizard-name-ex').forEach((btn, i) => {
+    btn.textContent = `${b}${seps[i] ?? ' & '}${g}`;
+  });
+}
+
+function _autoFillDisplayName() {
+  const displayInput = document.getElementById('wzDisplayName');
+  if (!displayInput || displayInput.dataset.userEdited) return;
+  const bride = document.getElementById('wzBrideName')?.value.trim() || '';
+  const groom = document.getElementById('wzGroomName')?.value.trim() || '';
+  if (bride || groom) {
+    displayInput.value = bride && groom ? `${bride} & ${groom}` : bride || groom;
+  }
+  _updateWizardPreview();
 }
 
 function renderWizardThemes() {
@@ -2710,17 +2737,17 @@ function renderWizardThemes() {
 
   _loadWizardThemes().then(themes => {
     container.innerHTML = '';
-
     themes.forEach(({ key, data }) => {
       const cols  = _themeColors(data);
       const label = data?.meta?.name || data?.meta?.displayName || key;
+      const isSelected = key === _wizardSelectedTheme;
 
       const card = document.createElement('button');
       card.type = 'button';
-      card.className = 'wizard-theme-card' + (key === _wizardSelectedTheme ? ' is-selected' : '');
+      card.className = 'wizard-theme-card' + (isSelected ? ' is-selected' : '');
       card.dataset.themeKey = key;
       card.innerHTML = `
-        <div class="wizard-theme-swatch" style="background:${cols.bg};border-color:${key === _wizardSelectedTheme ? cols.primary : 'transparent'}">
+        <div class="wizard-theme-swatch" style="background:${cols.bg};border-color:${isSelected ? cols.primary : 'transparent'}">
           <div class="wizard-theme-accent" style="background:${cols.primary}"></div>
           <div class="wizard-theme-lines">
             <div style="background:${cols.text}40;width:60%;height:4px;border-radius:2px;margin-bottom:5px"></div>
@@ -2733,20 +2760,18 @@ function renderWizardThemes() {
       card.addEventListener('click', () => {
         _wizardSelectedTheme = key;
         container.querySelectorAll('.wizard-theme-card').forEach(c => {
-          const isSelected = c.dataset.themeKey === key;
-          c.classList.toggle('is-selected', isSelected);
+          const sel = c.dataset.themeKey === key;
+          c.classList.toggle('is-selected', sel);
           const swatch = c.querySelector('.wizard-theme-swatch');
           if (swatch) {
             const ct = themes.find(t => t.key === c.dataset.themeKey);
-            const cc = ct ? _themeColors(ct.data) : {};
-            swatch.style.borderColor = isSelected ? (cc.primary || 'transparent') : 'transparent';
+            swatch.style.borderColor = sel ? (_themeColors(ct?.data).primary || 'transparent') : 'transparent';
           }
         });
         _updateWizardPreview();
       });
       container.appendChild(card);
     });
-
     _updateWizardPreview();
   });
 }
@@ -2765,7 +2790,8 @@ function _wizardGoToStep(step) {
   if (footerEl)   footerEl.style.display   = step === 4 ? 'none' : '';
 
   if (step === 4) {
-    _bindStep4Actions();
+    const closeBtn = document.getElementById('wzCloseBtn');
+    if (closeBtn) closeBtn.onclick = () => document.getElementById('wizardOverlay').classList.remove('is-active');
     return;
   }
 
@@ -2781,32 +2807,22 @@ function _wizardGoToStep(step) {
   if (step === 3) _updateWizardPreview();
 }
 
-function _bindStep4Actions() {
-  const slug = window.__SITE_CONFIG__?.slug || state?.slug || '';
-
-  const gotoEditar  = document.getElementById('wzGotoEditar');
-  const gotoPreview = document.getElementById('wzGotoPreview');
-  const gotoGrupos  = document.getElementById('wzGotoGrupos');
-  const closeBtn    = document.getElementById('wzCloseBtn');
-
-  const closeOverlay = () => document.getElementById('wizardOverlay').classList.remove('is-active');
-
-  if (gotoEditar)  gotoEditar.onclick  = () => { closeOverlay(); document.querySelector('[data-tab="editor"]')?.click(); };
-  if (gotoPreview) gotoPreview.onclick = () => { closeOverlay(); if (slug) window.open(`/${slug}`, '_blank'); };
-  if (gotoGrupos)  gotoGrupos.onclick  = () => { closeOverlay(); document.querySelector('[data-tab="grupos"]')?.click(); };
-  if (closeBtn)    closeBtn.onclick    = closeOverlay;
-}
-
 function wizardNext() {
   if (_wizardStep === 1) {
-    const name  = document.getElementById('wzCoupleName')?.value.trim() || '';
+    const bride = document.getElementById('wzBrideName')?.value.trim() || '';
+    const groom = document.getElementById('wzGroomName')?.value.trim() || '';
     const errEl = document.getElementById('wzCoupleNameError');
-    if (name.length < 2) {
+    if (!bride && !groom) {
       errEl?.classList.add('is-visible');
-      document.getElementById('wzCoupleName')?.focus();
+      document.getElementById('wzBrideName')?.focus();
       return;
     }
     errEl?.classList.remove('is-visible');
+    // Garantir que o campo de exibição está preenchido
+    const displayInput = document.getElementById('wzDisplayName');
+    if (displayInput && !displayInput.value.trim()) {
+      displayInput.value = bride && groom ? `${bride} & ${groom}` : bride || groom;
+    }
   }
 
   if (_wizardStep < 3) {
@@ -2841,15 +2857,44 @@ function _wizardDeriveDateLabels(dateOnly) {
 async function maybeShowWizard(config) {
   if (!config || !isFirstTimeUser(config)) return;
 
+  // Pré-carregar temas em background
   _loadWizardThemes();
 
-  const nameInput     = document.getElementById('wzCoupleName');
-  const subtitleInput = document.getElementById('wzSubtitle');
-  const names = config?.couple?.names || '';
-  if (nameInput && names && names !== 'Novo Casal') nameInput.value = names;
-  if (subtitleInput && config?.couple?.subtitle) subtitleInput.value = config.couple.subtitle;
+  // Pré-preencher nomes existentes
+  const existingNames = config?.couple?.names || '';
+  if (existingNames && existingNames !== 'Novo Casal') {
+    const parts = existingNames.split(/\s*[&e+]\s*/i);
+    if (parts[0]) { const el = document.getElementById('wzBrideName'); if (el) el.value = parts[0].trim(); }
+    if (parts[1]) { const el = document.getElementById('wzGroomName'); if (el) el.value = parts[1].trim(); }
+    const disp = document.getElementById('wzDisplayName');
+    if (disp) disp.value = existingNames;
+  }
 
   _wizardSelectedTheme = config.activeTheme || 'classic-gold';
+
+  // Binds de auto-preenchimento e exemplos
+  document.getElementById('wzBrideName')?.addEventListener('input', () => { _updateExampleButtons(); _autoFillDisplayName(); });
+  document.getElementById('wzGroomName')?.addEventListener('input', () => { _updateExampleButtons(); _autoFillDisplayName(); });
+  document.getElementById('wzDisplayName')?.addEventListener('input', function () {
+    this.dataset.userEdited = '1';
+    _updateWizardPreview();
+  });
+  document.getElementById('wzDate')?.addEventListener('change', _updateWizardPreview);
+
+  // Clique nos exemplos
+  document.querySelectorAll('.wizard-name-ex').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const bride = document.getElementById('wzBrideName')?.value.trim() || 'Siannah';
+      const groom = document.getElementById('wzGroomName')?.value.trim() || 'Diego';
+      const sep   = btn.dataset.sep || ' & ';
+      const displayInput = document.getElementById('wzDisplayName');
+      if (displayInput) {
+        displayInput.value = `${bride}${sep}${groom}`;
+        displayInput.dataset.userEdited = '1';
+        _updateWizardPreview();
+      }
+    });
+  });
 
   renderWizardThemes();
   _wizardGoToStep(1);
@@ -2857,9 +2902,6 @@ async function maybeShowWizard(config) {
   document.getElementById('wizardOverlay').classList.add('is-active');
   document.getElementById('wizardBtnNext').onclick = wizardNext;
   document.getElementById('wizardBtnBack').onclick = wizardBack;
-
-  document.getElementById('wzCoupleName')?.addEventListener('input',  _updateWizardPreview);
-  document.getElementById('wzDate')?.addEventListener('change', _updateWizardPreview);
 }
 
 async function _saveWizard() {
@@ -2868,12 +2910,13 @@ async function _saveWizard() {
   if (nextBtn) { nextBtn.disabled = true; nextBtn.textContent = 'Salvando…'; }
   if (backBtn) backBtn.disabled = true;
 
-  const coupleName   = document.getElementById('wzCoupleName')?.value.trim()   || '';
-  const subtitle     = document.getElementById('wzSubtitle')?.value.trim()      || '';
-  const dateVal      = document.getElementById('wzDate')?.value                 || '';
-  const timeVal      = document.getElementById('wzTime')?.value                 || '17:00';
-  const venueName    = document.getElementById('wzVenueName')?.value.trim()     || '';
-  const venueAddress = document.getElementById('wzVenueAddress')?.value.trim()  || '';
+  const brideName    = document.getElementById('wzBrideName')?.value.trim()    || '';
+  const groomName    = document.getElementById('wzGroomName')?.value.trim()    || '';
+  const displayName  = document.getElementById('wzDisplayName')?.value.trim()  || (brideName && groomName ? `${brideName} & ${groomName}` : brideName || groomName);
+  const dateVal      = document.getElementById('wzDate')?.value                || '';
+  const timeVal      = document.getElementById('wzTime')?.value                || '17:00';
+  const venueName    = document.getElementById('wzVenueName')?.value.trim()    || '';
+  const venueAddress = document.getElementById('wzVenueAddress')?.value.trim() || '';
 
   const dateLabels = dateVal ? _wizardDeriveDateLabels(dateVal) : {};
 
@@ -2881,8 +2924,9 @@ async function _saveWizard() {
     activeTheme:  _wizardSelectedTheme,
     activeLayout: 'classic',
     couple: {
-      names: coupleName,
-      ...(subtitle && { subtitle }),
+      names:      displayName,
+      bride_name: brideName,
+      groom_name: groomName,
     },
     event: {
       ...(dateVal && {
