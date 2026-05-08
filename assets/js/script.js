@@ -376,6 +376,67 @@ function createConfigLoadError(configUrl, status = 0) {
     return error;
 }
 
+const MONTHS_SHORT = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+const MONTHS_FULL = ['janeiro', 'fevereiro', 'marco', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+const WEEKDAYS = ['Domingo', 'Segunda-feira', 'Terca-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sabado'];
+
+function buildEventDateDisplayParts(eventDate) {
+    const source = String(eventDate || '').trim();
+    if (!source) {
+        return null;
+    }
+
+    const dateOnly = source.includes('T') ? source.split('T')[0] : source;
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(dateOnly)) {
+        return null;
+    }
+
+    // Midday avoids timezone day-shift for date-only parsing.
+    const parsed = new Date(`${dateOnly}T12:00:00`);
+    if (Number.isNaN(parsed.getTime())) {
+        return null;
+    }
+
+    const day = String(parsed.getDate()).padStart(2, '0');
+    const monthIndex = parsed.getMonth();
+    const monthNumber = String(monthIndex + 1).padStart(2, '0');
+    const year = parsed.getFullYear();
+
+    return {
+        heroDate: `${day} . ${monthNumber} . ${year}`,
+        detailDate: `${day} ${MONTHS_SHORT[monthIndex]} ${year}`,
+        displayDate: `${day} de ${MONTHS_FULL[monthIndex]} de ${year}`,
+        weekday: WEEKDAYS[parsed.getDay()]
+    };
+}
+
+function normalizeEventDateFields(config, defaults = null) {
+    const safeConfig = cloneDeep(config || {});
+    const event = safeConfig.event || {};
+    const defaultEvent = defaults?.event || {};
+    const fromEventDate = buildEventDateDisplayParts(event.date);
+
+    if (!fromEventDate) {
+        return safeConfig;
+    }
+
+    const nextEvent = { ...event };
+    const keys = ['heroDate', 'detailDate', 'displayDate', 'weekday'];
+
+    keys.forEach((key) => {
+        const current = String(nextEvent[key] || '').trim();
+        const inheritedDefault = String(defaultEvent[key] || '').trim();
+        const shouldDerive = !current || current === inheritedDefault;
+
+        if (shouldDerive) {
+            nextEvent[key] = fromEventDate[key];
+        }
+    });
+
+    safeConfig.event = nextEvent;
+    return safeConfig;
+}
+
 async function loadDefaults() {
     const fetchJson = async (url) => {
         const res = await fetch(url, { method: 'GET', headers: { Accept: 'application/json' }, cache: 'no-store' });
@@ -409,15 +470,16 @@ export async function loadConfig(configUrl, defaults = DEFAULT_SITE_CONTENT, opt
 
         const siteConfig = await response.json();
         const merged = mergeDeep(defaults, siteConfig);
-        warnConfigIssues(merged);
-        return merged;
+        const normalized = normalizeEventDateFields(merged, defaults);
+        warnConfigIssues(normalized);
+        return normalized;
     } catch (error) {
         if (!fallbackToDefaults) {
             throw error;
         }
 
         console.warn(`Falha ao carregar ${configUrl}. Usando fallback local.`, error);
-        return cloneDeep(defaults);
+        return normalizeEventDateFields(cloneDeep(defaults), defaults);
     }
 }
 

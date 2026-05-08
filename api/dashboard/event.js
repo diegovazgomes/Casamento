@@ -45,7 +45,38 @@ function buildDefaultEventSlug(coupleName, userId) {
   return `${baseSlug}-${userSuffix}`;
 }
 
+const MONTHS_SHORT = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+const MONTHS_FULL = ['janeiro', 'fevereiro', 'marco', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+const WEEKDAYS = ['Domingo', 'Segunda-feira', 'Terca-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sabado'];
+
+function deriveDateLabels(dateOnly) {
+  const parsed = new Date(`${dateOnly}T12:00:00`);
+  if (Number.isNaN(parsed.getTime())) {
+    return {
+      heroDate: '',
+      detailDate: '',
+      displayDate: '',
+      weekday: '',
+    };
+  }
+
+  const day = String(parsed.getDate()).padStart(2, '0');
+  const monthIndex = parsed.getMonth();
+  const monthNumber = String(monthIndex + 1).padStart(2, '0');
+  const year = parsed.getFullYear();
+
+  return {
+    heroDate: `${day} . ${monthNumber} . ${year}`,
+    detailDate: `${day} ${MONTHS_SHORT[monthIndex]} ${year}`,
+    displayDate: `${day} de ${MONTHS_FULL[monthIndex]} de ${year}`,
+    weekday: WEEKDAYS[parsed.getDay()],
+  };
+}
+
 function buildInitialEventConfig({ coupleName, slug, whatsapp }) {
+  const eventDate = new Date().toISOString().slice(0, 10);
+  const dateLabels = deriveDateLabels(eventDate);
+
   return {
     activeTheme: 'classic-gold',
     activeLayout: 'classic',
@@ -53,7 +84,11 @@ function buildInitialEventConfig({ coupleName, slug, whatsapp }) {
       names: coupleName || 'Novo Casal',
     },
     event: {
-      date: `${new Date().toISOString().slice(0, 10)}T17:00:00-03:00`,
+      date: `${eventDate}T17:00:00-03:00`,
+      heroDate: dateLabels.heroDate,
+      detailDate: dateLabels.detailDate,
+      displayDate: dateLabels.displayDate,
+      weekday: dateLabels.weekday,
       time: '17:00',
       locationName: 'Definir local',
       venueAddress: 'Definir endereço',

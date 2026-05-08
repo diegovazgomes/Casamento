@@ -45,4 +45,22 @@ describe('Countdown integration', () => {
     expect(document.getElementById('cd-days').textContent).toBe('00');
     expect(document.querySelector('.countdown-finished')?.textContent).toBe('Chegou o dia!');
   });
+
+  it('renders finished message only once across repeated calls', () => {
+    const now = Date.UTC(2026, 0, 2, 0, 0, 0);
+    vi.spyOn(Date, 'now').mockReturnValue(now);
+
+    const setIntervalSpy = vi.spyOn(window, 'setInterval');
+    const target = new Date(now - 1000).toISOString();
+    const countdown = new Countdown(target, { texts: { countdownFinished: 'Chegou o dia!' } });
+
+    countdown.start();
+    countdown.update();
+    countdown.displayFinished();
+
+    const finishedMessages = document.querySelectorAll('.countdown-finished');
+    expect(finishedMessages).toHaveLength(1);
+    expect(finishedMessages[0]?.textContent).toBe('Chegou o dia!');
+    expect(setIntervalSpy).not.toHaveBeenCalled();
+  });
 });

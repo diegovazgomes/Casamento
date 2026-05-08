@@ -74,6 +74,59 @@ function buildEventDateTimeString(eventDate, eventTime, fallbackValue) {
   return `${normalizedDate}T${normalizedTime}:00`;
 }
 
+const MONTHS_SHORT = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+const MONTHS_FULL = ['janeiro', 'fevereiro', 'marco', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+const WEEKDAYS = ['Domingo', 'Segunda-feira', 'Terca-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sabado'];
+
+function buildEventDateDisplayParts(eventDate) {
+  const source = String(eventDate || '').trim();
+  if (!source) {
+    return null;
+  }
+
+  const dateOnly = source.includes('T') ? source.split('T')[0] : source;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateOnly)) {
+    return null;
+  }
+
+  const parsed = new Date(`${dateOnly}T12:00:00`);
+  if (Number.isNaN(parsed.getTime())) {
+    return null;
+  }
+
+  const day = String(parsed.getDate()).padStart(2, '0');
+  const monthIndex = parsed.getMonth();
+  const monthNumber = String(monthIndex + 1).padStart(2, '0');
+  const year = parsed.getFullYear();
+
+  return {
+    heroDate: `${day} . ${monthNumber} . ${year}`,
+    detailDate: `${day} ${MONTHS_SHORT[monthIndex]} ${year}`,
+    displayDate: `${day} de ${MONTHS_FULL[monthIndex]} de ${year}`,
+    weekday: WEEKDAYS[parsed.getDay()],
+  };
+}
+
+function normalizeEventDateFields(eventConfig = {}, eventDate, sourceEventConfig = {}) {
+  const nextEvent = isPlainObject(eventConfig) ? cloneValue(eventConfig) : {};
+  const sourceEvent = isPlainObject(sourceEventConfig) ? sourceEventConfig : {};
+  const derived = buildEventDateDisplayParts(eventDate);
+
+  if (!derived) {
+    return nextEvent;
+  }
+
+  ['heroDate', 'detailDate', 'displayDate', 'weekday'].forEach((key) => {
+    const current = String(nextEvent[key] || '').trim();
+    const sourceValue = String(sourceEvent[key] || '').trim();
+    if (!current || current === sourceValue) {
+      nextEvent[key] = derived[key];
+    }
+  });
+
+  return nextEvent;
+}
+
 function setIfDefined(target, key, value) {
   if (value !== undefined && value !== null && value !== '') {
     target[key] = value;
@@ -309,6 +362,7 @@ export function buildEventConfigResponse(eventRecord) {
   setIfDefined(nextConfig.couple, 'groomName', eventRecord?.groom_name);
 
   nextConfig.event = mergeDeep(nextConfig.event, {});
+  const sourceEventConfig = cloneValue(nextConfig.event);
   setIfDefined(
     nextConfig.event,
     'date',
@@ -318,6 +372,7 @@ export function buildEventConfigResponse(eventRecord) {
   setIfDefined(nextConfig.event, 'locationName', eventRecord?.venue_name);
   setIfDefined(nextConfig.event, 'venueAddress', eventRecord?.venue_address);
   setIfDefined(nextConfig.event, 'mapsLink', eventRecord?.venue_maps_link);
+  nextConfig.event = normalizeEventDateFields(nextConfig.event, nextConfig.event?.date, sourceEventConfig);
 
   nextConfig.rsvp = normalizeRsvpConfig(nextConfig.rsvp, eventRecord?.slug);
   nextConfig.whatsapp = normalizeWhatsappConfig(nextConfig.whatsapp);
