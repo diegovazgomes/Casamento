@@ -32,7 +32,7 @@ function redirectRecoveryCallbackToResetPage() {
   const hasCode = queryParams.has('code');
   const hasRecoveryType = hashParams.get('type') === 'recovery' || queryParams.get('type') === 'recovery';
   const hasRecoveryTokens = hashParams.has('access_token') || hashParams.has('refresh_token');
-  const shouldRedirectToReset = hasCode || hasRecoveryType || hasRecoveryTokens;
+  const shouldRedirectToReset = hasRecoveryType && (hasCode || hasRecoveryTokens);
 
   if (!shouldRedirectToReset) {
     return false;
