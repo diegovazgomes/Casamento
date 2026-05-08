@@ -121,12 +121,12 @@ O roadmap correto começa em:
 
 ### DEV
 
-- [ ] Criar landing page comercial com CTA para cadastro.
+- [x] Criar landing page comercial com CTA para cadastro.
 - [x] Implementar formulário de cadastro com nome, WhatsApp, e-mail e senha.
 - [x] Integrar cadastro com Supabase Auth.
 - [x] Implementar confirmação de e-mail.
-- [ ] Criar página de confirmação e estados de sucesso e erro.
-- [ ] Criar fluxo de recuperação de senha.
+- [x] Criar página de confirmação e estados de sucesso e erro.
+- [x] Criar fluxo de recuperação de senha.
 - [ ] Criar wizard inicial no dashboard para dados do casal, evento e tema.
 - [ ] Implementar verificação de disponibilidade de `slug`.
 - [x] Implementar publicação do convite por `slug`.

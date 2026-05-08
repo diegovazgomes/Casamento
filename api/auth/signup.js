@@ -72,7 +72,7 @@ function resolveEmailRedirectTo(req) {
 
   if (explicitAppUrl) {
     if (/^https?:\/\//i.test(explicitAppUrl)) {
-      return `${explicitAppUrl.replace(/\/$/, '')}/dashboard.html`;
+      return `${explicitAppUrl.replace(/\/$/, '')}/confirm.html`;
     }
     return explicitAppUrl;
   }

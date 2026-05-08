@@ -449,10 +449,9 @@ body {
         return;
       }
 
-      // Sucesso
-      form.style.display = 'none';
-      alertSuccess.textContent = json.message || 'Conta criada com sucesso! Verifique seu e-mail (inclusive Spam) para ativar a conta.';
-      alertSuccess.classList.add('visible');
+      // Sucesso — redirecionar para página de confirmação
+      const emailParam = encodeURIComponent(data.email);
+      window.location.href = `confirm.html?step=check-email&email=${emailParam}`;
 
     } catch (err) {
       alertError.textContent = 'Não foi possível conectar ao servidor. Tente novamente.';
