@@ -88,6 +88,7 @@ async function handleGetGroups(req, res) {
           ...token,
           confirmationCount: confirmationCount || 0,
           slotsAvailable: token.max_confirmations - (confirmationCount || 0),
+          inviteLink: buildInviteLink(getOrigin(req), ownedEvent.event.slug, token.token),
         };
       })
     );
@@ -156,7 +157,7 @@ async function handleCreateGroup(req, res) {
         ...data,
         confirmationCount: 0,
         slotsAvailable: data.max_confirmations,
-        inviteLink: `${getOrigin(req)}/index.html?g=${data.token}`,
+        inviteLink: buildInviteLink(getOrigin(req), ownedEvent.event.slug, data.token),
       },
     });
   } catch (error) {
@@ -227,6 +228,7 @@ async function handleUpdateGroup(req, res) {
         ...data,
         confirmationCount: confirmationCount || 0,
         slotsAvailable: data.max_confirmations - (confirmationCount || 0),
+        inviteLink: buildInviteLink(getOrigin(req), ownedToken.events?.slug, data.token),
       },
     });
   } catch (error) {
@@ -299,4 +301,16 @@ function getOrigin(req) {
   const protocol = req.headers['x-forwarded-proto'] || 'https';
   const host = req.headers.host || 'localhost:3000';
   return `${protocol}://${host}`;
+}
+
+function buildInviteLink(origin, eventSlug, token) {
+  const normalizedOrigin = String(origin || '').replace(/\/$/, '');
+  const normalizedSlug = String(eventSlug || '').trim();
+  const encodedToken = encodeURIComponent(String(token || '').trim());
+
+  if (normalizedSlug) {
+    return `${normalizedOrigin}/${encodeURIComponent(normalizedSlug)}?g=${encodedToken}`;
+  }
+
+  return `${normalizedOrigin}/index.html?g=${encodedToken}`;
 }

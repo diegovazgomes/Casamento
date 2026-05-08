@@ -439,3 +439,127 @@ describe('/api/dashboard/event', () => {
     expect(res.body).toEqual({ error: 'Unauthorized' });
   });
 });
+
+describe('/api/dashboard/guest-groups', () => {
+  beforeEach(() => {
+    vi.resetModules();
+    createClientMock.mockReset();
+    process.env.SUPABASE_URL = 'https://example.supabase.co';
+    process.env.SUPABASE_SERVICE_ROLE_KEY = 'service-role-key';
+  });
+
+  it('returns invite links with event slug on GET and POST', async () => {
+    const ownedEventBuilder = createSelectBuilder({
+      data: {
+        id: 'event-1',
+        slug: 'ana-leo-2026',
+        user_id: 'user-1',
+        config: {},
+      },
+      error: null,
+    });
+    const guestTokensBuilder = {
+      select: vi.fn(function select() {
+        return this;
+      }),
+      eq: vi.fn(function eq() {
+        return this;
+      }),
+      order: vi.fn().mockResolvedValue({
+        data: [
+          {
+            id: 'token-row-1',
+            token: 'guest-token-1',
+            group_name: 'Familia Silva',
+            max_confirmations: 2,
+            phone: '5511999999999',
+            notes: null,
+            created_at: '2026-05-07T12:00:00Z',
+          },
+        ],
+        error: null,
+      }),
+    };
+    const confirmationsCountBuilder = {
+      select: vi.fn(function select() {
+        return this;
+      }),
+      eq: vi.fn(function eq() {
+        return this;
+      }),
+    };
+    const insertGuestTokenBuilder = {
+      insert: vi.fn(function insert() {
+        return this;
+      }),
+      select: vi.fn(function select() {
+        return this;
+      }),
+      single: vi.fn().mockResolvedValue({
+        data: {
+          id: 'token-row-2',
+          token: 'guest-token-2',
+          group_name: 'Maria',
+          max_confirmations: 1,
+          phone: null,
+          notes: null,
+        },
+        error: null,
+      }),
+    };
+
+    const fromMock = vi.fn((table) => {
+      if (table === 'events') {
+        return ownedEventBuilder;
+      }
+      if (table === 'guest_tokens') {
+        return fromMock.mock.calls.filter(([name]) => name === 'guest_tokens').length === 1
+          ? guestTokensBuilder
+          : insertGuestTokenBuilder;
+      }
+      if (table === 'rsvp_confirmations') {
+        return confirmationsCountBuilder;
+      }
+      throw new Error(`Unexpected table: ${table}`);
+    });
+
+    createClientMock.mockReturnValue({
+      auth: {
+        getUser: vi.fn().mockResolvedValue({ data: { user: { id: 'user-1' } }, error: null }),
+      },
+      from: fromMock,
+    });
+
+    const { default: handler } = await import('../../api/dashboard/guest-groups.js');
+
+    const getRes = createMockResponse();
+    await handler({
+      method: 'GET',
+      headers: { authorization: 'Bearer valid-token', host: 'example.com', 'x-forwarded-proto': 'https' },
+      query: { eventId: 'event-1' },
+    }, getRes);
+
+    expect(getRes.statusCode).toBe(200);
+    expect(getRes.body.data[0]).toMatchObject({
+      token: 'guest-token-1',
+      inviteLink: 'https://example.com/ana-leo-2026?g=guest-token-1',
+    });
+
+    const postRes = createMockResponse();
+    await handler({
+      method: 'POST',
+      headers: { authorization: 'Bearer valid-token', host: 'example.com', 'x-forwarded-proto': 'https' },
+      body: {
+        groupName: 'Maria',
+        maxConfirmations: 1,
+      },
+      query: { eventId: 'event-1' },
+    }, postRes);
+
+    expect(postRes.statusCode).toBe(201);
+    expect(postRes.body.data).toMatchObject({
+      token: 'guest-token-2',
+      inviteLink: 'https://example.com/ana-leo-2026?g=guest-token-2',
+    });
+  });
+});

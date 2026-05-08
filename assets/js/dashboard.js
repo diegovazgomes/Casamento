@@ -1302,12 +1302,26 @@ function updateOverviewStats(total, confirmados, recusados, pendentes) {
 // WHATSAPP — CONVITE E CONTATO DIRETO
 // ============================================================
 
+function buildGuestInviteLink(token, explicitLink = '') {
+  const normalizedExplicitLink = String(explicitLink || '').trim();
+  if (normalizedExplicitLink) {
+    return normalizedExplicitLink;
+  }
+
+  const encodedToken = encodeURIComponent(String(token || '').trim());
+  if (state.eventSlug) {
+    return `${window.location.origin}/${encodeURIComponent(state.eventSlug)}?g=${encodedToken}`;
+  }
+
+  return `${window.location.origin}/index.html?g=${encodedToken}`;
+}
+
 function sendInviteWhatsApp(grupoId) {
   const grupo = state.grupos.find(g => g.id === grupoId);
   if (!grupo || !grupo.phone) return;
 
   const coupleNames = window.__SITE_CONFIG__?.couple?.names || 'os noivos';
-  const link = `${window.location.origin}/index.html?g=${grupo.token}`;
+  const link = buildGuestInviteLink(grupo.token, grupo.inviteLink);
   const vagas = grupo.max_confirmations;
   const vagasTexto = vagas === 1 ? '1 pessoa' : `${vagas} pessoas`;
 
@@ -1333,7 +1347,8 @@ function openWhatsApp(phone) {
 // ============================================================
 
 async function copyInviteLink(token) {
-  const link = `${window.location.origin}/index.html?g=${token}`;
+  const grupo = state.grupos.find((item) => item.token === token);
+  const link = buildGuestInviteLink(token, grupo?.inviteLink);
   try {
     await navigator.clipboard.writeText(link);
     showCopyFeedback(token);
