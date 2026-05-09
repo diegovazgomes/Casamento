@@ -26,39 +26,48 @@ Mudancas de status devem ficar no `ROADMAP.md`. Este arquivo deve registrar apen
 
 ## 2. Visao geral do projeto
 
-Trata-se de um site estatico de convite de casamento construido sem framework e sem build step para runtime. A aplicacao roda diretamente no navegador e usa npm apenas para a camada de testes (Vitest/happy-dom), com:
+Trata-se de um convite de casamento com duas modalidades de implantacao:
+
+1. **Site estatico** — HTML/CSS/JS servido diretamente, configuracao em `assets/config/site.json`.
+2. **Plataforma multi-tenant** — implantado no Vercel com funcoes serverless (`api/`), configuracao por evento armazenada no Supabase, acessada via slug na URL (`/siannah-diego`).
+
+Nao ha build step para runtime. A aplicacao roda diretamente no navegador. `npm` e usado apenas para a camada de testes (Vitest/happy-dom).
+
+### Pilares tecnicos
 
 - HTML estatico por pagina;
 - CSS global com variaveis CSS;
 - JavaScript modular em ES Modules;
-- arquivos JSON para configuracao de conteudo, tema e tipografia.
+- arquivos JSON para configuracao de conteudo, tema e tipografia;
+- funcoes serverless Vercel para persistencia e multi-tenancy;
+- Supabase como banco de dados (PostgreSQL).
 
 ### Caracteristicas principais
 
-- O conteudo exibido nas paginas vem quase todo de `assets/config/site.json`.
-- O tema visual e carregado em runtime a partir de um arquivo JSON em `assets/config/themes/`.
+- O conteudo exibido nas paginas vem de `assets/config/site.json` (modo estatico) ou de `/api/event-config?slug=...` (modo multi-tenant).
+- O tema visual e carregado em runtime a partir de um arquivo JSON em `assets/layouts/<layout>/themes/`.
 - A tipografia global disponivel fica em `assets/config/typography.json`.
 - O arquivo central de inicializacao e `assets/js/script.js`.
-- O projeto possui uma pagina principal (`index.html`), paginas extras (`historia.html`, `faq.html`, `hospedagem.html`, `mensagem.html`, `musica.html`, `presente.html`) e duas ferramentas auxiliares (`editor.html` e `font-preview.html`).
-- Existe um fluxo de intro screen, liberacao da experiencia, troca de contexto de audio e navegacao dinamica entre paginas e secoes.
+- Existe um fluxo de loading screen, intro screen, liberacao da experiencia, troca de contexto de audio e navegacao dinamica entre paginas e secoes.
+- Convidados podem ser identificados por token via `?g=<token>`, personalizando a saudacao e controlando vagas do grupo.
 
 ### O que o sistema faz hoje
 
-- Exibe uma tela inicial de abertura do convite.
+- Exibe uma tela de loading antes do bootstrap e uma tela de intro para abertura do convite.
 - Mostra hero, contagem regressiva, detalhes do evento, confirmacao de presenca e rodape.
+- Persiste confirmacoes de presenca e mensagens de convidados no Supabase via `/api/submissions`.
 - Gera links para paginas extras a partir da configuracao.
 - Carrega uma pagina de presentes com Pix e estado de copia para a area de transferencia.
 - Redireciona o usuario ao WhatsApp com mensagem preformatada apos a confirmacao de presenca.
 - Aplica tema visual e tipografico por JSON, sem recompilar nada.
 - Controla trilha sonora com dois contextos: principal e presente.
+- Oferece painel administrativo (`/dashboard.html`) para o casal gerenciar convidados, ver confirmacoes e editar configuracoes.
 
 ---
 
 ## 3. Como executar e testar localmente
 
-Como o projeto e estatico, basta abrir os arquivos HTML diretamente no navegador ou servir a pasta com qualquer servidor estatico.
-
-### Opcoes comuns
+### Modo estatico (sem API)
 
 ```bash
 npx serve .
@@ -70,6 +79,22 @@ ou
 python -m http.server 8080
 ```
 
+### Modo multi-tenant (com API Vercel)
+
+```bash
+npm install -g vercel
+vercel dev
+```
+
+Requer variaveis de ambiente em `.env.local`:
+
+```
+SUPABASE_URL=https://xxxxx.supabase.co
+SUPABASE_ANON_KEY=eyJ...
+SUPABASE_SERVICE_ROLE_KEY=eyJ...
+DASHBOARD_PASSWORD=senha-do-casal
+```
+
 ### Entradas principais
 
 - Pagina inicial: `index.html`
@@ -77,66 +102,67 @@ python -m http.server 8080
 - Paginas extras: `historia.html`, `faq.html`, `hospedagem.html`, `mensagem.html`, `musica.html`
 - Ferramenta de edicao de configuracao: `editor.html`
 - Ferramenta de comparacao tipografica: `font-preview.html`
+- Painel administrativo: `dashboard.html`
 
-### Observacao importante
+### Observacao importante sobre fetch()
 
-Embora varios navegadores consigam abrir o site direto por arquivo local, o comportamento com `fetch()` e mais previsivel quando se usa um servidor estatico local. Isso e especialmente importante porque o sistema carrega JSON em runtime.
+Sem servidor local, alguns ambientes podem impor restricoes na carga de JSON via `fetch()`. Sempre use um servidor local para desenvolvimento.
 
-### Testes de smoke (Vitest)
-
-O projeto possui uma suite minima de smoke tests com Vitest para validar partes criticas de configuracao e logica.
-
-#### Instalar dependencias de teste
+### Testes (Vitest)
 
 ```bash
-npm install
-```
-
-#### Rodar os testes
-
-```bash
-npm test
-```
-
-#### Modo watch (opcional)
-
-```bash
+npm install       # instalar dependencias
+npm test          # rodar todos os testes
 npm run test:watch
-```
-
-#### Cobertura (opcional)
-
-```bash
 npm run test:coverage
 ```
 
-#### Escopo atual da suite
+#### Suite atual (17 arquivos de teste)
 
-- `tests/unit/utils.test.js`: `mergeDeep()` e `cloneDeep()`
-- `tests/unit/countdown.calculation.test.js`: calculo puro do countdown
-- `tests/unit/rsvp.message.test.js`: construcao de mensagem/URL de WhatsApp
-- `tests/integration/script.config.test.js`: `loadConfig()` e `loadTheme()` com `fetch` mockado
-- `tests/integration/countdown.integration.test.js`: atualizacao de DOM do contador
-- `tests/integration/presente.clipboard.test.js`: fluxo de copia do Pix (clipboard e fallback)
+**Unit (tests/unit/):**
+- `utils.test.js` — `mergeDeep()`, `cloneDeep()`
+- `countdown.calculation.test.js` — calculo puro do countdown
+- `rsvp.message.test.js` — construcao de mensagem/URL de WhatsApp
+- `rsvp.persistence.test.js` — operacoes no Supabase via rsvp-persistence.js
+- `event-config.mapper.test.js` — mapeamento de config de evento da API
+
+**Integration (tests/integration/):**
+- `script.config.test.js` — `loadConfig()` e `loadTheme()` com fetch mockado
+- `countdown.integration.test.js` — atualizacao de DOM do contador
+- `presente.clipboard.test.js` — fluxo de copia do Pix
+- `rsvp.flow.integration.test.js` — fluxo completo de RSVP
+- `loading-screen.test.js` — visibilidade da loading screen
+- `event-config.api.test.js` — endpoint `/api/event-config`
+- `dashboard.integration.test.js` — funcionalidades do dashboard
+- `dashboard-theme-config.test.js` — config de tema no dashboard
+- `dashboard-event.api.test.js` — endpoint de evento do dashboard
+- `dashboard-media.api.test.js` — endpoint de midia do dashboard
+- `guest-submissions.integration.test.js` — fluxo de submissao de convidados
+- `submissions.api.test.js` — endpoint `/api/submissions`
 
 ---
 
 ## 4. Filosofia arquitetural
 
-O projeto segue uma arquitetura simples, mas com uma separacao clara entre:
+O projeto segue uma separacao clara entre:
 
 - estrutura HTML;
 - estilo visual via CSS variables;
 - comportamento JavaScript;
-- conteudo e configuracoes via JSON.
+- conteudo e configuracoes via JSON (ou API).
 
-### Decisao central do projeto
+### Decisao central
 
-O HTML contem principalmente os containers e IDs necessarios para o JavaScript preencher o DOM. O conteudo real, quando configuravel, nao deveria ficar hardcoded nas paginas, e sim vir do JSON.
+O HTML contem principalmente containers e IDs para o JavaScript preencher o DOM. O conteudo real, quando configuravel, nao fica hardcoded nas paginas.
 
-### Consequencia pratica
+### Modo estatico vs. multi-tenant
 
-Isso torna o projeto relativamente facil de portar para outro casal, outro evento, outro tema ou outro fluxo visual sem reescrever a estrutura inteira da aplicacao.
+O modulo `assets/js/config-source.js` resolve automaticamente de qual fonte vem a configuracao:
+
+- Se a URL nao tem slug (ex: `localhost/index.html`): usa `assets/config/site.json`.
+- Se a URL tem slug (ex: `meusite.com/siannah-diego`): usa `/api/event-config?slug=siannah-diego`.
+
+Isso torna o mesmo codebase de frontend capaz de rodar como site estatico ou como instancia de uma plataforma multi-tenant, sem alterar nenhum arquivo.
 
 ---
 
@@ -156,9 +182,27 @@ Isso torna o projeto relativamente facil de portar para outro casal, outro event
 ├── musica.html
 ├── editor.html
 ├── font-preview.html
+├── dashboard.html
 ├── package.json
 ├── package-lock.json
 ├── vitest.config.js
+├── api/
+│   ├── config.js
+│   ├── submissions.js
+│   ├── event-config.js
+│   ├── guest-token.js
+│   ├── _lib/
+│   │   ├── supabase-server.js
+│   │   ├── event-config.js
+│   │   └── dashboard-auth.js
+│   └── dashboard/
+│       ├── auth.js
+│       ├── confirmations.js
+│       ├── event.js
+│       ├── guest-groups.js
+│       ├── media.js
+│       ├── reminders.js
+│       └── submissions.js
 ├── assets/
 │   ├── audio/
 │   ├── config/
@@ -167,7 +211,7 @@ Isso torna o projeto relativamente facil de portar para outro casal, outro event
 │   │   ├── defaults/
 │   │   │   ├── site.json
 │   │   │   └── theme.json
-│   │   ├── themes/
+│   │   ├── themes/             (legado — temas agora em assets/layouts/)
 │   │   └── schemas/
 │   │       ├── site-schema.json
 │   │       └── theme-schema.json
@@ -199,6 +243,7 @@ Isso torna o projeto relativamente facil de portar para outro casal, outro event
 │       ├── main.js
 │       ├── countdown.js
 │       ├── rsvp.js
+│       ├── rsvp-persistence.js
 │       ├── audio.js
 │       ├── presente.js
 │       ├── historia.js
@@ -211,131 +256,692 @@ Isso torna o projeto relativamente facil de portar para outro casal, outro event
 │       ├── font-preview.js
 │       ├── gallery.js
 │       ├── map.js
-│       └── utils.js
+│       ├── utils.js
+│       ├── config-source.js
+│       ├── loading-screen.js
+│       ├── debug-badge.js
+│       ├── dashboard-theme-config.js
+│       └── dashboard.js
 ├── tests/
 │   ├── integration/
 │   ├── setup/
 │   └── unit/
 └── docs/
-		└── theme-guide.md
+    ├── theme-guide.md
+    ├── supabase-setup.sql
+    ├── supabase-phase1-migration.sql
+    └── migrations/
 ```
 
 ### Leitura rapida por area
 
 - `index.html` e a experiencia principal.
-- `assets/js/script.js` e o entry point e o orchestrator do sistema.
-- `assets/config/site.json` e a principal fonte de conteudo e parametrizacao.
-- `assets/config/themes/*.json` definem visual, espacamentos, cores, animacao e tipografia.
-- `assets/css/style.css` e `assets/css/animations.css` consomem as variaveis de tema.
-- `editor.html` + `assets/js/editor.js` funcionam como ferramenta interna para editar `site.json` no navegador.
+- `assets/js/script.js` e o entry point e orquestrador do sistema.
+- `assets/js/config-source.js` resolve de onde vem a configuracao (estatico ou API).
+- `assets/config/site.json` e a principal fonte de conteudo e parametrizacao no modo estatico.
+- `assets/layouts/<layout>/themes/*.json` definem visual, espacamentos, cores, animacao e tipografia.
+- `api/` contem as funcoes serverless Vercel.
+- `dashboard.html` + `assets/js/dashboard.js` formam o painel administrativo.
 
 ---
 
-## 6. Fontes de verdade e precedencia de configuracao
+## 6. Modulo `assets/js/config-source.js`
 
-Esse ponto e um dos mais importantes do projeto.
+Modulo central para resolucao da fonte de configuracao. E importado por `loading-screen.js` e `dashboard-theme-config.js`.
 
-### 6.1 Conteudo principal
+### Exportacoes
 
-O conteudo principal vem de `assets/config/site.json`.
+#### `STATIC_SITE_CONFIG_URL`
 
-Esse arquivo hoje concentra:
+Constante: `'assets/config/site.json'`
 
-- nomes do casal;
-- subtitulo;
-- data e informacoes do evento;
-- textos da interface;
-- informacoes de presente;
-- trilhas de audio;
-- configuracao de WhatsApp;
-- definicao das paginas extras;
-- tema ativo;
-- sobrescritas de tema (`themeOverrides`, quando usadas).
+#### `DEFAULT_LAYOUT_KEY`
 
-### 6.2 Tema ativo
+Constante: `'classic'`
 
-Ha dois niveis para selecao de tema:
+#### `DEFAULT_THEME_PATH`
 
-1. `const ACTIVE_THEME_PATH` em `assets/js/script.js`
-2. `activeTheme` dentro de `assets/config/site.json`
+Constante: `'assets/layouts/classic/themes/classic-silver.json'`
 
-### Regra real de precedencia
+#### `getEventSlugFromPath(pathname?)`
 
-O sistema usa esta ordem:
+Extrai o slug do evento do pathname da URL. Retorna string vazia se nao houver slug valido, se o primeiro segmento contiver ponto (arquivo), ou se for `api` / `assets`.
 
-1. `site.json.activeTheme`
+#### `resolveSiteConfigSource(pathname?)`
+
+Retorna `{ slug, url, usesApi }`:
+
+- `usesApi: false` + `url: STATIC_SITE_CONFIG_URL` quando nao ha slug.
+- `usesApi: true` + `url: /api/event-config?slug=...` quando ha slug.
+
+#### `resolveThemePath(activeTheme, layoutKey?)`
+
+- Se `activeTheme` comeca com `'assets/'`: caminho legado, retorna diretamente.
+- Caso contrario: `assets/layouts/{layoutKey}/themes/{activeTheme}.json`.
+- Se `activeTheme` for falsy: retorna `DEFAULT_THEME_PATH`.
+
+---
+
+## 7. Fontes de verdade e precedencia de configuracao
+
+### 7.1 Conteudo principal
+
+**Modo estatico:** `assets/config/site.json`.
+
+**Modo multi-tenant:** `/api/event-config?slug=<slug>` retorna um objeto compativel com o mesmo formato do `site.json`, construido a partir da tabela `events` (e `event_gifts`) no Supabase.
+
+### 7.2 Tema ativo
+
+Ordem de precedencia:
+
+1. `site.json.activeTheme` (ou campo equivalente da API)
 2. `ACTIVE_THEME_PATH` em `script.js` como fallback
 
-Ou seja: hoje a fonte preferencial para definir o tema ativo e o proprio `site.json`. A constante em `script.js` funciona como reserva.
+### 7.3 Tipografia global
 
-### 6.3 Tipografia global
+As familias tipograficas disponiveis ficam em `assets/config/typography.json`. Sao mescladas com as familias declaradas no tema. O tema tem prioridade.
 
-As familias tipograficas disponiveis ficam em `assets/config/typography.json`.
-
-Essas familias sao mescladas com as familias declaradas no tema. O tema tem prioridade sobre o global para preservar o visual configurado.
-
-### 6.4 Ordem final de resolucao do tema
-
-O tema efetivo aplicado ao site e construido assim:
+### 7.4 Ordem final de resolucao do tema
 
 1. `assets/config/defaults/theme.json` carregado por `loadDefaults()`
 2. merge do arquivo de tema carregado por `loadTheme()`
 3. merge da tipografia global via `mergeThemeWithGlobalTypography()`
-4. merge de `siteConfig.themeOverrides` via `applySiteThemeOverrides()`
+4. merge de `siteConfig.themeOverrides` / `themeOverridesByTheme` via `applySiteThemeOverrides()`
 5. aplicacao de `responsive.mobile` via `resolveTheme()` quando viewport <= 767px
 6. escrita das CSS variables via `applyTheme()`
 
-Se os arquivos de defaults falharem no carregamento, `script.js` ainda possui um fallback minimo inline para evitar quebra total do bootstrap.
-
-Essa pipeline e uma das partes mais importantes da arquitetura.
-
-### 6.5 Pipeline de resolucao de layout
-
-Antes da resolucao de tema, o sistema resolve o layout:
+### 7.5 Pipeline de resolucao de layout
 
 1. `config.activeLayout` (ou fallback `ACTIVE_LAYOUT_KEY = 'classic'`)
 2. `loadLayout(layoutKey)` injeta `<link rel="stylesheet" href="assets/layouts/{layout}/layout.css">` no `<head>`
-3. `resolveThemePath(activeTheme, layoutKey)` decide o caminho do tema:
-   - se `activeTheme` começa com `assets/`: caminho legado, usado diretamente
-   - caso contrario: `assets/layouts/{layout}/themes/{activeTheme}.json`
-
-O CSS de layout e carregado dinamicamente apos `style.css` e `animations.css`, garantindo maior prioridade na cascata.
+3. `resolveThemePath(activeTheme, layoutKey)` decide o caminho do tema (via `config-source.js`)
 
 ---
 
-## 6.6 Sistema de layouts
+## 8. Fluxo completo da aplicacao em runtime
 
-### Conceito
+### 8.1 Loading screen (antes do bootstrap)
 
-Layouts definem estrutura visual (disposicao do hero, grid, tipografia com personalidade). Temas definem cores e fontes. Sao dois niveis independentes e compostos.
+`assets/js/loading-screen.js` (`initLoadingScreen()`):
+
+1. Injeta HTML da loading screen no body.
+2. Tenta carregar cores persistidas do `sessionStorage` (`ls-theme-colors`); se nao houver, aplica cores neutras.
+3. Faz fetch da configuracao (via `resolveSiteConfigSource()`) apenas para extrair `couple.names` e exibir os nomes dos noivos.
+4. O bootstrap principal aplica as cores reais do tema via `applyThemeToLoadingScreen(theme)`.
+5. `markBootstrapComplete()` e `markContentReady()` controlam a visibilidade da tela.
+
+### 8.2 Bootstrap antecipado no HTML
+
+Em `index.html` existe um script inline no `<head>` que executa antes do bootstrap principal:
+
+- tenta ler `sessionStorage`;
+- tenta ler o query param `section`;
+- define `window.__INVITATION_BOOTSTRAP__`;
+- define `shouldSkipIntro` quando necessario;
+- adiciona `skip-intro` ao `documentElement`;
+- configura `history.scrollRestoration = 'manual'`.
+
+### 8.3 Bootstrap principal (`bootstrap()` em `script.js`)
+
+1. `loadDefaults()` — carrega `defaults/theme.json` e `defaults/site.json` em paralelo.
+2. `resolveSiteConfigSource()` — determina URL da config (estatica ou API).
+3. `loadConfig()` — carrega e mescla a configuracao.
+4. Identifica layout e tema ativos.
+5. `loadLayout(layoutKey)` — injeta CSS do layout no `<head>`.
+6. `loadTheme(themePath)` — carrega e mescla o tema.
+7. `loadTypographyConfig()` — carrega tipografia global.
+8. `mergeThemeWithGlobalTypography()`, `applySiteThemeOverrides()`, `resolveTheme()`.
+9. `applyTheme()` — escreve todas as CSS variables no `:root`.
+10. `applyThemeToLoadingScreen(theme)` — repassa cores reais para a loading screen.
+11. Instancia `InvitationExperience`.
+12. Dispara `app:ready`.
+
+### 8.4 Liberacao da experiencia
+
+- Marca a experiencia como iniciada em `sessionStorage`.
+- Mostra o shell principal.
+- Inicializa modulos centrais.
+- Desbloqueia audio.
+- Navega para hash ou secao quando aplicavel.
+
+---
+
+## 9. Arquivo central: `assets/js/script.js`
+
+Entry point e orquestrador. Contem a pipeline completa de bootstrap e a classe `InvitationExperience`.
+
+### 9.1 Constantes principais
+
+- `SITE_CONFIG_URL`: `'assets/config/site.json'`
+- `TYPOGRAPHY_CONFIG_URL`: caminho do typography.json
+- `INVITATION_STARTED_STORAGE_KEY`: chave do sessionStorage
+- `NAVIGATION_SECTION_PARAM`: `'section'`
+- `ACTIVE_THEME_PATH`: fallback do tema ativo
+- `DEFAULT_THEME_URL` / `DEFAULT_SITE_CONTENT_URL`: caminhos dos defaults
+- `ACTIVE_LAYOUT_KEY`: `'classic'`
+
+### 9.2 Funcoes utilitarias
+
+#### `isMobileViewport()`
+Retorna `true` quando viewport atende `(max-width: 767px)`.
+
+#### `getBootstrapNavigationState()`
+Le `window.__INVITATION_BOOTSTRAP__` e devolve `{ shouldSkipIntro, navigationTarget }`.
+
+#### `resolveTheme(theme)`
+Aplica `theme.responsive.mobile` sobre o tema base quando mobile.
+
+#### `resolveTypographyRoles(theme)`
+Expande `theme.typography.roles` em variaveis CSS individuais (`--typo-<role>-family`, `--typo-<role>-size`, etc.).
+
+#### `applyTheme(theme)`
+Converte a estrutura do tema em CSS custom properties e aplica no `document.documentElement`. Preserva aliases legados: `--cream`, `--gold`, `--gold-light`, `--dark`.
+
+#### `applyThemeToLoadingScreen(theme)`
+Repassa cores do tema efetivo para a loading screen (cor de fundo, texto e primaria).
+
+#### `loadDefaults()`
+Carrega em paralelo `defaults/theme.json` e `defaults/site.json`.
+
+#### `loadConfig()`
+Faz fetch da config (URL resolvida por `config-source.js`), mescla com defaults, chama `warnConfigIssues()`.
+
+#### `loadTheme(themePath)`
+Carrega o arquivo de tema via fetch, mescla sobre `DEFAULT_THEME`. Chama `warnThemeIssues()`.
+
+#### `loadLayout(layoutKey)`
+Injeta `<link rel="stylesheet">` do CSS de layout no `<head>`.
+
+#### `loadTypographyConfig()`
+Carrega `typography.json`. Se falhar, devolve estrutura minima.
+
+#### `mergeThemeWithGlobalTypography(theme, typographyConfig)`
+Mescla familias tipograficas globais com as do tema. Tema prevalece.
+
+#### `applySiteThemeOverrides(theme, siteConfig, activeThemePath)`
+Aplica `themeOverridesByTheme[temaAtivo]` sobre o tema ja carregado.
+
+#### `warnConfigIssues(config)` / `warnThemeIssues(theme)`
+Emitem `console.warn` para campos criticos ausentes.
+
+#### `readNavigationStateFromUrl()` / `buildInternalUrl(base, section)`
+Utilitarios de navegacao baseada em query params.
+
+### 9.3 Classe `InvitationExperience`
+
+#### `constructor(config, theme, navigationState = {})`
+Guarda configuracoes, cria instancias base, coleta referencias do DOM.
+
+#### `init()`
+Executa inicializacao principal: setMeta, setHero, setEventDetails, setTexts, setGift, setPages, presentPage.init(), bindIntro, bindAudioToggle. Decide se entra direto ou aguarda clique.
+
+#### `bindIntro()` / `bindAudioToggle()`
+Ligam eventos de UI ao fluxo de entrada e controle de audio.
+
+#### `initializeMainSite()`
+Inicializa `WeddingApp`, `Countdown`, `RSVP`. Registra `beforeunload`.
+
+#### `getInitialAudioContext()`
+Escolhe contexto de audio: `gift` em paginas de presente/extras, `main` na principal.
+
+#### `enterInvitation(options)`
+Fluxo principal de entrada. Marca sessao, atualiza estado visual, inicializa site, libera audio, navega.
+
+#### `navigateWithinInvitation({ targetSection, forceTop })`
+Centraliza logica de navegacao pos-inicio.
+
+#### `scrollToSection(sectionId)` / `clearNavigationTarget()`
+Scroll suave e limpeza de query params.
+
+#### `applyStartedState({ skipIntro })`
+Aplica classes no body, revela shell, esconde/anima saida da intro.
+
+#### `wasInvitationStarted()` / `markInvitationStarted()`
+Leem e escrevem `sessionStorage`.
+
+#### `syncAudioButton()`
+Sincroniza classes, `aria-label`, `aria-pressed` do botao de audio.
+
+#### `setMeta()`, `setHero()`, `setEventDetails()`, `setTexts()`, `setGift()`, `setPages()`
+Preenchem o DOM com dados do config.
+
+### 9.4 `bootstrap()`
+
+Orquestra o carregamento e expoe `window.CONFIG`, `window.THEME`. Dispara `app:ready`.
+
+---
+
+## 10. Modulo `assets/js/loading-screen.js`
+
+Gerencia a tela de carregamento visual antes do bootstrap principal.
+
+### Exportacoes
+
+#### `initLoadingScreen()`
+Async. Injeta o HTML da loading screen, tenta carregar cores persistidas ou aplica neutras, busca nomes do casal em paralelo ao bootstrap.
+
+#### `applyThemeToLoadingScreen(theme)`
+Chamada pelo `bootstrap()` apos o tema ser resolvido. Aplica `colors.background`, `colors.text`, `colors.primary` via CSS variables. Persiste as cores no `sessionStorage` para proximas visitas (evita flash neutro).
+
+#### `markBootstrapComplete()` / `markContentReady()` / `hideLoadingScreen()`
+Controlam o ciclo de vida da loading screen: quando o bootstrap termina e quando o conteudo esta visivel.
+
+---
+
+## 11. Modulo `assets/js/debug-badge.js`
+
+Visivel apenas quando a URL contem `?debug` ou `?dev`.
+
+Exibe um badge com:
+- timestamp de load da pagina;
+- timestamp do fetch da config;
+- tema ativo;
+- indicador `FRESH` / `CACHED` (via Performance API, baseado em `transferSize === 0` ou `duration < 10ms`).
+
+Nao exporta nada; executa ao importar se o modo debug estiver ativo.
+
+---
+
+## 12. Modulo `assets/js/main.js`
+
+Exporta a classe `WeddingApp`.
+
+### Metodos
+
+#### `init()`
+Encadeia os metodos de setup.
+
+#### `setupHeroContentReveal()`
+Revela o conteudo do hero com delay configuravel.
+
+#### `setupHeroPhoto()`
+Marca a imagem do casal como carregada adicionando a classe `loaded`.
+
+#### `setupScrollHint()`
+Conecta o elemento com `data-scroll-target` a `scrollIntoView({ behavior: 'smooth' })`.
+
+#### `setupRevealOnScroll()`
+`IntersectionObserver` que adiciona a classe `visible` a elementos ao entrarem na viewport. Seletores: `.section-tag`, `.section-title`, `.section-body`, `.divider`, `.countdown-wrap`, `.details-grid`, `.rsvp-section`.
+
+---
+
+## 13. Modulo `assets/js/countdown.js`
+
+Exporta a classe `Countdown` e a funcao pura `calculateCountdown(targetTimestamp, now?)`.
+
+### Metodos
+
+#### `constructor(targetDate, config = {})`
+Converte a data alvo para timestamp e captura elementos do DOM.
+
+#### `hasRequiredElements()`
+Verifica se todos os elementos do contador existem.
+
+#### `formatNumber(value)`
+Dois digitos quando `config.countdown.format === 'two-digits'`.
+
+#### `update()`
+Calcula e atualiza o DOM. Chama `calculateCountdown()` internamente.
+
+#### `displayFinished()`
+Zera valores e cria `<p class="countdown-finished">` com mensagem de fim.
+
+#### `start()` / `stop()`
+Inicia/para o `setInterval`.
+
+### Dependencias de DOM
+
+`#countdownWrap`, `#cd-days`, `#cd-hours`, `#cd-mins`, `#cd-secs`.
+
+---
+
+## 14. Modulo `assets/js/rsvp.js`
+
+Exporta a classe `RSVP`.
+
+### Comportamento geral
+
+1. Usuario escolhe se vai ou nao.
+2. Informa nome e telefone.
+3. Sistema valida campos.
+4. Escolhe template de mensagem.
+5. Monta URL `https://wa.me/...`.
+6. Em paralelo (nao-bloqueante), salva no Supabase via `rsvp-persistence.js`.
+7. Mostra feedback e redireciona ao WhatsApp apos delay.
+
+### Metodos principais
+
+`init()`, `bindAttendanceButtons()`, `setAttendance(attending)`, `handleSubmit(event)`, `validateName()`, `validatePhone()`, `buildWhatsAppUrl()`, `renderSuccess()`, `renderError()`, `scheduleRedirect(url)`.
+
+### Estrutura de configuracao esperada
+
+- `whatsapp.destinationPhone`
+- `whatsapp.recipientName`
+- `whatsapp.redirectDelayMs`
+- `whatsapp.messages.attending` / `notAttending`
+- `whatsapp.feedback.attending` / `notAttending` / `error`
+- `rsvp.supabaseEnabled`
+- `rsvp.eventId`
+
+---
+
+## 15. Modulo `assets/js/rsvp-persistence.js`
+
+Salva dados no Supabase via duas estrategias em cascata:
+
+1. **Endpoint serverless** `POST /api/submissions` (preferencial).
+2. **Cliente Supabase direto** (fallback quando o endpoint retorna 401/403/404/405/500/503).
+
+### Tabelas
+
+- `rsvp_confirmations`: confirmacoes de presenca.
+- `guest_submissions`: mensagens e sugestoes de musica.
+
+### Funcoes exportadas
+
+#### `saveRsvpConfirmation(payload, config)`
+Salva confirmacao de presenca. Payload inclui: `name`, `phone`, `attendance`, `event_id`, `source`, `token_id`, `marketing_consent`, `group_name`, `group_max_confirmations` (colunas opcionais strips automaticamente se schema for antigo).
+
+#### `saveGuestMessage(payload, config)`
+Salva mensagem ao casal. `type: 'message'`.
+
+#### `saveSongSuggestion(payload, config)`
+Salva sugestao de musica. `type: 'song'`.
+
+### Observacao
+
+A chamada e nao-bloqueante no fluxo do RSVP: usa `.catch()` sem `await`. Se o Supabase estiver fora, o convidado nao ve erro.
+
+---
+
+## 16. Modulo `assets/js/audio.js`
+
+Exporta a classe `AudioController` (extends `EventTarget`).
+
+### Estrategia geral
+
+- Audio so e liberado apos interacao do usuario.
+- Dois contextos: `main` e `gift`.
+- Trocas de contexto usam fade out/fade in.
+
+### Metodos principais
+
+`unlock()`, `startFromGesture(trackKey)`, `setContext(trackKey)`, `playTrack(trackKey)`, `pause()`, `resume()`, `toggle()`, `fadeOutCurrent()`, `fadeVolume(audio, targetVolume, duration)`, `safePlay(audio)`.
+
+### Estrutura esperada de `media.tracks`
+
+```json
+{
+  "main":  { "src": "assets/audio/main-theme.mp3",  "volume": 0.14, "startTime": 8  },
+  "gift":  { "src": "assets/audio/gift-theme.mp3",  "volume": 0.12, "startTime": 78 }
+}
+```
+
+---
+
+## 17. Modulo `assets/js/presente.js`
+
+Exporta a classe `PresentPage`. Controla a copia do codigo Pix.
+
+### Metodos
+
+`constructor()`, `init()`, `handleCopy(button)`, `getFeedbackElement(button)`, `setFeedback(button, feedback, message, isSuccess)`, `copyWithFallback(value)`.
+
+---
+
+## 18. Modulos das paginas extras
+
+### 18.0 `assets/js/extra-page.js`
+
+Funcao `initExtraPage({ pageKey, idPrefix, onReady, onReveal })`.
+
+Padroniza o bootstrap das extras: aguarda `app:ready`, localiza `config.pages.<pageKey>.content`, preenche metadados basicos, dispara callback.
+
+### 18.1 `assets/js/historia.js`
+
+Usa `initExtraPage` com `pageKey: 'historia'`. Renderiza timeline com `renderTimeline(chapters)`. Quando `content.gallery` possui itens, revela `#historiaGallery` e inicializa carrossel via `initGallery()`.
+
+### 18.2 `assets/js/faq.js`
+
+Usa `initExtraPage` com `pageKey: 'faq'`. Renderiza `renderFaq(items)` em `#faqList`.
+
+### 18.3 `assets/js/hospedagem.js`
+
+Usa `initExtraPage` com `pageKey: 'hospedagem'`. Renderiza `renderCards(containerId, items)` para hoteis e restaurantes.
+
+### 18.4 `assets/js/mensagem.js`
+
+Usa `initExtraPage` com `pageKey: 'mensagem'`. Valida campo obrigatorio, constroi URL `wa.me`, abre em nova aba, exibe feedback. Salva no Supabase via `saveGuestMessage()`.
+
+### 18.5 `assets/js/musica.js`
+
+Usa `initExtraPage` com `pageKey: 'musica'`. Fluxo identico ao mensagem.js para sugestoes de musica. Salva via `saveSongSuggestion()`.
+
+---
+
+## 19. Modulo `assets/js/gallery.js`
+
+Exporta `initGallery(containerId, images)`.
+
+Constroi HTML interno da galeria (slides, dots, botoes prev/next). Navegacao por clique e teclado (ArrowLeft/ArrowRight). Sem efeito se `images` for vazio.
+
+### Como habilitar
+
+Em `site.json`, dentro de `pages.historia.content.gallery`:
+```json
+[{ "src": "assets/images/gallery/foto1.jpg", "alt": "Descricao" }]
+```
+
+---
+
+## 20. Modulo `assets/js/map.js`
+
+Exporta `initLeafletMap(event)`. Escuta `app:ready`. Se `event.mapEnabled !== true`, esconde `#venueMapSection`. Inicializa mapa Leaflet com tile OpenStreetMap, marcador em `event.venueCoordinates`, popup com nome/endereco/link Google Maps, circulo de 400m.
+
+### Campos de config relacionados
+
+`event.mapEnabled`, `event.venueCoordinates`, `event.venueAddress`, `event.locationName`, `event.mapsLink`.
+
+---
+
+## 21. Modulo `assets/js/utils.js`
+
+Utilitarios compartilhados por varios modulos.
+
+### DOM
+- `setText(id, value)` — preenche `textContent` por ID.
+- `setInputPlaceholder(id, value)` — preenche `placeholder` por ID.
+- `revealElements(selector)` — adiciona classe `visible` a elementos.
+
+### Dados
+- `cloneDeep(value)` — clone profundo recursivo.
+- `mergeDeep(base, override)` — merge profundo recursivo.
+- `getPath(obj, path)` — acessa propriedade por caminho de string.
+- `setPath(obj, path, value)` — define propriedade por caminho.
+- `removePath(obj, path)` — remove propriedade por caminho.
+
+### Strings / Validacao
+- `debounce(fn, delay)` — debounce simples.
+- `escapeHtml(str)` — escapa caracteres HTML.
+- `isValidHttpUrl(str)` — valida URL http/https.
+- `isIndexKey(key)` — verifica se chave e numero inteiro.
+
+---
+
+## 22. Modulo `assets/js/dashboard-theme-config.js`
+
+Carrega e resolve a configuracao de tema para o dashboard. Usado por `dashboard.js` para aplicar o tema visual do evento no painel administrativo.
+
+### Exportacao principal
+
+`loadDashboardThemeConfig()` — async. Carrega `site.json` (ou API), resolve caminho do tema, carrega e mescla defaults, tipografia e overrides. Retorna o tema efetivo aplicavel ao dashboard.
+
+---
+
+## 23. Modulo `assets/js/dashboard.js`
+
+Logica completa do painel administrativo do casal (`dashboard.html`).
+
+### Funcionalidades
+
+- Autenticacao por senha via `POST /api/dashboard/auth`.
+- Gestao de grupos de convidados (criar, editar, remover).
+- Visualizacao de confirmacoes de presenca com filtros.
+- Leitura de mensagens e sugestoes de musica dos convidados.
+- Relatorios e estatisticas por grupo.
+- Exportacao de dados.
+- Edicao de configuracoes do evento via `PUT /api/dashboard/event`.
+- Upload de midia via `/api/dashboard/media`.
+
+### Estado global
+
+```js
+const state = {
+  authToken, eventId, eventSlug,
+  grupos, confirmacoes, allConfirmacoes,
+  mensagens, musicas, currentPage, editingGrupoId
+}
+```
+
+### Autenticacao
+
+Usa token HMAC com TTL de 1 hora. Token armazenado em `sessionStorage` (`dashboard-access-token`). Suporte a autenticacao legada via `localStorage` (`dashboardToken`).
+
+---
+
+## 24. Camada de API (Vercel Serverless Functions)
+
+Todas as funcoes ficam em `api/`. Sao funcoes Vercel (Node.js), exportando `default async function handler(req, res)`.
+
+### 24.1 `api/config.js`
+
+`GET /api/config`
+
+Expoe `SUPABASE_URL` e `SUPABASE_ANON_KEY` para o frontend. Usado por `rsvp-persistence.js` para inicializar o cliente Supabase no navegador.
+
+### 24.2 `api/submissions.js`
+
+`POST /api/submissions`
+
+Body: `{ table: 'rsvp_confirmations' | 'guest_submissions', payload: {...} }`
+
+Valida e sanitiza os dados antes de inserir no Supabase. Lida com compatibilidade de schema (remove colunas opcionais se o schema for antigo). Retorna `{ ok: true }` ou `{ error: ... }`.
+
+### 24.3 `api/event-config.js`
+
+`GET /api/event-config?slug=<slug>`
+
+Busca o evento na tabela `events` pelo slug. Constroi e retorna um objeto de config compativel com o formato do `site.json`. Inclui dados de `event_gifts`. Suporta galeria resolvida de storage.
+
+### 24.4 `api/guest-token.js`
+
+`GET /api/guest-token?token=<token>`
+
+Valida o token (max 64 chars), busca na tabela `guest_tokens`, conta confirmacoes existentes do grupo e retorna `{ groupName, maxConfirmations, usedConfirmations }`. Usa `SUPABASE_SERVICE_ROLE_KEY` server-side.
+
+### 24.5 `api/dashboard/auth.js`
+
+`POST /api/dashboard/auth`
+
+Body: `{ password }`
+
+Valida contra `DASHBOARD_PASSWORD` (env var). Gera token HMAC com TTL 1h. Retorna `{ token, expiresAt }`.
+
+### 24.6 `api/dashboard/confirmations.js`
+
+`GET /api/dashboard/confirmations`
+
+Lista confirmacoes de presenca do evento com paginacao e filtros.
+
+### 24.7 `api/dashboard/event.js`
+
+`GET/PUT /api/dashboard/event`
+
+Leitura e edicao das configuracoes do evento pelo casal.
+
+### 24.8 `api/dashboard/guest-groups.js`
+
+CRUD de grupos de convidados. Gera tokens personalizados por grupo.
+
+### 24.9 `api/dashboard/media.js`
+
+Upload e gestao de midias do evento (imagens, audio).
+
+### 24.10 `api/dashboard/reminders.js`
+
+Gestao de lembretes e campanhas.
+
+### 24.11 `api/dashboard/submissions.js`
+
+Lista mensagens e sugestoes de musica recebidas.
+
+### 24.12 `api/_lib/supabase-server.js`
+
+`createSupabaseServerClient()` — cria cliente Supabase com `SUPABASE_SERVICE_ROLE_KEY` para uso server-side.
+
+### 24.13 `api/_lib/event-config.js`
+
+Utilitarios para construcao do objeto de config a partir dos dados do banco: `buildEventConfigResponse()`, `applyGalleryToHistoriaConfig()`, `resolveEventGalleryFromStorage()`.
+
+### 24.14 `api/_lib/dashboard-auth.js`
+
+Middleware de autenticacao do dashboard. Valida token HMAC nas requisicoes.
+
+---
+
+## 25. Banco de dados (Supabase)
+
+Schema completo em `docs/supabase-setup.sql`. Migracoes em `docs/migrations/`.
+
+### Tabelas principais
+
+| Tabela | Descricao |
+|--------|-----------|
+| `events` | Configuracao de cada evento (slug, nomes, data, tema, config JSON) |
+| `event_gifts` | Opcoes de presente por evento (Pix, cartao, catalogo) |
+| `rsvp_confirmations` | Confirmacoes de presenca dos convidados |
+| `guest_submissions` | Mensagens e sugestoes de musica dos convidados |
+| `guest_tokens` | Tokens de acesso personalizados por grupo de convidados |
+
+### Variaveis de ambiente necessarias
+
+```
+SUPABASE_URL
+SUPABASE_ANON_KEY
+SUPABASE_SERVICE_ROLE_KEY
+DASHBOARD_PASSWORD
+```
+
+---
+
+## 26. Sistema de tokens de convidado
+
+Convidados podem receber um link personalizado: `meusite.com/siannah-diego?g=<token>`.
+
+### Fluxo
+
+1. Frontend detecta `?g=token` na URL.
+2. Chama `GET /api/guest-token?token=...`.
+3. Exibe saudacao personalizada com nome do grupo.
+4. Controla numero maximo de confirmacoes do grupo.
+5. Inclui `token_id`, `group_name` e `group_max_confirmations` no payload do RSVP.
+
+### Tabela `guest_tokens`
+
+Campos relevantes: `id`, `token`, `group_name`, `max_confirmations`.
+
+---
+
+## 27. Sistema de layouts
 
 ### Layouts disponiveis
 
-| Layout | Descricao | Pasta |
-|--------|-----------|-------|
-| `classic` | Visual atual: hero centralizado, tipografia caligrafica, ornamentos | `assets/layouts/classic/` |
-| `modern` | Hero dividido 50/50, texto a esquerda, tipografia sans-serif, minimalista | `assets/layouts/modern/` |
+| Layout | Descricao |
+|--------|-----------|
+| `classic` | Hero centralizado, tipografia caligrafica, ornamentos |
+| `modern` | Hero dividido 50/50, texto a esquerda, tipografia sans-serif |
 
-### Estrutura de pastas por layout
-
-```text
-assets/layouts/
-  classic/
-    layout.css          ← CSS estrutural do layout classic
-    themes/
-      classic-gold.json
-      classic-gold-light.json
-      classic-silver.json
-      classic-silver-light.json
-      classic-purple.json
-      classic-blue.json
-  modern/
-    layout.css          ← CSS estrutural do layout modern
-    themes/
-      black-silver.json
-```
-
-### Campo `activeLayout` no `site.json`
+### Configuracao em `site.json`
 
 ```json
 "activeLayout": "classic"
@@ -343,1794 +949,296 @@ assets/layouts/
 
 Valores aceitos: `"classic"` | `"modern"`. Padrao: `"classic"`.
 
-### Compatibilidade de chaves de override
+### Temas por layout
 
-`getThemeOverrideKey()` no `editor.js` extrai o nome do arquivo sem `.json`. Os arquivos de tema dentro de `assets/layouts/classic/themes/` tem os mesmos nomes que os originais em `assets/config/themes/` (ex: `classic-purple.json`). Isso garante que as chaves em `themeOverridesByTheme` (ex: `"classic-purple"`) continuem funcionando sem migracao de dados.
-
----
-
-## 7. Fluxo completo da aplicacao em runtime
-
-### 7.1 Bootstrap da pagina
-
-Em `assets/js/script.js`, a funcao `bootstrap()`:
-
-1. carrega defaults (`assets/config/defaults/theme.json` e `assets/config/defaults/site.json`) com `loadDefaults()`;
-2. carrega `site.json` com `loadConfig()`;
-3. identifica o tema ativo;
-4. carrega o tema com `loadTheme()`;
-5. carrega `typography.json` com `loadTypographyConfig()`;
-6. mescla tipografia, overrides e responsividade;
-7. aplica todas as CSS variables no `:root`;
-8. instancia `InvitationExperience`;
-9. dispara o evento global `app:ready` com `{ config, theme }`.
-
-### 7.2 Bootstrapping antecipado no HTML
-
-Em `index.html` existe um script inline no `<head>` que executa antes do carregamento visual principal. Ele:
-
-- tenta ler `sessionStorage`;
-- tenta ler o query param `section`;
-- define `window.__INVITATION_BOOTSTRAP__`;
-- define `shouldSkipIntro` quando necessario;
-- adiciona `skip-intro` ao `documentElement` quando precisa pular a intro;
-- configura `history.scrollRestoration = 'manual'` quando disponivel.
-
-Isso reduz flicker visual e impede que a intro apareca quando o usuario ja iniciou a experiencia antes.
-
-### 7.3 Liberacao da experiencia
-
-Depois de iniciado, o sistema:
-
-- marca a experiencia como iniciada em `sessionStorage`;
-- mostra o shell principal do site;
-- inicializa os modulos centrais;
-- desbloqueia o audio;
-- navega para hash ou secao, quando aplicavel.
-
----
-
-## 8. Arquivo central: `assets/js/script.js`
-
-Este e o arquivo mais importante do projeto. Ele faz o papel de entry point, agregador de configuracoes, aplicador de tema e orquestrador dos modulos.
-
-### 8.1 Constantes principais
-
-- `SITE_CONFIG_URL`: caminho do `site.json`
-- `TYPOGRAPHY_CONFIG_URL`: caminho do `typography.json`
-- `INVITATION_STARTED_STORAGE_KEY`: chave do `sessionStorage`
-- `NAVIGATION_SECTION_PARAM`: nome do query param de navegacao (`section`)
-- `ACTIVE_THEME_PATH`: fallback do tema ativo
-- `DEFAULT_THEME_URL`: caminho do fallback de tema (`assets/config/defaults/theme.json`)
-- `DEFAULT_SITE_CONTENT_URL`: caminho do fallback de conteudo (`assets/config/defaults/site.json`)
-- `DEFAULT_THEME` / `DEFAULT_SITE_CONTENT`: objetos carregados em runtime a partir dos arquivos acima (com fallback minimo inline)
-
-### Observacao importante
-
-O fallback real do projeto fica em JSON dedicado (`assets/config/defaults/site.json` e `assets/config/defaults/theme.json`). Os objetos em `script.js` sao apenas rede de seguranca minima caso os arquivos externos nao possam ser carregados.
-
-### 8.2 Funcoes utilitarias de topo
-
-#### `isMobileViewport()`
-
-Retorna `true` quando a viewport atende `(max-width: 767px)`. E usada para decidir se o bloco `responsive.mobile` do tema deve ser aplicado.
-
-#### `getBootstrapNavigationState()`
-
-Le o objeto `window.__INVITATION_BOOTSTRAP__` e devolve:
-
-- `shouldSkipIntro`
-- `navigationTarget`
-
-Serve como ponte entre o script inline do HTML e a camada modular de JavaScript.
-
-#### `resolveTheme(theme)`
-
-Aplica o bloco `theme.responsive.mobile` sobre o tema base quando a viewport e mobile.
-
-#### `resolveTypographyRoles(theme)`
-
-Expande `theme.typography.roles` em variaveis CSS individuais, como:
-
-- `--typo-<role>-family`
-- `--typo-<role>-size`
-- `--typo-<role>-weight`
-- `--typo-<role>-lineHeight`
-- `--typo-<role>-letterSpacing`
-- `--typo-<role>-textTransform`
-- `--typo-<role>-style`
-
-Isso permite definir papeis tipograficos sem depender apenas de tamanhos individuais hardcoded.
-
-#### `applyTheme(theme)`
-
-Converte a estrutura do tema em CSS custom properties e aplica tudo no `document.documentElement`.
-
-Mapeia grupos como:
-
-- cores;
-- familias tipograficas;
-- tamanhos de texto;
-- espacamentos;
-- layout;
-- componentes;
-- raios de borda;
-- efeitos;
-- animacoes.
-
-Tambem preserva aliases legados usados no CSS existente, como:
-
-- `--cream`
-- `--gold`
-- `--gold-light`
-- `--dark`
-
-#### `cloneDeep(value)` e `mergeDeep(base, override)`
-
-Sao importadas de `assets/js/utils.js`. Mantem o mesmo comportamento de clone/merge profundo e sao usadas como base da composicao de configuracoes.
-
-#### `loadDefaults()`
-
-Carrega em paralelo `assets/config/defaults/theme.json` e `assets/config/defaults/site.json`, preenchendo `DEFAULT_THEME` e `DEFAULT_SITE_CONTENT` antes do restante do bootstrap.
-
-#### `loadConfig()`
-
-Faz `fetch()` de `site.json`, aplica merge com `DEFAULT_SITE_CONTENT` e retorna o resultado. Se houver falha, usa o fallback carregado de `assets/config/defaults/site.json` (ou o minimo inline, se necessario).
-
-#### `loadTheme(themePath)`
-
-Carrega o arquivo de tema via `fetch()` e faz merge sobre `DEFAULT_THEME` (vindo de `assets/config/defaults/theme.json`). Em erro, retorna apenas o tema base.
-
-#### `loadTypographyConfig()`
-
-Carrega `typography.json`. Se falhar, devolve uma estrutura minima com `families` vazia.
-
-#### `mergeThemeWithGlobalTypography(theme, typographyConfig)`
-
-Mescla as familias tipograficas globais com as familias do tema. O tema prevalece em caso de conflito.
-
-#### `applySiteThemeOverrides(theme, siteConfig)`
-
-Aplica `siteConfig.themeOverrides` sobre o tema ja carregado. E a camada pensada para customizacao local sem precisar duplicar um arquivo de tema inteiro.
-
-### 8.3 Classe `InvitationExperience`
-
-Essa classe orquestra a experiencia de pagina.
-
-#### Responsabilidades gerais
-
-- preencher o DOM com textos e dados configurados;
-- controlar intro screen;
-- inicializar modulos centrais;
-- integrar o controle de audio;
-- montar os cards de paginas extras;
-- sincronizar estado visual com navegacao e hash.
-
-#### Metodos e papel de cada um
-
-##### `constructor(config, theme, navigationState = {})`
-
-Guarda configuracoes, cria instancias base e coleta referencias do DOM, incluindo:
-
-- intro screen;
-- botao de abrir convite;
-- shell principal;
-- botao de audio.
-
-##### `init()`
-
-Executa a inicializacao principal da experiencia:
-
-- `setMeta()`
-- `setHero()`
-- `setEventDetails()`
-- `setTexts()`
-- `setGift()`
-- `setPages()`
-- `presentPage.init()`
-- binds de intro e audio
-
-Depois decide se deve entrar direto no convite ou aguardar o clique do usuario.
-
-##### `bindIntro()`
-
-Liga o clique do botao de abertura da intro ao fluxo `enterInvitation()` e inicia o contexto de audio a partir do gesto do usuario.
-
-##### `bindAudioToggle()`
-
-Conecta o botao flutuante de audio ao metodo `audio.toggle()`.
-
-##### `initializeMainSite()`
-
-Inicializa os modulos centrais apenas uma vez:
-
-- `WeddingApp`
-- `Countdown`
-- `RSVP`
-
-Tambem registra `beforeunload` para parar o contador.
-
-##### `getInitialAudioContext()`
-
-Escolhe o contexto inicial de audio:
-
-- `gift` em paginas de presente ou paginas extras
-- `main` na pagina principal
-
-##### `enterInvitation(options)`
-
-Fluxo principal de entrada na experiencia. Marca a sessao como iniciada, atualiza o estado visual, inicializa o site principal, libera audio e faz navegacao interna.
-
-##### `navigateWithinInvitation({ targetSection, forceTop })`
-
-Centraliza a logica de navegacao apos o inicio:
-
-- rola ate uma secao se houver `targetSection`
-- posiciona no topo quando necessario
-- respeita hashes existentes no DOM
-
-##### `scrollToSection(sectionId)`
-
-Faz scroll suave para um elemento por ID e limpa o query param `section` depois.
-
-##### `clearNavigationTarget()`
-
-Remove `?section=...` da URL usando `history.replaceState()`.
-
-##### `applyStartedState({ skipIntro })`
-
-Aplica classes no body, revela o shell principal e esconde ou anima a saida da intro.
-
-##### `wasInvitationStarted()`
-
-Le `sessionStorage` para verificar se o convite ja foi iniciado.
-
-##### `markInvitationStarted()`
-
-Escreve no `sessionStorage` a chave `wedding-invitation-started = true`.
-
-##### `syncAudioButton()`
-
-Sincroniza classes, `aria-label`, `aria-pressed` e estado do botao de audio com o estado interno do `AudioController`.
-
-##### `getAudioTracks()`
-
-Extrai do config as trilhas `main` e `gift`.
-
-##### `parseCoupleNames()`
-
-Quebra `couple.names` em dois nomes usando `&`. Se a estrutura nao estiver no formato esperado, usa fallbacks.
-
-##### `setText(id, value)` e `setInputPlaceholder(id, value)`
-
-Esses utilitarios foram centralizados em `assets/js/utils.js` e sao consumidos por import em `script.js`.
-
-##### `setMeta()`
-
-Atualiza:
-
-- `<title>`
-- `<meta name="description">`
-- `<meta name="theme-color">`
-
-##### `setHero()`
-
-Preenche o hero e a intro com nomes, subtitulo, data e imagem do casal.
-
-##### `setEventDetails()`
-
-Preenche a secao de detalhes da cerimonia e atualiza o link do mapa com `aria-label` acessivel.
-
-##### `setTexts()`
-
-Preenche textos do contador, detalhes, RSVP, botoes, placeholders e links de retorno.
-
-Inclui os links de navegacao das paginas extras:
-
-- `texts.backToHomeButton` para o botao de retorno ao inicio;
-- `texts.backToExtrasButton` para o retorno ao bloco de extras.
-
-##### `setGift()`
-
-Preenche todos os textos da area de presente, injeta QR code, atualiza o codigo Pix no DOM e sincroniza os atributos `data-copy-value`.
-
-##### `setPages()`
-
-Monta dinamicamente a secao `extras` com base em `config.pages`. So renderiza paginas marcadas como `enabled: true`.
-
-Ordem fixa atual:
-
-1. `historia`
-2. `faq`
-3. `hospedagem`
-4. `mensagem`
-5. `musica`
-6. `presente`
-
-### 8.4 `bootstrap()`
-
-Faz a orquestracao completa do carregamento e, no final, expone no escopo global:
-
-- `window.CONFIG`
-- `window.THEME`
-
-Tambem dispara:
-
-```js
-window.dispatchEvent(new CustomEvent('app:ready', { detail: { config, theme: effectiveTheme } }));
 ```
-
-Esse evento e a base do preenchimento das paginas extras.
-
----
-
-## 9. Modulo `assets/js/main.js`
-
-Exporta a classe `WeddingApp`.
-
-### Papel
-
-Responsavel por pequenos comportamentos visuais da experiencia principal.
-
-### Metodos
-
-#### `init()`
-
-Encadeia os metodos de setup.
-
-#### `setupHeroContentReveal()`
-
-Revela o conteudo do hero com delay configuravel.
-
-#### `setupHeroPhoto()`
-
-Marca a imagem do casal como carregada adicionando a classe `loaded`.
-
-#### `setupScrollHint()`
-
-Conecta o elemento com `data-scroll-target` a um `scrollIntoView({ behavior: 'smooth' })`.
-
-#### `setupRevealOnScroll()`
-
-Cria um `IntersectionObserver` para adicionar a classe `visible` aos blocos principais quando entram em viewport.
-
-### Seletor dos elementos observados
-
-- `.section-tag`
-- `.section-title`
-- `.section-body`
-- `.divider`
-- `.countdown-wrap`
-- `.details-grid`
-- `.rsvp-section`
-
----
-
-## 10. Modulo `assets/js/countdown.js`
-
-Exporta a classe `Countdown`.
-
-### Papel
-
-Controla o contador regressivo ate a data do evento.
-
-### Metodos
-
-#### `constructor(targetDate, config = {})`
-
-Converte a data alvo para timestamp e captura os elementos do DOM.
-
-#### `hasRequiredElements()`
-
-Verifica se todos os elementos do contador existem antes de iniciar.
-
-#### `formatNumber(value)`
-
-Aplica padrao de dois digitos quando `config.countdown.format === 'two-digits'`.
-
-#### `update()`
-
-Calcula dias, horas, minutos e segundos restantes e atualiza o DOM.
-
-#### `displayFinished()`
-
-Zera os valores e cria um `<p class="countdown-finished">` com a mensagem de fim.
-
-#### `start()`
-
-Executa `update()` imediatamente e inicia o `setInterval()`.
-
-#### `stop()`
-
-Limpa o intervalo.
-
-### Dependencias de DOM
-
-- `#countdownWrap`
-- `#cd-days`
-- `#cd-hours`
-- `#cd-mins`
-- `#cd-secs`
-
----
-
-## 11. Modulo `assets/js/rsvp.js`
-
-Exporta a classe `RSVP`.
-
-### Papel
-
-Gerencia o formulario de confirmacao e prepara o redirecionamento ao WhatsApp.
-
-### Comportamento geral
-
-1. usuario escolhe se vai ou nao;
-2. informa nome e telefone;
-3. o sistema valida campos obrigatorios;
-4. escolhe o template de mensagem correto;
-5. monta a URL `https://wa.me/...` com `URLSearchParams`;
-6. mostra mensagem de sucesso/feedback;
-7. redireciona ao WhatsApp apos delay configurado.
-
-### Metodos
-
-#### `init()`
-
-Valida precondicoes e registra os listeners.
-
-#### `bindAttendanceButtons()`
-
-Liga os botoes `.rsvp-btn-choice` ao metodo `setAttendance()`.
-
-#### `setAttendance(attending)`
-
-Atualiza o hidden input `#rsvp-attendance`, classes `active` e `aria-pressed` dos botoes.
-
-#### `handleSubmit(event)`
-
-Impede o submit padrao, valida campos, constroi a URL do WhatsApp e dispara o feedback.
-
-#### `validateRequiredField(field)`
-
-Normaliza e valida se o campo tem conteudo.
-
-#### `buildWhatsAppUrl()`
-
-Seleciona o template, interpolando os dados do formulario, e retorna a URL final do WhatsApp.
-
-#### `getMessageTemplate()`
-
-Escolhe entre:
-
-- `whatsapp.messages.attending`
-- `whatsapp.messages.notAttending`
-
-#### `interpolate(template, values)`
-
-Substitui placeholders no formato `{chave}`.
-
-#### `renderSuccess()`
-
-Mostra a caixa de sucesso, calcula `firstName`, usa mensagens configuradas e desabilita o botao de submit durante o fluxo pendente.
-
-#### `renderError()`
-
-Mostra o feedback de erro configurado.
-
-#### `scheduleRedirect(whatsappUrl)`
-
-Agenda `window.location.assign()` apos `redirectDelayMs`.
-
-### Estrutura de configuracao esperada
-
-- `whatsapp.destinationPhone`
-- `whatsapp.recipientName`
-- `whatsapp.redirectDelayMs`
-- `whatsapp.messages.attending`
-- `whatsapp.messages.notAttending`
-- `whatsapp.feedback.attending`
-- `whatsapp.feedback.notAttending`
-- `whatsapp.feedback.error`
-
-### Observacao tecnica
-
-O fluxo do WhatsApp permanece intacto. A persistencia real e feita em paralelo via `rsvp-persistence.js` (ver secao abaixo) de forma nao-bloqueante.
-
-### RSVP — Persistencia
-
-Confirmacoes sao salvas no Supabase via `assets/js/rsvp-persistence.js`.
-
-- A chamada e nao-bloqueante: usa `.catch()` sem `await` no fluxo principal.
-- Se o Supabase estiver fora ou desconfigurado, o convidado nao ve erro nenhum.
-- As credenciais sao obtidas pelo endpoint serverless `/api/config` (Vercel Function), que le `SUPABASE_URL` e `SUPABASE_ANON_KEY` das variaveis de ambiente do Vercel.
-- Schema da tabela em `docs/supabase-setup.sql`.
-- Habilitado/desabilitado por `config.rsvp.supabaseEnabled` no `site.json`.
-- O ID do evento e configuravel via `config.rsvp.eventId`.
-
----
-
-## 12. Modulo `assets/js/audio.js`
-
-Exporta a classe `AudioController`, que estende `EventTarget`.
-
-### Papel
-
-Controla trilhas de audio em diferentes contextos da experiencia, respeitando restricoes de autoplay dos navegadores.
-
-### Estrategia geral
-
-- o audio so e efetivamente liberado apos interacao do usuario;
-- existem dois contextos principais: `main` e `gift`;
-- trocas de contexto usam fade out/fade in;
-- o botao de audio sincroniza com eventos internos.
-
-### Propriedades relevantes
-
-- `desiredTrackKey`
-- `currentTrackKey`
-- `readyForPlayback`
-- `userPaused`
-- `lastError`
-- `fadeFrameId`
-- `tracks`
-
-### Metodos
-
-#### `createAudioElement(src)`
-
-Cria um elemento `Audio`, define `loop = true`, `preload = 'none'` e registra listener de erro.
-
-#### `emitState()`
-
-Dispara `CustomEvent('statechange')` com o estado interno do controller.
-
-#### `getCurrentElement()`
-
-Retorna o elemento de audio ativo.
-
-#### `getTrackStartTime(trackKey)`
-
-Normaliza o `startTime` configurado para uma faixa.
-
-#### `hasMetadata(audio)`
-
-Verifica se ha metadados suficientes para operar com duracao/seek.
-
-#### `clampTime(audio, time)`
-
-Garante que o `currentTime` aplicado seja valido.
-
-#### `ensureMetadataAndSeek(audio, time)`
-
-Espera metadados, faz seek para o ponto inicial da faixa e tenta se recuperar de erros de timing de metadata.
-
-#### `unlock()`
-
-Marca o controller como pronto para playback.
-
-#### `startFromGesture(trackKey)`
-
-Inicia uma faixa a partir de gesto do usuario. Esse metodo e central para contornar bloqueios de autoplay.
-
-#### `setContext(trackKey)`
-
-Muda o contexto desejado. So toca se o audio ja estiver pronto e nao estiver pausado pelo usuario.
-
-#### `playTrack(trackKey)`
-
-Executa a troca efetiva entre trilhas.
-
-#### `fadeOutCurrent()`
-
-Aplica fade out na trilha atual, pausa e reseta `currentTime`.
-
-#### `fadeVolume(audio, targetVolume, duration)`
-
-Anima volume com `requestAnimationFrame()`.
-
-#### `safePlay(audio)`
-
-Envolve `audio.play()` em `try/catch`.
-
-#### `pause()`
-
-Pausa a faixa atual e marca o controller como pausado pelo usuario.
-
-#### `resume()`
-
-Retoma o playback de acordo com a trilha desejada.
-
-#### `toggle()`
-
-Alterna entre pausa e retomada.
-
-### Estrutura esperada de `media.tracks`
-
-```json
-{
-	"main": {
-		"src": "assets/audio/main-theme.mp3",
-		"volume": 0.14,
-		"startTime": 8
-	},
-	"gift": {
-		"src": "assets/audio/gift-theme.mp3",
-		"volume": 0.12,
-		"startTime": 78
-	}
-}
+assets/layouts/classic/themes/
+  classic-gold.json
+  classic-gold-light.json
+  classic-silver.json
+  classic-silver-light.json
+  classic-purple.json
+  classic-blue.json
+
+assets/layouts/modern/themes/
+  black-silver.json
 ```
 
 ---
 
-## 13. Modulo `assets/js/presente.js`
+## 28. Sistema de temas
 
-Exporta a classe `PresentPage`.
-
-### Papel
-
-Controla a funcionalidade de copiar o codigo Pix para a area de transferencia.
-
-### Metodos
-
-#### `constructor()`
-
-Coleta todos os botoes com `data-copy-value`.
-
-#### `init()`
-
-Liga os listeners de clique.
-
-#### `handleCopy(button)`
-
-Executa a tentativa de copia usando `navigator.clipboard.writeText()` e, se necessario, fallback legado.
-
-#### `getFeedbackElement(button)`
-
-Localiza o elemento de feedback via `data-copy-feedback-target`.
-
-#### `setFeedback(button, feedback, message, isSuccess)`
-
-Atualiza texto do botao, classes e mensagem de feedback temporaria.
-
-#### `copyWithFallback(value)`
-
-Usa um `<textarea>` temporario com `document.execCommand('copy')` como fallback.
-
-### Observacao
-
-O modulo nao decide o valor do Pix; ele apenas consome o valor que `script.js` injeta no DOM.
-
----
-
-## 14. Modulos das paginas extras
-
-As paginas extras seguem um padrao simples:
-
-- carregam `assets/js/script.js`;
-- esperam o evento `app:ready`;
-- leem `detail.config.pages.<pagina>.content`;
-- escrevem o conteudo no DOM.
-
-### 14.0 `assets/js/extra-page.js`
-
-Modulo compartilhado para bootstrap das paginas extras.
-
-#### Papel
-
-Padroniza o fluxo comum das extras, reduzindo duplicacao entre modulos de pagina.
-
-#### Funcao principal
-
-- `initExtraPage({ pageKey, idPrefix, onReady, onReveal })`
-
-#### Responsabilidades
-
-- aguardar `app:ready`;
-- localizar `config.pages.<pageKey>.content`;
-- preencher metadados basicos da pagina extra;
-- disparar callback de inicializacao especifica (`onReady`).
-
-### 14.1 `assets/js/historia.js`
-
-Nao exporta classe. Usa `initExtraPage` como bootstrap compartilhado.
-
-#### Funcoes
-
-- `renderTimeline(chapters)`
-
-`revealElements()` e importada de `assets/js/utils.js`, e a galeria usa `initGallery()` de `assets/js/gallery.js`.
-
-#### Fluxo
-
-- usa `initExtraPage` com `pageKey: 'historia'`;
-- monta a timeline alternando classes esquerda/direita;
-- quando `content.gallery` possui itens, revela `#historiaGallery` e inicializa o carrossel.
-
-### 14.2 `assets/js/faq.js`
-
-Tambem usa `initExtraPage` no mesmo padrao.
-
-#### Funcoes
-
-- `renderFaq(items)`
-
-#### Fluxo
-
-- usa `initExtraPage` com `pageKey: 'faq'`;
-- monta a lista de perguntas e respostas no container `#faqList`.
-
-### 14.3 `assets/js/hospedagem.js`
-
-Mesmo padrao das demais extras com `initExtraPage`.
-
-#### Funcoes
-
-- `renderCards(containerId, items)`
-
-`setText()` e importada de `assets/js/utils.js`.
-
-#### Fluxo
-
-- usa `initExtraPage` com `pageKey: 'hospedagem'`;
-- preenche textos principais;
-- renderiza cards de hoteis e restaurantes;
-- adiciona links externos quando `item.link` existe.
-
-### 14.4 `assets/js/mensagem.js`
-
-Modulo da pagina de mensagens ao casal.
-
-#### Fluxo
-
-- usa `initExtraPage` com `pageKey: 'mensagem'`;
-- preenche labels/placeholders via `setText()` e `setInputPlaceholder()`;
-- valida campo obrigatorio de mensagem;
-- constroi URL `wa.me` com template configuravel (`content.whatsappTemplate`, quando presente);
-- abre o WhatsApp em nova aba e exibe feedback local de sucesso/erro.
-
-### 14.5 `assets/js/musica.js`
-
-Modulo da pagina de sugestao de musica.
-
-#### Fluxo
-
-- usa `initExtraPage` com `pageKey: 'musica'`;
-- preenche labels/placeholders do formulario;
-- valida campo obrigatorio de nome da musica;
-- constroi URL `wa.me` com dados de musica/artista/observacoes;
-- abre o WhatsApp em nova aba e exibe feedback local de sucesso/erro.
-
----
-
-## 15. Ferramentas internas do repositorio
-
-O repositorio possui duas ferramentas uteis para manutencao, mas que nao fazem parte da experiencia publica do convite.
-
-### 15.1 `editor.html` + `assets/js/editor.js`
-
-E um editor visual em navegador para `site.json`.
-
-#### Objetivo
-
-Permitir carregar, editar e exportar um JSON de configuracao sem depender de IDE ou edicao manual bruta.
-
-#### Caracteristicas
-
-- carrega `assets/config/site.json` automaticamente com `loadDefault()`;
-- permite importar um arquivo manualmente com `FileReader`;
-- normaliza colecoes em formato array;
-- edita conteudo por abas;
-- exporta o JSON resultante via download local;
-- indica estado sujo (`isDirty`).
-
-### Abas de conteudo disponiveis
-
-O editor contem abas dedicadas para:
-
-- `Casal & Evento`
-- `Textos Principais`
-- `FAQ`
-- `Nossa Historia`
-- `Hospedagem`
-- `Mensagem ao Casal`
-- `Sugestao de Musica`
-- `Mapa & Galeria`
-- `Presente`
-- `Tema`
-
-As abas `Mensagem ao Casal` e `Sugestao de Musica` permitem editar:
-
-- `enabled`, `cardLabel`, `cardHint`;
-- textos de intro e formulario;
-- placeholders e mensagens de feedback;
-- textos globais de navegacao (`texts.backToHomeButton` e `texts.backToExtrasButton`).
-
-#### Funcoes de infraestrutura mais importantes
-
-- `setConfigValue(path, value)`
-- `markDirty()`
-- `markClean()`
-- `loadDefault()`
-- `handleFileImport(e)`
-- `startEditor(parsed)`
-- `ensureArrayPath(root, path)`
-- `normalizeListCollections(root)`
-- `collectInvalidAccommodationLinks()`
-- `exportJson()`
-
-`getPath()`, `setPath()`, `removePath()`, `isIndexKey()`, `debounce()`, `escapeHtml()` e `isValidHttpUrl()` foram centralizadas em `assets/js/utils.js` e consumidas por import no `editor.js`.
-
-#### Papel estrategico no projeto
-
-Essa pagina reduz o custo operacional de manter o convite, especialmente para pessoas nao tecnicas.
-
-### 15.2 `font-preview.html` + `assets/js/font-preview.js`
-
-E uma pagina de comparacao tipografica.
-
-#### Objetivo
-
-Exibir todas as familias declaradas em `assets/config/typography.json` para facilitar a escolha visual.
-
-#### Funcoes principais
-
-- `loadFamilies()`
-- `deduplicate(families)`
-- `createCard({ key, cssValue })`
-- `renderGrid(container, items)`
-- `init()`
-
-#### Comportamento importante
-
-O script remove aliases semanticos duplicados como `display`, `body`, `serif` e `accent` quando eles apontam para o mesmo `font-family` de outras chaves.
-
----
-
-## 15.3 Sistema de validacao de schemas
-
-O repositorio possui dois arquivos JSON Schema (draft-07) em `assets/config/schemas/` que documentam e validam a estrutura dos arquivos de configuracao.
-
-### `assets/config/schemas/site-schema.json`
-
-Define o contrato completo do `site.json`. Campos obrigatorios, tipos, format uri para URLs e ranges numericos para volume de audio. Consumido pelo `editor.js` via `loadSchema()`.
-
-### `assets/config/schemas/theme-schema.json`
-
-Define o contrato dos arquivos de tema. Inclui a definicao reutilizavel `typographyRole` para os papeis tipograficos.
-
-### Integracao com `editor.js`
-
-Funcoes adicionadas:
-
-#### `loadSchema()`
-Carrega e cacheia `site-schema.json` via fetch. Retorna `null` silenciosamente em caso de falha (nao bloqueia o editor).
-
-#### `validateAgainstSchema(data, schema, path)`
-Validador recursivo leve sem dependencias externas. Cobre: `type`, `required`, `properties`, `items`, `format: uri`, `enum`, `minimum`, `maximum`. Retorna array de `{ path, message, severity }`.
-
-#### `renderValidationBanner(results)`
-Injeta um banner visual abaixo das abas do editor. Vermelho para erros, amarelo para avisos. Inclui botao de fechar. Exibido ao carregar um JSON e atualizado a cada validacao.
-
-`startEditor()` passou a ser async e chama validacao apos carregar o config. `exportJson()` passou a ser async e bloqueia o download se houver erros de schema.
-
-### Integracao com `script.js`
-
-#### `warnConfigIssues(config)`
-Verifica campos criticos do `site.json` mesclado (`couple.names`, `event.date`, `event.mapsLink`, `whatsapp.destinationPhone`) e emite `console.warn` se ausentes. Chamada dentro de `loadConfig()` apos o merge.
-
-#### `warnThemeIssues(theme)`
-Verifica campos criticos do tema mesclado (`meta.name`, `colors.background`, `colors.primary`, `typography.fonts.primary`) e emite `console.warn` se ausentes. Chamada dentro de `loadTheme()` apos o merge.
-
----
-
-## 16. Modulos existentes, mas nao integrados ao fluxo atual
-
-Ambos os modulos foram integrados ao produto.
-
-### 16.1 `assets/js/gallery.js`
-
-ES Module. Exporta `initGallery(containerId, images)`.
-
-#### Parametros
-
-- `containerId`: ID do elemento container no DOM.
-- `images`: array de `{ src, alt }` carregado de `config.pages.historia.content.gallery`.
-
-#### Comportamento
-
-- Constroi o HTML interno da galeria (slides, dots, botoes prev/next).
-- Navegacao por clique nos botoes e dots.
-- Navegacao por teclado (ArrowLeft/ArrowRight) scoped ao container.
-- Atributos `aria-hidden` e `aria-selected` atualizados a cada troca.
-- Sem efeito nenhum se `images` for vazio ou `containerId` nao existir.
-
-#### Como habilitar a galeria
-
-1. Coloque as fotos em `assets/images/gallery/`.
-2. Em `site.json`, dentro de `pages.historia.content.gallery`, adicione a lista:
-	 ```json
-	 "gallery": [
-		 { "src": "assets/images/gallery/foto1.jpg", "alt": "Descricao da foto 1" },
-		 { "src": "assets/images/gallery/foto2.jpg", "alt": "Descricao da foto 2" }
-	 ]
-	 ```
-3. Abra `historia.html` — a galeria aparece automaticamente apos a timeline.
-
-#### Como desabilitar
-
-Esvazie `pages.historia.content.gallery` para `[]`. A galeria desaparece sem erros.
-
-#### Integracao
-
-- Importado e chamado por `historia.js` via `loadGallery(content.gallery)`.
-- A secao `#historiaGallery` em `historia.html` tem `hidden` por padrao e so e revelada quando `content.gallery` retorna ao menos 1 imagem.
-
-### 16.2 `assets/js/map.js`
-
-ES Module. Funcao principal: `initLeafletMap(event)`.
-
-#### Comportamento
-
-- Escuta `app:ready` e le `detail.config.event`.
-- Se `event.mapEnabled !== true`, esconde a secao `#venueMapSection` e retorna.
-- Se Leaflet nao estiver carregado, esconde a secao e emite `console.warn`.
-- Inicializa um mapa Leaflet em `#map` com tile OpenStreetMap.
-- Posiciona o marcador em `event.venueCoordinates`.
-- Popup com nome, endereco e link para o Google Maps (`event.mapsLink`).
-- Circulo de 400m ao redor do local.
-- Sem dados hardcoded: todos os valores vem do config.
-
-#### Como habilitar o mapa
-
-Em `site.json`, dentro de `event`:
-```json
-"mapEnabled": true
-```
-
-#### Como desabilitar
-
-```json
-"mapEnabled": false
-```
-
-A secao do mapa some sem erros. O padrao em `assets/config/defaults/site.json` e `false`.
-
-#### Campos de config relacionados
-
-- `event.mapEnabled` — flag mestre (boolean)
-- `event.venueCoordinates` — `{ lat, lng }`
-- `event.venueAddress` — endereco textual exibido no popup
-- `event.locationName` — nome do local exibido no popup
-- `event.mapsLink` — URL do Google Maps para o link no popup
-
-#### Integracao
-
-- Carregado em `hospedagem.html` via `<script type="module" src="assets/js/map.js">`.
-- Leaflet CSS e JS carregados via CDN (unpkg, versao 1.9.4) apenas em `hospedagem.html`.
-- A secao `#venueMapSection` no HTML tem `hidden` por padrao.
-
----
-
-## 17. Paginas HTML e papel de cada uma
-
-### 17.1 `index.html`
-
-Pagina principal do convite.
-
-#### Estrutura principal
-
-- intro screen
-- hero
-- countdown
-- details
-- extras
-- RSVP
-- footer
-- botao flutuante de audio
-
-#### Particularidades
-
-- contem o script bootstrap inline no `<head>`;
-- usa `body.experience-locked` ate a experiencia ser liberada;
-- a secao `extras` inicia com `hidden` e so aparece se houver paginas extras habilitadas;
-- o card de presente redireciona para a pagina dedicada `presente.html`.
-
-#### Scripts usados
-
-- `assets/js/script.js`
-
-### 17.2 `presente.html`
-
-Pagina dedicada de presentes.
-
-#### Conteudo principal
-
-- introducao
-- bloco Pix
-- placeholder de pagamento por cartao
-- link de retorno para `index.html?section=extras`
-
-#### Scripts usados
-
-- `assets/js/script.js`
-- `assets/js/presente.js`
-
-#### Observacao
-
-Parte da logica de preenchimento dessa pagina vem de `script.js`; a logica especifica de copia vem de `presente.js`.
-
-### 17.3 `historia.html`
-
-Pagina extra que exibe a historia do casal em formato de timeline.
-
-#### Scripts usados
-
-- `assets/js/script.js`
-- `assets/js/historia.js`
-
-### 17.4 `faq.html`
-
-Pagina extra de perguntas frequentes.
-
-#### Scripts usados
-
-- `assets/js/script.js`
-- `assets/js/faq.js`
-
-### 17.5 `hospedagem.html`
-
-Pagina extra para convidados de fora, com hospedagem e restaurantes.
-
-#### Scripts usados
-
-- `assets/js/script.js`
-- `assets/js/hospedagem.js`
-
-### 17.6 `mensagem.html`
-
-Pagina extra para convidados deixarem uma mensagem ao casal.
-
-#### Scripts usados
-
-- `assets/js/script.js`
-- `assets/js/mensagem.js`
-
-### 17.7 `musica.html`
-
-Pagina extra para sugestoes de musica para a festa.
-
-#### Scripts usados
-
-- `assets/js/script.js`
-- `assets/js/musica.js`
-
-### 17.8 `editor.html`
-
-Ferramenta administrativa/operacional para edicao do JSON.
-
-#### Scripts usados
-
-- `assets/js/editor.js`
-
-### 17.9 `font-preview.html`
-
-Ferramenta visual para auditar familias tipograficas cadastradas.
-
-#### Scripts usados
-
-- `assets/js/font-preview.js`
-
----
-
-## 18. Configuracao detalhada: `assets/config/site.json`
-
-Hoje esse arquivo funciona como a principal fonte de conteudo do projeto.
-
-### 18.1 Campos de topo
-
-#### `activeTheme`
-
-Caminho do tema ativo. Exemplo atual:
-
-```json
-"activeTheme": "assets/config/themes/classic-purple.json"
-```
-
-#### `themeFiles`
-
-Lista de temas disponiveis. Hoje funciona mais como inventario do que como dependencia direta do runtime.
-
-#### `couple`
-
-Define identidade do casal.
-
-- `names`
-- `subtitle`
-
-#### `event`
-
-Define dados do evento.
-
-- `date`
-- `displayDate`
-- `heroDate`
-- `detailDate`
-- `weekday`
-- `time`
-- `timezone`
-- `locationName`
-- `locationCity`
-- `mapsLink`
-
-#### `texts`
-
-Define praticamente todo o texto visivel da interface.
-
-Inclui:
-
-- metadados SEO;
-- labels da intro;
-- textos do hero;
-- contador;
-- detalhes do evento;
-- labels e placeholders do RSVP;
-- textos da area de presente;
-- textos de navegacao (`backToHomeButton`, `backToExtrasButton`);
-- rotulos de navegacao e rodape.
-
-#### `gift`
-
-- `pixKey`
-- `pixQrImage`
-
-#### `media`
-
-- `heroImage`
-- `tracks.main`
-- `tracks.gift`
-
-#### `pages`
-
-Define as paginas extras e sua habilitacao.
-
-Cada pagina usa ao menos:
-
-- `enabled`
-- `cardLabel`
-- `cardHint`
-
-As paginas com conteudo detalhado usam `content`.
-
-#### `whatsapp`
-
-Configura o fluxo de confirmacao.
-
-- `destinationPhone`
-- `recipientName`
-- `redirectDelayMs`
-- `messages`
-- `feedback`
-
-### 18.2 Paginas configuraveis em `site.json`
-
-#### `pages.historia`
-
-Possui `content` com:
-
-- `tag`
-- `title`
-- `intro`
-- `chapters[]`
-
-Cada capitulo usa:
-
-- `year`
-- `title`
-- `text`
-
-#### `pages.faq`
-
-Possui `content` com:
-
-- `tag`
-- `title`
-- `intro`
-- `items[]`
-
-Cada item usa:
-
-- `question`
-- `answer`
-
-#### `pages.hospedagem`
-
-Possui `content` com:
-
-- `tag`
-- `title`
-- `intro`
-- `hotelsTitle`
-- `hotels[]`
-- `restaurantsTitle`
-- `restaurants[]`
-
-Cada item usa:
-
-- `name`
-- `description`
-- `link`
-- `linkLabel`
-
-#### `pages.mensagem`
-
-Possui `content` com:
-
-- `tag`
-- `title`
-- `intro`
-- `formTitle`
-- `formSubtitle`
-- `nameLabel`
-- `messageLabel`
-- `namePlaceholder`
-- `messagePlaceholder`
-- `submitLabel`
-- `successMessage`
-- `errorMessage`
-
-Opcionalmente pode conter:
-
-- `whatsappTemplate`
-
-#### `pages.musica`
-
-Possui `content` com:
-
-- `tag`
-- `title`
-- `intro`
-- `formTitle`
-- `formSubtitle`
-- `nameLabel`
-- `songLabel`
-- `artistLabel`
-- `notesLabel`
-- `namePlaceholder`
-- `songPlaceholder`
-- `artistPlaceholder`
-- `notesPlaceholder`
-- `submitLabel`
-- `successMessage`
-- `errorMessage`
-
-Opcionalmente pode conter:
-
-- `whatsappTemplate`
-
-#### `pages.presente`
-
-Hoje funciona basicamente como entrada para a pagina de presentes dentro da secao de extras.
-
----
-
-## 19. Configuracao detalhada: `assets/config/typography.json`
-
-Esse arquivo registra as familias tipograficas disponiveis para o ecossistema do projeto.
-
-### Estrutura
-
-```json
-{
-	"typography": {
-		"families": {
-			"jost": "'Jost', sans-serif",
-			"cormorant_garamond": "'Cormorant Garamond', serif",
-			"great_vibes": "'Great Vibes', cursive"
-		}
-	}
-}
-```
-
-### Papel arquitetural
-
-- alimentar o merge tipografico em `script.js`;
-- servir como base para o `font-preview.html`;
-- centralizar nomes de familias para evitar espalhamento manual pelo projeto.
-
-### Aliases semanticos atuais
-
-- `display`
-- `body`
-- `serif`
-- `accent`
-
-Esses aliases ajudam o tema a apontar para familias sem depender diretamente do nome real da fonte.
-
----
-
-## 20. Sistema de temas: `assets/config/themes/*.json`
-
-O projeto possui hoje os seguintes temas:
-
-- `classic-blue.json`
-- `classic-gold.json`
-- `classic-gold-light.json`
-- `classic-green-light.json`
-- `classic-silver.json`
-- `classic-silver-light.json`
-- `classic-purple.json`
-
-### 20.1 Estrutura esperada de um tema
+### 28.1 Estrutura esperada de um tema
 
 Cada tema pode conter:
 
-- `colors`
-- `typography.fonts`
-- `typography.sizes`
-- `typography.roles`
-- `spacing`
-- `layout`
-- `components`
-- `radius`
-- `effects`
-- `animation`
-- `countdown`
-- `responsive.mobile`
+- `colors` — paleta completa
+- `typography.fonts` — familias base (`primary`, `serif`, `accent`)
+- `typography.sizes` — tamanhos para hero, secoes, countdown, etc.
+- `typography.roles` — papeis semanticos expandidos em CSS variables por `resolveTypographyRoles()`
+- `spacing`, `layout`, `components`, `radius`, `effects`, `animation`
+- `countdown` — formato e frequencia de atualizacao
+- `responsive.mobile` — sobrescritas para viewport <= 767px
 
-### 20.2 O que cada secao controla
+### 28.2 Aliases legados de CSS variables
 
-#### `colors`
+`applyTheme()` preserva: `--cream`, `--gold`, `--gold-light`, `--dark`.
 
-Paleta completa da experiencia. Inclui:
+### 28.3 Documentacao adicional
 
-- fundo;
-- superficies;
-- cor primaria;
-- tons de texto;
-- bordas;
-- overlays;
-- painel de audio;
-- estados de foco.
-
-#### `typography.fonts`
-
-Define as familias base usadas pelo CSS:
-
-- `primary`
-- `serif`
-- `accent`
-
-#### `typography.sizes`
-
-Define tamanhos para hero, secoes, countdown, detalhes, RSVP e rodape.
-
-#### `typography.roles`
-
-Camada semantica para tipografia baseada em papeis, resolvida em CSS variables por `resolveTypographyRoles()`.
-
-#### `spacing`
-
-Controla margens, paddings e gaps macro e micro.
-
-#### `layout`
-
-Controla dimensoes principais como altura do hero e largura maxima de conteudo.
-
-#### `components`
-
-Controla tamanhos especificos de elementos como:
-
-- divisor;
-- seta de scroll;
-- cards do countdown;
-- campos do RSVP.
-
-#### `radius`
-
-Controla arredondamento de cards e botoes.
-
-#### `effects`
-
-Controla sombras, gradientes e transicoes.
-
-#### `animation`
-
-Controla tempos de fade e escalonamento.
-
-#### `countdown`
-
-Controla formato e frequencia de atualizacao do contador.
-
-#### `responsive.mobile`
-
-Permite sobrescrever trechos do tema especificamente para mobile.
-
-### Observacao importante
-
-O projeto possui uma documentacao adicional focada no sistema de temas em `docs/theme-guide.md`.
+`docs/theme-guide.md`.
 
 ---
 
-## 21. Camada CSS
+## 29. Configuracao detalhada: `assets/config/site.json`
 
-### 21.1 `assets/css/style.css`
+### Campos de topo
 
-E a folha principal de estilo do produto. Ela consome as variaveis CSS produzidas por `applyTheme()`.
+| Campo | Tipo | Descricao |
+|-------|------|-----------|
+| `activeLayout` | string | Layout ativo (`classic` ou `modern`) |
+| `activeTheme` | string | Nome ou caminho do tema ativo |
+| `themeFiles` | array | Inventario de temas disponiveis |
+| `couple` | object | `{ names, subtitle }` |
+| `event` | object | Data, hora, local, coordenadas, mapas |
+| `texts` | object | 80+ chaves de texto da interface |
+| `gift` | object | Pix, QR, cartao, catalogos |
+| `media` | object | Imagem hero, trilhas de audio |
+| `pages` | object | Configuracao das paginas extras |
+| `whatsapp` | object | Fluxo de confirmacao por WhatsApp |
+| `dashboard` | object | `{ eventId, reminderTemplates }` |
+| `rsvp` | object | `{ eventId, supabaseEnabled, disablePersistence }` |
+| `themeOverridesByTheme` | object | Overrides de CSS variables por tema |
 
-#### Papel
+### `rsvp`
 
-- definir layout global;
-- estilizar hero, detalhes, RSVP, pagina de presentes e paginas extras;
-- aplicar tipografia, cores e espacamentos via `var(--...)`.
-
-#### Regra arquitetural importante
-
-O CSS foi pensado para depender de variaveis e nao de valores hardcoded sempre que possivel. Isso e o que viabiliza a troca de tema sem recompilar o projeto.
-
-### 21.2 `assets/css/animations.css`
-
-Contem os estilos de animacao e reveal visual.
-
-#### Papel
-
-- controlar transicoes de entrada;
-- efeitos de reveal;
-- integracao com classes como `visible`, `is-visible`, `is-open`.
-
-### 21.3 `assets/css/fonts.css`
-
-Centraliza a carga/importacao de fontes usadas pelo projeto e pelas ferramentas auxiliares.
-
----
-
-## 22. Estado global, eventos e armazenamento local
-
-### 22.1 Variaveis globais expostas
-
-Depois do bootstrap, o sistema deixa disponivel:
-
-- `window.CONFIG`
-- `window.THEME`
-
-Isso facilita debug manual e o consumo pelas paginas extras.
-
-### 22.2 Evento global customizado
-
-#### `app:ready`
-
-Disparado ao final do bootstrap. E consumido por:
-
-- `extra-page.js` (base das paginas extras: historia, faq, hospedagem, mensagem e musica)
-
-#### Estrutura do payload
-
-```js
-{ detail: { config, theme } }
+```json
+{
+  "eventId": "siannah-diego-2026",
+  "supabaseEnabled": true,
+  "disablePersistence": false
+}
 ```
 
-### 22.3 Evento do audio
+### `dashboard`
 
-#### `statechange`
-
-Disparado pelo `AudioController` para sincronizar o botao de audio.
-
-### 22.4 `sessionStorage`
-
-#### Chave usada
-
-`wedding-invitation-started`
-
-#### Papel
-
-Evitar que a intro reapareca repetidamente durante a sessao e permitir abrir paginas relacionadas ja com a experiencia considerada iniciada.
+```json
+{
+  "eventId": "siannah-diego-2026"
+}
+```
 
 ---
 
-## 23. Navegacao e links especiais
+## 30. Tipografia: `assets/config/typography.json`
 
-### 23.1 Query param `section`
+### Familias cadastradas (13+)
 
-Exemplo:
+`jost`, `cormorant_garamond`, `great_vibes`, `allura`, `parisienne`, `pinyon_script`, `rouge_script`, `tangerine`, `bj_cree`, `playfair_display`, `imperial_script`, `cookie`, `charm`.
+
+### Aliases semanticos
+
+`display`, `body`, `serif`, `accent` — apontam para familias reais. `font-preview.js` remove duplicatas ao renderizar.
+
+---
+
+## 31. Camada CSS
+
+### `assets/css/style.css`
+Folha principal. Consome CSS variables de `applyTheme()`. Nao usa valores hardcoded de cores ou tamanhos.
+
+### `assets/css/animations.css`
+Transicoes de entrada, reveals, integrado com classes `visible`, `is-visible`, `is-open`.
+
+### `assets/css/fonts.css`
+Importacao centralizada das fontes.
+
+---
+
+## 32. Ferramentas internas
+
+### 32.1 `editor.html` + `assets/js/editor.js`
+
+Editor visual de `site.json` no navegador.
+
+#### Caracteristicas
+- Carrega `site.json` automaticamente ou importa arquivo local.
+- Normaliza colecoes em arrays.
+- Edita conteudo por abas (Casal & Evento, Textos, FAQ, Historia, Hospedagem, Mensagem, Musica, Mapa & Galeria, Presente, Tema).
+- Valida contra `assets/config/schemas/site-schema.json` (`loadSchema`, `validateAgainstSchema`, `renderValidationBanner`).
+- Bloqueia exportacao em caso de erros de schema.
+- Exporta JSON via download local.
+- Indica estado sujo (`isDirty`).
+
+### 32.2 `font-preview.html` + `assets/js/font-preview.js`
+
+Comparacao visual de todas as familias em `typography.json`. Remove aliases duplicados.
+
+### 32.3 `dashboard.html` + `assets/js/dashboard.js`
+
+Painel administrativo do casal. Ver secao 23.
+
+---
+
+## 33. Sistema de validacao de schemas
+
+### `assets/config/schemas/site-schema.json`
+JSON Schema (draft-07) para `site.json`. Campos obrigatorios, tipos, format uri, ranges numericos.
+
+### `assets/config/schemas/theme-schema.json`
+JSON Schema para arquivos de tema. Inclui definicao reutilizavel `typographyRole`.
+
+---
+
+## 34. Estado global, eventos e armazenamento
+
+### Variaveis globais
+
+- `window.CONFIG` — configuracao mesclada apos bootstrap
+- `window.THEME` — tema efetivo apos bootstrap
+- `window.__INVITATION_BOOTSTRAP__` — estado de navegacao do script inline
+- `window.__SITE_CONFIG__` — config injetado pelo dashboard (quando disponivel)
+
+### Eventos customizados
+
+| Evento | Quem dispara | Quem consome |
+|--------|-------------|--------------|
+| `app:ready` | `bootstrap()` em `script.js` | `extra-page.js`, paginas extras, `map.js` |
+| `statechange` | `AudioController` | `InvitationExperience.syncAudioButton()` |
+| `dashboard:config-ready` | `dashboard.js` | `dashboard.js` (loop interno) |
+
+### sessionStorage
+
+| Chave | Uso |
+|-------|-----|
+| `wedding-invitation-started` | Evita re-exibir a intro na sessao |
+| `ls-theme-colors` | Persiste cores do tema para a loading screen |
+
+---
+
+## 35. Navegacao e links especiais
+
+### Query param `section`
 
 ```text
 index.html?section=extras
 ```
 
-Usado para abrir a pagina principal e rolar para uma secao especifica depois da experiencia estar iniciada.
+Usado para rolar para uma secao especifica apos o inicio da experiencia.
 
-### 23.2 Hash `#gift`
+### Query param `g` (guest token)
 
-Nao existe mais tratamento especial para `#gift`. O fluxo de presentes e feito pela pagina dedicada `presente.html`.
+```text
+/siannah-diego?g=abc123
+```
 
-### 23.3 Fluxo de retorno das paginas extras
+Identifica o grupo do convidado e personaliza a experiencia.
 
-As paginas extras usam links do tipo:
+### Query params de debug
+
+```text
+?debug   ou   ?dev
+```
+
+Ativa o `debug-badge.js`.
+
+### Retorno das paginas extras
 
 ```text
 index.html?section=extras
 ```
 
-Assim, o usuario volta para a area de cards extras em vez de voltar ao topo do convite.
-
-Nas paginas `mensagem.html` e `musica.html` existem dois caminhos de retorno:
-
-- `index.html` para voltar ao inicio;
-- `index.html?section=extras` para voltar direto ao bloco de extras.
+Nas paginas `mensagem.html` e `musica.html` existem dois caminhos:
+- `index.html` — voltar ao inicio
+- `index.html?section=extras` — voltar ao bloco de extras
 
 ---
 
-## 24. Mapeamento funcional por pagina
+## 36. Paginas HTML e papel de cada uma
 
-### Pagina principal (`index.html`)
-
-- intro screen com controle de sessao;
-- hero preenchido por config;
-- countdown vivo;
-- cards de detalhes;
-- secao dinamica de extras;
-- formulario RSVP com redirecionamento;
-- audio flutuante.
-
-### Pagina de presentes (`presente.html`)
-
-- visual dedicado para presente;
-- copia de Pix;
-- retorno para extras;
-- reaproveitamento do mesmo config global.
-
-### Pagina de historia (`historia.html`)
-
-- timeline textual por JSON.
-
-### Pagina de FAQ (`faq.html`)
-
-- perguntas e respostas por JSON.
-
-### Pagina de hospedagem (`hospedagem.html`)
-
-- cards externos de hotel e restaurante.
-
-### Pagina de mensagem (`mensagem.html`)
-
-- formulario para recado ao casal;
-- validacao local de campo obrigatorio;
-- preparacao de mensagem e abertura de `wa.me`;
-- botoes de retorno para inicio e extras.
-
-### Pagina de musica (`musica.html`)
-
-- formulario para sugestao de musica;
-- validacao local de campo obrigatorio;
-- preparacao de mensagem e abertura de `wa.me`;
-- botoes de retorno para inicio e extras.
-
-### Editor (`editor.html`)
-
-- manutencao operacional do JSON, incluindo abas dedicadas para `mensagem` e `musica`.
-
-### Preview tipografico (`font-preview.html`)
-
-- inspecao visual das fontes cadastradas.
+| Pagina | Descricao | Scripts |
+|--------|-----------|---------|
+| `index.html` | Experiencia principal | `script.js` |
+| `presente.html` | Pagina de presentes com Pix | `script.js`, `presente.js` |
+| `historia.html` | Timeline do casal | `script.js`, `historia.js` |
+| `faq.html` | Perguntas frequentes | `script.js`, `faq.js` |
+| `hospedagem.html` | Hoteis e restaurantes | `script.js`, `hospedagem.js` |
+| `mensagem.html` | Recado ao casal | `script.js`, `mensagem.js` |
+| `musica.html` | Sugestao de musica | `script.js`, `musica.js` |
+| `editor.html` | Editor de site.json | `editor.js` |
+| `font-preview.html` | Comparacao tipografica | `font-preview.js` |
+| `dashboard.html` | Painel administrativo | `dashboard.js`, `dashboard-theme-config.js` |
 
 ---
 
-## 25. Pontos fortes da arquitetura atual
+## 37. Pontos fortes da arquitetura atual
 
-### 25.1 Alto grau de configurabilidade sem framework
-
-Mesmo sendo um projeto simples, a separacao entre HTML, JSON e tema permite um nivel bom de reaproveitamento.
-
-### 25.2 Tema fortemente parametrizado
-
-O uso de JSON + CSS variables permite alterar bastante o visual sem tocar no CSS estrutural.
-
-### 25.3 Fallbacks embutidos
-
-O projeto nao quebra completamente se `site.json` ou o tema falharem ao carregar, porque ha defaults locais em `script.js`.
-
-### 25.4 Estrutura modular suficiente para o porte do projeto
-
-Os modulos estao separados por responsabilidade sem sobreengenharia.
-
-### 25.5 Ferramentas auxiliares inteligentes
-
-O editor de JSON e o preview de fontes elevam a operabilidade do projeto.
+- **Multi-tenant pronto**: o mesmo frontend opera como site estatico ou instancia de plataforma via `config-source.js`.
+- **Alto grau de configurabilidade sem framework**: JSON + CSS variables.
+- **Tema fortemente parametrizado**: alterar visual sem tocar no CSS estrutural.
+- **Fallbacks embutidos**: nao quebra se `site.json` ou tema falharem.
+- **Persistencia nao-bloqueante**: erros de Supabase nao interrompem o fluxo do convidado.
+- **Dashboard integrado**: casal gerencia o evento sem depender de desenvolvedor.
+- **Loading screen com persistencia de cores**: elimina flash neutral entre visitas.
 
 ---
 
-## 26. Pontos fracos e fragilidades do sistema atual
+## 38. Pontos fracos e fragilidades
 
-Essa secao e importante para qualquer evolucao futura.
-
-### 26.1 Dependencia de schema para manter qualidade de config
-
-`assets/config/schemas/site-schema.json` define todos os campos, tipos e requisitos. O editor valida ao carregar e bloqueia o export em caso de erros. `script.js` emite `console.warn` para campos criticos ausentes via `warnConfigIssues()`.
-
-### 26.2 Merge profundo sem validacao semantica
-
-`mergeDeep()` resolve a composicao, mas nao garante que os campos tenham tipo correto, nome correto ou sentido correto. O schema de `site.json` mitiga isso no editor, mas nao ha validacao em runtime no bootstrap.
-
-### 26.3 Dependencia forte de IDs e naming convention de DOM
-
-Boa parte do sistema depende de `document.getElementById()` com nomes fixos. Isso reduz a flexibilidade para refatorar HTML sem atualizar simultaneamente o JS.
-
-### 26.4 Fluxo de RSVP sem persistencia real
-
-O sistema nao confirma presenca em backend. Ele apenas encaminha uma mensagem ao WhatsApp. Se for necessario controle real de convidados, essa arquitetura nao basta.
-
-### 26.5 Cobertura de testes ainda parcial
-
-O projeto ja possui suite minima de smoke com Vitest cobrindo:
-
-- carga/merge de config e tema;
-- utilitarios de merge/clone;
-- calculo e atualizacao do countdown;
-- geracao de URL/mensagem de RSVP;
-- fluxo de copia Pix (clipboard e fallback).
-
-Ainda faltam testes para partes relevantes, como:
-
-- fluxo de navegacao completo entre intro, secoes e extras;
-- comportamento de audio (troca de contexto, pausa/retomada, erros de autoplay);
-- validacao/export do editor com cenarios mais amplos;
-- integracao de mapa e galeria em cenarios de erro de dados.
-
-### 26.6 Erros sao tratados de forma simples
-
-Ha `console.warn()` e `console.error()`, mas nao existe camada clara de recuperacao visual, logging estruturado ou telemetria.
-
-### 26.7 Modulos opcionais exigem governanca de configuracao
-
-`gallery.js` e `map.js` estao integrados ao fluxo atual, mas continuam opcionais por configuracao. A fragilidade atual nao e integracao, e sim manter consistencia de dados no `site.json` entre conteudo, links e flags.
-
-### 26.8 `sessionStorage` pode nao ser confiavel em todos os contextos
-
-O codigo trata falha com `try/catch`, o que evita crash, mas o comportamento visual pode ficar inconsistente em ambientes restritos.
-
-### 26.9 Dependencia de `fetch()` em ambiente estatico
-
-Sem servidor local, alguns ambientes podem impor restricoes ou comportamento inconsistente na carga de JSON.
-
-### 26.10 Interpolacao simples de template no RSVP
-
-A funcao `interpolate()` e intencionalmente simples. Ela e suficiente para o caso atual, mas nao e um sistema robusto de template.
-
-### 26.11 Acoplamento entre pagina e tema ainda e alto em alguns pontos
-
-Apesar do bom uso de variaveis, a semantica de alguns componentes ainda depende muito do CSS existente e das chaves exatas do tema.
+- **Dependencia forte de IDs e naming convention de DOM**: `document.getElementById()` com nomes fixos reduz flexibilidade de refatoracao de HTML.
+- **Merge profundo sem validacao semantica em runtime**: `mergeDeep()` nao garante tipos corretos.
+- **Cobertura de testes parcial**: fluxo de audio, navegacao completa, mapa/galeria em erro e acessibilidade ainda nao cobertos.
+- **Erros tratados de forma simples**: `console.warn/error` sem telemetria ou recuperacao visual estruturada.
+- **`sessionStorage` pode nao ser confiavel**: tratado com `try/catch`, mas pode causar inconsistencias visuais.
+- **Interpolacao simples no RSVP**: `interpolate()` suficiente para o caso atual, nao e sistema robusto de template.
+- **Acoplamento entre pagina e tema em alguns componentes**: semantica ainda depende de chaves exatas do tema.
 
 ---
 
-## 27. Melhorias futuras recomendadas
+## 39. Proximas melhorias recomendadas
 
-### 27.1 Manter e evoluir schema formal para `site.json`
-
-Implementado em `assets/config/schemas/site-schema.json`. Validador recursivo integrado ao `editor.js` (`loadSchema`, `validateAgainstSchema`, `renderValidationBanner`). Banner visual no editor, bloqueio de export em erros, `console.warn` em runtime via `warnConfigIssues()` em `script.js`.
-
-### 27.2 Manter e evoluir schema para os temas
-
-Implementado em `assets/config/schemas/theme-schema.json`. Define todos os campos obrigatorios, tipos e a estrutura de `typographyRole` como definicao reutilizavel. `script.js` emite `console.warn` para campos criticos via `warnThemeIssues()`.
-
-### 27.3 Manter fallbacks externalizados
-
-Implementado com `assets/config/defaults/theme.json` e `assets/config/defaults/site.json`. O `script.js` agora carrega esses defaults via `loadDefaults()` no bootstrap.
-
-### 27.4 Expandir camada de utilitarios compartilhados quando necessario
-
-Implementado em `assets/js/utils.js`. Hoje concentra helpers compartilhados de DOM, URL, escaping, debounce, clone/merge profundo e manipulacao de paths. Modulos como `script.js`, `editor.js`, `historia.js`, `faq.js` e `hospedagem.js` passaram a importar essas funcoes.
-
-### 27.5 Isolar melhor os modulos de pagina
-
-As paginas extras funcionam bem, mas ainda dependem do evento global `app:ready`. E possivel evoluir isso para uma camada de renderizacao mais explicita por pagina.
-
-### 27.6 Implementar persistencia real de RSVP
-
-Se o projeto evoluir de convite visual para sistema real de convidados, sera necessario:
-
-- backend;
-- armazenamento;
-- identificacao de convite;
-- confirmacao por convidado;
-- painel administrativo.
-
-### 27.7 Melhorar acessibilidade
-
-Ha boas bases de `aria-*`, mas seria positivo ampliar:
-
-- estados de foco;
-- navegacao completa por teclado;
-- feedbacks de erro mais claros;
-- validacao mais semantica do formulario.
-
-### 27.8 Evoluir pagina dedicada de presentes
-
-O fluxo de presentes foi consolidado em `presente.html`. As proximas melhorias recomendadas sao:
-
-- ampliar o bloco de pagamento por cartao com estados adicionais (carregando/indisponivel);
-- reforcar validacoes de URL e mensagens de feedback no editor;
-- adicionar testes de smoke especificos para variacoes do fluxo de cartao.
-
-### 27.9 Evoluir modulos opcionais ja integrados
-
-`gallery.js` e `map.js` ja estao integrados ao produto e configurados por `site.json`.
-
-- `gallery.js`: integrado em `historia.html` via `pages.historia.content.gallery`.
-- `map.js`: integrado em `hospedagem.html` via `event.mapEnabled` e campos de localizacao.
-
-As melhorias recomendadas sao observabilidade de falhas de dados e testes de smoke focados nesses modulos.
-
-### 27.10 Expandir cobertura de testes de smoke
-
-A base minima de smoke ja esta implementada. O proximo passo recomendado e ampliar cobertura para:
-
-- renderizacao das paginas extras com conteudo incompleto;
-- fluxo de mapa/galeria com entradas invalidas;
-- estados de acessibilidade (aria-invalid/focus-visible) nos formularios;
-- regressao de tema responsivo e overrides por tema;
-- cenarios de erro em `loadDefaults()`, `loadConfig()` e `loadTheme()`.
+- Expandir cobertura de testes: fluxo de audio, navegacao intro-to-section, mapa/galeria com dados invalidos, aria-invalid/focus-visible.
+- Ampliar acessibilidade: estados de foco, navegacao completa por teclado.
+- Evolucao do painel: relatorios mais ricos, preview do convite ao vivo.
+- Telemetria e logging estruturado.
+- Testes de smoke para dashboard e guest tokens.
 
 ---
 
-## 28. Se este projeto fosse usado como base para outro projeto
+## 40. Se este projeto fosse usado como base para outro projeto
 
-Essa e uma das motivacoes principais deste documento.
+### O que vale reaproveitar diretamente
 
-### 28.1 O que vale reaproveitar diretamente
+- `config-source.js` e o padrao de multi-tenancy sem build step.
+- Sistema de temas por CSS variables.
+- Entry point com pipeline de merge (defaults + theme + typography + overrides).
+- Pattern de paginas extras orientadas por configuracao.
+- Fluxo de audio contextual.
+- Camada de API para submissoes (reutilizavel com qualquer schema Supabase).
+- Dashboard admin generico.
 
-- arquitetura baseada em JSON de conteudo;
-- sistema de temas por CSS variables;
-- entry point com merge de defaults + theme + overrides;
-- pattern de paginas extras orientadas por configuracao;
-- fluxo de audio contextual;
-- editor visual de configuracao.
+### O que provavelmente precisaria ser refeito
 
-### 28.2 O que provavelmente precisaria ser refeito ou endurecido
-
-- validacao de dados;
-- contrato formal de configuracao;
-- persistencia de RSVP;
-- telemetria/logging;
-- testes automatizados;
-- limpeza de codigo legado nao utilizado.
-
-### 28.3 Caminho recomendado de reutilizacao
-
-1. duplicar a estrutura de paginas e `assets/js/script.js` como base;
-2. redefinir o schema desejado de `site.json` antes de escalar o projeto;
-3. manter o sistema de temas, mas documentar o contrato com schema;
-4. decidir cedo o fluxo de presentes (neste projeto, pagina dedicada);
-5. decidir cedo se RSVP sera apenas WhatsApp ou fluxo com backend.
+- Schema do banco (tabelas especificas de casamento → generico).
+- Validacao de dados mais robusta.
+- Persistencia e autenticacao mais seguras para producao de escala.
+- Telemetria.
+- Testes automatizados mais amplos.
 
 ---
 
-## 29. Resumo executivo do estado atual
+## 41. Arquivos mais importantes para qualquer manutencao futura
 
-O projeto esta em um ponto bom para um site estatico rico e configuravel. A principal virtude e a combinacao de:
-
-- conteudo orientado por JSON;
-- tema orientado por JSON;
-- CSS parametrico;
-- JavaScript modular simples.
-
-Ao mesmo tempo, o projeto ainda opera com contratos implicitos, poucos mecanismos de validacao e certa dependencia de convencoes de DOM e nomenclatura. Isso nao impede o uso atual, mas limita seguranca de manutencao e escalabilidade.
-
-Se a meta for continuar como convite estatico premium, a base atual e suficiente e bem aproveitavel. Se a meta for evoluir para um produto mais robusto, o proximo passo natural e formalizar schemas, reduzir duplicacoes e introduzir validacao real.
-
----
-
-## 30. Arquivos mais importantes para qualquer manutencao futura
-
-Se alguem precisar entender o projeto rapidamente, a ordem recomendada de leitura e:
-
-1. `assets/js/script.js`
-2. `assets/config/site.json`
-3. `assets/config/themes/*.json`
-4. `index.html`
-5. `assets/css/style.css`
-6. `assets/js/rsvp.js`
-7. `assets/js/audio.js`
-8. `assets/js/utils.js`
-9. `assets/js/editor.js`
-
-Essa sequencia da uma visao quase completa da arquitetura e do comportamento atual.
+1. `assets/js/script.js` — entry point e pipeline de bootstrap
+2. `assets/js/config-source.js` — resolucao de fonte de config (estatico vs. API)
+3. `assets/config/site.json` — fonte de conteudo (modo estatico)
+4. `api/event-config.js` — fonte de conteudo (modo multi-tenant)
+5. `assets/layouts/*/themes/*.json` — visual
+6. `index.html`
+7. `assets/css/style.css`
+8. `assets/js/rsvp.js` + `rsvp-persistence.js`
+9. `assets/js/audio.js`
+10. `assets/js/utils.js`
+11. `assets/js/loading-screen.js`
+12. `assets/js/dashboard.js`
+13. `assets/js/editor.js`
