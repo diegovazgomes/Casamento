@@ -615,7 +615,7 @@
       'classic-silver-light'
     ];
     const WIZARD_SLUG_MIN_LENGTH = 3;
-    const WIZARD_SLUG_DEBOUNCE_MS = 1400;
+    const WIZARD_SLUG_DEBOUNCE_MS = 2000;
     const WIZARD_SLUG_CACHE_TTL_MS = 30000;
 
     let wizardStep = 1;
@@ -635,6 +635,16 @@
         .replace(/[^a-z0-9]+/g, '-')
         .replace(/^-+|-+$/g, '')
         .replace(/-{2,}/g, '-');
+    }
+
+    function normalizeWizardSlugInput(value) {
+      return String(value || '')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase()
+        .replace(/[^a-z0-9-]+/g, '-')
+        .replace(/-{2,}/g, '-')
+        .replace(/^-+/, '');
     }
 
     function setWizardSlugStatus(stateName, message) {
@@ -682,6 +692,13 @@
       const el = document.getElementById('wzSlugExample');
       if (!el) return;
 
+      const slugInput = document.getElementById('wzSlug');
+      const typedSlug = normalizeWizardSlugInput(slugInput?.value || '');
+      if (typedSlug) {
+        el.textContent = 'Seu link vai ficar assim: www.devazi.app/' + typedSlug;
+        return;
+      }
+
       const names = parseWizardNames(wizardDisplayName());
       const dateText = formatDateForSlug(document.getElementById('wzDate')?.value || '');
       const exampleSlug = normalizeWizardSlug(names.brideName) + '-' + normalizeWizardSlug(names.groomName) + '-' + dateText;
@@ -728,8 +745,21 @@
       const input = document.getElementById('wzSlug');
       if (!input) return false;
 
-      const normalizedSlug = normalizeWizardSlug(input.value);
-      input.value = normalizedSlug;
+      const normalizedInput = normalizeWizardSlugInput(input.value);
+      input.value = normalizedInput;
+      updateWizardSlugExampleText();
+
+      if (!immediate && normalizedInput.endsWith('-')) {
+        setWizardSlugStatus('idle', 'Continue digitando para validar a disponibilidade da URL.');
+        return false;
+      }
+
+      const normalizedSlug = normalizeWizardSlug(normalizedInput);
+
+      if (immediate && normalizedSlug !== normalizedInput) {
+        input.value = normalizedSlug;
+        updateWizardSlugExampleText();
+      }
 
       if (!normalizedSlug) {
         setWizardSlugStatus('idle', 'Sem problema: se deixar em branco, criamos a URL automaticamente.');
@@ -822,6 +852,8 @@
       if (wizardSlugValidationTimer) {
         clearTimeout(wizardSlugValidationTimer);
       }
+
+      setWizardSlugStatus('loading', 'Verificando disponibilidade...');
 
       return new Promise((resolve) => {
         wizardSlugValidationTimer = setTimeout(async () => {
@@ -1104,6 +1136,7 @@
         updateWizardSlugExampleText();
       });
       document.getElementById('wzSlug')?.addEventListener('input', () => {
+        setWizardSlugStatus('loading', 'Verificando disponibilidade...');
         validateWizardSlugAvailability();
       });
       document.getElementById('wzSlug')?.addEventListener('blur', () => {

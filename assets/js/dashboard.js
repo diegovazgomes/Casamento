@@ -2653,7 +2653,7 @@ const WIZARD_THEME_KEYS = [
   'classic-silver-light',
 ];
 const WIZARD_SLUG_MIN_LENGTH = 3;
-const WIZARD_SLUG_DEBOUNCE_MS = 1400;
+const WIZARD_SLUG_DEBOUNCE_MS = 2000;
 const WIZARD_SLUG_CACHE_TTL_MS = 30_000;
 
 let _wizardStep = 1;
@@ -2673,6 +2673,16 @@ function _normalizeWizardSlug(value) {
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '')
     .replace(/-{2,}/g, '-');
+}
+
+function _normalizeWizardSlugInput(value) {
+  return String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9-]+/g, '-')
+    .replace(/-{2,}/g, '-')
+    .replace(/^-+/, '');
 }
 
 function _setWizardSlugStatus(stateName, message) {
@@ -2735,6 +2745,13 @@ function _updateWizardSlugExampleText() {
     return;
   }
 
+  const slugInput = document.getElementById('wzSlug');
+  const typedSlug = _normalizeWizardSlugInput(slugInput?.value || '');
+  if (typedSlug) {
+    exampleEl.textContent = `Seu link vai ficar assim: www.devazi.app/${typedSlug}`;
+    return;
+  }
+
   exampleEl.textContent = `Seu link vai ficar assim: www.devazi.app/${_buildWizardAutoSlugExample()}`;
 }
 
@@ -2793,8 +2810,21 @@ async function _validateWizardSlugAvailability({ immediate = false } = {}) {
   const input = document.getElementById('wzSlug');
   if (!input) return false;
 
-  const normalizedSlug = _normalizeWizardSlug(input.value);
-  input.value = normalizedSlug;
+  const normalizedInput = _normalizeWizardSlugInput(input.value);
+  input.value = normalizedInput;
+  _updateWizardSlugExampleText();
+
+  if (!immediate && normalizedInput.endsWith('-')) {
+    _setWizardSlugStatus('idle', 'Continue digitando para validar a disponibilidade da URL.');
+    return false;
+  }
+
+  const normalizedSlug = _normalizeWizardSlug(normalizedInput);
+
+  if (immediate && normalizedSlug !== normalizedInput) {
+    input.value = normalizedSlug;
+    _updateWizardSlugExampleText();
+  }
 
   if (!normalizedSlug) {
     _setWizardSlugStatus('idle', 'Sem problema: se deixar em branco, criamos a URL automaticamente.');
@@ -2896,6 +2926,8 @@ async function _validateWizardSlugAvailability({ immediate = false } = {}) {
   if (_wizardSlugValidationTimer) {
     clearTimeout(_wizardSlugValidationTimer);
   }
+
+  _setWizardSlugStatus('loading', 'Verificando disponibilidade...');
 
   return new Promise((resolve) => {
     _wizardSlugValidationTimer = setTimeout(async () => {
@@ -3146,6 +3178,7 @@ async function maybeShowWizard(config) {
     }
 
     slugInput.addEventListener('input', () => {
+      _setWizardSlugStatus('loading', 'Verificando disponibilidade...');
       _validateWizardSlugAvailability();
     });
     slugInput.addEventListener('blur', () => {
