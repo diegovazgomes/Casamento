@@ -1394,6 +1394,20 @@ function buildGuestInviteLink(token, explicitLink = '') {
   return `${window.location.origin}/index.html?g=${encodedToken}`;
 }
 
+function syncPreviewInviteLink(slug) {
+  const normalizedSlug = String(slug || '').trim();
+  if (!normalizedSlug) {
+    return;
+  }
+
+  state.eventSlug = normalizedSlug;
+
+  const previewBtn = document.getElementById('btnPreviewInvite');
+  if (previewBtn) {
+    previewBtn.href = `${window.location.origin}/${encodeURIComponent(normalizedSlug)}`;
+  }
+}
+
 function sendInviteWhatsApp(grupoId) {
   const grupo = state.grupos.find(g => g.id === grupoId);
   if (!grupo || !grupo.phone) return;
@@ -3281,6 +3295,8 @@ async function _saveWizard() {
     });
     const data = await res.json().catch(() => ({}));
     if (!res.ok) throw new Error(data.error || 'Falha ao salvar');
+
+    syncPreviewInviteLink(data?.event?.slug || slugValue);
 
     if (data.config) {
       window.__SITE_CONFIG__ = data.config;
