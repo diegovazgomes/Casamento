@@ -349,6 +349,7 @@ export default async function handler(req, res) {
       ).trim();
       const heroImage = resolveSharePreviewImage(origin, config?.media?.heroImage);
       const heroImageType = inferOgImageType(heroImage);
+      const heroImageAlt = `${coupleNames} - convite de casamento`;
       const redirectUrl = buildRedirectUrl(origin, data.slug, guestToken, section);
       const pageUrl = redirectUrl;
 
@@ -366,12 +367,16 @@ export default async function handler(req, res) {
   <meta property="og:description" content="${escapeHtml(description)}">
   <meta property="og:image" content="${escapeHtml(heroImage)}">
   <meta property="og:image:secure_url" content="${escapeHtml(heroImage)}">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="${escapeHtml(heroImageAlt)}">
   ${heroImageType ? `<meta property="og:image:type" content="${escapeHtml(heroImageType)}">` : ''}
   <meta property="og:url" content="${escapeHtml(pageUrl)}">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="${escapeHtml(title)}">
   <meta name="twitter:description" content="${escapeHtml(description)}">
   <meta name="twitter:image" content="${escapeHtml(heroImage)}">
+  <meta name="twitter:image:alt" content="${escapeHtml(heroImageAlt)}">
   <meta http-equiv="refresh" content="0;url=${escapeHtml(redirectUrl)}">
   <title>${escapeHtml(title)}</title>
   <script>window.location.replace(${JSON.stringify(redirectUrl)});</script>

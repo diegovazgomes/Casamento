@@ -84,8 +84,12 @@ describe('GET /api/event-config?mode=share', () => {
     expect(res.headers['Content-Type']).toBe('text/html; charset=utf-8');
     expect(res.body).toContain('property="og:image" content="https://cdn.example.com/hero/ana-leo.jpg"');
     expect(res.body).toContain('property="og:image:secure_url" content="https://cdn.example.com/hero/ana-leo.jpg"');
+    expect(res.body).toContain('property="og:image:width" content="1200"');
+    expect(res.body).toContain('property="og:image:height" content="630"');
+    expect(res.body).toContain('property="og:image:alt" content="Ana &amp; Leo - convite de casamento"');
     expect(res.body).toContain('property="og:image:type" content="image/jpeg"');
     expect(res.body).toContain('property="og:url" content="https://example.com/ana-leo-2026?g=guest-token-1"');
+    expect(res.body).toContain('name="twitter:image:alt" content="Ana &amp; Leo - convite de casamento"');
     expect(res.body).toContain('http-equiv="refresh" content="0;url=https://example.com/ana-leo-2026?g=guest-token-1"');
   });
 
