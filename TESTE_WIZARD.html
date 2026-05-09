@@ -549,7 +549,6 @@
           <label class="field-label" for="wzSlug">Escolha como sua URL vai aparecer</label>
           <input type="text" class="field-input" id="wzSlug" placeholder="Ex: siannah-diego-09-05-2026" maxlength="60" autocomplete="off" />
           <div class="field-hint" id="wzSlugExample">Seu link vai ficar assim: www.devazi.app/sua-url</div>
-          <div class="field-hint" id="wzSlugPremiumHint" hidden>URL personalizada é um recurso premium. Faça upgrade para desbloquear.</div>
           <div class="field-hint" id="wzSlugStatus">Você pode pular esta etapa. Se deixar em branco, criaremos uma URL automaticamente.</div>
         </div>
       </div>
@@ -707,12 +706,10 @@
 
     function setWizardSlugFieldAvailability() {
       const input = document.getElementById('wzSlug');
-      const premiumHint = document.getElementById('wzSlugPremiumHint');
       if (!input) return;
 
       input.disabled = false;
       input.classList.remove('field-auto');
-      if (premiumHint) premiumHint.hidden = true;
       setWizardSlugStatus('idle', 'Você pode personalizar a URL ou deixar em branco para gerar automaticamente.');
     }
 

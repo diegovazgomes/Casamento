@@ -2757,7 +2757,6 @@ function _updateWizardSlugExampleText() {
 
 function _setWizardSlugFieldAvailability() {
   const slugInput = document.getElementById('wzSlug');
-  const premiumHint = document.getElementById('wzSlugPremiumHint');
 
   if (!slugInput) {
     return;
@@ -2765,10 +2764,6 @@ function _setWizardSlugFieldAvailability() {
 
   slugInput.disabled = false;
   slugInput.classList.remove('field-auto');
-
-  if (premiumHint) {
-    premiumHint.hidden = true;
-  }
 
   _setWizardSlugStatus('idle', 'Você pode personalizar a URL ou deixar em branco para gerar automaticamente.');
 }
