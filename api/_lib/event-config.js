@@ -290,21 +290,40 @@ function buildGalleryAltFromName(fileName, index) {
   return normalized.charAt(0).toUpperCase() + normalized.slice(1);
 }
 
-export async function resolveEventGalleryFromStorage(supabase, eventId) {
+export async function resolveEventGalleryFromStorage(supabase, eventId, eventSlug = '') {
   const normalizedEventId = String(eventId || '').trim();
+  const normalizedEventSlug = String(eventSlug || '').trim();
+  const storageRoots = [normalizedEventSlug, normalizedEventId].filter((value, index, array) => value && array.indexOf(value) === index);
 
-  if (!supabase || !normalizedEventId) {
+  if (!supabase || storageRoots.length === 0) {
     return [];
   }
 
   const storage = supabase.storage.from('event-media');
-  const { data, error } = await storage.list(`${normalizedEventId}/gallery`, {
-    limit: 200,
-    sortBy: { column: 'name', order: 'asc' },
-  });
+  let data = [];
+  let resolvedRoot = '';
 
-  if (error) {
-    console.warn('[event-config] Failed to list gallery from Storage', error);
+  for (let index = 0; index < storageRoots.length; index += 1) {
+    const root = storageRoots[index];
+    const response = await storage.list(`${root}/gallery`, {
+      limit: 200,
+      sortBy: { column: 'name', order: 'asc' },
+    });
+
+    if (response.error) {
+      console.warn('[event-config] Failed to list gallery from Storage', response.error);
+      return [];
+    }
+
+    const entries = Array.isArray(response.data) ? response.data : [];
+    if (entries.length > 0) {
+      data = entries;
+      resolvedRoot = root;
+      break;
+    }
+  }
+
+  if (!resolvedRoot) {
     return [];
   }
 
@@ -316,7 +335,7 @@ export async function resolveEventGalleryFromStorage(supabase, eventId) {
 
   return imageEntries.map((entry, index) => {
     const fileName = String(entry.name || '').trim();
-    const path = `${normalizedEventId}/gallery/${fileName}`;
+    const path = `${resolvedRoot}/gallery/${fileName}`;
     const { data: publicUrlData } = storage.getPublicUrl(path);
 
     return {
@@ -383,21 +402,40 @@ export function buildEventConfigResponse(eventRecord) {
   return nextConfig;
 }
 
-export async function resolveEventPixQrFromStorage(supabase, eventId) {
+export async function resolveEventPixQrFromStorage(supabase, eventId, eventSlug = '') {
   const normalizedEventId = String(eventId || '').trim();
+  const normalizedEventSlug = String(eventSlug || '').trim();
+  const storageRoots = [normalizedEventSlug, normalizedEventId].filter((value, index, array) => value && array.indexOf(value) === index);
 
-  if (!supabase || !normalizedEventId) {
+  if (!supabase || storageRoots.length === 0) {
     return '';
   }
 
   const storage = supabase.storage.from('event-media');
-  const { data, error } = await storage.list(`${normalizedEventId}/pix`, {
-    limit: 20,
-    sortBy: { column: 'name', order: 'asc' },
-  });
+  let data = [];
+  let resolvedRoot = '';
 
-  if (error) {
-    console.warn('[event-config] Failed to list pix QR from Storage', error);
+  for (let index = 0; index < storageRoots.length; index += 1) {
+    const root = storageRoots[index];
+    const response = await storage.list(`${root}/pix`, {
+      limit: 20,
+      sortBy: { column: 'name', order: 'asc' },
+    });
+
+    if (response.error) {
+      console.warn('[event-config] Failed to list pix QR from Storage', response.error);
+      return '';
+    }
+
+    const entries = Array.isArray(response.data) ? response.data : [];
+    if (entries.length > 0) {
+      data = entries;
+      resolvedRoot = root;
+      break;
+    }
+  }
+
+  if (!resolvedRoot) {
     return '';
   }
 
@@ -412,7 +450,7 @@ export async function resolveEventPixQrFromStorage(supabase, eventId) {
   }
 
   const fileName = String(imageEntry.name).trim();
-  const path = `${normalizedEventId}/pix/${fileName}`;
+  const path = `${resolvedRoot}/pix/${fileName}`;
   const { data: publicUrlData } = storage.getPublicUrl(path);
 
   return publicUrlData?.publicUrl || '';

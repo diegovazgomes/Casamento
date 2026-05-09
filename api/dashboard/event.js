@@ -453,8 +453,8 @@ export default async function handler(req, res) {
       }
 
       const mappedConfig = buildEventConfigResponse(ownedEvent.event);
-      const galleryImages = await resolveEventGalleryFromStorage(ownedEvent.supabase, ownedEvent.event.id);
-      const pixQrUrl = await resolveEventPixQrFromStorage(ownedEvent.supabase, ownedEvent.event.id);
+      const galleryImages = await resolveEventGalleryFromStorage(ownedEvent.supabase, ownedEvent.event.id, ownedEvent.event.slug);
+      const pixQrUrl = await resolveEventPixQrFromStorage(ownedEvent.supabase, ownedEvent.event.id, ownedEvent.event.slug);
       const withPixQr = applyPixQrToGiftConfig(mappedConfig, pixQrUrl);
       const finalConfig = applyGalleryToHistoriaConfig(withPixQr, galleryImages);
 
@@ -700,8 +700,8 @@ export default async function handler(req, res) {
     }
 
     const mappedConfig = buildEventConfigResponse(data);
-    const galleryImages = await resolveEventGalleryFromStorage(ownedEvent.supabase, data.id);
-    const pixQrUrl = await resolveEventPixQrFromStorage(ownedEvent.supabase, data.id);
+    const galleryImages = await resolveEventGalleryFromStorage(ownedEvent.supabase, data.id, data.slug);
+    const pixQrUrl = await resolveEventPixQrFromStorage(ownedEvent.supabase, data.id, data.slug);
     const withPixQr = applyPixQrToGiftConfig(mappedConfig, pixQrUrl);
     const finalConfig = applyGalleryToHistoriaConfig(withPixQr, galleryImages);
 

@@ -73,7 +73,7 @@ describe('POST /api/dashboard/media', () => {
     const listMock = vi.fn().mockResolvedValue({ data: [], error: null });
     const removeMock = vi.fn().mockResolvedValue({ error: null });
     const getPublicUrlMock = vi.fn().mockReturnValue({
-      data: { publicUrl: 'https://cdn.example.com/event-1/hero/hero.jpg' },
+      data: { publicUrl: 'https://cdn.example.com/ana-leo-2026/hero/hero.jpg' },
     });
 
     createClientMock.mockReturnValue({
@@ -81,7 +81,7 @@ describe('POST /api/dashboard/media', () => {
         getUser: vi.fn().mockResolvedValue({ data: { user: { id: 'user-1' } }, error: null }),
       },
       from: vi.fn(() => createSelectBuilder({
-        data: { id: 'event-1', user_id: 'user-1', config: {} },
+        data: { id: 'event-1', user_id: 'user-1', slug: 'ana-leo-2026', config: {} },
         error: null,
       })),
       storage: {
@@ -116,18 +116,18 @@ describe('POST /api/dashboard/media', () => {
     expect(res.statusCode).toBe(200);
     // upload happens first, then post-upload cleanup (list + conditional remove)
     expect(uploadMock).toHaveBeenCalledWith(
-      'event-1/hero/hero.jpg',
+      'ana-leo-2026/hero/hero.jpg',
       Buffer.from('binary-data'),
       { contentType: 'image/jpeg', upsert: true }
     );
-    expect(listMock).toHaveBeenCalledWith('event-1/hero', { limit: 100 });
+    expect(listMock).toHaveBeenCalledWith('ana-leo-2026/hero', { limit: 100 });
     // nothing to remove when list is empty
     expect(removeMock).not.toHaveBeenCalled();
     expect(res.body).toEqual({
       eventId: 'event-1',
-      path: 'event-1/hero/hero.jpg',
+      path: 'ana-leo-2026/hero/hero.jpg',
       type: 'hero',
-      url: 'https://cdn.example.com/event-1/hero/hero.jpg',
+      url: 'https://cdn.example.com/ana-leo-2026/hero/hero.jpg',
     });
   });
 
@@ -140,7 +140,7 @@ describe('POST /api/dashboard/media', () => {
     });
     const removeMock = vi.fn().mockResolvedValue({ error: null });
     const getPublicUrlMock = vi.fn().mockReturnValue({
-      data: { publicUrl: 'https://cdn.example.com/event-1/hero/hero.webp' },
+      data: { publicUrl: 'https://cdn.example.com/ana-leo-2026/hero/hero.webp' },
     });
 
     createClientMock.mockReturnValue({
@@ -148,7 +148,7 @@ describe('POST /api/dashboard/media', () => {
         getUser: vi.fn().mockResolvedValue({ data: { user: { id: 'user-1' } }, error: null }),
       },
       from: vi.fn(() => createSelectBuilder({
-        data: { id: 'event-1', user_id: 'user-1', config: {} },
+        data: { id: 'event-1', user_id: 'user-1', slug: 'ana-leo-2026', config: {} },
         error: null,
       })),
       storage: {
@@ -182,19 +182,19 @@ describe('POST /api/dashboard/media', () => {
 
     expect(res.statusCode).toBe(200);
     expect(uploadMock).toHaveBeenCalledWith(
-      'event-1/hero/hero.webp',
+      'ana-leo-2026/hero/hero.webp',
       expect.any(Buffer),
       { contentType: 'image/webp', upsert: true }
     );
     // only the old jpg is removed; new webp is kept
-    expect(removeMock).toHaveBeenCalledWith(['event-1/hero/hero.jpg']);
+    expect(removeMock).toHaveBeenCalledWith(['ana-leo-2026/hero/hero.jpg']);
   });
 
   it('upload succeeds even when post-upload cleanup list call fails', async () => {
     const uploadMock = vi.fn().mockResolvedValue({ error: null });
     const listMock = vi.fn().mockRejectedValue(new Error('storage unavailable'));
     const getPublicUrlMock = vi.fn().mockReturnValue({
-      data: { publicUrl: 'https://cdn.example.com/event-1/hero/hero.jpg' },
+      data: { publicUrl: 'https://cdn.example.com/ana-leo-2026/hero/hero.jpg' },
     });
 
     createClientMock.mockReturnValue({
@@ -202,7 +202,7 @@ describe('POST /api/dashboard/media', () => {
         getUser: vi.fn().mockResolvedValue({ data: { user: { id: 'user-1' } }, error: null }),
       },
       from: vi.fn(() => createSelectBuilder({
-        data: { id: 'event-1', user_id: 'user-1', config: {} },
+        data: { id: 'event-1', user_id: 'user-1', slug: 'ana-leo-2026', config: {} },
         error: null,
       })),
       storage: {
@@ -236,7 +236,7 @@ describe('POST /api/dashboard/media', () => {
     // upload must succeed regardless of cleanup failure
     expect(res.statusCode).toBe(200);
     expect(uploadMock).toHaveBeenCalled();
-    expect(res.body.url).toBe('https://cdn.example.com/event-1/hero/hero.jpg');
+    expect(res.body.url).toBe('https://cdn.example.com/ana-leo-2026/hero/hero.jpg');
   });
 
   it('uploads a pix qr image and overwrites previous file', async () => {
@@ -244,7 +244,7 @@ describe('POST /api/dashboard/media', () => {
     const listMock = vi.fn().mockResolvedValue({ data: [], error: null });
     const removeMock = vi.fn().mockResolvedValue({ error: null });
     const getPublicUrlMock = vi.fn().mockReturnValue({
-      data: { publicUrl: 'https://cdn.example.com/event-1/pix/pix-qr.png' },
+      data: { publicUrl: 'https://cdn.example.com/ana-leo-2026/pix/pix-qr.png' },
     });
 
     createClientMock.mockReturnValue({
@@ -252,7 +252,7 @@ describe('POST /api/dashboard/media', () => {
         getUser: vi.fn().mockResolvedValue({ data: { user: { id: 'user-1' } }, error: null }),
       },
       from: vi.fn(() => createSelectBuilder({
-        data: { id: 'event-1', user_id: 'user-1', config: {} },
+        data: { id: 'event-1', user_id: 'user-1', slug: 'ana-leo-2026', config: {} },
         error: null,
       })),
       storage: {
@@ -286,17 +286,17 @@ describe('POST /api/dashboard/media', () => {
 
     expect(res.statusCode).toBe(200);
     expect(uploadMock).toHaveBeenCalledWith(
-      'event-1/pix/pix-qr.png',
+      'ana-leo-2026/pix/pix-qr.png',
       Buffer.from('binary-data'),
       { contentType: 'image/png', upsert: true }
     );
-    expect(listMock).toHaveBeenCalledWith('event-1/pix', { limit: 100 });
+    expect(listMock).toHaveBeenCalledWith('ana-leo-2026/pix', { limit: 100 });
     expect(removeMock).not.toHaveBeenCalled();
     expect(res.body).toEqual({
       eventId: 'event-1',
-      path: 'event-1/pix/pix-qr.png',
+      path: 'ana-leo-2026/pix/pix-qr.png',
       type: 'pix-qr',
-      url: 'https://cdn.example.com/event-1/pix/pix-qr.png',
+      url: 'https://cdn.example.com/ana-leo-2026/pix/pix-qr.png',
     });
   });
 
@@ -309,7 +309,7 @@ describe('POST /api/dashboard/media', () => {
     });
     const removeMock = vi.fn().mockResolvedValue({ error: null });
     const getPublicUrlMock = vi.fn().mockReturnValue({
-      data: { publicUrl: 'https://cdn.example.com/event-1/pix/pix-qr.png' },
+      data: { publicUrl: 'https://cdn.example.com/ana-leo-2026/pix/pix-qr.png' },
     });
 
     createClientMock.mockReturnValue({
@@ -317,7 +317,7 @@ describe('POST /api/dashboard/media', () => {
         getUser: vi.fn().mockResolvedValue({ data: { user: { id: 'user-1' } }, error: null }),
       },
       from: vi.fn(() => createSelectBuilder({
-        data: { id: 'event-1', user_id: 'user-1', config: {} },
+        data: { id: 'event-1', user_id: 'user-1', slug: 'ana-leo-2026', config: {} },
         error: null,
       })),
       storage: {
@@ -351,9 +351,9 @@ describe('POST /api/dashboard/media', () => {
 
     expect(res.statusCode).toBe(200);
     // only the old jpg is removed; new png is kept
-    expect(removeMock).toHaveBeenCalledWith(['event-1/pix/pix-qr.jpg']);
+    expect(removeMock).toHaveBeenCalledWith(['ana-leo-2026/pix/pix-qr.jpg']);
     expect(uploadMock).toHaveBeenCalledWith(
-      'event-1/pix/pix-qr.png',
+      'ana-leo-2026/pix/pix-qr.png',
       expect.any(Buffer),
       { contentType: 'image/png', upsert: true }
     );

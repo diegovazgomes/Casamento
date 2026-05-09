@@ -134,11 +134,11 @@ describe('GET /api/event-config', () => {
           content: {
             gallery: [
               {
-                src: 'https://cdn.example.com/event-1/gallery/1712400012345-foto-cerimonia.jpg',
+                src: 'https://cdn.example.com/ana-leo-2026/gallery/1712400012345-foto-cerimonia.jpg',
                 alt: 'Foto cerimonia',
               },
               {
-                src: 'https://cdn.example.com/event-1/gallery/1712400012350-foto-festa.png',
+                src: 'https://cdn.example.com/ana-leo-2026/gallery/1712400012350-foto-festa.png',
                 alt: 'Foto festa',
               },
             ],

@@ -158,7 +158,7 @@ describe('/api/dashboard/event', () => {
             content: {
               gallery: [
                 {
-                  src: 'https://cdn.example.com/event-1/gallery/1712400012345-foto-1.jpg',
+                  src: 'https://cdn.example.com/ana-leo-2026/gallery/1712400012345-foto-1.jpg',
                   alt: 'Foto 1',
                 },
               ],
@@ -268,7 +268,7 @@ describe('/api/dashboard/event', () => {
             content: {
               gallery: [
                 {
-                  src: 'https://cdn.example.com/event-1/gallery/1712400012345-foto-1.jpg',
+                  src: 'https://cdn.example.com/test-event/gallery/1712400012345-foto-1.jpg',
                   alt: 'Foto 1',
                 },
               ],

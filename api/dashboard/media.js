@@ -60,19 +60,19 @@ function resolveFileExtension(file) {
   return extension || 'bin';
 }
 
-function buildStoragePath(eventId, type, file) {
+function buildStoragePath(storageRoot, type, file) {
   const extension = resolveFileExtension(file);
 
   if (type === 'hero') {
-    return `${eventId}/hero/hero.${extension}`;
+    return `${storageRoot}/hero/hero.${extension}`;
   }
 
   if (type === 'pix-qr') {
-    return `${eventId}/pix/pix-qr.${extension}`;
+    return `${storageRoot}/pix/pix-qr.${extension}`;
   }
 
   const safeBaseName = sanitizeBaseName(file?.originalFilename);
-  return `${eventId}/gallery/${Date.now()}-${safeBaseName}.${extension}`;
+  return `${storageRoot}/gallery/${Date.now()}-${safeBaseName}.${extension}`;
 }
 
 async function removeOtherFilesInFolder(storage, prefix, keepName) {
@@ -160,7 +160,8 @@ export default async function handler(req, res) {
     }
 
     const buffer = await readFile(file.filepath);
-    const storagePath = buildStoragePath(eventId, type, file);
+    const storageRoot = String(ownedEvent.event?.slug || eventId || '').trim();
+    const storagePath = buildStoragePath(storageRoot, type, file);
     const storage = ownedEvent.supabase.storage.from('event-media');
 
     const { error: uploadError } = await storage.upload(storagePath, buffer, {
@@ -175,7 +176,7 @@ export default async function handler(req, res) {
     // After a successful upload, remove any other files in the same folder
     // (e.g. old hero.jpg when the new upload is hero.webp). Non-blocking.
     if (type === 'hero' || type === 'pix-qr') {
-      const folderPrefix = type === 'hero' ? `${eventId}/hero` : `${eventId}/pix`;
+      const folderPrefix = type === 'hero' ? `${storageRoot}/hero` : `${storageRoot}/pix`;
       const newFileName = storagePath.replace(`${folderPrefix}/`, '');
       await removeOtherFilesInFolder(storage, folderPrefix, newFileName);
     }

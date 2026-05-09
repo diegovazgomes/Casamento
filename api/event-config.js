@@ -266,8 +266,8 @@ export default async function handler(req, res) {
     }
 
     const mappedConfig = buildEventConfigResponse(data);
-    const galleryImages = await resolveEventGalleryFromStorage(supabase, data.id);
-    const pixQrUrl = await resolveEventPixQrFromStorage(supabase, data.id);
+    const galleryImages = await resolveEventGalleryFromStorage(supabase, data.id, data.slug);
+    const pixQrUrl = await resolveEventPixQrFromStorage(supabase, data.id, data.slug);
     const withPixQr = applyPixQrToGiftConfig(mappedConfig, pixQrUrl);
     const finalConfig = applyGalleryToHistoriaConfig(withPixQr, galleryImages);
 
