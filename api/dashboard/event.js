@@ -1,8 +1,10 @@
 import {
+  applyPixQrToGiftConfig,
   applyGalleryToHistoriaConfig,
   buildEventConfigResponse,
   mergeDeep,
   resolveEventGalleryFromStorage,
+  resolveEventPixQrFromStorage,
   stripHistoriaGalleryFromConfig,
 } from '../_lib/event-config.js';
 import {
@@ -337,7 +339,9 @@ export default async function handler(req, res) {
 
       const mappedConfig = buildEventConfigResponse(ownedEvent.event);
       const galleryImages = await resolveEventGalleryFromStorage(ownedEvent.supabase, ownedEvent.event.id);
-      const finalConfig = applyGalleryToHistoriaConfig(mappedConfig, galleryImages);
+      const pixQrUrl = await resolveEventPixQrFromStorage(ownedEvent.supabase, ownedEvent.event.id);
+      const withPixQr = applyPixQrToGiftConfig(mappedConfig, pixQrUrl);
+      const finalConfig = applyGalleryToHistoriaConfig(withPixQr, galleryImages);
 
       return res.status(200).json({
         event: {
@@ -536,7 +540,9 @@ export default async function handler(req, res) {
 
     const mappedConfig = buildEventConfigResponse(data);
     const galleryImages = await resolveEventGalleryFromStorage(ownedEvent.supabase, data.id);
-    const finalConfig = applyGalleryToHistoriaConfig(mappedConfig, galleryImages);
+    const pixQrUrl = await resolveEventPixQrFromStorage(ownedEvent.supabase, data.id);
+    const withPixQr = applyPixQrToGiftConfig(mappedConfig, pixQrUrl);
+    const finalConfig = applyGalleryToHistoriaConfig(withPixQr, galleryImages);
 
     return res.status(200).json({
       event: {

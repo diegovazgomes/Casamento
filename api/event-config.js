@@ -1,7 +1,9 @@
 import {
+  applyPixQrToGiftConfig,
   applyGalleryToHistoriaConfig,
   buildEventConfigResponse,
   resolveEventGalleryFromStorage,
+  resolveEventPixQrFromStorage,
 } from './_lib/event-config.js';
 import { createSupabaseServerClient } from './_lib/supabase-server.js';
 
@@ -75,7 +77,9 @@ export default async function handler(req, res) {
 
     const mappedConfig = buildEventConfigResponse(data);
     const galleryImages = await resolveEventGalleryFromStorage(supabase, data.id);
-    const finalConfig = applyGalleryToHistoriaConfig(mappedConfig, galleryImages);
+    const pixQrUrl = await resolveEventPixQrFromStorage(supabase, data.id);
+    const withPixQr = applyPixQrToGiftConfig(mappedConfig, pixQrUrl);
+    const finalConfig = applyGalleryToHistoriaConfig(withPixQr, galleryImages);
 
     res.setHeader('Cache-Control', CACHE_CONTROL_HEADER);
     return res.status(200).json(finalConfig);

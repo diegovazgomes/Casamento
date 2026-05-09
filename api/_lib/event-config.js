@@ -267,6 +267,7 @@ function mapGiftConfig(giftRecords, baseGiftConfig) {
 }
 
 const GALLERY_IMAGE_EXTENSION_PATTERN = /\.(jpe?g|png|webp)$/i;
+const PIX_QR_IMAGE_EXTENSION_PATTERN = /\.(jpe?g|png|webp)$/i;
 
 function buildGalleryAltFromName(fileName, index) {
   const fallback = `Foto ${index + 1}`;
@@ -378,6 +379,53 @@ export function buildEventConfigResponse(eventRecord) {
   nextConfig.whatsapp = normalizeWhatsappConfig(nextConfig.whatsapp);
 
   nextConfig.gift = mapGiftConfig(eventRecord?.event_gifts, nextConfig.gift);
+
+  return nextConfig;
+}
+
+export async function resolveEventPixQrFromStorage(supabase, eventId) {
+  const normalizedEventId = String(eventId || '').trim();
+
+  if (!supabase || !normalizedEventId) {
+    return '';
+  }
+
+  const storage = supabase.storage.from('event-media');
+  const { data, error } = await storage.list(`${normalizedEventId}/pix`, {
+    limit: 20,
+    sortBy: { column: 'name', order: 'asc' },
+  });
+
+  if (error) {
+    console.warn('[event-config] Failed to list pix QR from Storage', error);
+    return '';
+  }
+
+  const imageEntry = (Array.isArray(data) ? data : [])
+    .find((entry) => {
+      const name = String(entry?.name || '').trim();
+      return Boolean(name) && PIX_QR_IMAGE_EXTENSION_PATTERN.test(name);
+    });
+
+  if (!imageEntry?.name) {
+    return '';
+  }
+
+  const fileName = String(imageEntry.name).trim();
+  const path = `${normalizedEventId}/pix/${fileName}`;
+  const { data: publicUrlData } = storage.getPublicUrl(path);
+
+  return publicUrlData?.publicUrl || '';
+}
+
+export function applyPixQrToGiftConfig(config, pixQrUrl) {
+  const nextConfig = isPlainObject(config) ? cloneValue(config) : {};
+
+  if (!nextConfig.gift) nextConfig.gift = {};
+
+  if (pixQrUrl) {
+    nextConfig.gift.pixQrImage = pixQrUrl;
+  }
 
   return nextConfig;
 }
