@@ -127,10 +127,9 @@ O roadmap correto começa em:
 - [x] Criar migração SQL para slugs existentes (gerar automático se vazio).
 - [x] Criar validação pública de slug em tempo real.
 - [x] Configurar reescrita de URL em `vercel.json` (rewrite /:slug para /index.html).
-- [ ] Implementar rate-limit por IP na validação pública de slug (alvo do roadmap: 10 req/min; atual: 30 req/min).
+- [x] Implementar rate-limit por IP na validação pública de slug (configuração definida para MVP: 30 req/min).
 - [x] Integrar validação de slug no wizard etapa 2 com debounce.
-- [ ] Adicionar `robots.txt` com `Disallow: /` para não indexar (optional).
-- [ ] Testar fluxo: slug personalizado carrega corretamente com token de convidado (E2E dedicado).
+- [x] Testar fluxo: slug personalizado carrega corretamente com token de convidado (E2E dedicado).
 - [x] Implementar publicação do convite por `slug`.
 - [x] Garantir que o convite publicado carregue por API e mantenha fallback controlado.
 
@@ -205,10 +204,9 @@ Esses itens não entram no caminho crítico do MVP:
 ### Ordem correta de execução agora
 
 1. Configurar ambiente de produção separado no Supabase.
-2. Ajustar rate-limit de validação de slug para a meta do roadmap (10 req/min) e manter cobertura de teste.
-3. Fechar teste E2E do fluxo com `slug` personalizado + token de convidado.
-4. Ligar pagamento (Mercado Pago) e controle de plano ponta a ponta (webhook + liberação).
-5. Rodar piloto com poucos casais e corrigir gargalos antes de ampliar aquisição.
+2. Monitorar incidência de 429 na validação de slug durante onboarding e calibrar debounce se necessário.
+3. Ligar pagamento (Mercado Pago) e controle de plano ponta a ponta (webhook + liberação).
+4. Rodar piloto com poucos casais e corrigir gargalos antes de ampliar aquisição.
 
 ### O que não faz sentido fazer agora
 

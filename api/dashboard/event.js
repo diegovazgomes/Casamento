@@ -493,20 +493,10 @@ export default async function handler(req, res) {
     const sanitizedIncomingConfig = stripHistoriaGalleryFromConfig(body.config);
     const existingConfig = ownedEvent.event.config || {};
     const shouldAutoGenerateSlug = body.autoGenerateSlug === true;
-    const isRequestingCustomSlug = hasOwn(body, 'slug') && Boolean(body.slug);
-    const planFromToken = ownedEvent.user?.user_metadata?.plan
-      || ownedEvent.user?.app_metadata?.plan
-      || ownedEvent.user?.plan
-      || 'premium';
-    const isPremiumUser = String(planFromToken).trim().toLowerCase() === 'premium';
 
     let normalizedIncomingSlug = null;
 
-    if (hasOwn(body, 'slug') && body.slug && !isPremiumUser) {
-      return res.status(403).json({ error: 'Custom URL is available only for premium plans' });
-    }
-
-    if (hasOwn(body, 'slug') && body.slug && isPremiumUser) {
+    if (hasOwn(body, 'slug') && body.slug) {
       const slugValidation = validateSlugCandidate(body.slug);
 
       if (!slugValidation.ok) {
