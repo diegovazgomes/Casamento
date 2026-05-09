@@ -30,3 +30,8 @@
 ## Dashboard
 
 [x] - Mover "Editar Evento" para segunda posição na sidebar (após Visão Geral)
+
+
+Na landing page mobile:
+Proporcionalidade no cabeçalho, Login esta muito perto de Devazi, começar gratuitamente esta muito maior. Precisamos que a logo seja maior, login seja levemente menor que começar gratuitamente, tudo tem que ser distribuido proporcionalmente.
+A arte do anel de brilhante deve ser bem menor e aparecer na hero. logo após o texto A primeira página do livro que começa no sim.

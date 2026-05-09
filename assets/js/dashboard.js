@@ -2631,10 +2631,125 @@ const WIZARD_THEME_KEYS = [
   'classic-gold-light',
   'classic-silver-light',
 ];
+const WIZARD_SLUG_MIN_LENGTH = 3;
+const WIZARD_SLUG_DEBOUNCE_MS = 400;
 
 let _wizardStep = 1;
 let _wizardSelectedTheme = 'classic-gold';
 let _wizardLoadedThemes = [];
+let _wizardSlugValidationTimer = null;
+let _wizardSlugValidationToken = 0;
+let _wizardSlugState = 'idle';
+
+function _normalizeWizardSlug(value) {
+  return String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .replace(/-{2,}/g, '-');
+}
+
+function _setWizardSlugStatus(stateName, message) {
+  const statusEl = document.getElementById('wzSlugStatus');
+  if (!statusEl) return;
+
+  const paletteByState = {
+    idle: 'var(--text-dim)',
+    loading: 'var(--text-dim)',
+    valid: 'var(--success)',
+    invalid: 'var(--danger)',
+  };
+
+  _wizardSlugState = stateName;
+  statusEl.textContent = message || '';
+  statusEl.style.color = paletteByState[stateName] || 'var(--text-dim)';
+}
+
+async function _validateWizardSlugAvailability({ immediate = false } = {}) {
+  const input = document.getElementById('wzSlug');
+  if (!input) return false;
+
+  const normalizedSlug = _normalizeWizardSlug(input.value);
+  input.value = normalizedSlug;
+
+  if (!normalizedSlug) {
+    _setWizardSlugStatus('invalid', 'Defina a URL do convite.');
+    return false;
+  }
+
+  if (normalizedSlug.length < WIZARD_SLUG_MIN_LENGTH) {
+    _setWizardSlugStatus('invalid', `A URL precisa ter ao menos ${WIZARD_SLUG_MIN_LENGTH} caracteres.`);
+    return false;
+  }
+
+  const requestToken = ++_wizardSlugValidationToken;
+
+  const performCheck = async () => {
+    _setWizardSlugStatus('loading', 'Validando disponibilidade...');
+
+    try {
+      const params = new URLSearchParams({ slug: normalizedSlug });
+      if (state.eventId) {
+        params.set('eventId', state.eventId);
+      }
+
+      const response = await fetch(`/api/check-slug?${params.toString()}`);
+      const payload = await response.json().catch(() => ({}));
+
+      if (requestToken !== _wizardSlugValidationToken) {
+        return false;
+      }
+
+      if (!response.ok) {
+        if (response.status === 429) {
+          _setWizardSlugStatus('invalid', 'Muitas tentativas. Aguarde alguns segundos.');
+          return false;
+        }
+
+        _setWizardSlugStatus('invalid', payload.error || 'Não foi possível validar a URL.');
+        return false;
+      }
+
+      if (payload.available === true) {
+        _setWizardSlugStatus('valid', 'URL disponível para publicar.');
+        return true;
+      }
+
+      if (payload.reason === 'reserved') {
+        _setWizardSlugStatus('invalid', 'Essa URL é reservada pelo sistema.');
+        return false;
+      }
+
+      _setWizardSlugStatus('invalid', 'Essa URL já está em uso.');
+      return false;
+    } catch (error) {
+      if (requestToken !== _wizardSlugValidationToken) {
+        return false;
+      }
+
+      _setWizardSlugStatus('invalid', 'Erro ao validar URL. Tente novamente.');
+      return false;
+    }
+  };
+
+  if (immediate) {
+    return performCheck();
+  }
+
+  if (_wizardSlugValidationTimer) {
+    clearTimeout(_wizardSlugValidationTimer);
+  }
+
+  return new Promise((resolve) => {
+    _wizardSlugValidationTimer = setTimeout(async () => {
+      _wizardSlugValidationTimer = null;
+      const result = await performCheck();
+      resolve(result);
+    }, WIZARD_SLUG_DEBOUNCE_MS);
+  });
+}
 
 function isFirstTimeUser(config) {
   const loc = config?.event?.locationName || '';
@@ -2787,11 +2902,21 @@ function _wizardGoToStep(step) {
   if (step === 3) _updateWizardPreview();
 }
 
-function wizardNext() {
+async function wizardNext() {
   if (_wizardStep === 1) {
     const displayInput = document.getElementById('wzDisplayName');
     if (!displayInput?.value.trim()) {
       displayInput?.focus();
+      return;
+    }
+  }
+
+  if (_wizardStep === 2) {
+    const slugInput = document.getElementById('wzSlug');
+    const isSlugValid = await _validateWizardSlugAvailability({ immediate: true });
+
+    if (!slugInput?.value.trim() || !isSlugValid) {
+      slugInput?.focus();
       return;
     }
   }
@@ -2840,6 +2965,25 @@ async function maybeShowWizard(config) {
 
   _wizardSelectedTheme = config.activeTheme || 'classic-gold';
 
+  const slugInput = document.getElementById('wzSlug');
+  if (slugInput) {
+    const initialSlug = _normalizeWizardSlug(state.eventSlug || config?.rsvp?.eventId || '');
+    slugInput.value = initialSlug;
+    if (initialSlug) {
+      _setWizardSlugStatus('idle', 'Verificando disponibilidade da URL...');
+      _validateWizardSlugAvailability({ immediate: true });
+    } else {
+      _setWizardSlugStatus('idle', 'Use letras minúsculas, números e hífen.');
+    }
+
+    slugInput.addEventListener('input', () => {
+      _validateWizardSlugAvailability();
+    });
+    slugInput.addEventListener('blur', () => {
+      _validateWizardSlugAvailability({ immediate: true });
+    });
+  }
+
   // Binds do campo principal
   document.getElementById('wzDisplayName')?.addEventListener('input', function () {
     this.dataset.userEdited = '1';
@@ -2878,6 +3022,15 @@ async function _saveWizard() {
   const timeVal      = document.getElementById('wzTime')?.value                || '17:00';
   const venueName    = document.getElementById('wzVenueName')?.value.trim()    || '';
   const venueAddress = document.getElementById('wzVenueAddress')?.value.trim() || '';
+  const slugValue    = _normalizeWizardSlug(document.getElementById('wzSlug')?.value || '');
+
+  if (!slugValue || _wizardSlugState !== 'valid') {
+    _setWizardSlugStatus('invalid', 'Defina uma URL válida antes de salvar.');
+    if (nextBtn) { nextBtn.disabled = false; nextBtn.textContent = 'Salvar e publicar'; }
+    if (backBtn) backBtn.disabled = false;
+    document.getElementById('wzSlug')?.focus();
+    return;
+  }
 
   const dateLabels = dateVal ? _wizardDeriveDateLabels(dateVal) : {};
 
@@ -2896,13 +3049,16 @@ async function _saveWizard() {
       locationName: venueName   || 'A definir',
       venueAddress: venueAddress || 'A definir',
     },
+    rsvp: {
+      eventId: slugValue,
+    },
   };
 
   try {
     const res  = await fetchWithAuth('/api/dashboard/event', {
       method:  'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ config: configPatch }),
+      body:    JSON.stringify({ slug: slugValue, config: configPatch }),
     });
     const data = await res.json().catch(() => ({}));
     if (!res.ok) throw new Error(data.error || 'Falha ao salvar');

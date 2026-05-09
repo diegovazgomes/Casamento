@@ -41,6 +41,24 @@ function slugify(value) {
     .replace(/-{2,}/g, '-');
 }
 
+function hasOwn(object, key) {
+  return Object.prototype.hasOwnProperty.call(object || {}, key);
+}
+
+function validateSlugCandidate(value) {
+  const normalized = slugify(value || '');
+
+  if (!normalized) {
+    return { ok: false, error: 'slug must be a valid non-empty string' };
+  }
+
+  if (normalized.length < 3 || normalized.length > 60) {
+    return { ok: false, error: 'slug must have between 3 and 60 characters' };
+  }
+
+  return { ok: true, slug: normalized };
+}
+
 function buildDefaultEventSlug(coupleName, userId) {
   const baseSlug = slugify(coupleName) || 'casal';
   const userSuffix = slugify(String(userId || '').slice(0, 8)) || Date.now().toString(36);
@@ -358,7 +376,7 @@ export default async function handler(req, res) {
 
     // ===== PATCH: Atualizar evento =====
     const lookup = getDashboardEventLookup(req);
-    const { eventId, slug, ...body } = req.body || {};
+    const { eventId, ...body } = req.body || {};
 
     const ownedEvent = await requireOwnedEvent(req, {
       lookup,
@@ -377,6 +395,34 @@ export default async function handler(req, res) {
 
     const sanitizedIncomingConfig = stripHistoriaGalleryFromConfig(body.config);
 
+    let normalizedIncomingSlug = null;
+
+    if (hasOwn(body, 'slug')) {
+      const slugValidation = validateSlugCandidate(body.slug);
+
+      if (!slugValidation.ok) {
+        return res.status(400).json({ error: slugValidation.error });
+      }
+
+      normalizedIncomingSlug = slugValidation.slug;
+
+      if (normalizedIncomingSlug !== ownedEvent.event.slug) {
+        const { data: conflictingSlugRow, error: conflictingSlugError } = await ownedEvent.supabase
+          .from('events')
+          .select('id')
+          .eq('slug', normalizedIncomingSlug)
+          .maybeSingle();
+
+        if (conflictingSlugError) {
+          throw conflictingSlugError;
+        }
+
+        if (conflictingSlugRow && conflictingSlugRow.id !== ownedEvent.event.id) {
+          return res.status(409).json({ error: 'slug already in use' });
+        }
+      }
+    }
+
     console.log('[dashboard/event] PATCH received:', {
       eventId: ownedEvent.event.id,
       slug: ownedEvent.event.slug,
@@ -390,11 +436,19 @@ export default async function handler(req, res) {
     const existingConfig = ownedEvent.event.config || {};
     const newConfig = mergeDeep(existingConfig, sanitizedIncomingConfig);
 
+    if (normalizedIncomingSlug) {
+      newConfig.rsvp = mergeDeep(newConfig.rsvp, { eventId: normalizedIncomingSlug });
+    }
+
     // 3. Montar payload de update
     const updateData = {
       ...tableFields,
       config: newConfig,
     };
+
+    if (normalizedIncomingSlug) {
+      updateData.slug = normalizedIncomingSlug;
+    }
 
     console.log('[dashboard/event] Update payload:', {
       tableFields: Object.keys(tableFields),
