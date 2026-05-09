@@ -1388,7 +1388,7 @@ function buildGuestInviteLink(token, explicitLink = '') {
 
   const encodedToken = encodeURIComponent(String(token || '').trim());
   if (state.eventSlug) {
-    return `${window.location.origin}/${encodeURIComponent(state.eventSlug)}?g=${encodedToken}`;
+    return `${window.location.origin}/api/event-config?mode=share&slug=${encodeURIComponent(state.eventSlug)}&g=${encodedToken}`;
   }
 
   return `${window.location.origin}/index.html?g=${encodedToken}`;
@@ -1416,12 +1416,34 @@ function sendInviteWhatsApp(grupoId) {
   const link = buildGuestInviteLink(grupo.token, grupo.inviteLink);
   const vagas = grupo.max_confirmations;
   const vagasTexto = vagas === 1 ? '1 pessoa' : `${vagas} pessoas`;
+  const isIndividualInvite = Number(vagas) === 1;
+  const buildMessage = window.buildInviteWhatsAppMessage || ((options) => {
+    const inviteLink = String(options?.link || '').trim();
+    const inviteCoupleNames = String(options?.coupleNames || 'os noivos').trim() || 'os noivos';
 
-  const mensagem =
-    `Olá! Você está sendo convidado(a) para o casamento de ${coupleNames}! 🎊\n\n` +
-    `Seu convite é para ${vagasTexto}. Acesse o link abaixo para confirmar sua presença e compartilhe com os demais convidados do seu grupo:\n\n` +
-    `${link}\n\n` +
-    `Aguardamos você com muito carinho! 🤍`;
+    if (options?.isIndividual) {
+      return (
+        `Olá! Você foi convidado(a) para o casamento de ${inviteCoupleNames}! 🎊\n\n` +
+        `Seu convite é exclusivo. Acesse o link abaixo para confirmar sua presença:\n\n` +
+        `${inviteLink}\n\n` +
+        `Aguardamos você com muito carinho! 🤍`
+      );
+    }
+
+    return (
+      `Olá! Você está sendo convidado(a) para o casamento de ${inviteCoupleNames}! 🎊\n\n` +
+      `Seu convite é para ${options?.groupSizeLabel || 'vários convidados'}. Acesse o link abaixo para confirmar sua presença e compartilhe com os demais convidados do seu grupo:\n\n` +
+      `${inviteLink}\n\n` +
+      `Aguardamos você com muito carinho! 🤍`
+    );
+  });
+
+  const mensagem = buildMessage({
+    coupleNames,
+    link,
+    isIndividual: isIndividualInvite,
+    groupSizeLabel: vagasTexto,
+  });
 
   const digits = grupo.phone.replace(/\D/g, '');
   const url = `https://wa.me/${digits}?text=${encodeURIComponent(mensagem)}`;

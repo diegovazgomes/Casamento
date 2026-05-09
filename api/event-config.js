@@ -75,6 +75,49 @@ function setJsonHeaders(res) {
   res.setHeader('Content-Type', 'application/json');
 }
 
+function getOrigin(req) {
+  const protocol = req?.headers?.['x-forwarded-proto'] || 'https';
+  const host = req?.headers?.host || 'localhost:3000';
+  return `${protocol}://${host}`;
+}
+
+function escapeHtml(value) {
+  return String(value || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+function resolveImageUrl(origin, imagePath) {
+  const fallback = '/assets/images/couple/casal.png';
+  const source = String(imagePath || '').trim() || fallback;
+
+  try {
+    return new URL(source, origin).href;
+  } catch {
+    return new URL(fallback, origin).href;
+  }
+}
+
+function buildRedirectUrl(origin, slug, guestToken, section = '') {
+  const normalizedSlug = String(slug || '').trim();
+  const normalizedToken = String(guestToken || '').trim();
+  const normalizedSection = String(section || '').trim();
+  const url = new URL(normalizedSlug ? `/${encodeURIComponent(normalizedSlug)}` : '/index.html', origin);
+
+  if (normalizedToken) {
+    url.searchParams.set('g', normalizedToken);
+  }
+
+  if (normalizedSection) {
+    url.searchParams.set('section', normalizedSection);
+  }
+
+  return url.href;
+}
+
 function normalizeSlugCandidate(value) {
   return String(value || '')
     .normalize('NFD')
@@ -207,15 +250,92 @@ async function handleSlugAvailabilityCheck(req, res, supabase) {
 }
 
 export default async function handler(req, res) {
-  setJsonHeaders(res);
+  const mode = String(req.query?.mode || '').trim();
 
   if (req.method !== 'GET') {
+    setJsonHeaders(res);
     res.setHeader('Allow', 'GET');
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
-    if (String(req.query?.mode || '').trim() === 'check-slug') {
+    if (mode === 'share') {
+      const slug = normalizeSlug(req.query?.slug);
+      const guestToken = String(req.query?.g || '').trim();
+      const section = String(req.query?.section || '').trim();
+
+      if (!slug) {
+        res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+        return res.status(400).send('slug required');
+      }
+
+      const supabase = createSupabaseServerClient();
+
+      if (!supabase) {
+        res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+        return res.status(503).send('Supabase server configuration missing');
+      }
+
+      const { data, error } = await supabase
+        .from('events')
+        .select('slug,couple_names,config,is_active')
+        .eq('slug', slug)
+        .eq('is_active', true)
+        .maybeSingle();
+
+      if (error) {
+        throw error;
+      }
+
+      if (!data) {
+        res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+        return res.status(404).send('Event not found');
+      }
+
+      const origin = getOrigin(req);
+      const config = data.config && typeof data.config === 'object' ? data.config : {};
+      const coupleNames = String(config?.couple?.names || data.couple_names || 'Convite').trim() || 'Convite';
+      const title = String(config?.texts?.metaTitle || `${coupleNames} - Convite de Casamento`).trim();
+      const description = String(
+        config?.texts?.metaDescription
+        || config?.texts?.description
+        || `Abra o convite digital de ${coupleNames}.`
+      ).trim();
+      const heroImage = resolveImageUrl(origin, config?.media?.heroImage);
+      const redirectUrl = buildRedirectUrl(origin, data.slug, guestToken, section);
+      const pageUrl = new URL(req.url || '', origin).href;
+
+      res.setHeader('Content-Type', 'text/html; charset=utf-8');
+      res.setHeader('Cache-Control', 'no-store, max-age=0');
+
+      return res.status(200).send(`<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="${escapeHtml(description)}">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="${escapeHtml(title)}">
+  <meta property="og:description" content="${escapeHtml(description)}">
+  <meta property="og:image" content="${escapeHtml(heroImage)}">
+  <meta property="og:url" content="${escapeHtml(pageUrl)}">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="${escapeHtml(title)}">
+  <meta name="twitter:description" content="${escapeHtml(description)}">
+  <meta name="twitter:image" content="${escapeHtml(heroImage)}">
+  <meta http-equiv="refresh" content="0;url=${escapeHtml(redirectUrl)}">
+  <title>${escapeHtml(title)}</title>
+  <script>window.location.replace(${JSON.stringify(redirectUrl)});</script>
+</head>
+<body>
+  <p>Redirecionando para o convite...</p>
+</body>
+</html>`);
+    }
+
+    setJsonHeaders(res);
+
+    if (mode === 'check-slug') {
       const slugValidation = validateSlugCandidate(req.query?.slug);
 
       if (!slugValidation.ok) {
