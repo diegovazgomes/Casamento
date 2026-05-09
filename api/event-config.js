@@ -8,6 +8,11 @@ import {
 import { createSupabaseServerClient } from './_lib/supabase-server.js';
 
 const CACHE_CONTROL_HEADER = 'no-store, no-cache, must-revalidate';
+const SLUG_MIN_LENGTH = 3;
+const SLUG_MAX_LENGTH = 60;
+const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+const RATE_LIMIT_MAX_REQUESTS = 10;
+const RATE_LIMIT_WINDOW_MS = 60_000;
 const EVENT_SELECT = [
   'id',
   'slug',
@@ -25,6 +30,33 @@ const EVENT_SELECT = [
   'event_gifts(id,type,enabled,sort_order,config)',
 ].join(',');
 
+const RESERVED_SLUGS = new Set([
+  'api',
+  'assets',
+  'auth',
+  'dashboard',
+  'docs',
+  'tests',
+  'index',
+  'landing',
+  'signup',
+  'confirm',
+  'forgot-password',
+  'reset-password',
+  'privacy',
+  'terms',
+  'editor',
+  'font-preview',
+  'historia',
+  'faq',
+  'hospedagem',
+  'mensagem',
+  'musica',
+  'presente',
+]);
+
+const requestsByIp = new Map();
+
 function normalizeSlug(rawSlug) {
   if (Array.isArray(rawSlug)) {
     return normalizeSlug(rawSlug[0]);
@@ -37,27 +69,172 @@ function normalizeSlug(rawSlug) {
   return rawSlug.trim();
 }
 
-export default async function handler(req, res) {
+function setJsonHeaders(res) {
   res.setHeader('Content-Type', 'application/json');
+}
+
+function normalizeSlugCandidate(value) {
+  return String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .replace(/-{2,}/g, '-');
+}
+
+function getClientIp(req) {
+  const forwardedFor = req?.headers?.['x-forwarded-for'] || req?.headers?.['X-Forwarded-For'];
+  if (typeof forwardedFor === 'string' && forwardedFor.trim()) {
+    return forwardedFor.split(',')[0].trim();
+  }
+
+  const realIp = req?.headers?.['x-real-ip'] || req?.headers?.['X-Real-IP'];
+  if (typeof realIp === 'string' && realIp.trim()) {
+    return realIp.trim();
+  }
+
+  return 'unknown';
+}
+
+function consumeRateLimit(ip) {
+  const now = Date.now();
+  const history = requestsByIp.get(ip) || [];
+  const recentHistory = history.filter((timestamp) => now - timestamp < RATE_LIMIT_WINDOW_MS);
+
+  if (recentHistory.length >= RATE_LIMIT_MAX_REQUESTS) {
+    const retryAfterMs = Math.max(0, RATE_LIMIT_WINDOW_MS - (now - recentHistory[0]));
+    const retryAfterSec = Math.ceil(retryAfterMs / 1000);
+    requestsByIp.set(ip, recentHistory);
+    return { allowed: false, retryAfterSec };
+  }
+
+  recentHistory.push(now);
+  requestsByIp.set(ip, recentHistory);
+  return { allowed: true, retryAfterSec: 0 };
+}
+
+function validateSlugCandidate(rawSlug) {
+  const normalized = normalizeSlugCandidate(rawSlug);
+
+  if (!normalized) {
+    return { ok: false, normalized, message: 'slug is required' };
+  }
+
+  if (normalized.length < SLUG_MIN_LENGTH) {
+    return { ok: false, normalized, message: `slug must have at least ${SLUG_MIN_LENGTH} characters` };
+  }
+
+  if (normalized.length > SLUG_MAX_LENGTH) {
+    return { ok: false, normalized, message: `slug must have at most ${SLUG_MAX_LENGTH} characters` };
+  }
+
+  if (!SLUG_PATTERN.test(normalized)) {
+    return { ok: false, normalized, message: 'slug format is invalid' };
+  }
+
+  if (RESERVED_SLUGS.has(normalized)) {
+    return { ok: true, normalized, reserved: true };
+  }
+
+  return { ok: true, normalized, reserved: false };
+}
+
+async function handleSlugAvailabilityCheck(req, res, supabase) {
+  const ip = getClientIp(req);
+  const rateLimit = consumeRateLimit(ip);
+
+  if (!rateLimit.allowed) {
+    res.setHeader('Retry-After', String(rateLimit.retryAfterSec));
+    return res.status(429).json({
+      error: 'Too many requests',
+      available: false,
+      reason: 'rate_limited',
+      retryAfterSec: rateLimit.retryAfterSec,
+    });
+  }
+
+  const validation = validateSlugCandidate(req.query?.slug);
+  const currentSlug = normalizeSlugCandidate(req.query?.currentSlug);
+
+  if (!validation.ok) {
+    return res.status(400).json({
+      error: validation.message,
+      available: false,
+      reason: 'invalid_format',
+      normalizedSlug: validation.normalized,
+    });
+  }
+
+  if (validation.reserved) {
+    return res.status(200).json({
+      available: false,
+      reason: 'reserved',
+      slug: validation.normalized,
+    });
+  }
+
+  const { data, error } = await supabase
+    .from('events')
+    .select('id,slug')
+    .eq('slug', validation.normalized)
+    .maybeSingle();
+
+  if (error) {
+    throw error;
+  }
+
+  const available = !data || (Boolean(currentSlug) && currentSlug === validation.normalized);
+
+  return res.status(200).json({
+    available,
+    reason: available ? 'available' : 'taken',
+    slug: validation.normalized,
+  });
+}
+
+export default async function handler(req, res) {
+  setJsonHeaders(res);
 
   if (req.method !== 'GET') {
     res.setHeader('Allow', 'GET');
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const slug = normalizeSlug(req.query?.slug);
-
-  if (!slug) {
-    return res.status(400).json({ error: 'slug is required' });
-  }
-
-  const supabase = createSupabaseServerClient();
-
-  if (!supabase) {
-    return res.status(503).json({ error: 'Supabase server configuration missing' });
-  }
-
   try {
+    if (String(req.query?.mode || '').trim() === 'check-slug') {
+      const slugValidation = validateSlugCandidate(req.query?.slug);
+
+      if (!slugValidation.ok) {
+        return res.status(400).json({
+          error: slugValidation.message,
+          available: false,
+          reason: 'invalid_format',
+          normalizedSlug: slugValidation.normalized,
+        });
+      }
+
+      const supabase = createSupabaseServerClient();
+
+      if (!supabase) {
+        return res.status(503).json({ error: 'Supabase server configuration missing' });
+      }
+
+      return await handleSlugAvailabilityCheck(req, res, supabase);
+    }
+
+    const slug = normalizeSlug(req.query?.slug);
+
+    if (!slug) {
+      return res.status(400).json({ error: 'slug is required' });
+    }
+
+    const supabase = createSupabaseServerClient();
+
+    if (!supabase) {
+      return res.status(503).json({ error: 'Supabase server configuration missing' });
+    }
+
     const { data, error } = await supabase
       .from('events')
       .select(EVENT_SELECT)

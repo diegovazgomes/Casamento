@@ -119,9 +119,9 @@ O roadmap correto começa em:
 - [x] Criar wizard inicial no dashboard para dados do casal, evento e tema.
 - [ ] Adicionar coluna `slug` (unique, text) em `events`.
 - [ ] Criar migração SQL para slugs existentes (gerar automático se vazio).
-- [ ] Criar endpoint `/api/check-slug` para validação em tempo real.
+- [ ] Criar validação pública de slug em tempo real.
 - [ ] Configurar reescrita de URL em `vercel.json` (rewrite /:slug para /index.html?slug=:slug).
-- [ ] Implementar rate-limit por IP em `/api/check-slug` (máx 10 req/min).
+- [ ] Implementar rate-limit por IP na validação pública de slug (máx 10 req/min).
 - [ ] Integrar validação de slug no wizard etapa 2 com debounce.
 - [ ] Adicionar `robots.txt` com `Disallow: /` para não indexar (optional).
 - [ ] Testar fluxo: slug personalizado carrega corretamente com token de convidado.

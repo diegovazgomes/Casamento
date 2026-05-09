@@ -563,7 +563,7 @@
             <span class="wizard-instruction-num">02</span>
             <div>
               <strong>Validacao de slug</strong>
-              <p>Esta tela usa o endpoint publico /api/check-slug para validar disponibilidade.</p>
+              <p>Esta tela usa o endpoint publico /api/event-config?mode=check-slug para validar disponibilidade.</p>
             </div>
           </div>
         </div>
@@ -648,7 +648,8 @@
 
         try {
           const params = new URLSearchParams({ slug: normalizedSlug });
-          const response = await fetch('/api/check-slug?' + params.toString());
+          params.set('mode', 'check-slug');
+          const response = await fetch('/api/event-config?' + params.toString());
           const payload = await response.json().catch(() => ({}));
 
           if (requestToken !== wizardSlugValidationToken) {

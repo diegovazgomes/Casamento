@@ -2690,12 +2690,15 @@ async function _validateWizardSlugAvailability({ immediate = false } = {}) {
     _setWizardSlugStatus('loading', 'Validando disponibilidade...');
 
     try {
-      const params = new URLSearchParams({ slug: normalizedSlug });
-      if (state.eventId) {
-        params.set('eventId', state.eventId);
+      const params = new URLSearchParams({
+        mode: 'check-slug',
+        slug: normalizedSlug,
+      });
+      if (state.eventSlug) {
+        params.set('currentSlug', state.eventSlug);
       }
 
-      const response = await fetch(`/api/check-slug?${params.toString()}`);
+      const response = await fetch(`/api/event-config?${params.toString()}`);
       const payload = await response.json().catch(() => ({}));
 
       if (requestToken !== _wizardSlugValidationToken) {
