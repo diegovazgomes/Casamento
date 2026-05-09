@@ -102,17 +102,6 @@ O roadmap correto começa em:
 
 **Entregável:** qualquer casal autenticado consegue entrar com a própria conta e acessar apenas seu evento.
 
-### DESIGN / SOCIAL MEDIA / OPERAÇÃO
-
-| Frente | Entrega | Objetivo | Prioridade |
-|---|---|---|---|
-| Marca | Definir nome da plataforma | Permitir domínio, identidade visual e comunicação consistente | Alta |
-| Marca | Definir logo provisória e direção visual | Evitar travar landing e redes sociais esperando branding completo | Alta |
-| Comercial | Revisar posicionamento do MVP | Deixar claro que o produto vende convite premium com gestão simples | Alta |
-| Comercial | Consolidar planos iniciais e o que cada um libera | Evitar promessa de feature que ainda não existe | Alta |
-| Operação | Comprar domínio principal | Destravar publicação real e e-mails | Alta |
-| Operação | Criar conta no Resend | Preparar confirmação de e-mail e comunicações transacionais | Alta |
-
 ---
 
 ## FASE 2 — Aquisição e onboarding
@@ -128,22 +117,18 @@ O roadmap correto começa em:
 - [x] Criar página de confirmação e estados de sucesso e erro.
 - [x] Criar fluxo de recuperação de senha.
 - [x] Criar wizard inicial no dashboard para dados do casal, evento e tema.
-- [ ] Implementar verificação de disponibilidade de `slug`.
+- [ ] Adicionar coluna `slug` (unique, text) em `events`.
+- [ ] Criar migração SQL para slugs existentes (gerar automático se vazio).
+- [ ] Criar endpoint `/api/check-slug` para validação em tempo real.
+- [ ] Configurar reescrita de URL em `vercel.json` (rewrite /:slug para /index.html?slug=:slug).
+- [ ] Implementar rate-limit por IP em `/api/check-slug` (máx 10 req/min).
+- [ ] Integrar validação de slug no wizard etapa 2 com debounce.
+- [ ] Adicionar `robots.txt` com `Disallow: /` para não indexar (optional).
+- [ ] Testar fluxo: slug personalizado carrega corretamente com token de convidado.
 - [x] Implementar publicação do convite por `slug`.
 - [x] Garantir que o convite publicado carregue por API e mantenha fallback controlado.
 
-**Entregável:** casal entra na landing, cria conta, confirma e-mail, configura o básico e publica o convite sozinho.
-
-### DESIGN / SOCIAL MEDIA / CONTEÚDO
-
-| Frente | Entrega | Objetivo | Prioridade |
-|---|---|---|---|
-| Landing | Estruturar copy de hero, benefícios, prova social e planos | Melhorar conversão do cadastro | Alta |
-| Landing | Definir screenshots ou mockups do produto | Dar clareza visual sem depender de texto demais | Alta |
-| Conteúdo | Escrever textos dos e-mails de confirmação e boas-vindas | Manter tom de marca consistente | Média |
-| Conteúdo | Produzir FAQ comercial inicial | Reduzir dúvidas de preço, prazo e funcionamento | Média |
-| Social media | Definir identidade visual mínima para posts | Preparar tráfego orgânico e anúncios básicos | Média |
-| Social media | Criar 6 a 9 peças iniciais para Instagram | Ter material pronto para pré-lançamento | Média |
+**Entregável:** casal entra na landing, cria conta, confirma e-mail, configura o básico com URL personalizada e publica o convite sozinho.
 
 ---
 
@@ -165,17 +150,6 @@ O roadmap correto começa em:
 
 **Entregável:** casal paga, plano é atualizado e o dashboard libera automaticamente os recursos corretos.
 
-### DESIGN / SOCIAL MEDIA / COMERCIAL
-
-| Frente | Entrega | Objetivo | Prioridade |
-|---|---|---|---|
-| Comercial | Definir tabela final de preços do MVP | Dar previsibilidade à oferta e ao checkout | Alta |
-| Comercial | Escrever textos de upgrade e comparação entre planos | Aumentar conversão dentro do dashboard | Alta |
-| Conteúdo | Criar página simples de política de privacidade | Reduzir risco jurídico e passar confiança | Alta |
-| Conteúdo | Criar página simples de termos de uso | Fechar o básico legal do MVP | Alta |
-| Social media | Criar campanha de lançamento dos planos | Gerar tráfego com oferta clara | Média |
-| Social media | Produzir depoimentos ou estudos de caso iniciais | Criar prova social real | Média |
-
 ---
 
 ## FASE 4 — Lançamento controlado
@@ -193,17 +167,6 @@ O roadmap correto começa em:
 - [ ] Corrigir os gargalos encontrados no piloto antes de ampliar aquisição.
 
 **Entregável:** MVP estável para os primeiros clientes pagantes.
-
-### DESIGN / SOCIAL MEDIA / OPERAÇÃO
-
-| Frente | Entrega | Objetivo | Prioridade |
-|---|---|---|---|
-| Operação | Definir rotina de suporte por WhatsApp | Evitar atendimento improvisado | Alta |
-| Operação | Criar roteiro de onboarding manual para os primeiros clientes | Reduzir atrito no piloto | Alta |
-| Social media | Planejar calendário de 30 dias de conteúdo | Sustentar aquisição após lançamento | Média |
-| Social media | Separar criativos para tráfego pago teste | Medir CAC inicial com investimento pequeno | Média |
-| Comercial | Selecionar 3 a 5 casais piloto | Validar produto com contexto real | Alta |
-| Comercial | Estruturar coleta de feedback dos pilotos | Priorizar evolução com base em uso real | Alta |
 
 ---
 
