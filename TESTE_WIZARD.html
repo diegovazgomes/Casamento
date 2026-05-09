@@ -508,7 +508,8 @@
           </div>
           <div class="field">
             <label class="field-label" for="wzTime">Horario</label>
-            <input type="time" class="field-input" id="wzTime" value="17:00" />
+            <select class="field-input" id="wzTime" aria-label="Horario do evento (formato 24h)"></select>
+            <div class="field-hint">Formato 24h. Exemplo: 17:00.</div>
           </div>
           <div class="field">
             <label class="field-label" for="wzVenueName">Nome do local</label>
@@ -521,9 +522,11 @@
         </div>
 
         <div class="field" style="margin-top:14px;">
-          <label class="field-label" for="wzSlug">URL do convite *</label>
-          <input type="text" class="field-input" id="wzSlug" placeholder="Ex: siannah-diego-2026" maxlength="60" autocomplete="off" />
-          <div class="field-hint" id="wzSlugStatus">Use letras minusculas, numeros e hifen.</div>
+          <label class="field-label" for="wzSlug">Escolha como sua URL vai aparecer</label>
+          <input type="text" class="field-input" id="wzSlug" placeholder="Ex: siannah-diego-09-05-2026" maxlength="60" autocomplete="off" />
+          <div class="field-hint" id="wzSlugExample">Seu link vai ficar assim: www.devazi.app/sua-url</div>
+          <div class="field-hint" id="wzSlugPremiumHint" hidden>URL personalizada e um recurso premium. Faca upgrade para desbloquear.</div>
+          <div class="field-hint" id="wzSlugStatus">Voce pode pular esta etapa. Se deixar em branco, criaremos uma URL automaticamente.</div>
         </div>
       </div>
 
@@ -588,7 +591,8 @@
       'classic-silver-light'
     ];
     const WIZARD_SLUG_MIN_LENGTH = 3;
-    const WIZARD_SLUG_DEBOUNCE_MS = 400;
+    const WIZARD_SLUG_DEBOUNCE_MS = 900;
+    const WIZARD_SLUG_CACHE_TTL_MS = 30000;
 
     let wizardStep = 1;
     let wizardSelectedTheme = 'classic-gold';
@@ -596,6 +600,9 @@
     let wizardSlugValidationTimer = null;
     let wizardSlugValidationToken = 0;
     let wizardSlugState = 'idle';
+    let wizardSlugBlockedUntil = 0;
+    const wizardSlugValidationCache = new Map();
+    const wizardPlan = (new URLSearchParams(window.location.search).get('plan') || 'free').toLowerCase();
 
     function normalizeWizardSlug(value) {
       return String(value || '')
@@ -623,8 +630,93 @@
       statusEl.style.color = paletteByState[stateName] || 'var(--text-dim)';
     }
 
+    function isPremiumPlan() {
+      return wizardPlan === 'premium';
+    }
+
+    function parseWizardNames(displayName) {
+      const source = String(displayName || '').trim();
+      const separators = [' & ', ' e ', ' + ', '&', '+'];
+      const found = separators.find((separator) => source.includes(separator));
+
+      if (!found) {
+        return { brideName: source || 'nome-noiva', groomName: 'nome-noivo' };
+      }
+
+      const parts = source.split(found).map((part) => part.trim()).filter(Boolean);
+      return {
+        brideName: parts[0] || 'nome-noiva',
+        groomName: parts[1] || 'nome-noivo'
+      };
+    }
+
+    function formatDateForSlug(dateValue) {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(String(dateValue || ''))) {
+        return 'dd-mm-aaaa';
+      }
+
+      const parts = dateValue.split('-');
+      return parts[2] + '-' + parts[1] + '-' + parts[0];
+    }
+
+    function updateWizardSlugExampleText() {
+      const el = document.getElementById('wzSlugExample');
+      if (!el) return;
+
+      const names = parseWizardNames(wizardDisplayName());
+      const dateText = formatDateForSlug(document.getElementById('wzDate')?.value || '');
+      const exampleSlug = normalizeWizardSlug(names.brideName) + '-' + normalizeWizardSlug(names.groomName) + '-' + dateText;
+      el.textContent = 'Seu link vai ficar assim: www.devazi.app/' + exampleSlug;
+    }
+
+    function setWizardSlugFieldAvailability() {
+      const input = document.getElementById('wzSlug');
+      const premiumHint = document.getElementById('wzSlugPremiumHint');
+      if (!input) return;
+
+      const premium = isPremiumPlan();
+      input.disabled = !premium;
+      input.classList.toggle('field-auto', !premium);
+      if (premiumHint) premiumHint.hidden = premium;
+
+      if (premium) {
+        setWizardSlugStatus('idle', 'Voce pode personalizar a URL ou deixar em branco para gerar automaticamente.');
+      } else {
+        input.value = '';
+        setWizardSlugStatus('idle', 'Plano free: a URL sera criada automaticamente ao salvar.');
+      }
+    }
+
+    function populateWizardTimeOptions(defaultValue) {
+      const select = document.getElementById('wzTime');
+      if (!select || select.tagName !== 'SELECT') return;
+      if (select.options.length) {
+        select.value = defaultValue || select.value || '17:00';
+        return;
+      }
+
+      const fragment = document.createDocumentFragment();
+      for (let hour = 0; hour < 24; hour += 1) {
+        for (let minute = 0; minute < 60; minute += 30) {
+          const value = String(hour).padStart(2, '0') + ':' + String(minute).padStart(2, '0');
+          const option = document.createElement('option');
+          option.value = value;
+          option.textContent = value;
+          fragment.appendChild(option);
+        }
+      }
+
+      select.appendChild(fragment);
+      select.value = defaultValue || '17:00';
+    }
+
     async function validateWizardSlugAvailability(options = {}) {
       const immediate = options.immediate === true;
+
+      if (!isPremiumPlan()) {
+        return true;
+      }
+
       const input = document.getElementById('wzSlug');
       if (!input) return false;
 
@@ -632,13 +724,26 @@
       input.value = normalizedSlug;
 
       if (!normalizedSlug) {
-        setWizardSlugStatus('invalid', 'Defina a URL do convite.');
-        return false;
+        setWizardSlugStatus('idle', 'Sem problema: se deixar em branco, criamos a URL automaticamente.');
+        return true;
       }
 
       if (normalizedSlug.length < WIZARD_SLUG_MIN_LENGTH) {
         setWizardSlugStatus('invalid', 'A URL precisa ter ao menos 3 caracteres.');
         return false;
+      }
+
+      const now = Date.now();
+      if (wizardSlugBlockedUntil > now) {
+        const remainingSec = Math.max(1, Math.ceil((wizardSlugBlockedUntil - now) / 1000));
+        setWizardSlugStatus('invalid', 'Muitas tentativas. Aguarde ' + remainingSec + 's para tentar de novo.');
+        return false;
+      }
+
+      const cachedResult = wizardSlugValidationCache.get(normalizedSlug);
+      if (cachedResult && (now - cachedResult.timestamp) <= WIZARD_SLUG_CACHE_TTL_MS) {
+        setWizardSlugStatus(cachedResult.state, cachedResult.message);
+        return cachedResult.valid;
       }
 
       const requestToken = ++wizardSlugValidationToken;
@@ -658,7 +763,10 @@
 
           if (!response.ok) {
             if (response.status === 429) {
-              setWizardSlugStatus('invalid', 'Muitas tentativas. Aguarde alguns segundos.');
+              const retryAfterHeader = Number.parseInt(response.headers.get('Retry-After') || '15', 10);
+              const retryAfterSec = Number.isFinite(retryAfterHeader) && retryAfterHeader > 0 ? retryAfterHeader : 15;
+              wizardSlugBlockedUntil = Date.now() + (retryAfterSec * 1000);
+              setWizardSlugStatus('invalid', 'Muitas tentativas. Aguarde ' + retryAfterSec + 's para tentar de novo.');
               return false;
             }
             setWizardSlugStatus('invalid', payload.error || 'Nao foi possivel validar a URL.');
@@ -666,6 +774,12 @@
           }
 
           if (payload.available === true) {
+            wizardSlugValidationCache.set(normalizedSlug, {
+              timestamp: Date.now(),
+              valid: true,
+              state: 'valid',
+              message: 'URL disponivel para publicar.'
+            });
             setWizardSlugStatus('valid', 'URL disponivel para publicar.');
             return true;
           }
@@ -675,6 +789,12 @@
             return false;
           }
 
+          wizardSlugValidationCache.set(normalizedSlug, {
+            timestamp: Date.now(),
+            valid: false,
+            state: 'invalid',
+            message: 'Essa URL ja esta em uso.'
+          });
           setWizardSlugStatus('invalid', 'Essa URL ja esta em uso.');
           return false;
         } catch (error) {
@@ -868,10 +988,12 @@
 
       if (wizardStep === 2) {
         const slugInput = document.getElementById('wzSlug');
-        const isSlugValid = await validateWizardSlugAvailability({ immediate: true });
-        if (!slugInput?.value.trim() || !isSlugValid) {
-          slugInput?.focus();
-          return;
+        if (isPremiumPlan() && slugInput?.value.trim()) {
+          const isSlugValid = await validateWizardSlugAvailability({ immediate: true });
+          if (!isSlugValid) {
+            slugInput?.focus();
+            return;
+          }
         }
       }
 
@@ -895,16 +1017,22 @@
       if (backBtn) backBtn.disabled = true;
 
       const slugValue = normalizeWizardSlug(document.getElementById('wzSlug')?.value || '');
-      if (!slugValue || wizardSlugState !== 'valid') {
-        setWizardSlugStatus('invalid', 'Defina uma URL valida antes de salvar.');
-        if (nextBtn) { nextBtn.disabled = false; nextBtn.textContent = 'Salvar e publicar (mock)'; }
-        if (backBtn) backBtn.disabled = false;
-        document.getElementById('wzSlug')?.focus();
-        return;
+      const canCustomizeUrl = isPremiumPlan();
+      const useAutoGeneratedUrl = !canCustomizeUrl || !slugValue;
+
+      if (canCustomizeUrl && !useAutoGeneratedUrl && wizardSlugState !== 'valid') {
+        const isValid = await validateWizardSlugAvailability({ immediate: true });
+        if (!isValid) {
+          if (nextBtn) { nextBtn.disabled = false; nextBtn.textContent = 'Salvar e publicar (mock)'; }
+          if (backBtn) backBtn.disabled = false;
+          document.getElementById('wzSlug')?.focus();
+          return;
+        }
       }
 
       const payload = {
-        slug: slugValue,
+        slug: canCustomizeUrl && !useAutoGeneratedUrl ? slugValue : null,
+        autoGenerateSlug: useAutoGeneratedUrl,
         config: {
           activeTheme: wizardSelectedTheme,
           activeLayout: 'classic',
@@ -916,13 +1044,14 @@
             time: document.getElementById('wzTime')?.value || '17:00',
             locationName: document.getElementById('wzVenueName')?.value.trim() || 'A definir',
             venueAddress: document.getElementById('wzVenueAddress')?.value.trim() || 'A definir'
-          },
-          rsvp: {
-            eventId: slugValue
           }
         },
         savedAt: new Date().toISOString()
       };
+
+      if (canCustomizeUrl && !useAutoGeneratedUrl) {
+        payload.config.rsvp = { eventId: slugValue };
+      }
 
       localStorage.setItem('wizard-test-last-payload', JSON.stringify(payload));
       const preview = document.getElementById('wizardPayloadPreview');
@@ -946,6 +1075,9 @@
       const dd = String(today.getDate()).padStart(2, '0');
       const dateInput = document.getElementById('wzDate');
       if (dateInput) dateInput.value = yyyy + '-' + mm + '-' + dd;
+      populateWizardTimeOptions('17:00');
+      setWizardSlugFieldAvailability();
+      updateWizardSlugExampleText();
 
       document.querySelectorAll('.wizard-name-ex').forEach((btn) => {
         btn.addEventListener('click', () => {
@@ -958,13 +1090,19 @@
       });
 
       document.getElementById('wzDisplayName')?.addEventListener('input', updateWizardPreview);
-      document.getElementById('wzDate')?.addEventListener('change', updateWizardPreview);
-      document.getElementById('wzSlug')?.addEventListener('input', () => {
-        validateWizardSlugAvailability();
+      document.getElementById('wzDisplayName')?.addEventListener('input', updateWizardSlugExampleText);
+      document.getElementById('wzDate')?.addEventListener('change', () => {
+        updateWizardPreview();
+        updateWizardSlugExampleText();
       });
-      document.getElementById('wzSlug')?.addEventListener('blur', () => {
-        validateWizardSlugAvailability({ immediate: true });
-      });
+      if (isPremiumPlan()) {
+        document.getElementById('wzSlug')?.addEventListener('input', () => {
+          validateWizardSlugAvailability();
+        });
+        document.getElementById('wzSlug')?.addEventListener('blur', () => {
+          validateWizardSlugAvailability({ immediate: true });
+        });
+      }
 
       document.getElementById('wizardBtnNext')?.addEventListener('click', wizardNext);
       document.getElementById('wizardBtnBack')?.addEventListener('click', wizardBack);
@@ -974,13 +1112,11 @@
 
       const urlParams = new URLSearchParams(window.location.search);
       const initialSlug = normalizeWizardSlug(urlParams.get('slug') || '');
-      if (initialSlug) {
+      if (initialSlug && isPremiumPlan()) {
         const slugInput = document.getElementById('wzSlug');
         if (slugInput) slugInput.value = initialSlug;
         setWizardSlugStatus('idle', 'Verificando disponibilidade da URL...');
         validateWizardSlugAvailability({ immediate: true });
-      } else {
-        setWizardSlugStatus('idle', 'Use letras minusculas, numeros e hifen.');
       }
 
       renderWizardThemes();

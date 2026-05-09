@@ -65,6 +65,103 @@ function buildDefaultEventSlug(coupleName, userId) {
   return `${baseSlug}-${userSuffix}`;
 }
 
+function splitCoupleNames(value) {
+  const source = String(value || '').trim();
+  if (!source) {
+    return { brideName: '', groomName: '' };
+  }
+
+  const separators = [' & ', ' e ', ' + ', '&', '+'];
+  const foundSeparator = separators.find((separator) => source.includes(separator));
+  if (!foundSeparator) {
+    return { brideName: source, groomName: '' };
+  }
+
+  const parts = source
+    .split(foundSeparator)
+    .map((entry) => entry.trim())
+    .filter(Boolean);
+
+  return {
+    brideName: parts[0] || '',
+    groomName: parts[1] || '',
+  };
+}
+
+function normalizeDateToDayMonthYear(value) {
+  const source = String(value || '').trim();
+  if (!source) {
+    return '';
+  }
+
+  const dateOnly = source.includes('T') ? source.split('T')[0] : source;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateOnly)) {
+    return '';
+  }
+
+  const [year, month, day] = dateOnly.split('-');
+  return `${day}-${month}-${year}`;
+}
+
+function resolveEventSlugParts(config = {}, existingConfig = {}) {
+  const incomingCouple = config?.couple || {};
+  const existingCouple = existingConfig?.couple || {};
+  const parsedNames = splitCoupleNames(incomingCouple.names || existingCouple.names);
+
+  const brideName = incomingCouple.bride_name
+    || incomingCouple.brideName
+    || existingCouple.bride_name
+    || existingCouple.brideName
+    || parsedNames.brideName
+    || 'noiva';
+
+  const groomName = incomingCouple.groom_name
+    || incomingCouple.groomName
+    || existingCouple.groom_name
+    || existingCouple.groomName
+    || parsedNames.groomName
+    || 'noivo';
+
+  const dateValue = config?.event?.date
+    || existingConfig?.event?.date
+    || '';
+  const datePart = normalizeDateToDayMonthYear(dateValue) || 'dd-mm-aaaa';
+
+  return {
+    brideSlug: slugify(brideName) || 'noiva',
+    groomSlug: slugify(groomName) || 'noivo',
+    datePart,
+  };
+}
+
+function buildAutoEventSlug(config = {}, existingConfig = {}) {
+  const parts = resolveEventSlugParts(config, existingConfig);
+  return slugify(`${parts.brideSlug}-${parts.groomSlug}-${parts.datePart}`);
+}
+
+async function ensureUniqueEventSlug(supabase, baseSlug, currentEventId) {
+  const normalizedBase = slugify(baseSlug) || 'casal-noivos';
+
+  for (let attempt = 0; attempt < 20; attempt += 1) {
+    const candidate = attempt === 0 ? normalizedBase : `${normalizedBase}-${attempt + 1}`;
+    const { data, error } = await supabase
+      .from('events')
+      .select('id')
+      .eq('slug', candidate)
+      .maybeSingle();
+
+    if (error) {
+      throw error;
+    }
+
+    if (!data || data.id === currentEventId) {
+      return candidate;
+    }
+  }
+
+  return `${normalizedBase}-${Date.now().toString(36)}`;
+}
+
 const MONTHS_SHORT = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
 const MONTHS_FULL = ['janeiro', 'fevereiro', 'marco', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
 const WEEKDAYS = ['Domingo', 'Segunda-feira', 'Terca-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sabado'];
@@ -394,10 +491,22 @@ export default async function handler(req, res) {
     }
 
     const sanitizedIncomingConfig = stripHistoriaGalleryFromConfig(body.config);
+    const existingConfig = ownedEvent.event.config || {};
+    const shouldAutoGenerateSlug = body.autoGenerateSlug === true;
+    const isRequestingCustomSlug = hasOwn(body, 'slug') && Boolean(body.slug);
+    const planFromToken = ownedEvent.user?.user_metadata?.plan
+      || ownedEvent.user?.app_metadata?.plan
+      || ownedEvent.user?.plan
+      || 'premium';
+    const isPremiumUser = String(planFromToken).trim().toLowerCase() === 'premium';
 
     let normalizedIncomingSlug = null;
 
-    if (hasOwn(body, 'slug')) {
+    if (hasOwn(body, 'slug') && body.slug && !isPremiumUser) {
+      return res.status(403).json({ error: 'Custom URL is available only for premium plans' });
+    }
+
+    if (hasOwn(body, 'slug') && body.slug && isPremiumUser) {
       const slugValidation = validateSlugCandidate(body.slug);
 
       if (!slugValidation.ok) {
@@ -423,6 +532,15 @@ export default async function handler(req, res) {
       }
     }
 
+    if (shouldAutoGenerateSlug) {
+      const generatedSlug = buildAutoEventSlug(sanitizedIncomingConfig, existingConfig);
+      normalizedIncomingSlug = await ensureUniqueEventSlug(
+        ownedEvent.supabase,
+        generatedSlug,
+        ownedEvent.event.id,
+      );
+    }
+
     console.log('[dashboard/event] PATCH received:', {
       eventId: ownedEvent.event.id,
       slug: ownedEvent.event.slug,
@@ -433,7 +551,6 @@ export default async function handler(req, res) {
     const tableFields = extractEventTableFields(sanitizedIncomingConfig);
 
     // 2. Fazer merge profundo do config com o existente
-    const existingConfig = ownedEvent.event.config || {};
     const newConfig = mergeDeep(existingConfig, sanitizedIncomingConfig);
 
     if (normalizedIncomingSlug) {

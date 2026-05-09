@@ -8,6 +8,7 @@ const state = {
   authToken: null,
   eventId: '',
   eventSlug: new URLSearchParams(window.location.search).get('slug') || null,
+  userProfile: null,
   grupos: [],
   confirmacoes: [],
   allConfirmacoes: [],
@@ -480,6 +481,7 @@ async function getDashboardAccessToken() {
 
 async function clearDashboardSession() {
   state.authToken = null;
+  state.userProfile = null;
   sessionStorage.removeItem(LEGACY_DASHBOARD_TOKEN_STORAGE_KEY);
   sessionStorage.removeItem(DASHBOARD_SUPABASE_STORAGE_KEY);
   sessionStorage.removeItem(DASHBOARD_ACCESS_TOKEN_STORAGE_KEY);
@@ -493,6 +495,10 @@ async function clearDashboardSession() {
 }
 
 async function fetchUserProfile() {
+  if (state.userProfile) {
+    return state.userProfile;
+  }
+
   const token = state.authToken;
   if (!token) return null;
 
@@ -501,10 +507,25 @@ async function fetchUserProfile() {
       headers: { 'Authorization': `Bearer ${token}` },
     });
     if (!response.ok) return null;
-    return await response.json();
+    const profile = await response.json();
+    state.userProfile = profile;
+    return profile;
   } catch {
     return null;
   }
+}
+
+function isPremiumPlan(planValue) {
+  return String(planValue || '').trim().toLowerCase() === 'premium';
+}
+
+async function ensureUserProfileLoaded() {
+  if (state.userProfile) {
+    return state.userProfile;
+  }
+
+  const profile = await fetchUserProfile();
+  return profile || null;
 }
 
 function showAuthError(message) {
@@ -2632,7 +2653,8 @@ const WIZARD_THEME_KEYS = [
   'classic-silver-light',
 ];
 const WIZARD_SLUG_MIN_LENGTH = 3;
-const WIZARD_SLUG_DEBOUNCE_MS = 400;
+const WIZARD_SLUG_DEBOUNCE_MS = 900;
+const WIZARD_SLUG_CACHE_TTL_MS = 30_000;
 
 let _wizardStep = 1;
 let _wizardSelectedTheme = 'classic-gold';
@@ -2640,6 +2662,8 @@ let _wizardLoadedThemes = [];
 let _wizardSlugValidationTimer = null;
 let _wizardSlugValidationToken = 0;
 let _wizardSlugState = 'idle';
+let _wizardSlugBlockedUntil = 0;
+const _wizardSlugValidationCache = new Map();
 
 function _normalizeWizardSlug(value) {
   return String(value || '')
@@ -2667,7 +2691,120 @@ function _setWizardSlugStatus(stateName, message) {
   statusEl.style.color = paletteByState[stateName] || 'var(--text-dim)';
 }
 
+function _isWizardPremiumUser() {
+  return isPremiumPlan(state.userProfile?.plan);
+}
+
+function _parseWizardNames(displayName) {
+  const source = String(displayName || '').trim();
+  if (!source) {
+    return { brideName: '', groomName: '' };
+  }
+
+  const separators = [' & ', ' e ', ' + ', '&', '+'];
+  const matchedSeparator = separators.find((separator) => source.includes(separator));
+  if (!matchedSeparator) {
+    return { brideName: source, groomName: '' };
+  }
+
+  const parts = source.split(matchedSeparator).map((part) => part.trim()).filter(Boolean);
+  return {
+    brideName: parts[0] || '',
+    groomName: parts[1] || '',
+  };
+}
+
+function _formatWizardDateForSlug(dateValue) {
+  const source = String(dateValue || '').trim();
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(source)) {
+    return 'dd-mm-aaaa';
+  }
+
+  const [year, month, day] = source.split('-');
+  return `${day}-${month}-${year}`;
+}
+
+function _buildWizardAutoSlugExample() {
+  const displayName = _wizardDisplayName();
+  const names = _parseWizardNames(displayName);
+  const bride = _normalizeWizardSlug(names.brideName || 'nome-noiva');
+  const groom = _normalizeWizardSlug(names.groomName || 'nome-noivo');
+  const dateText = _formatWizardDateForSlug(document.getElementById('wzDate')?.value || '');
+  return `${bride}-${groom}-${dateText}`;
+}
+
+function _updateWizardSlugExampleText() {
+  const exampleEl = document.getElementById('wzSlugExample');
+  if (!exampleEl) {
+    return;
+  }
+
+  exampleEl.textContent = `Seu link vai ficar assim: www.devazi.app/${_buildWizardAutoSlugExample()}`;
+}
+
+function _setWizardSlugFieldAvailability() {
+  const slugInput = document.getElementById('wzSlug');
+  const premiumHint = document.getElementById('wzSlugPremiumHint');
+
+  if (!slugInput) {
+    return;
+  }
+
+  const premiumUser = _isWizardPremiumUser();
+  slugInput.disabled = !premiumUser;
+  slugInput.classList.toggle('field-auto', !premiumUser);
+
+  if (premiumHint) {
+    premiumHint.hidden = premiumUser;
+  }
+
+  if (!premiumUser) {
+    slugInput.value = '';
+    _setWizardSlugStatus('idle', 'No plano free, criamos sua URL automaticamente ao salvar.');
+    return;
+  }
+
+  _setWizardSlugStatus('idle', 'Você pode personalizar a URL ou deixar em branco para gerar automaticamente.');
+}
+
+function _populateWizardTimeOptions(defaultValue = '17:00') {
+  const select = document.getElementById('wzTime');
+  if (!select || select.tagName !== 'SELECT') {
+    return;
+  }
+
+  const normalizedDefault = /^\d{2}:\d{2}:\d{2}$/.test(String(defaultValue || ''))
+    ? String(defaultValue).slice(0, 5)
+    : String(defaultValue || '17:00');
+
+  if (select.options.length > 0) {
+    if (normalizedDefault) {
+      select.value = normalizedDefault;
+    }
+    return;
+  }
+
+  const fragment = document.createDocumentFragment();
+
+  for (let hour = 0; hour < 24; hour += 1) {
+    for (let minute = 0; minute < 60; minute += 30) {
+      const label = `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
+      const option = document.createElement('option');
+      option.value = label;
+      option.textContent = label;
+      fragment.appendChild(option);
+    }
+  }
+
+  select.appendChild(fragment);
+  select.value = normalizedDefault && select.querySelector(`option[value="${normalizedDefault}"]`) ? normalizedDefault : '17:00';
+}
+
 async function _validateWizardSlugAvailability({ immediate = false } = {}) {
+  if (!_isWizardPremiumUser()) {
+    return true;
+  }
+
   const input = document.getElementById('wzSlug');
   if (!input) return false;
 
@@ -2675,13 +2812,26 @@ async function _validateWizardSlugAvailability({ immediate = false } = {}) {
   input.value = normalizedSlug;
 
   if (!normalizedSlug) {
-    _setWizardSlugStatus('invalid', 'Defina a URL do convite.');
-    return false;
+    _setWizardSlugStatus('idle', 'Sem problema: se deixar em branco, criamos a URL automaticamente.');
+    return true;
   }
 
   if (normalizedSlug.length < WIZARD_SLUG_MIN_LENGTH) {
     _setWizardSlugStatus('invalid', `A URL precisa ter ao menos ${WIZARD_SLUG_MIN_LENGTH} caracteres.`);
     return false;
+  }
+
+  const now = Date.now();
+  if (_wizardSlugBlockedUntil > now) {
+    const remainingSec = Math.max(1, Math.ceil((_wizardSlugBlockedUntil - now) / 1000));
+    _setWizardSlugStatus('invalid', `Muitas tentativas. Aguarde ${remainingSec}s para tentar de novo.`);
+    return false;
+  }
+
+  const cachedResult = _wizardSlugValidationCache.get(normalizedSlug);
+  if (cachedResult && (now - cachedResult.timestamp) <= WIZARD_SLUG_CACHE_TTL_MS) {
+    _setWizardSlugStatus(cachedResult.state, cachedResult.message);
+    return cachedResult.valid;
   }
 
   const requestToken = ++_wizardSlugValidationToken;
@@ -2707,7 +2857,12 @@ async function _validateWizardSlugAvailability({ immediate = false } = {}) {
 
       if (!response.ok) {
         if (response.status === 429) {
-          _setWizardSlugStatus('invalid', 'Muitas tentativas. Aguarde alguns segundos.');
+          const retryAfterHeader = Number.parseInt(response.headers.get('Retry-After') || '15', 10);
+          const retryAfterSec = Number.isFinite(retryAfterHeader) && retryAfterHeader > 0
+            ? retryAfterHeader
+            : 15;
+          _wizardSlugBlockedUntil = Date.now() + (retryAfterSec * 1000);
+          _setWizardSlugStatus('invalid', `Muitas tentativas. Aguarde ${retryAfterSec}s para tentar de novo.`);
           return false;
         }
 
@@ -2716,6 +2871,12 @@ async function _validateWizardSlugAvailability({ immediate = false } = {}) {
       }
 
       if (payload.available === true) {
+        _wizardSlugValidationCache.set(normalizedSlug, {
+          timestamp: Date.now(),
+          valid: true,
+          state: 'valid',
+          message: 'URL disponível para publicar.',
+        });
         _setWizardSlugStatus('valid', 'URL disponível para publicar.');
         return true;
       }
@@ -2725,6 +2886,12 @@ async function _validateWizardSlugAvailability({ immediate = false } = {}) {
         return false;
       }
 
+      _wizardSlugValidationCache.set(normalizedSlug, {
+        timestamp: Date.now(),
+        valid: false,
+        state: 'invalid',
+        message: 'Essa URL já está em uso.',
+      });
       _setWizardSlugStatus('invalid', 'Essa URL já está em uso.');
       return false;
     } catch (error) {
@@ -2916,11 +3083,16 @@ async function wizardNext() {
 
   if (_wizardStep === 2) {
     const slugInput = document.getElementById('wzSlug');
-    const isSlugValid = await _validateWizardSlugAvailability({ immediate: true });
+    if (_isWizardPremiumUser()) {
+      const hasCustomUrl = Boolean(slugInput?.value.trim());
 
-    if (!slugInput?.value.trim() || !isSlugValid) {
-      slugInput?.focus();
-      return;
+      if (hasCustomUrl) {
+        const isSlugValid = await _validateWizardSlugAvailability({ immediate: true });
+        if (!isSlugValid) {
+          slugInput?.focus();
+          return;
+        }
+      }
     }
   }
 
@@ -2956,6 +3128,8 @@ function _wizardDeriveDateLabels(dateOnly) {
 async function maybeShowWizard(config) {
   if (!config || !isFirstTimeUser(config)) return;
 
+  await ensureUserProfileLoaded();
+
   // Pré-carregar temas em background
   _loadWizardThemes();
 
@@ -2967,32 +3141,49 @@ async function maybeShowWizard(config) {
   }
 
   _wizardSelectedTheme = config.activeTheme || 'classic-gold';
+  _populateWizardTimeOptions(config?.event?.time || '17:00');
+
+  const dateInput = document.getElementById('wzDate');
+  if (dateInput && config?.event?.date) {
+    const normalizedDate = String(config.event.date).split('T')[0];
+    if (/^\d{4}-\d{2}-\d{2}$/.test(normalizedDate)) {
+      dateInput.value = normalizedDate;
+    }
+  }
 
   const slugInput = document.getElementById('wzSlug');
   if (slugInput) {
-    const initialSlug = _normalizeWizardSlug(state.eventSlug || config?.rsvp?.eventId || '');
-    slugInput.value = initialSlug;
-    if (initialSlug) {
-      _setWizardSlugStatus('idle', 'Verificando disponibilidade da URL...');
-      _validateWizardSlugAvailability({ immediate: true });
-    } else {
-      _setWizardSlugStatus('idle', 'Use letras minúsculas, números e hífen.');
-    }
+    _setWizardSlugFieldAvailability();
 
-    slugInput.addEventListener('input', () => {
-      _validateWizardSlugAvailability();
-    });
-    slugInput.addEventListener('blur', () => {
-      _validateWizardSlugAvailability({ immediate: true });
-    });
+    if (_isWizardPremiumUser()) {
+      const initialSlug = _normalizeWizardSlug(state.eventSlug || config?.rsvp?.eventId || '');
+      slugInput.value = initialSlug;
+      if (initialSlug) {
+        _setWizardSlugStatus('idle', 'Verificando disponibilidade da URL...');
+        _validateWizardSlugAvailability({ immediate: true });
+      }
+
+      slugInput.addEventListener('input', () => {
+        _validateWizardSlugAvailability();
+      });
+      slugInput.addEventListener('blur', () => {
+        _validateWizardSlugAvailability({ immediate: true });
+      });
+    }
   }
+
+  _updateWizardSlugExampleText();
 
   // Binds do campo principal
   document.getElementById('wzDisplayName')?.addEventListener('input', function () {
     this.dataset.userEdited = '1';
     _updateWizardPreview();
+    _updateWizardSlugExampleText();
   });
-  document.getElementById('wzDate')?.addEventListener('change', _updateWizardPreview);
+  document.getElementById('wzDate')?.addEventListener('change', () => {
+    _updateWizardPreview();
+    _updateWizardSlugExampleText();
+  });
 
   // Clique nos exemplos
   document.querySelectorAll('.wizard-name-ex').forEach(btn => {
@@ -3026,13 +3217,17 @@ async function _saveWizard() {
   const venueName    = document.getElementById('wzVenueName')?.value.trim()    || '';
   const venueAddress = document.getElementById('wzVenueAddress')?.value.trim() || '';
   const slugValue    = _normalizeWizardSlug(document.getElementById('wzSlug')?.value || '');
+  const canCustomizeUrl = _isWizardPremiumUser();
+  const useAutoGeneratedUrl = !canCustomizeUrl || !slugValue;
 
-  if (!slugValue || _wizardSlugState !== 'valid') {
-    _setWizardSlugStatus('invalid', 'Defina uma URL válida antes de salvar.');
-    if (nextBtn) { nextBtn.disabled = false; nextBtn.textContent = 'Salvar e publicar'; }
-    if (backBtn) backBtn.disabled = false;
-    document.getElementById('wzSlug')?.focus();
-    return;
+  if (canCustomizeUrl && !useAutoGeneratedUrl && _wizardSlugState !== 'valid') {
+    const isValid = await _validateWizardSlugAvailability({ immediate: true });
+    if (!isValid) {
+      if (nextBtn) { nextBtn.disabled = false; nextBtn.textContent = 'Salvar e publicar'; }
+      if (backBtn) backBtn.disabled = false;
+      document.getElementById('wzSlug')?.focus();
+      return;
+    }
   }
 
   const dateLabels = dateVal ? _wizardDeriveDateLabels(dateVal) : {};
@@ -3052,16 +3247,28 @@ async function _saveWizard() {
       locationName: venueName   || 'A definir',
       venueAddress: venueAddress || 'A definir',
     },
-    rsvp: {
-      eventId: slugValue,
-    },
   };
+
+  if (canCustomizeUrl && slugValue) {
+    configPatch.rsvp = {
+      eventId: slugValue,
+    };
+  }
+
+  const payload = {
+    config: configPatch,
+    autoGenerateSlug: useAutoGeneratedUrl,
+  };
+
+  if (canCustomizeUrl && !useAutoGeneratedUrl) {
+    payload.slug = slugValue;
+  }
 
   try {
     const res  = await fetchWithAuth('/api/dashboard/event', {
       method:  'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ slug: slugValue, config: configPatch }),
+      body:    JSON.stringify(payload),
     });
     const data = await res.json().catch(() => ({}));
     if (!res.ok) throw new Error(data.error || 'Falha ao salvar');

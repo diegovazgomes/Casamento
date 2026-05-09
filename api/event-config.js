@@ -11,8 +11,9 @@ const CACHE_CONTROL_HEADER = 'no-store, no-cache, must-revalidate';
 const SLUG_MIN_LENGTH = 3;
 const SLUG_MAX_LENGTH = 60;
 const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
-const RATE_LIMIT_MAX_REQUESTS = 10;
+const RATE_LIMIT_MAX_REQUESTS = 30;
 const RATE_LIMIT_WINDOW_MS = 60_000;
+const RATE_LIMIT_SAME_SLUG_GRACE_MS = 5_000;
 const EVENT_SELECT = [
   'id',
   'slug',
@@ -56,6 +57,7 @@ const RESERVED_SLUGS = new Set([
 ]);
 
 const requestsByIp = new Map();
+const lastCheckByIpAndSlug = new Map();
 
 function normalizeSlug(rawSlug) {
   if (Array.isArray(rawSlug)) {
@@ -97,8 +99,16 @@ function getClientIp(req) {
   return 'unknown';
 }
 
-function consumeRateLimit(ip) {
+function consumeRateLimit(ip, slug) {
   const now = Date.now();
+  const normalizedSlug = normalizeSlugCandidate(slug);
+  const ipAndSlugKey = `${ip}::${normalizedSlug}`;
+  const lastCheckAt = lastCheckByIpAndSlug.get(ipAndSlugKey) || 0;
+
+  if (normalizedSlug && (now - lastCheckAt) < RATE_LIMIT_SAME_SLUG_GRACE_MS) {
+    return { allowed: true, retryAfterSec: 0 };
+  }
+
   const history = requestsByIp.get(ip) || [];
   const recentHistory = history.filter((timestamp) => now - timestamp < RATE_LIMIT_WINDOW_MS);
 
@@ -111,6 +121,9 @@ function consumeRateLimit(ip) {
 
   recentHistory.push(now);
   requestsByIp.set(ip, recentHistory);
+  if (normalizedSlug) {
+    lastCheckByIpAndSlug.set(ipAndSlugKey, now);
+  }
   return { allowed: true, retryAfterSec: 0 };
 }
 
@@ -141,19 +154,6 @@ function validateSlugCandidate(rawSlug) {
 }
 
 async function handleSlugAvailabilityCheck(req, res, supabase) {
-  const ip = getClientIp(req);
-  const rateLimit = consumeRateLimit(ip);
-
-  if (!rateLimit.allowed) {
-    res.setHeader('Retry-After', String(rateLimit.retryAfterSec));
-    return res.status(429).json({
-      error: 'Too many requests',
-      available: false,
-      reason: 'rate_limited',
-      retryAfterSec: rateLimit.retryAfterSec,
-    });
-  }
-
   const validation = validateSlugCandidate(req.query?.slug);
   const currentSlug = normalizeSlugCandidate(req.query?.currentSlug);
 
@@ -163,6 +163,19 @@ async function handleSlugAvailabilityCheck(req, res, supabase) {
       available: false,
       reason: 'invalid_format',
       normalizedSlug: validation.normalized,
+    });
+  }
+
+  const ip = getClientIp(req);
+  const rateLimit = consumeRateLimit(ip, validation.normalized);
+
+  if (!rateLimit.allowed) {
+    res.setHeader('Retry-After', String(rateLimit.retryAfterSec));
+    return res.status(429).json({
+      error: 'Too many requests',
+      available: false,
+      reason: 'rate_limited',
+      retryAfterSec: rateLimit.retryAfterSec,
     });
   }
 

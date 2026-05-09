@@ -314,7 +314,7 @@ describe('GET /api/event-config', () => {
 
     const { default: handler } = await import('../../api/event-config.js');
 
-    for (let index = 0; index < 10; index += 1) {
+    for (let index = 0; index < 30; index += 1) {
       const res = createMockResponse();
       await handler({
         method: 'GET',
@@ -327,7 +327,7 @@ describe('GET /api/event-config', () => {
     const blockedRes = createMockResponse();
     await handler({
       method: 'GET',
-      query: { mode: 'check-slug', slug: 'casal-11' },
+      query: { mode: 'check-slug', slug: 'casal-31' },
       headers: { 'x-forwarded-for': '203.0.113.11' },
     }, blockedRes);
 
