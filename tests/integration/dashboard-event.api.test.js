@@ -542,7 +542,7 @@ describe('/api/dashboard/guest-groups', () => {
     expect(getRes.statusCode).toBe(200);
     expect(getRes.body.data[0]).toMatchObject({
       token: 'guest-token-1',
-      inviteLink: 'https://example.com/api/event-config?mode=share&slug=ana-leo-2026&g=guest-token-1',
+      inviteLink: 'https://example.com/ana-leo-2026?g=guest-token-1',
     });
 
     const postRes = createMockResponse();
@@ -559,7 +559,7 @@ describe('/api/dashboard/guest-groups', () => {
     expect(postRes.statusCode).toBe(201);
     expect(postRes.body.data).toMatchObject({
       token: 'guest-token-2',
-      inviteLink: 'https://example.com/api/event-config?mode=share&slug=ana-leo-2026&g=guest-token-2',
+      inviteLink: 'https://example.com/ana-leo-2026?g=guest-token-2',
     });
   });
 });

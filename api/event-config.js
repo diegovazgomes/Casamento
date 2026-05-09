@@ -101,6 +101,52 @@ function resolveImageUrl(origin, imagePath) {
   }
 }
 
+function isCrawlerCompatibleImageUrl(imageUrl) {
+  try {
+    const pathname = new URL(String(imageUrl || '')).pathname.toLowerCase();
+    if (!pathname) {
+      return false;
+    }
+
+    const hasExplicitExtension = /\.[a-z0-9]+$/.test(pathname);
+    if (!hasExplicitExtension) {
+      // Keep extensionless absolute URLs to avoid false negatives on CDNs.
+      return true;
+    }
+
+    return /\.(jpe?g|png)$/.test(pathname);
+  } catch {
+    return false;
+  }
+}
+
+function resolveSharePreviewImage(origin, imagePath) {
+  const primaryImage = resolveImageUrl(origin, imagePath);
+  if (isCrawlerCompatibleImageUrl(primaryImage)) {
+    return primaryImage;
+  }
+
+  return resolveImageUrl(origin, '/assets/images/couple/casal.png');
+}
+
+function inferOgImageType(imageUrl) {
+  try {
+    const pathname = new URL(String(imageUrl || '')).pathname.toLowerCase();
+
+    if (pathname.endsWith('.png')) {
+      return 'image/png';
+    }
+
+    if (pathname.endsWith('.jpg') || pathname.endsWith('.jpeg')) {
+      return 'image/jpeg';
+    }
+  } catch {
+    return '';
+  }
+
+  return '';
+}
+
 function buildRedirectUrl(origin, slug, guestToken, section = '') {
   const normalizedSlug = String(slug || '').trim();
   const normalizedToken = String(guestToken || '').trim();
@@ -301,9 +347,10 @@ export default async function handler(req, res) {
         || config?.texts?.description
         || `Abra o convite digital de ${coupleNames}.`
       ).trim();
-      const heroImage = resolveImageUrl(origin, config?.media?.heroImage);
+      const heroImage = resolveSharePreviewImage(origin, config?.media?.heroImage);
+      const heroImageType = inferOgImageType(heroImage);
       const redirectUrl = buildRedirectUrl(origin, data.slug, guestToken, section);
-      const pageUrl = new URL(req.url || '', origin).href;
+      const pageUrl = redirectUrl;
 
       res.setHeader('Content-Type', 'text/html; charset=utf-8');
       res.setHeader('Cache-Control', 'no-store, max-age=0');
@@ -318,6 +365,8 @@ export default async function handler(req, res) {
   <meta property="og:title" content="${escapeHtml(title)}">
   <meta property="og:description" content="${escapeHtml(description)}">
   <meta property="og:image" content="${escapeHtml(heroImage)}">
+  <meta property="og:image:secure_url" content="${escapeHtml(heroImage)}">
+  ${heroImageType ? `<meta property="og:image:type" content="${escapeHtml(heroImageType)}">` : ''}
   <meta property="og:url" content="${escapeHtml(pageUrl)}">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="${escapeHtml(title)}">

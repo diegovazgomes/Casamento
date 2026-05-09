@@ -1388,7 +1388,7 @@ function buildGuestInviteLink(token, explicitLink = '') {
 
   const encodedToken = encodeURIComponent(String(token || '').trim());
   if (state.eventSlug) {
-    return `${window.location.origin}/api/event-config?mode=share&slug=${encodeURIComponent(state.eventSlug)}&g=${encodedToken}`;
+    return `${window.location.origin}/${encodeURIComponent(state.eventSlug)}?g=${encodedToken}`;
   }
 
   return `${window.location.origin}/index.html?g=${encodedToken}`;

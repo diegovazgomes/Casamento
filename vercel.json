@@ -9,6 +9,22 @@
   "rewrites": [
     {
       "source": "/:slug((?!api|assets|.*\\..*).+)",
+      "has": [
+        {
+          "type": "query",
+          "key": "g",
+          "value": "(?<g>.*)"
+        },
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*(WhatsApp|facebookexternalhit|Facebot|Twitterbot|Slackbot|TelegramBot|Discordbot).*"
+        }
+      ],
+      "destination": "/api/event-config?mode=share&slug=:slug&g=:g"
+    },
+    {
+      "source": "/:slug((?!api|assets|.*\\..*).+)",
       "destination": "/index.html"
     }
   ]

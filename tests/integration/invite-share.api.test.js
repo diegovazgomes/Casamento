@@ -83,6 +83,46 @@ describe('GET /api/event-config?mode=share', () => {
     expect(res.statusCode).toBe(200);
     expect(res.headers['Content-Type']).toBe('text/html; charset=utf-8');
     expect(res.body).toContain('property="og:image" content="https://cdn.example.com/hero/ana-leo.jpg"');
+    expect(res.body).toContain('property="og:image:secure_url" content="https://cdn.example.com/hero/ana-leo.jpg"');
+    expect(res.body).toContain('property="og:image:type" content="image/jpeg"');
+    expect(res.body).toContain('property="og:url" content="https://example.com/ana-leo-2026?g=guest-token-1"');
     expect(res.body).toContain('http-equiv="refresh" content="0;url=https://example.com/ana-leo-2026?g=guest-token-1"');
+  });
+
+  it('falls back og:image to default PNG when hero image is webp', async () => {
+    createClientMock.mockReturnValue({
+      from: vi.fn(() => createSelectBuilder({
+        data: {
+          slug: 'ana-leo-2026',
+          couple_names: 'Ana & Leo',
+          is_active: true,
+          config: {
+            couple: { names: 'Ana & Leo' },
+            texts: {
+              metaTitle: 'Ana & Leo - Casamento',
+              metaDescription: 'Convite digital do casal',
+            },
+            media: {
+              heroImage: 'https://cdn.example.com/hero/ana-leo.webp',
+            },
+          },
+        },
+        error: null,
+      })),
+    });
+
+    const { default: handler } = await import('../../api/event-config.js');
+    const res = createMockResponse();
+
+    await handler({
+      method: 'GET',
+      headers: { host: 'example.com', 'x-forwarded-proto': 'https' },
+      url: '/api/event-config?mode=share&slug=ana-leo-2026&g=guest-token-1',
+      query: { mode: 'share', slug: 'ana-leo-2026', g: 'guest-token-1' },
+    }, res);
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body).toContain('property="og:image" content="https://example.com/assets/images/couple/casal.png"');
+    expect(res.body).toContain('property="og:image:type" content="image/png"');
   });
 });

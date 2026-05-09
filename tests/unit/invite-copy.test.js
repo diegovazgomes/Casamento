@@ -7,7 +7,7 @@ describe('invite copy helper', () => {
   it('builds the group invite message with group-sharing copy', () => {
     const message = globalThis.buildInviteWhatsAppMessage({
       coupleNames: 'Ana & Leo',
-      link: 'https://example.com/api/event-config?mode=share&slug=ana-leo-2026&g=token',
+      link: 'https://example.com/ana-leo-2026?g=token',
       groupSizeLabel: '2 pessoas',
     });
 
@@ -18,7 +18,7 @@ describe('invite copy helper', () => {
   it('builds the individual invite message without group-sharing copy', () => {
     const message = globalThis.buildInviteWhatsAppMessage({
       coupleNames: 'Ana & Leo',
-      link: 'https://example.com/api/event-config?mode=share&slug=ana-leo-2026&g=token',
+      link: 'https://example.com/ana-leo-2026?g=token',
       isIndividual: true,
     });
 

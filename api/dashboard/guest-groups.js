@@ -309,7 +309,7 @@ function buildInviteLink(origin, eventSlug, token) {
   const encodedToken = encodeURIComponent(String(token || '').trim());
 
   if (normalizedSlug) {
-    return `${normalizedOrigin}/api/event-config?mode=share&slug=${encodeURIComponent(normalizedSlug)}&g=${encodedToken}`;
+    return `${normalizedOrigin}/${encodeURIComponent(normalizedSlug)}?g=${encodedToken}`;
   }
 
   return `${normalizedOrigin}/index.html?g=${encodedToken}`;
