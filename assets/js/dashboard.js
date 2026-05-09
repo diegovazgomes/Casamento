@@ -2787,7 +2787,7 @@ function _populateWizardTimeOptions(defaultValue = '17:00') {
   const fragment = document.createDocumentFragment();
 
   for (let hour = 0; hour < 24; hour += 1) {
-    for (let minute = 0; minute < 60; minute += 30) {
+    for (let minute = 0; minute < 60; minute += 15) {
       const label = `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
       const option = document.createElement('option');
       option.value = label;
@@ -3044,32 +3044,32 @@ function renderWizardThemes() {
 function _wizardGoToStep(step) {
   _wizardStep = step;
 
-  for (let i = 1; i <= 4; i++) {
+  for (let i = 1; i <= 5; i++) {
     const el = document.getElementById(`wizardStep${i}`);
     if (el) el.classList.toggle('is-active', i === step);
   }
 
   const progressEl = document.getElementById('wizardProgress');
   const footerEl   = document.getElementById('wizardFooter');
-  if (progressEl) progressEl.style.display = step === 4 ? 'none' : '';
-  if (footerEl)   footerEl.style.display   = step === 4 ? 'none' : '';
+  if (progressEl) progressEl.style.display = step === 5 ? 'none' : '';
+  if (footerEl)   footerEl.style.display   = step === 5 ? 'none' : '';
 
-  if (step === 4) {
+  if (step === 5) {
     const closeBtn = document.getElementById('wzCloseBtn');
     if (closeBtn) closeBtn.onclick = () => document.getElementById('wizardOverlay').classList.remove('is-active');
     return;
   }
 
   document.querySelectorAll('.wizard-dot').forEach(dot => {
-    dot.classList.toggle('is-active', Number(dot.dataset.step) <= step);
+    dot.classList.toggle('is-active', Number(dot.dataset.step) <= Math.min(step, 4));
   });
 
   const backBtn = document.getElementById('wizardBtnBack');
   const nextBtn = document.getElementById('wizardBtnNext');
   if (backBtn) backBtn.style.display = step > 1 ? '' : 'none';
-  if (nextBtn) nextBtn.textContent   = step === 3 ? 'Salvar e publicar' : 'Próximo';
+  if (nextBtn) nextBtn.textContent   = step === 4 ? 'Salvar e publicar' : 'Próximo';
 
-  if (step === 3) _updateWizardPreview();
+  if (step === 4) _updateWizardPreview();
 }
 
 async function wizardNext() {
@@ -3081,7 +3081,7 @@ async function wizardNext() {
     }
   }
 
-  if (_wizardStep === 2) {
+  if (_wizardStep === 3) {
     const slugInput = document.getElementById('wzSlug');
     if (_isWizardPremiumUser()) {
       const hasCustomUrl = Boolean(slugInput?.value.trim());
@@ -3096,7 +3096,7 @@ async function wizardNext() {
     }
   }
 
-  if (_wizardStep < 3) {
+  if (_wizardStep < 4) {
     _wizardGoToStep(_wizardStep + 1);
   } else {
     _saveWizard();
@@ -3104,7 +3104,7 @@ async function wizardNext() {
 }
 
 function wizardBack() {
-  if (_wizardStep > 1 && _wizardStep < 4) _wizardGoToStep(_wizardStep - 1);
+  if (_wizardStep > 1 && _wizardStep < 5) _wizardGoToStep(_wizardStep - 1);
 }
 
 function _wizardDeriveDateLabels(dateOnly) {
@@ -3279,7 +3279,7 @@ async function _saveWizard() {
     }
 
     await loadAllData();
-    _wizardGoToStep(4);
+    _wizardGoToStep(5);
 
   } catch (err) {
     console.error('[wizard] Erro ao salvar:', err);

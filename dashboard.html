@@ -1117,12 +1117,21 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
   min-width:0;
   box-sizing:border-box;
   height:44px;
+  min-height:44px;
   padding:10px 12px;
+  line-height:1.2;
+  border-radius:0;
 }
 .wizard-step2-grid input[type="date"].field-input,
-.wizard-step2-grid input[type="time"].field-input{
+.wizard-step2-grid input[type="time"].field-input,
+.wizard-step2-grid select.field-input{
   appearance:none;
   -webkit-appearance:none;
+  border-radius:0;
+}
+.wizard-step2-grid .field-input option{
+  background:var(--surface);
+  color:var(--text);
 }
 @media(max-width:760px){
   .wizard-date-time-grid{grid-template-columns:1fr;}
@@ -1404,6 +1413,8 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
       <div class="wizard-dot" data-step="2"></div>
       <div class="wizard-progress-line"></div>
       <div class="wizard-dot" data-step="3"></div>
+      <div class="wizard-progress-line"></div>
+      <div class="wizard-dot" data-step="4"></div>
     </div>
 
     <!-- Etapa 1: Casal -->
@@ -1425,7 +1436,7 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
 
     <!-- Etapa 2: Data & Local -->
     <div class="wizard-step" id="wizardStep2">
-      <h2 class="wizard-title">Data &amp; Local</h2>
+      <h2 class="wizard-title">Data e Local</h2>
       <p class="wizard-sub">Quando e onde acontece o casamento? Pode ser alterado depois.</p>
       <div class="wizard-date-time-grid wizard-step2-grid">
         <div class="field">
@@ -1448,18 +1459,24 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
                  placeholder="Av. Rainha Simone, 1971" maxlength="200" autocomplete="off">
         </div>
       </div>
+    </div>
+
+    <!-- Etapa 3: URL -->
+    <div class="wizard-step" id="wizardStep3">
+      <h2 class="wizard-title">URL do convite</h2>
+      <p class="wizard-sub">Escolha como sua URL vai aparecer para os convidados. Você pode pular esta etapa.</p>
       <div class="field" style="margin-top:14px;">
-         <label class="field-label" for="wzSlug">Escolha como sua URL vai aparecer</label>
+        <label class="field-label" for="wzSlug">Escolha como sua URL vai aparecer</label>
         <input type="text" class="field-input" id="wzSlug"
-           placeholder="Ex: siannah-diego-09-05-2026" maxlength="60" autocomplete="off">
-         <div class="field-hint" id="wzSlugExample">Seu link vai ficar assim: www.devazi.app/sua-url</div>
-         <div class="field-hint" id="wzSlugPremiumHint" hidden>URL personalizada é um recurso premium. Faça upgrade para desbloquear.</div>
-         <div class="field-hint" id="wzSlugStatus">Você pode pular esta etapa. Se deixar em branco, criaremos uma URL automaticamente.</div>
+               placeholder="Ex: siannah-diego-09-05-2026" maxlength="60" autocomplete="off">
+        <div class="field-hint" id="wzSlugExample">Seu link vai ficar assim: www.devazi.app/sua-url</div>
+        <div class="field-hint" id="wzSlugPremiumHint" hidden>URL personalizada é um recurso premium. Faça upgrade para desbloquear.</div>
+        <div class="field-hint" id="wzSlugStatus">Você pode pular esta etapa. Se deixar em branco, criaremos uma URL automaticamente.</div>
       </div>
     </div>
 
-    <!-- Etapa 3: Tema -->
-    <div class="wizard-step" id="wizardStep3">
+    <!-- Etapa 4: Tema -->
+    <div class="wizard-step" id="wizardStep4">
       <h2 class="wizard-title">Escolha o tema</h2>
       <p class="wizard-sub">Selecione o visual do convite. Pode mudar a qualquer momento no painel.</p>
       <p class="wizard-sub" style="margin-top:-12px;margin-bottom:16px;color:var(--primary-soft);">
@@ -1483,8 +1500,8 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
       </div>
     </div>
 
-    <!-- Etapa 4: Próximos passos -->
-    <div class="wizard-step" id="wizardStep4">
+    <!-- Etapa 5: Próximos passos -->
+    <div class="wizard-step" id="wizardStep5">
       <div class="wizard-success-icon">✦</div>
       <h2 class="wizard-title" style="text-align:center">Convite criado!</h2>
       <p class="wizard-sub" style="text-align:center;margin-bottom:28px">
@@ -1518,7 +1535,7 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
       </div>
     </div>
 
-    <!-- Rodapé (oculto na etapa 4) -->
+    <!-- Rodapé (oculto na etapa 5) -->
     <div class="wizard-footer" id="wizardFooter">
       <button class="btn btn-subtle" id="wizardBtnBack" style="display:none">Voltar</button>
       <button class="btn btn-primary" id="wizardBtnNext">Próximo</button>

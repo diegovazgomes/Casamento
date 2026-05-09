@@ -143,10 +143,18 @@
       outline: none;
       transition: border-color 0.2s ease;
       font-family: var(--font-sans);
+      border-radius: 0;
+      -webkit-appearance: none;
+      appearance: none;
     }
 
     .field-input:focus {
       border-color: var(--primary);
+    }
+
+    .field-input option {
+      background: var(--surface);
+      color: var(--text);
     }
 
     .field-hint {
@@ -193,6 +201,18 @@
     }
 
     .wizard-step2-grid .field { margin-bottom: 0; }
+    .wizard-step2-grid .field-input {
+      height: 44px;
+      min-height: 44px;
+      line-height: 1.2;
+    }
+
+    .wizard-step2-grid input[type="date"].field-input,
+    .wizard-step2-grid select.field-input {
+      border-radius: 0;
+      -webkit-appearance: none;
+      appearance: none;
+    }
 
     @media (max-width: 760px) {
       .wizard-date-time-grid { grid-template-columns: 1fr; }
@@ -470,7 +490,7 @@
 </head>
 <body>
   <div class="test-info">
-    TESTE_WIZARD: pagina isolada do wizard. Salva mock local em localStorage (chave wizard-test-last-payload).
+    TESTE_WIZARD: página isolada do wizard. Salva mock local em localStorage (chave wizard-test-last-payload).
   </div>
 
   <div class="wizard-overlay" id="wizardOverlay">
@@ -481,6 +501,8 @@
         <div class="wizard-dot" data-step="2"></div>
         <div class="wizard-progress-line"></div>
         <div class="wizard-dot" data-step="3"></div>
+        <div class="wizard-progress-line"></div>
+        <div class="wizard-dot" data-step="4"></div>
       </div>
 
       <div class="wizard-step is-active" id="wizardStep1">
@@ -499,7 +521,7 @@
       </div>
 
       <div class="wizard-step" id="wizardStep2">
-        <h2 class="wizard-title">Data & Local</h2>
+        <h2 class="wizard-title">Data e Local</h2>
         <p class="wizard-sub">Quando e onde acontece o casamento?</p>
         <div class="wizard-date-time-grid wizard-step2-grid">
           <div class="field">
@@ -507,39 +529,41 @@
             <input type="date" class="field-input" id="wzDate" />
           </div>
           <div class="field">
-            <label class="field-label" for="wzTime">Horario</label>
-            <select class="field-input" id="wzTime" aria-label="Horario do evento (formato 24h)"></select>
+            <label class="field-label" for="wzTime">Horário</label>
+            <select class="field-input" id="wzTime" aria-label="Horário do evento (formato 24h)"></select>
             <div class="field-hint">Formato 24h. Exemplo: 17:00.</div>
           </div>
           <div class="field">
             <label class="field-label" for="wzVenueName">Nome do local</label>
-            <input type="text" class="field-input" id="wzVenueName" placeholder="Ex: Mansao das Flores" maxlength="120" autocomplete="off" />
+            <input type="text" class="field-input" id="wzVenueName" placeholder="Ex: Mansão das Flores" maxlength="120" autocomplete="off" />
           </div>
           <div class="field">
-            <label class="field-label" for="wzVenueAddress">Endereco</label>
+            <label class="field-label" for="wzVenueAddress">Endereço</label>
             <input type="text" class="field-input" id="wzVenueAddress" placeholder="Av. Rainha Simone, 1971" maxlength="200" autocomplete="off" />
           </div>
-        </div>
-
-        <div class="field" style="margin-top:14px;">
-          <label class="field-label" for="wzSlug">Escolha como sua URL vai aparecer</label>
-          <input type="text" class="field-input" id="wzSlug" placeholder="Ex: siannah-diego-09-05-2026" maxlength="60" autocomplete="off" />
-          <div class="field-hint" id="wzSlugExample">Seu link vai ficar assim: www.devazi.app/sua-url</div>
-          <div class="field-hint" id="wzSlugPremiumHint" hidden>URL personalizada e um recurso premium. Faca upgrade para desbloquear.</div>
-          <div class="field-hint" id="wzSlugStatus">Voce pode pular esta etapa. Se deixar em branco, criaremos uma URL automaticamente.</div>
         </div>
       </div>
 
       <div class="wizard-step" id="wizardStep3">
+        <div class="field" style="margin-top:14px;">
+          <label class="field-label" for="wzSlug">Escolha como sua URL vai aparecer</label>
+          <input type="text" class="field-input" id="wzSlug" placeholder="Ex: siannah-diego-09-05-2026" maxlength="60" autocomplete="off" />
+          <div class="field-hint" id="wzSlugExample">Seu link vai ficar assim: www.devazi.app/sua-url</div>
+          <div class="field-hint" id="wzSlugPremiumHint" hidden>URL personalizada é um recurso premium. Faça upgrade para desbloquear.</div>
+          <div class="field-hint" id="wzSlugStatus">Você pode pular esta etapa. Se deixar em branco, criaremos uma URL automaticamente.</div>
+        </div>
+      </div>
+
+      <div class="wizard-step" id="wizardStep4">
         <h2 class="wizard-title">Escolha o tema</h2>
         <p class="wizard-sub">Selecione o visual do convite para testar o preview.</p>
         <div class="wizard-theme-layout">
           <div class="wizard-themes" id="wizardThemes"></div>
           <div class="wizard-preview-wrap">
-            <div class="wizard-preview-label">PREVIA DO CONVITE</div>
+            <div class="wizard-preview-label">PRÉVIA DO CONVITE</div>
             <div class="wizard-preview-card" id="wzPreviewCard">
               <div class="wizard-preview-inner">
-                <span class="wz-preview-tag">Voce esta convidado</span>
+                <span class="wz-preview-tag">Você está convidado</span>
                 <div class="wz-preview-names" id="wzPreviewNames">Nome & Nome</div>
                 <div class="wz-preview-sep"></div>
                 <div class="wz-preview-date" id="wzPreviewDate">. . .</div>
@@ -550,7 +574,7 @@
         </div>
       </div>
 
-      <div class="wizard-step" id="wizardStep4">
+      <div class="wizard-step" id="wizardStep5">
         <div class="wizard-success-icon">*</div>
         <h2 class="wizard-title" style="text-align:center">Wizard finalizado</h2>
         <p class="wizard-sub" style="text-align:center;margin-bottom:22px">Salvamento simulado com sucesso. Payload abaixo:</p>
@@ -559,14 +583,14 @@
             <span class="wizard-instruction-num">01</span>
             <div>
               <strong>Teste de fluxo</strong>
-              <p>Voce pode voltar e alterar qualquer campo para testar novamente.</p>
+              <p>Você pode voltar e alterar qualquer campo para testar novamente.</p>
             </div>
           </div>
           <div class="wizard-instruction-item">
             <span class="wizard-instruction-num">02</span>
             <div>
-              <strong>Validacao de slug</strong>
-              <p>Esta tela usa o endpoint publico /api/event-config?mode=check-slug para validar disponibilidade.</p>
+              <strong>Validação de URL</strong>
+              <p>Esta tela usa o endpoint público /api/event-config?mode=check-slug para validar disponibilidade.</p>
             </div>
           </div>
         </div>
@@ -578,7 +602,7 @@
 
       <div class="wizard-footer" id="wizardFooter">
         <button class="btn btn-subtle" id="wizardBtnBack" type="button" style="display:none">Voltar</button>
-        <button class="btn btn-primary" id="wizardBtnNext" type="button">Proximo</button>
+        <button class="btn btn-primary" id="wizardBtnNext" type="button">Próximo</button>
       </div>
     </div>
   </div>
@@ -680,10 +704,10 @@
       if (premiumHint) premiumHint.hidden = premium;
 
       if (premium) {
-        setWizardSlugStatus('idle', 'Voce pode personalizar a URL ou deixar em branco para gerar automaticamente.');
+        setWizardSlugStatus('idle', 'Você pode personalizar a URL ou deixar em branco para gerar automaticamente.');
       } else {
         input.value = '';
-        setWizardSlugStatus('idle', 'Plano free: a URL sera criada automaticamente ao salvar.');
+        setWizardSlugStatus('idle', 'Plano free: a URL será criada automaticamente ao salvar.');
       }
     }
 
@@ -697,7 +721,7 @@
 
       const fragment = document.createDocumentFragment();
       for (let hour = 0; hour < 24; hour += 1) {
-        for (let minute = 0; minute < 60; minute += 30) {
+        for (let minute = 0; minute < 60; minute += 15) {
           const value = String(hour).padStart(2, '0') + ':' + String(minute).padStart(2, '0');
           const option = document.createElement('option');
           option.value = value;
@@ -769,7 +793,7 @@
               setWizardSlugStatus('invalid', 'Muitas tentativas. Aguarde ' + retryAfterSec + 's para tentar de novo.');
               return false;
             }
-            setWizardSlugStatus('invalid', payload.error || 'Nao foi possivel validar a URL.');
+            setWizardSlugStatus('invalid', payload.error || 'Não foi possível validar a URL.');
             return false;
           }
 
@@ -778,14 +802,14 @@
               timestamp: Date.now(),
               valid: true,
               state: 'valid',
-              message: 'URL disponivel para publicar.'
+              message: 'URL disponível para publicar.'
             });
-            setWizardSlugStatus('valid', 'URL disponivel para publicar.');
+            setWizardSlugStatus('valid', 'URL disponível para publicar.');
             return true;
           }
 
           if (payload.reason === 'reserved') {
-            setWizardSlugStatus('invalid', 'Essa URL e reservada pelo sistema.');
+            setWizardSlugStatus('invalid', 'Essa URL é reservada pelo sistema.');
             return false;
           }
 
@@ -793,16 +817,16 @@
             timestamp: Date.now(),
             valid: false,
             state: 'invalid',
-            message: 'Essa URL ja esta em uso.'
+            message: 'Essa URL já está em uso.'
           });
-          setWizardSlugStatus('invalid', 'Essa URL ja esta em uso.');
+          setWizardSlugStatus('invalid', 'Essa URL já está em uso.');
           return false;
         } catch (error) {
           if (requestToken !== wizardSlugValidationToken) {
             return false;
           }
 
-          setWizardSlugStatus('invalid', 'Erro ao validar URL. Verifique se o servidor esta rodando.');
+          setWizardSlugStatus('invalid', 'Erro ao validar URL. Verifique se o servidor está rodando.');
           return false;
         }
       };
@@ -905,7 +929,7 @@
 
       loadWizardThemes().then((themes) => {
         if (!themes.length) {
-          container.innerHTML = '<div class="field-hint">Nao foi possivel carregar temas.</div>';
+          container.innerHTML = '<div class="field-hint">Não foi possível carregar temas.</div>';
           return;
         }
 
@@ -955,26 +979,26 @@
     function wizardGoToStep(step) {
       wizardStep = step;
 
-      for (let index = 1; index <= 4; index += 1) {
+      for (let index = 1; index <= 5; index += 1) {
         const el = document.getElementById('wizardStep' + index);
         if (el) el.classList.toggle('is-active', index === step);
       }
 
       const progressEl = document.getElementById('wizardProgress');
       const footerEl = document.getElementById('wizardFooter');
-      if (progressEl) progressEl.style.display = step === 4 ? 'none' : '';
-      if (footerEl) footerEl.style.display = step === 4 ? 'none' : '';
+      if (progressEl) progressEl.style.display = step === 5 ? 'none' : '';
+      if (footerEl) footerEl.style.display = step === 5 ? 'none' : '';
 
       document.querySelectorAll('.wizard-dot').forEach((dot) => {
-        dot.classList.toggle('is-active', Number(dot.dataset.step) <= Math.min(step, 3));
+        dot.classList.toggle('is-active', Number(dot.dataset.step) <= Math.min(step, 4));
       });
 
       const backBtn = document.getElementById('wizardBtnBack');
       const nextBtn = document.getElementById('wizardBtnNext');
       if (backBtn) backBtn.style.display = step > 1 ? '' : 'none';
-      if (nextBtn) nextBtn.textContent = step === 3 ? 'Salvar e publicar (mock)' : 'Proximo';
+      if (nextBtn) nextBtn.textContent = step === 4 ? 'Salvar e publicar (mock)' : 'Próximo';
 
-      if (step === 3) updateWizardPreview();
+      if (step === 4) updateWizardPreview();
     }
 
     async function wizardNext() {
@@ -986,7 +1010,7 @@
         }
       }
 
-      if (wizardStep === 2) {
+      if (wizardStep === 3) {
         const slugInput = document.getElementById('wzSlug');
         if (isPremiumPlan() && slugInput?.value.trim()) {
           const isSlugValid = await validateWizardSlugAvailability({ immediate: true });
@@ -997,7 +1021,7 @@
         }
       }
 
-      if (wizardStep < 3) {
+      if (wizardStep < 4) {
         wizardGoToStep(wizardStep + 1);
       } else {
         await saveWizardMock();
@@ -1005,7 +1029,7 @@
     }
 
     function wizardBack() {
-      if (wizardStep > 1 && wizardStep < 4) {
+      if (wizardStep > 1 && wizardStep < 5) {
         wizardGoToStep(wizardStep - 1);
       }
     }
@@ -1059,11 +1083,11 @@
         preview.textContent = JSON.stringify(payload, null, 2);
       }
 
-      wizardGoToStep(4);
+      wizardGoToStep(5);
 
       if (nextBtn) {
         nextBtn.disabled = false;
-        nextBtn.textContent = 'Proximo';
+        nextBtn.textContent = 'Próximo';
       }
       if (backBtn) backBtn.disabled = false;
     }
