@@ -1611,7 +1611,7 @@ function loadEditorTab() {
 
   // Casal & Evento
   setVal('edCoupleNames',       config.couple?.names      ?? '');
-  setVal('edCoupleSubtitle',    config.couple?.subtitle || window.__SITE_JSON__?.couple?.subtitle || '');
+  setVal('edCoupleSubtitle',    config.couple?.subtitle || window.__SITE_JSON__?.couple?.subtitle || 'Um momento pensado para viver ao lado de quem faz parte da nossa vida');
   setVal('edBrideName',         config.couple?.bride_name ?? config.couple?.brideName ?? '');
   setVal('edGroomName',         config.couple?.groom_name ?? config.couple?.groomName ?? '');
   // edEventDate é type="date" — precisa de YYYY-MM-DD (não ISO completo)

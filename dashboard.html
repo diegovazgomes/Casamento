@@ -1111,6 +1111,19 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
   gap:12px;
   margin-bottom:1rem;
 }
+.wizard-step2-grid .field{margin-bottom:0}
+.wizard-step2-grid .field-input{
+  width:100%;
+  min-width:0;
+  box-sizing:border-box;
+  height:44px;
+  padding:10px 12px;
+}
+.wizard-step2-grid input[type="date"].field-input,
+.wizard-step2-grid input[type="time"].field-input{
+  appearance:none;
+  -webkit-appearance:none;
+}
 @media(max-width:760px){
   .wizard-date-time-grid{grid-template-columns:1fr;}
 }
@@ -1414,7 +1427,7 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
     <div class="wizard-step" id="wizardStep2">
       <h2 class="wizard-title">Data &amp; Local</h2>
       <p class="wizard-sub">Quando e onde acontece o casamento? Pode ser alterado depois.</p>
-      <div class="wizard-date-time-grid">
+      <div class="wizard-date-time-grid wizard-step2-grid">
         <div class="field">
           <label class="field-label">Data do casamento</label>
           <input type="date" class="field-input" id="wzDate">
@@ -1423,16 +1436,16 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
           <label class="field-label">Horário</label>
           <input type="time" class="field-input" id="wzTime" value="17:00">
         </div>
-      </div>
-      <div class="field" style="margin-bottom:1rem">
-        <label class="field-label">Nome do local</label>
-        <input type="text" class="field-input" id="wzVenueName"
-               placeholder="Ex: Mansão das Flores" maxlength="120" autocomplete="off">
-      </div>
-      <div class="field">
-        <label class="field-label">Endereço</label>
-        <input type="text" class="field-input" id="wzVenueAddress"
-               placeholder="Av. Rainha Simone, 1971" maxlength="200" autocomplete="off">
+        <div class="field">
+          <label class="field-label">Nome do local</label>
+          <input type="text" class="field-input" id="wzVenueName"
+                 placeholder="Ex: Mansão das Flores" maxlength="120" autocomplete="off">
+        </div>
+        <div class="field">
+          <label class="field-label">Endereço</label>
+          <input type="text" class="field-input" id="wzVenueAddress"
+                 placeholder="Av. Rainha Simone, 1971" maxlength="200" autocomplete="off">
+        </div>
       </div>
     </div>
 
@@ -1937,19 +1950,19 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
                 <input type="text" class="field-input sm" id="edCoupleNames" placeholder="Noiva &amp; Noivo" oninput="markEditorDirty()">
               </div>
               <div class="field">
-                <label class="field-label" for="edCoupleSubtitle">Subtítulo</label>
-                <input type="text" class="field-input sm" id="edCoupleSubtitle" placeholder="ex: Um momento especial com vocês" oninput="markEditorDirty()">
+                <label class="field-label" for="edBrideName">Nome do cônjuge 1</label>
+                <input type="text" class="field-input sm" id="edBrideName" placeholder="Ex: Siannah" oninput="markEditorDirty()">
               </div>
             </div>
 
             <div class="form-grid-2">
               <div class="field">
-                <label class="field-label" for="edBrideName">Nome do cônjuge 1</label>
-                <input type="text" class="field-input sm" id="edBrideName" placeholder="Ex: Siannah" oninput="markEditorDirty()">
-              </div>
-              <div class="field">
                 <label class="field-label" for="edGroomName">Nome do cônjuge 2</label>
                 <input type="text" class="field-input sm" id="edGroomName" placeholder="Ex: Diego" oninput="markEditorDirty()">
+              </div>
+              <div class="field">
+                <label class="field-label" for="edCoupleSubtitle">Subtítulo (mensagem da primeira tela de abertura do convite)</label>
+                <input type="text" class="field-input sm" id="edCoupleSubtitle" value="Um momento pensado para viver ao lado de quem faz parte da nossa vida" oninput="markEditorDirty()">
               </div>
             </div>
 
