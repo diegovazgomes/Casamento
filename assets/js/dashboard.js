@@ -2628,8 +2628,6 @@ async function saveEditorConfig() {
 const WIZARD_THEME_KEYS = [
   'classic-gold',
   'classic-silver',
-  'classic-purple',
-  'classic-blue',
   'classic-gold-light',
   'classic-silver-light',
 ];

@@ -1105,6 +1105,16 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
 .wizard-step{display:none;}
 .wizard-step.is-active{display:block;}
 
+.wizard-date-time-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+  margin-bottom:1rem;
+}
+@media(max-width:760px){
+  .wizard-date-time-grid{grid-template-columns:1fr;}
+}
+
 .wizard-title{
   font-family:var(--font-display);
   font-size:1.6rem;font-weight:400;font-style:italic;
@@ -1197,22 +1207,9 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
   --wz-text-dim:rgba(250,247,242,.45);
   --wz-grid:rgba(255,255,255,.015);
 }
-.wizard-preview-card::before,.wizard-preview-card::after{
-  content:'';position:absolute;
-  left:20px;right:20px;height:1px;
-  background:linear-gradient(to right,transparent,var(--wz-primary),transparent);
-  opacity:.5;
-  transition:background .45s;
-}
-.wizard-preview-card::before{top:0}
-.wizard-preview-card::after{bottom:0}
 
 .wizard-preview-bg-grid{
-  position:absolute;inset:0;pointer-events:none;
-  background-image:
-    linear-gradient(var(--wz-grid) 1px,transparent 1px),
-    linear-gradient(90deg,var(--wz-grid) 1px,transparent 1px);
-  background-size:24px 24px;
+  display:none;
 }
 .wizard-preview-inner{
   position:relative;text-align:center;padding:0 32px;z-index:1;
@@ -1417,7 +1414,7 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
     <div class="wizard-step" id="wizardStep2">
       <h2 class="wizard-title">Data &amp; Local</h2>
       <p class="wizard-sub">Quando e onde acontece o casamento? Pode ser alterado depois.</p>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:1rem">
+      <div class="wizard-date-time-grid">
         <div class="field">
           <label class="field-label">Data do casamento</label>
           <input type="date" class="field-input" id="wzDate">
@@ -1435,7 +1432,7 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
       <div class="field">
         <label class="field-label">Endereço</label>
         <input type="text" class="field-input" id="wzVenueAddress"
-               placeholder="Ex: Rua das Rosas, 100 — São Paulo, SP" maxlength="200" autocomplete="off">
+               placeholder="Av. Rainha Simone, 1971" maxlength="200" autocomplete="off">
       </div>
     </div>
 
@@ -1443,6 +1440,9 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
     <div class="wizard-step" id="wizardStep3">
       <h2 class="wizard-title">Escolha o tema</h2>
       <p class="wizard-sub">Selecione o visual do convite. Pode mudar a qualquer momento no painel.</p>
+      <p class="wizard-sub" style="margin-top:-12px;margin-bottom:16px;color:var(--primary-soft);">
+        Esses são os temas do plano free. Upgrade para acessar mais temas na próxima tela.
+      </p>
       <div class="wizard-theme-layout">
         <div class="wizard-themes" id="wizardThemes"></div>
         <div class="wizard-preview-wrap">
@@ -1473,21 +1473,21 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
           <span class="wizard-instruction-num">01</span>
           <div>
             <strong>Personalize o convite</strong>
-            <p>Acesse <em>Editar Evento</em> no menu lateral para adicionar fotos, textos, configurar o RSVP e os presentes.</p>
+            <p>Vá até a aba <em>Editar Evento</em> dentro do painel para adicionar fotos, textos, configurar o RSVP e os presentes.</p>
           </div>
         </div>
         <div class="wizard-instruction-item">
           <span class="wizard-instruction-num">02</span>
           <div>
             <strong>Veja como ficou</strong>
-            <p>No topo do painel há o link do seu convite. Clique para visualizá-lo exatamente como os convidados irão ver.</p>
+            <p>O link do seu convite está na aba <em>Editar Evento</em>. Clique para visualizá-lo exatamente como os convidados irão ver.</p>
           </div>
         </div>
         <div class="wizard-instruction-item">
           <span class="wizard-instruction-num">03</span>
           <div>
             <strong>Envie os convites</strong>
-            <p>Acesse <em>Convites</em> no menu para criar grupos e gerar um link personalizado para cada família.</p>
+            <p>Vá até a aba <em>Convites</em> para criar convites em grupo ou convite individual personalizado com link exclusivo.</p>
           </div>
         </div>
       </div>
@@ -1522,6 +1522,12 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
         </span>
         <span>Visão Geral</span>
+      </button>
+      <button class="nav-item" data-tab="editar" role="tab">
+        <span class="nav-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 1 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
+        </span>
+        <span>Editar Evento</span>
       </button>
       <button class="nav-item" data-tab="grupos" role="tab">
         <span class="nav-icon">
@@ -1558,12 +1564,6 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         </span>
         <span>Exportar</span>
-      </button>
-      <button class="nav-item" data-tab="editar" role="tab">
-        <span class="nav-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 1 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
-        </span>
-        <span>Editar Evento</span>
       </button>
     </nav>
  
