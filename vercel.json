@@ -1,7 +1,11 @@
 {
   "rewrites": [
     {
-      "source": "/:slug((?!api|assets|.*\\..*).*)",
+      "source": "/",
+      "destination": "/landing.html"
+    },
+    {
+      "source": "/:slug((?!api|assets|.*\\..*).+)",
       "destination": "/index.html"
     }
   ]

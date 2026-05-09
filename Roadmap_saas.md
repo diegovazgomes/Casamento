@@ -79,6 +79,12 @@ O roadmap correto começa em:
 - Navegação interna do convite preservando contexto por slug entre páginas estáticas.
 - Upload de mídia funcional com criação de estrutura no Supabase Storage por evento.
 - Fluxo de publicação por slug validado em teste manual de ponta a ponta.
+- Estrutura de `slug` já consolidada no banco (`events.slug` unique/not null) desde a migração base.
+- Validação pública de slug em tempo real implementada no endpoint `api/event-config?mode=check-slug`.
+- Rate-limit para validação de slug implementado no backend, com testes de integração cobrindo cenário de bloqueio.
+- Wizard de onboarding com validação de slug por debounce e feedback visual para disponibilidade.
+- Reescrita por slug ativa em produção via `vercel.json` para rotear `/:slug` para o convite.
+- Campos de plano no profile (`plan`, `expires_at`) já disponíveis no backend e no dashboard.
 
 ---
 
@@ -117,14 +123,14 @@ O roadmap correto começa em:
 - [x] Criar página de confirmação e estados de sucesso e erro.
 - [x] Criar fluxo de recuperação de senha.
 - [x] Criar wizard inicial no dashboard para dados do casal, evento e tema.
-- [ ] Adicionar coluna `slug` (unique, text) em `events`.
-- [ ] Criar migração SQL para slugs existentes (gerar automático se vazio).
-- [ ] Criar validação pública de slug em tempo real.
-- [ ] Configurar reescrita de URL em `vercel.json` (rewrite /:slug para /index.html?slug=:slug).
-- [ ] Implementar rate-limit por IP na validação pública de slug (máx 10 req/min).
-- [ ] Integrar validação de slug no wizard etapa 2 com debounce.
+- [x] Adicionar coluna `slug` (unique, text) em `events`.
+- [x] Criar migração SQL para slugs existentes (gerar automático se vazio).
+- [x] Criar validação pública de slug em tempo real.
+- [x] Configurar reescrita de URL em `vercel.json` (rewrite /:slug para /index.html).
+- [ ] Implementar rate-limit por IP na validação pública de slug (alvo do roadmap: 10 req/min; atual: 30 req/min).
+- [x] Integrar validação de slug no wizard etapa 2 com debounce.
 - [ ] Adicionar `robots.txt` com `Disallow: /` para não indexar (optional).
-- [ ] Testar fluxo: slug personalizado carrega corretamente com token de convidado.
+- [ ] Testar fluxo: slug personalizado carrega corretamente com token de convidado (E2E dedicado).
 - [x] Implementar publicação do convite por `slug`.
 - [x] Garantir que o convite publicado carregue por API e mantenha fallback controlado.
 
@@ -138,10 +144,10 @@ O roadmap correto começa em:
 
 ### DEV
 
-- [ ] Criar campos de plano e vencimento em `profiles`.
+- [x] Criar campos de plano e vencimento em `profiles`.
 - [ ] Implementar link de pagamento por plano no Mercado Pago.
 - [ ] Criar webhook do Mercado Pago para atualizar plano do usuário.
-- [ ] Implementar liberação de features por plano no dashboard.
+- [ ] Implementar liberação de features por plano no dashboard (parcial: URL custom já restrita ao premium).
 - [ ] Implementar limite de quantidade de convites e recursos no plano free.
 - [ ] Implementar marca d'água e restrições visuais do plano free.
 - [ ] Criar página interna de upgrade no dashboard.
@@ -198,11 +204,11 @@ Esses itens não entram no caminho crítico do MVP:
 
 ### Ordem correta de execução agora
 
-1. Fechar autenticação SaaS real e `profiles`.
-2. Colocar landing page + cadastro no ar.
-3. Criar wizard de onboarding e publicação.
-4. Ligar pagamento e controle de plano.
-5. Rodar piloto com poucos casais.
+1. Configurar ambiente de produção separado no Supabase.
+2. Ajustar rate-limit de validação de slug para a meta do roadmap (10 req/min) e manter cobertura de teste.
+3. Fechar teste E2E do fluxo com `slug` personalizado + token de convidado.
+4. Ligar pagamento (Mercado Pago) e controle de plano ponta a ponta (webhook + liberação).
+5. Rodar piloto com poucos casais e corrigir gargalos antes de ampliar aquisição.
 
 ### O que não faz sentido fazer agora
 
