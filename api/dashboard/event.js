@@ -231,16 +231,21 @@ async function ensureOwnedEventExists(supabase, user) {
  */
 function extractEventTableFields(config) {
   const fields = {};
+  const hasOwn = (obj, key) => Object.prototype.hasOwnProperty.call(obj || {}, key);
 
   // Casal
-  if (config?.couple?.names) {
+  if (hasOwn(config?.couple, 'names')) {
     fields.couple_names = config.couple.names;
   }
-  if (config?.couple?.bride_name) {
+  if (hasOwn(config?.couple, 'bride_name')) {
     fields.bride_name = config.couple.bride_name;
+  } else if (hasOwn(config?.couple, 'brideName')) {
+    fields.bride_name = config.couple.brideName;
   }
-  if (config?.couple?.groom_name) {
+  if (hasOwn(config?.couple, 'groom_name')) {
     fields.groom_name = config.couple.groom_name;
+  } else if (hasOwn(config?.couple, 'groomName')) {
+    fields.groom_name = config.couple.groomName;
   }
 
   // Evento

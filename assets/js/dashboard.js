@@ -1612,6 +1612,8 @@ function loadEditorTab() {
   // Casal & Evento
   setVal('edCoupleNames',       config.couple?.names      ?? '');
   setVal('edCoupleSubtitle',    config.couple?.subtitle || window.__SITE_JSON__?.couple?.subtitle || '');
+  setVal('edBrideName',         config.couple?.bride_name ?? config.couple?.brideName ?? '');
+  setVal('edGroomName',         config.couple?.groom_name ?? config.couple?.groomName ?? '');
   // edEventDate é type="date" — precisa de YYYY-MM-DD (não ISO completo)
   const isoDate = config.event?.date ?? '';
   const datePart = isoDate.includes('T') ? isoDate.split('T')[0] : isoDate;
@@ -2468,6 +2470,8 @@ function collectEditorValues() {
   if (!config.couple) config.couple = {};
   config.couple.names    = document.getElementById('edCoupleNames')?.value.trim()    || config.couple.names;
   config.couple.subtitle = document.getElementById('edCoupleSubtitle')?.value.trim() || config.couple.subtitle || '';
+  config.couple.bride_name = document.getElementById('edBrideName')?.value.trim() || '';
+  config.couple.groom_name = document.getElementById('edGroomName')?.value.trim() || '';
 
   if (!config.event) config.event = {};
   // Reconstrói ISO a partir de date (YYYY-MM-DD) + time (HH:MM)
@@ -2708,28 +2712,6 @@ function _updateWizardPreview() {
   }
 }
 
-function _updateExampleButtons() {
-  const bride = document.getElementById('wzBrideName')?.value.trim();
-  const groom = document.getElementById('wzGroomName')?.value.trim();
-  const b = bride || 'Siannah';
-  const g = groom || 'Diego';
-  const seps = [' e ', ' & ', ' + '];
-  document.querySelectorAll('.wizard-name-ex').forEach((btn, i) => {
-    btn.textContent = `${b}${seps[i] ?? ' & '}${g}`;
-  });
-}
-
-function _autoFillDisplayName() {
-  const displayInput = document.getElementById('wzDisplayName');
-  if (!displayInput || displayInput.dataset.userEdited) return;
-  const bride = document.getElementById('wzBrideName')?.value.trim() || '';
-  const groom = document.getElementById('wzGroomName')?.value.trim() || '';
-  if (bride || groom) {
-    displayInput.value = bride && groom ? `${bride} & ${groom}` : bride || groom;
-  }
-  _updateWizardPreview();
-}
-
 function renderWizardThemes() {
   const container = document.getElementById('wizardThemes');
   if (!container) return;
@@ -2809,19 +2791,10 @@ function _wizardGoToStep(step) {
 
 function wizardNext() {
   if (_wizardStep === 1) {
-    const bride = document.getElementById('wzBrideName')?.value.trim() || '';
-    const groom = document.getElementById('wzGroomName')?.value.trim() || '';
-    const errEl = document.getElementById('wzCoupleNameError');
-    if (!bride && !groom) {
-      errEl?.classList.add('is-visible');
-      document.getElementById('wzBrideName')?.focus();
-      return;
-    }
-    errEl?.classList.remove('is-visible');
-    // Garantir que o campo de exibição está preenchido
     const displayInput = document.getElementById('wzDisplayName');
-    if (displayInput && !displayInput.value.trim()) {
-      displayInput.value = bride && groom ? `${bride} & ${groom}` : bride || groom;
+    if (!displayInput?.value.trim()) {
+      displayInput?.focus();
+      return;
     }
   }
 
@@ -2860,21 +2833,16 @@ async function maybeShowWizard(config) {
   // Pré-carregar temas em background
   _loadWizardThemes();
 
-  // Pré-preencher nomes existentes
+  // Pré-preencher nome de exibição existente
   const existingNames = config?.couple?.names || '';
   if (existingNames && existingNames !== 'Novo Casal') {
-    const parts = existingNames.split(/\s*[&e+]\s*/i);
-    if (parts[0]) { const el = document.getElementById('wzBrideName'); if (el) el.value = parts[0].trim(); }
-    if (parts[1]) { const el = document.getElementById('wzGroomName'); if (el) el.value = parts[1].trim(); }
     const disp = document.getElementById('wzDisplayName');
     if (disp) disp.value = existingNames;
   }
 
   _wizardSelectedTheme = config.activeTheme || 'classic-gold';
 
-  // Binds de auto-preenchimento e exemplos
-  document.getElementById('wzBrideName')?.addEventListener('input', () => { _updateExampleButtons(); _autoFillDisplayName(); });
-  document.getElementById('wzGroomName')?.addEventListener('input', () => { _updateExampleButtons(); _autoFillDisplayName(); });
+  // Binds do campo principal
   document.getElementById('wzDisplayName')?.addEventListener('input', function () {
     this.dataset.userEdited = '1';
     _updateWizardPreview();
@@ -2884,12 +2852,9 @@ async function maybeShowWizard(config) {
   // Clique nos exemplos
   document.querySelectorAll('.wizard-name-ex').forEach(btn => {
     btn.addEventListener('click', () => {
-      const bride = document.getElementById('wzBrideName')?.value.trim() || 'Siannah';
-      const groom = document.getElementById('wzGroomName')?.value.trim() || 'Diego';
-      const sep   = btn.dataset.sep || ' & ';
       const displayInput = document.getElementById('wzDisplayName');
       if (displayInput) {
-        displayInput.value = `${bride}${sep}${groom}`;
+        displayInput.value = btn.textContent.trim();
         displayInput.dataset.userEdited = '1';
         _updateWizardPreview();
       }
@@ -2910,9 +2875,7 @@ async function _saveWizard() {
   if (nextBtn) { nextBtn.disabled = true; nextBtn.textContent = 'Salvando…'; }
   if (backBtn) backBtn.disabled = true;
 
-  const brideName    = document.getElementById('wzBrideName')?.value.trim()    || '';
-  const groomName    = document.getElementById('wzGroomName')?.value.trim()    || '';
-  const displayName  = document.getElementById('wzDisplayName')?.value.trim()  || (brideName && groomName ? `${brideName} & ${groomName}` : brideName || groomName);
+  const displayName  = document.getElementById('wzDisplayName')?.value.trim()  || '';
   const dateVal      = document.getElementById('wzDate')?.value                || '';
   const timeVal      = document.getElementById('wzTime')?.value                || '17:00';
   const venueName    = document.getElementById('wzVenueName')?.value.trim()    || '';
@@ -2924,9 +2887,7 @@ async function _saveWizard() {
     activeTheme:  _wizardSelectedTheme,
     activeLayout: 'classic',
     couple: {
-      names:      displayName,
-      bride_name: brideName,
-      groom_name: groomName,
+      names: displayName,
     },
     event: {
       ...(dateVal && {

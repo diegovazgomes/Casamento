@@ -5,6 +5,8 @@
  * Request body:
  *   {
  *     couple_name: string,   // Nome do casal, ex: "Ana & João"
+ *     bride_name: string,    // Nome da noiva(o) em primeiro
+ *     groom_name: string,    // Nome do noivo(a) em segundo
  *     email: string,         // Email de acesso
  *     whatsapp: string,      // WhatsApp do casal (apenas dígitos)
  *     password: string       // Senha mínima 8 caracteres
@@ -35,7 +37,13 @@ function getClientIp(req) {
   return req.socket?.remoteAddress || null;
 }
 
-function validateBody({ couple_name, email, whatsapp, password }) {
+function validateBody({ couple_name, bride_name, groom_name, email, whatsapp, password }) {
+  if (!bride_name || String(bride_name).trim().length < 2) {
+    return 'Nome da noiva(o) deve ter pelo menos 2 caracteres.';
+  }
+  if (!groom_name || String(groom_name).trim().length < 2) {
+    return 'Nome do noivo(a) deve ter pelo menos 2 caracteres.';
+  }
   if (!couple_name || String(couple_name).trim().length < 2) {
     return 'Nome do casal deve ter pelo menos 2 caracteres.';
   }
@@ -182,7 +190,7 @@ function deriveDateLabels(dateOnly) {
   };
 }
 
-function buildInitialEventConfig({ coupleName, slug, whatsapp }) {
+function buildInitialEventConfig({ coupleName, brideName, groomName, slug, whatsapp }) {
   const eventDate = new Date().toISOString().slice(0, 10);
   const dateLabels = deriveDateLabels(eventDate);
 
@@ -191,6 +199,8 @@ function buildInitialEventConfig({ coupleName, slug, whatsapp }) {
     activeLayout: 'classic',
     couple: {
       names: coupleName || 'Novo Casal',
+      bride_name: brideName || '',
+      groom_name: groomName || '',
     },
     event: {
       date: `${eventDate}T17:00:00-03:00`,
@@ -281,7 +291,7 @@ async function seedDefaultEventGifts(supabase, eventId) {
   }
 }
 
-async function ensureInitialEventForUser(supabase, { userId, coupleName, whatsapp }) {
+async function ensureInitialEventForUser(supabase, { userId, coupleName, brideName, groomName, whatsapp }) {
   const { data: existingEvent, error: existingError } = await supabase
     .from('events')
     .select('id,slug')
@@ -297,7 +307,7 @@ async function ensureInitialEventForUser(supabase, { userId, coupleName, whatsap
   }
 
   const slug = buildDefaultEventSlug(coupleName, userId);
-  const config = buildInitialEventConfig({ coupleName, slug, whatsapp });
+  const config = buildInitialEventConfig({ coupleName, brideName, groomName, slug, whatsapp });
   const seedFields = buildInitialEventTableFields();
 
   const { data: createdEvent, error: createError } = await supabase
@@ -306,6 +316,8 @@ async function ensureInitialEventForUser(supabase, { userId, coupleName, whatsap
       slug,
       user_id: userId,
       couple_names: coupleName || 'Novo Casal',
+      bride_name: brideName || '',
+      groom_name: groomName || '',
       active_theme: 'classic-gold',
       active_layout: 'classic',
       ...seedFields,
@@ -331,12 +343,14 @@ export default async function handler(req, res) {
   }
 
   const body = req.body || {};
-  const couple_name = String(body.couple_name || '').trim();
+  const bride_name  = String(body.bride_name || '').trim();
+  const groom_name  = String(body.groom_name || '').trim();
+  const couple_name = String(body.couple_name || '').trim() || `${bride_name} & ${groom_name}`;
   const email       = String(body.email || '').trim().toLowerCase();
   const whatsapp    = String(body.whatsapp || '').replace(/\D/g, '');
   const password    = String(body.password || '');
 
-  const validationError = validateBody({ couple_name, email, whatsapp, password });
+  const validationError = validateBody({ couple_name, bride_name, groom_name, email, whatsapp, password });
   if (validationError) {
     return res.status(400).json({ error: validationError });
   }
@@ -407,6 +421,8 @@ export default async function handler(req, res) {
       await ensureInitialEventForUser(supabase, {
         userId,
         coupleName: couple_name,
+        brideName: bride_name,
+        groomName: groom_name,
         whatsapp,
       });
     } catch (initialEventError) {

@@ -264,18 +264,36 @@ body {
     <form id="signupForm" novalidate>
 
       <div class="field">
-        <label for="coupleNameInput">Nome do casal</label>
+        <label for="brideNameInput">Nome da noiva (ou cônjuge 1)</label>
         <input
           type="text"
-          id="coupleNameInput"
-          name="couple_name"
-          placeholder="Ex: Ana & João"
-          autocomplete="name"
-          maxlength="80"
+          id="brideNameInput"
+          name="bride_name"
+          placeholder="Ex: Siannah"
+          autocomplete="given-name"
+          maxlength="60"
           required
         >
-        <span class="field-error" id="errCoupleName"></span>
+        <span class="field-error" id="errBrideName"></span>
       </div>
+
+      <div class="field">
+        <label for="groomNameInput">Nome do noivo (ou cônjuge 2)</label>
+        <input
+          type="text"
+          id="groomNameInput"
+          name="groom_name"
+          placeholder="Ex: Diego"
+          autocomplete="additional-name"
+          maxlength="60"
+          required
+        >
+        <span class="field-error" id="errGroomName"></span>
+      </div>
+
+      <p class="signup-card-sub" style="margin-top:-.5rem;margin-bottom:1.25rem;">
+        A ordem desses nomes define como aparecerá no convite.
+      </p>
 
       <div class="field">
         <label for="emailInput">E-mail</label>
@@ -371,7 +389,7 @@ body {
   }
 
   function clearErrors() {
-    ['errCoupleName', 'errEmail', 'errWhatsapp', 'errPassword', 'errConsent'].forEach(id => showError(id, ''));
+    ['errBrideName', 'errGroomName', 'errEmail', 'errWhatsapp', 'errPassword', 'errConsent'].forEach(id => showError(id, ''));
     alertError.textContent = '';
     alertError.classList.remove('visible');
     alertSuccess.classList.remove('visible');
@@ -380,8 +398,13 @@ body {
   function validate(data) {
     let ok = true;
 
-    if (!data.couple_name || data.couple_name.length < 2) {
-      showError('errCoupleName', 'Informe o nome do casal (mínimo 2 caracteres).');
+    if (!data.bride_name || data.bride_name.length < 2) {
+      showError('errBrideName', 'Informe o nome da noiva(o) com no mínimo 2 caracteres.');
+      ok = false;
+    }
+
+    if (!data.groom_name || data.groom_name.length < 2) {
+      showError('errGroomName', 'Informe o nome do noivo(a) com no mínimo 2 caracteres.');
       ok = false;
     }
 
@@ -415,12 +438,15 @@ body {
     clearErrors();
 
     const data = {
-      couple_name: document.getElementById('coupleNameInput').value.trim(),
+      bride_name:  document.getElementById('brideNameInput').value.trim(),
+      groom_name:  document.getElementById('groomNameInput').value.trim(),
       email:       document.getElementById('emailInput').value.trim().toLowerCase(),
       whatsapp:    document.getElementById('whatsappInput').value.replace(/\D/g, ''),
       password:    document.getElementById('passwordInput').value,
       consent:     document.getElementById('consentCheckbox').checked,
     };
+
+    data.couple_name = `${data.bride_name} & ${data.groom_name}`;
 
     if (!validate(data)) return;
 
@@ -433,6 +459,8 @@ body {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           couple_name: data.couple_name,
+          bride_name:  data.bride_name,
+          groom_name:  data.groom_name,
           email:       data.email,
           whatsapp:    data.whatsapp,
           password:    data.password,
