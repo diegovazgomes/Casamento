@@ -204,6 +204,18 @@ a { color: inherit; text-decoration: none; }
   .nav-hamburger { display: flex; }
   .nav-drawer { display: flex; }
 }
+@media (max-width: 768px) {
+  .nav-inner { gap: 16px; }
+  .nav-brand { font-size: 28px; }
+  .nav-cta { padding: 12px 20px; font-size: 11px !important; }
+  .nav-login {
+    font-size: 10px;
+    padding: 8px 14px;
+    border: 1px solid var(--line);
+    background: transparent;
+    color: var(--tinta-soft) !important;
+  }
+}
 
 /* ══ HERO ════════════════════════════════════════════════════════════════ */
 .hero {
@@ -378,13 +390,16 @@ a { color: inherit; text-decoration: none; }
   position: relative;
   aspect-ratio: 1;
   width: 100%;
-  max-width: 500px;
+  max-width: 320px;
   margin: 0 auto;
   display: flex;
   align-items: center;
   justify-content: center;
   opacity: 0;
   animation: fadeIn 1.6s var(--ease) 0.5s forwards;
+}
+@media (max-width: 960px) {
+  .ring-wrap { max-width: 240px; }
 }
 
 .ring-halo {
@@ -395,7 +410,7 @@ a { color: inherit; text-decoration: none; }
     rgba(201,165,90,0.20) 0%,
     rgba(176,138,62,0.10) 30%,
     transparent 65%);
-  filter: blur(24px);
+  filter: blur(14px);
   animation: haloPulse 6s ease-in-out infinite;
 }
 @keyframes haloPulse {
@@ -415,7 +430,7 @@ a { color: inherit; text-decoration: none; }
   position: absolute;
   top: 50%; left: 50%;
   width: 1px;
-  height: 50%;
+  height: 42%;
   background: linear-gradient(to top,
     transparent 30%,
     rgba(201,165,90,0.3) 70%,
@@ -433,8 +448,8 @@ a { color: inherit; text-decoration: none; }
 .ring-ray:nth-child(8) { transform: translate(-50%, -100%) rotate(315deg); }
 
 .ring-svg {
-  width: 65%;
-  height: 65%;
+  width: 55%;
+  height: 55%;
   position: relative;
   z-index: 2;
   animation: ringSlowRotate 60s linear infinite;
@@ -446,7 +461,7 @@ a { color: inherit; text-decoration: none; }
 
 .sparkle {
   position: absolute;
-  width: 4px; height: 4px;
+  width: 3px; height: 3px;
   background: var(--marfim);
   border-radius: 50%;
   box-shadow: 0 0 8px rgba(255,255,255,0.9), 0 0 16px var(--ouro-soft);
@@ -972,6 +987,70 @@ a { color: inherit; text-decoration: none; }
 .aplicacao-meta-label { color: var(--tinta-mid); text-transform: uppercase; }
 .aplicacao-meta-value { color: var(--carvao); }
 
+/* ══ COMO FUNCIONA ═══════════════════════════════════════════════════════ */
+.como-funciona { background: var(--linho); }
+.steps-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 64px;
+  margin-top: 80px;
+  position: relative;
+}
+.steps-grid::before {
+  content: '';
+  position: absolute;
+  top: 36px;
+  left: calc(16.66% + 36px);
+  right: calc(16.66% + 36px);
+  height: 1px;
+  border-top: 1px dashed var(--ouro-velho);
+  opacity: 0.45;
+  pointer-events: none;
+}
+@media (max-width: 860px) {
+  .steps-grid { grid-template-columns: 1fr; gap: 56px; }
+  .steps-grid::before { display: none; }
+}
+.step-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  position: relative;
+  z-index: 1;
+}
+.step-num {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  border: 1px solid var(--ouro-velho);
+  background: var(--marfim);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 32px;
+  color: var(--ouro-velho);
+  margin-bottom: 28px;
+  line-height: 1;
+}
+.step-title {
+  font-family: var(--serif);
+  font-size: 22px;
+  font-weight: 500;
+  color: var(--carvao);
+  margin-bottom: 12px;
+  line-height: 1.2;
+}
+.step-desc {
+  font-family: var(--serif);
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--tinta-soft);
+  max-width: 280px;
+}
+
 /* ══ ENCOMENDAS ══════════════════════════════════════════════════════════ */
 .encomendas {
   background: var(--linho);
@@ -1452,11 +1531,12 @@ footer {
   <div class="nav-inner">
     <a href="landing.html" class="nav-brand">Devazi</a>
     <div class="nav-links">
-      <a href="#oficio">Ofício</a>
-      <a href="#aplicacoes">Aplicações</a>
-      <a href="#encomendas">Encomendas</a>
-      <a href="dashboard.html" class="nav-login">Login</a>
-      <a href="signup.html" class="nav-cta">Começar gratuitamente</a>
+      <a href="#como-funciona">Como funciona</a>
+      <a href="#aplicacoes">Modelos</a>
+      <a href="#encomendas">Planos</a>
+      <a href="#faq">FAQ</a>
+      <a href="dashboard.html" class="nav-login">Entrar</a>
+      <a href="#cta-final" class="nav-cta">Criar convite</a>
     </div>
     <button class="nav-hamburger" id="hamburger" aria-label="Menu">
       <span></span><span></span><span></span>
@@ -1466,12 +1546,12 @@ footer {
 
 <!-- Drawer mobile -->
 <div class="nav-drawer" id="navDrawer">
-  <a href="#oficio">Ofício</a>
-  <a href="#aplicacoes">Aplicações</a>
-  <a href="#encomendas">Encomendas</a>
+  <a href="#como-funciona">Como funciona</a>
+  <a href="#aplicacoes">Modelos</a>
+  <a href="#encomendas">Planos</a>
   <a href="#faq">FAQ</a>
-  <a href="dashboard.html">Login</a>
-  <a href="signup.html" class="drawer-cta">Começar gratuitamente</a>
+  <a href="dashboard.html">Entrar</a>
+  <a href="#cta-final" class="drawer-cta">Criar convite</a>
 </div>
 
 <!-- ══ HERO ════════════════════════════════════════════════════════════════ -->
@@ -1594,28 +1674,6 @@ footer {
   </div>
 </div>
 
-<!-- ══ NÚMEROS ════════════════════════════════════════════════════════════ -->
-<section class="numeros" id="numeros">
-  <div class="numeros-inner reveal">
-    <div class="numero-item">
-      <div class="numero-value" data-count="200" data-suffix="+">0</div>
-      <div class="numero-label">Casais que confiaram</div>
-    </div>
-    <div class="numero-item">
-      <div class="numero-value" data-count="98" data-suffix="%">0</div>
-      <div class="numero-label">Nota de satisfação</div>
-    </div>
-    <div class="numero-item">
-      <div class="numero-value" data-count="6" data-suffix="h"><em>menos de</em></div>
-      <div class="numero-label">Para publicar o convite</div>
-    </div>
-    <div class="numero-item">
-      <div class="numero-value" data-count="49" data-suffix="" data-decimal="4.">0</div>
-      <div class="numero-label">Avaliação média ★</div>
-    </div>
-  </div>
-</section>
-
 <!-- ══ MANIFESTO ══════════════════════════════════════════════════════════ -->
 <section class="section manifesto">
   <div class="manifesto-inner reveal">
@@ -1724,11 +1782,123 @@ footer {
   </div>
 </section>
 
+<!-- ══ APLICAÇÕES ══════════════════════════════════════════════════════════ -->
+<section class="section aplicacoes" id="aplicacoes">
+  <div class="section-inner">
+    <div class="reveal">
+      <div class="section-num">03 — As peças</div>
+      <h2 class="section-title">
+        Três peças <em>desenhadas à medida.</em>
+      </h2>
+    </div>
+
+    <div class="aplicacoes-grid reveal reveal-delay-1">
+      <div class="aplicacao">
+        <div class="aplicacao-num">03.01 · Convite</div>
+        <h3 class="aplicacao-title">Convite digital</h3>
+        <p class="aplicacao-desc">A primeira cena. Convite interativo com tipografia escolhida para o casal, animações de entrada e trilha sonora personalizada.</p>
+        <div class="aplicacao-meta">
+          <div class="aplicacao-meta-row">
+            <span class="aplicacao-meta-label">Entrega</span>
+            <span class="aplicacao-meta-value">Link privado por slug</span>
+          </div>
+          <div class="aplicacao-meta-row">
+            <span class="aplicacao-meta-label">Dispositivos</span>
+            <span class="aplicacao-meta-value">Mobile · Desktop</span>
+          </div>
+        </div>
+      </div>
+      <div class="aplicacao">
+        <div class="aplicacao-num">03.02 · Site</div>
+        <h3 class="aplicacao-title">Site cerimonial</h3>
+        <p class="aplicacao-desc">A casa digital do casamento. RSVP, lista de presentes, história do casal e detalhes da cerimônia em um endereço único.</p>
+        <div class="aplicacao-meta">
+          <div class="aplicacao-meta-row">
+            <span class="aplicacao-meta-label">RSVP</span>
+            <span class="aplicacao-meta-value">Tempo real</span>
+          </div>
+          <div class="aplicacao-meta-row">
+            <span class="aplicacao-meta-label">Formato</span>
+            <span class="aplicacao-meta-value">Web responsivo</span>
+          </div>
+        </div>
+      </div>
+      <div class="aplicacao">
+        <div class="aplicacao-num">03.03 · Painel</div>
+        <h3 class="aplicacao-title">Painel cerimonial</h3>
+        <p class="aplicacao-desc">Gestão completa de convidados, confirmações em tempo real, mensagens, músicas e exportação de dados. Tudo no celular.</p>
+        <div class="aplicacao-meta">
+          <div class="aplicacao-meta-row">
+            <span class="aplicacao-meta-label">Acesso</span>
+            <span class="aplicacao-meta-value">Privado e seguro</span>
+          </div>
+          <div class="aplicacao-meta-row">
+            <span class="aplicacao-meta-label">Disponível</span>
+            <span class="aplicacao-meta-value">24h por dia</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ COMO FUNCIONA ═══════════════════════════════════════════════════════ -->
+<section class="section como-funciona" id="como-funciona">
+  <div class="section-inner">
+    <div class="reveal">
+      <div class="section-num">04 — Como funciona</div>
+      <h2 class="section-title">
+        Pronto em menos de <em>dez minutos.</em>
+      </h2>
+    </div>
+
+    <div class="steps-grid reveal reveal-delay-1">
+      <div class="step-item">
+        <div class="step-num">i</div>
+        <h4 class="step-title">Crie sua conta</h4>
+        <p class="step-desc">Cadastro simples com nome, e-mail e WhatsApp. Comece com a cortesia, sem cartão.</p>
+      </div>
+      <div class="step-item">
+        <div class="step-num">ii</div>
+        <h4 class="step-title">Personalize seu convite</h4>
+        <p class="step-desc">Escolha o tema, adicione os dados do casal e ajuste cada detalhe pelo painel.</p>
+      </div>
+      <div class="step-item">
+        <div class="step-num">iii</div>
+        <h4 class="step-title">Compartilhe e acompanhe</h4>
+        <p class="step-desc">Envie o link aos convidados e acompanhe confirmações em tempo real.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ NÚMEROS ════════════════════════════════════════════════════════════ -->
+<section class="numeros" id="numeros">
+  <div class="numeros-inner reveal">
+    <div class="numero-item">
+      <div class="numero-value" data-count="200" data-suffix="+">0</div>
+      <div class="numero-label">Casais que confiaram</div>
+    </div>
+    <div class="numero-item">
+      <div class="numero-value" data-count="98" data-suffix="%">0</div>
+      <div class="numero-label">Nota de satisfação</div>
+    </div>
+    <div class="numero-item">
+      <div class="numero-value" data-count="6" data-suffix="h"><em>menos de</em></div>
+      <div class="numero-label">Para publicar o convite</div>
+    </div>
+    <div class="numero-item">
+      <div class="numero-value" data-count="49" data-suffix="" data-decimal="4.">0</div>
+      <div class="numero-label">Avaliação média ★</div>
+    </div>
+  </div>
+</section>
+
 <!-- ══ DEPOIMENTOS ════════════════════════════════════════════════════════ -->
 <section class="section depoimentos" id="depoimentos">
   <div class="section-inner">
     <div class="reveal">
-      <div class="section-num">03 — Depoimentos</div>
+      <div class="section-num">— Depoimentos</div>
       <h2 class="section-title">
         O que os casais <em>dizem.</em>
       </h2>
@@ -1758,66 +1928,6 @@ footer {
         </p>
         <div class="depoimento-casal">Isabela &amp; Matheus</div>
         <div class="depoimento-data">Casamento em fevereiro de 2026 · Curitiba</div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ══ APLICAÇÕES ══════════════════════════════════════════════════════════ -->
-<section class="section aplicacoes" id="aplicacoes">
-  <div class="section-inner">
-    <div class="reveal">
-      <div class="section-num">04 — As peças</div>
-      <h2 class="section-title">
-        Três peças <em>desenhadas à medida.</em>
-      </h2>
-    </div>
-
-    <div class="aplicacoes-grid reveal reveal-delay-1">
-      <div class="aplicacao">
-        <div class="aplicacao-num">04.01 · Convite</div>
-        <h3 class="aplicacao-title">Convite digital</h3>
-        <p class="aplicacao-desc">A primeira cena. Convite interativo com tipografia escolhida para o casal, animações de entrada e trilha sonora personalizada.</p>
-        <div class="aplicacao-meta">
-          <div class="aplicacao-meta-row">
-            <span class="aplicacao-meta-label">Entrega</span>
-            <span class="aplicacao-meta-value">Link privado por slug</span>
-          </div>
-          <div class="aplicacao-meta-row">
-            <span class="aplicacao-meta-label">Dispositivos</span>
-            <span class="aplicacao-meta-value">Mobile · Desktop</span>
-          </div>
-        </div>
-      </div>
-      <div class="aplicacao">
-        <div class="aplicacao-num">04.02 · Site</div>
-        <h3 class="aplicacao-title">Site cerimonial</h3>
-        <p class="aplicacao-desc">A casa digital do casamento. RSVP, lista de presentes, história do casal e detalhes da cerimônia em um endereço único.</p>
-        <div class="aplicacao-meta">
-          <div class="aplicacao-meta-row">
-            <span class="aplicacao-meta-label">RSVP</span>
-            <span class="aplicacao-meta-value">Tempo real</span>
-          </div>
-          <div class="aplicacao-meta-row">
-            <span class="aplicacao-meta-label">Formato</span>
-            <span class="aplicacao-meta-value">Web responsivo</span>
-          </div>
-        </div>
-      </div>
-      <div class="aplicacao">
-        <div class="aplicacao-num">04.03 · Painel</div>
-        <h3 class="aplicacao-title">Painel cerimonial</h3>
-        <p class="aplicacao-desc">Gestão completa de convidados, confirmações em tempo real, mensagens, músicas e exportação de dados. Tudo no celular.</p>
-        <div class="aplicacao-meta">
-          <div class="aplicacao-meta-row">
-            <span class="aplicacao-meta-label">Acesso</span>
-            <span class="aplicacao-meta-value">Privado e seguro</span>
-          </div>
-          <div class="aplicacao-meta-row">
-            <span class="aplicacao-meta-label">Disponível</span>
-            <span class="aplicacao-meta-value">24h por dia</span>
-          </div>
-        </div>
       </div>
     </div>
   </div>
@@ -1931,50 +2041,60 @@ footer {
 <section class="section faq" id="faq">
   <div class="section-inner">
     <div class="reveal">
-      <div class="section-num">06 — Perguntas</div>
+      <div class="section-num">06 — Dúvidas frequentes</div>
       <h2 class="section-title">
-        As dúvidas mais <em>frequentes.</em>
+        Tudo que você <em>precisa saber.</em>
       </h2>
     </div>
 
     <div class="faq-list reveal reveal-delay-1">
       <details class="faq-item">
         <summary>
-          Quanto tempo leva para publicar meu convite?
+          Quanto tempo leva para criar meu convite?
           <span class="faq-icon">+</span>
         </summary>
         <p class="faq-answer">
-          Com o plano Início, você pode publicar em menos de uma hora — basta preencher os dados do casal, escolher o tema e compartilhar o link. Os planos Classic e Premium têm um processo guiado de personalização que leva em média 3 a 6 horas, podendo ser feito no seu próprio ritmo.
+          O convite fica pronto em menos de 10 minutos após o cadastro. Você escolhe o tema, personaliza os dados e compartilha o link.
         </p>
       </details>
 
       <details class="faq-item">
         <summary>
-          Posso mudar o tema ou o conteúdo depois de publicar?
+          Posso testar antes de pagar?
           <span class="faq-icon">+</span>
         </summary>
         <p class="faq-answer">
-          Sim, sempre. O painel cerimonial permite editar textos, datas, fotos e configurações do convite a qualquer momento, sem precisar republicar. As alterações aparecem instantaneamente para todos os convidados.
+          Sim. O plano Cortesia é gratuito e permite criar um convite completo com até 50 convidados, sem prazo de validade.
         </p>
       </details>
 
       <details class="faq-item">
         <summary>
-          Como funciona o pagamento?
+          Como funciona a confirmação de presença?
           <span class="faq-icon">+</span>
         </summary>
         <p class="faq-answer">
-          É um pagamento único — sem mensalidade, sem surpresas. Você paga uma vez e o convite fica ativo por todo o período do casamento. Aceitamos Pix e cartão de crédito via Mercado Pago. O acesso ao plano escolhido é liberado automaticamente após a confirmação do pagamento.
+          Os convidados confirmam diretamente pelo convite digital. Você acompanha todas as confirmações em tempo real pelo painel.
         </p>
       </details>
 
       <details class="faq-item">
         <summary>
-          O convite funciona bem no celular dos meus convidados?
+          Posso personalizar cores, fontes e fotos?
           <span class="faq-icon">+</span>
         </summary>
         <p class="faq-answer">
-          Sim. Todos os convites Devazi são totalmente responsivos e testados em iOS e Android. A experiência foi desenhada para ser fluida no celular — incluindo animações, música e RSVP. Basta abrir o link no navegador; nenhum app é necessário.
+          Sim. Todos os planos pagos permitem personalização completa — tema, foto do casal, textos, chave Pix e link de pagamento.
+        </p>
+      </details>
+
+      <details class="faq-item">
+        <summary>
+          Preciso saber programar?
+          <span class="faq-icon">+</span>
+        </summary>
+        <p class="faq-answer">
+          Não. Tudo é feito pelo painel visual, sem nenhum conhecimento técnico.
         </p>
       </details>
 
@@ -1984,7 +2104,27 @@ footer {
           <span class="faq-icon">+</span>
         </summary>
         <p class="faq-answer">
-          O domínio personalizado está disponível no plano Atelier. Nos demais planos, seu convite fica em um endereço do tipo <em>devazi.com/seu-casal</em> — elegante, curto e fácil de compartilhar.
+          Sim, no plano Premium. Seu convite pode ter um endereço personalizado como <em>seusnomes.com.br</em>.
+        </p>
+      </details>
+
+      <details class="faq-item">
+        <summary>
+          Qual a forma de pagamento?
+          <span class="faq-icon">+</span>
+        </summary>
+        <p class="faq-answer">
+          Pagamento único via Pix ou cartão de crédito. Sem mensalidade, sem assinatura, sem surpresas.
+        </p>
+      </details>
+
+      <details class="faq-item">
+        <summary>
+          E se eu precisar de ajuda?
+          <span class="faq-icon">+</span>
+        </summary>
+        <p class="faq-answer">
+          Oferecemos suporte por WhatsApp. No plano Premium, o atendimento é prioritário.
         </p>
       </details>
     </div>
