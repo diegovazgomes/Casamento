@@ -38,14 +38,14 @@
 [x] - Reproduzir e documentar o bug de autofill em `signup.html` (email, telefone, senha e demais campos afetados)
 [x] - Corrigir estilo de `autofill` para manter identidade visual (evitar campo branco após preenchimento automático)
 [x] - Corrigir sincronização de valor/validação para aceitar envio sem precisar apagar e digitar novamente
-[ ] - Validar comportamento em navegadores mobile e desktop (Chrome/Edge/Safari quando aplicável)
+[x] - Validar comportamento em navegadores mobile e desktop (Chrome/Edge/Safari quando aplicável)
 [x] - Adicionar teste de regressão (manual guiado e automatizado se viável)
 
 ### 2) Mobile: aumentar tipografia proporcionalmente
 
-[ ] - Mapear escalas tipográficas atuais no mobile (base, títulos, labels, botões e helpers)
-[ ] - Definir nova escala proporcional mantendo legibilidade e sofisticação visual
-[ ] - Aplicar ajustes globais de fonte/tamanho/line-height para mobile sem quebrar layout
+[x] - Mapear escalas tipográficas atuais no mobile (base, títulos, labels, botões e helpers)
+[x] - Definir nova escala proporcional mantendo legibilidade e sofisticação visual
+[x] - Aplicar ajustes globais de fonte/tamanho/line-height para mobile sem quebrar layout
 [ ] - Revisar telas principais no celular (`landing`, `signup`, `dashboard`, `editor`)
 [ ] - Executar checklist visual de regressão (overflow, cortes de texto e hierarquia)
 
