@@ -315,8 +315,8 @@ a { color: inherit; text-decoration: none; }
 
 .hero-title-tail {
   display: inline-flex;
-  align-items: flex-end;
-  gap: 0.08em;
+  align-items: baseline;
+  gap: 0.1em;
   white-space: nowrap;
 }
 
@@ -414,16 +414,16 @@ a { color: inherit; text-decoration: none; }
 
 /* ══ HERO VISUAL — anel de brilhante ═══════════════════════════════════ */
 .ring-wrap {
-  --ring-size: clamp(0.52em, 0.95vw + 0.26em, 0.76em);
+  --ring-size: clamp(0.74em, 1.2vw + 0.5em, 1.06em);
   position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   width: var(--ring-size);
   height: var(--ring-size);
-  margin-left: 0.06em;
+  margin-left: 0.08em;
   vertical-align: baseline;
-  transform: translateY(0.08em);
+  transform: translateY(0.015em);
   pointer-events: none;
   flex-shrink: 0;
   opacity: 0;
@@ -432,13 +432,13 @@ a { color: inherit; text-decoration: none; }
 
 .ring-halo {
   position: absolute;
-  inset: -12%;
+  inset: -10%;
   border-radius: 50%;
   background: radial-gradient(circle at 50% 50%,
-    rgba(201,165,90,0.18) 0%,
-    rgba(176,138,62,0.08) 32%,
+    rgba(201,165,90,0.2) 0%,
+    rgba(176,138,62,0.1) 32%,
     transparent 65%);
-  filter: blur(5px);
+  filter: blur(6px);
   animation: haloPulse 6s ease-in-out infinite;
 }
 @keyframes haloPulse {
@@ -449,8 +449,8 @@ a { color: inherit; text-decoration: none; }
 .ring-rays {
   position: absolute;
   inset: 0;
-  animation: raysSpin 38s linear infinite;
-  opacity: 0.38;
+  animation: raysSpin 34s linear infinite;
+  opacity: 0.46;
 }
 @keyframes raysSpin { to { transform: rotate(360deg); } }
 
@@ -476,14 +476,14 @@ a { color: inherit; text-decoration: none; }
 .ring-ray:nth-child(8) { transform: translate(-50%, -100%) rotate(315deg); }
 
 .ring-svg {
-  width: 62%;
-  height: 62%;
+  width: 66%;
+  height: 66%;
   position: relative;
   z-index: 2;
   animation: ringSlowRotate 60s linear infinite;
   filter:
-    drop-shadow(0 4px 10px rgba(176,138,62,0.28))
-    drop-shadow(0 2px 5px rgba(0,0,0,0.14));
+    drop-shadow(0 5px 12px rgba(176,138,62,0.3))
+    drop-shadow(0 2px 6px rgba(0,0,0,0.16));
 }
 @keyframes ringSlowRotate { to { transform: rotate(-360deg); } }
 
@@ -508,6 +508,14 @@ a { color: inherit; text-decoration: none; }
 .sparkle:nth-child(4) { bottom: 22%; right: 28%; animation: sparkle 4s ease-in-out infinite 3.2s; }
 .sparkle:nth-child(5) { top: 50%; left: 12%; animation: sparkle 4s ease-in-out infinite 0.6s; }
 .sparkle:nth-child(6) { top: 46%; right: 14%; animation: sparkle 4s ease-in-out infinite 2.8s; }
+
+@media (max-width: 768px) {
+  .ring-wrap {
+    --ring-size: clamp(0.68em, 1.8vw + 0.44em, 0.92em);
+    margin-left: 0.07em;
+    transform: translateY(0.01em);
+  }
+}
 @keyframes sparkle {
   0%, 90%, 100% { opacity: 0; transform: scale(0.4); }
   10%, 30%      { opacity: 1; transform: scale(1); }
