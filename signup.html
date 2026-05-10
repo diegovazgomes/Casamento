@@ -121,6 +121,23 @@ body {
   border-color: var(--primary);
 }
 
+/* Mantem tema visual durante autofill (Chrome/Safari/Edge WebKit) */
+.field input:-webkit-autofill,
+.field input:-webkit-autofill:hover,
+.field input:-webkit-autofill:focus,
+.field input:-webkit-autofill:active {
+  -webkit-text-fill-color: var(--text);
+  caret-color: var(--text);
+  border: 1px solid var(--border);
+  -webkit-box-shadow: 0 0 0 1000px var(--surface-2) inset;
+  box-shadow: 0 0 0 1000px var(--surface-2) inset;
+  transition: background-color 9999s ease-out, color 9999s ease-out;
+}
+
+.field input[data-autofilled="true"] {
+  border-color: var(--primary);
+}
+
 .field input.is-invalid {
   border-color: var(--danger);
 }
@@ -242,6 +259,26 @@ body {
 
 .signin-link a:hover {
   border-color: var(--primary-soft);
+}
+
+@keyframes autofill-start {
+  from { }
+  to { }
+}
+
+@keyframes autofill-cancel {
+  from { }
+  to { }
+}
+
+.field input:-webkit-autofill {
+  animation-name: autofill-start;
+  animation-duration: 0.01s;
+}
+
+.field input:not(:-webkit-autofill) {
+  animation-name: autofill-cancel;
+  animation-duration: 0.01s;
 }
 </style>
 </head>
@@ -378,6 +415,46 @@ body {
   const alertError    = document.getElementById('alertError');
   const alertSuccess  = document.getElementById('alertSuccess');
 
+  const errorByInputId = {
+    brideNameInput: 'errBrideName',
+    groomNameInput: 'errGroomName',
+    emailInput: 'errEmail',
+    whatsappInput: 'errWhatsapp',
+    passwordInput: 'errPassword',
+  };
+
+  function normalizeText(value) {
+    return String(value || '').replace(/\s+/g, ' ').trim();
+  }
+
+  function readFormValues() {
+    const fd = new FormData(form);
+
+    const bride_name = normalizeText(fd.get('bride_name'));
+    const groom_name = normalizeText(fd.get('groom_name'));
+    const email = normalizeText(fd.get('email')).toLowerCase();
+    const whatsappRaw = String(fd.get('whatsapp') || '');
+    const password = String(fd.get('password') || '');
+    const consent = fd.get('consent') !== null;
+
+    return {
+      bride_name,
+      groom_name,
+      email,
+      whatsapp: whatsappRaw.replace(/\D/g, ''),
+      password,
+      consent,
+      couple_name: `${bride_name} & ${groom_name}`,
+    };
+  }
+
+  function clearErrorForInput(input) {
+    if (!input || !input.id) return;
+    const errorId = errorByInputId[input.id];
+    if (!errorId) return;
+    showError(errorId, '');
+  }
+
   function showError(id, msg) {
     const el = document.getElementById(id);
     if (!el) return;
@@ -438,16 +515,7 @@ body {
     e.preventDefault();
     clearErrors();
 
-    const data = {
-      bride_name:  document.getElementById('brideNameInput').value.trim(),
-      groom_name:  document.getElementById('groomNameInput').value.trim(),
-      email:       document.getElementById('emailInput').value.trim().toLowerCase(),
-      whatsapp:    document.getElementById('whatsappInput').value.replace(/\D/g, ''),
-      password:    document.getElementById('passwordInput').value,
-      consent:     document.getElementById('consentCheckbox').checked,
-    };
-
-    data.couple_name = `${data.bride_name} & ${data.groom_name}`;
+    const data = readFormValues();
 
     if (!validate(data)) return;
 
@@ -487,6 +555,27 @@ body {
       alertError.classList.add('visible');
       submitBtn.disabled = false;
       submitBtn.textContent = 'Criar minha conta';
+    }
+  });
+
+  form.querySelectorAll('input').forEach((input) => {
+    input.addEventListener('input', () => clearErrorForInput(input));
+    input.addEventListener('change', () => clearErrorForInput(input));
+    input.addEventListener('blur', () => clearErrorForInput(input));
+  });
+
+  form.addEventListener('animationstart', (event) => {
+    const target = event.target;
+    if (!(target instanceof HTMLInputElement)) return;
+
+    if (event.animationName === 'autofill-start') {
+      target.dataset.autofilled = 'true';
+      clearErrorForInput(target);
+      return;
+    }
+
+    if (event.animationName === 'autofill-cancel') {
+      delete target.dataset.autofilled;
     }
   });
 })();

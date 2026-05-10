@@ -31,7 +31,43 @@
 
 [x] - Mover "Editar Evento" para segunda posição na sidebar (após Visão Geral)
 
+## Próximas Melhorias (Execução + Testes)
 
-Na landing page mobile:
-Proporcionalidade no cabeçalho, Login esta muito perto de Devazi, começar gratuitamente esta muito maior. Precisamos que a logo seja maior, login seja levemente menor que começar gratuitamente, tudo tem que ser distribuido proporcionalmente.
-A arte do anel de brilhante deve ser bem menor e aparecer na hero. logo após o texto A primeira página do livro que começa no sim.
+### 1) Cadastro: corrigir autofill (web + mobile)
+
+[x] - Reproduzir e documentar o bug de autofill em `signup.html` (email, telefone, senha e demais campos afetados)
+[x] - Corrigir estilo de `autofill` para manter identidade visual (evitar campo branco após preenchimento automático)
+[x] - Corrigir sincronização de valor/validação para aceitar envio sem precisar apagar e digitar novamente
+[ ] - Validar comportamento em navegadores mobile e desktop (Chrome/Edge/Safari quando aplicável)
+[x] - Adicionar teste de regressão (manual guiado e automatizado se viável)
+
+### 2) Mobile: aumentar tipografia proporcionalmente
+
+[ ] - Mapear escalas tipográficas atuais no mobile (base, títulos, labels, botões e helpers)
+[ ] - Definir nova escala proporcional mantendo legibilidade e sofisticação visual
+[ ] - Aplicar ajustes globais de fonte/tamanho/line-height para mobile sem quebrar layout
+[ ] - Revisar telas principais no celular (`landing`, `signup`, `dashboard`, `editor`)
+[ ] - Executar checklist visual de regressão (overflow, cortes de texto e hierarquia)
+
+### 3) Editar Evento: reforçar estado de alterações não salvas por seção
+
+[ ] - Adicionar bloco de aviso no fim de cada seção da aba Editar Evento (`Aparências`, `Página de presentes`, `Confirmação`, etc.)
+[ ] - Exibir mensagem destacada de "Alterações não salvas" quando houver mudanças pendentes
+[ ] - Incluir botão de salvar no rodapé de cada seção (mesma ação do botão salvar do topo)
+[ ] - Após salvar com sucesso, exibir confirmação verde equivalente ao feedback do topo
+[ ] - Testar fluxo completo no mobile (editar -> aviso pendente -> salvar no rodapé -> confirmação)
+
+### 4) Upload de fotos: UX de envio e pós-envio
+
+[ ] - Melhorar instruções visuais da área de upload (hero e galeria) antes do envio
+[ ] - Adicionar estado de carregamento com feedback claro (ex.: barra/progresso ou status "carregando")
+[ ] - Exibir confirmação explícita após upload concluído com orientação para salvar alterações
+[ ] - Tratar estados de erro (falha de upload, arquivo inválido, limite excedido) com mensagens claras
+[ ] - Validar jornada completa em mobile: selecionar foto -> upload -> confirmação -> salvar
+
+### Sequência sugerida de entrega
+
+[ ] - Entrega A: item 1 (autofill) + testes de regressão
+[ ] - Entrega B: item 2 (tipografia mobile) + revisão visual completa
+[ ] - Entrega C: item 3 (avisos/save por seção) + testes de UX no editor
+[ ] - Entrega D: item 4 (upload de fotos) + testes ponta a ponta no mobile
