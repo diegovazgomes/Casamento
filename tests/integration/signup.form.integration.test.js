@@ -30,7 +30,7 @@ describe('signup form integration', () => {
     const html = loadSignupHtml();
 
     expect(html).toContain('.field input:-webkit-autofill');
-    expect(html).toContain('-webkit-box-shadow: 0 0 0 1000px var(--surface-2) inset;');
+    expect(html).toContain('-webkit-box-shadow: 0 0 0 1000px var(--surface-2) inset !important;');
   });
 
   it('envia payload normalizado com campos preenchidos programaticamente', async () => {

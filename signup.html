@@ -126,12 +126,23 @@ body {
 .field input:-webkit-autofill:hover,
 .field input:-webkit-autofill:focus,
 .field input:-webkit-autofill:active {
-  -webkit-text-fill-color: var(--text);
-  caret-color: var(--text);
-  border: 1px solid var(--border);
-  -webkit-box-shadow: 0 0 0 1000px var(--surface-2) inset;
-  box-shadow: 0 0 0 1000px var(--surface-2) inset;
-  transition: background-color 9999s ease-out, color 9999s ease-out;
+  -webkit-text-fill-color: var(--text) !important;
+  caret-color: var(--text) !important;
+  border: 1px solid var(--border-strong) !important;
+  background-color: var(--surface-2) !important;
+  -webkit-box-shadow: 0 0 0 1000px var(--surface-2) inset !important;
+  box-shadow: 0 0 0 1000px var(--surface-2) inset !important;
+  transition: background-color 9999s ease-out, color 9999s ease-out, border-color .2s;
+}
+
+/* Firefox */
+.field input:-moz-autofill,
+.field input:-moz-autofill:hover,
+.field input:-moz-autofill:focus {
+  color: var(--text) !important;
+  caret-color: var(--text) !important;
+  border: 1px solid var(--border-strong) !important;
+  box-shadow: 0 0 0 1000px var(--surface-2) inset !important;
 }
 
 .field input[data-autofilled="true"] {

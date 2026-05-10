@@ -71,3 +71,6 @@
 [ ] - Entrega B: item 2 (tipografia mobile) + revisão visual completa
 [ ] - Entrega C: item 3 (avisos/save por seção) + testes de UX no editor
 [ ] - Entrega D: item 4 (upload de fotos) + testes ponta a ponta no mobile
+
+
+Quando tentamos criar conta com email existente, ele não informa que esse email já esta cadastrado
