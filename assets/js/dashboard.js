@@ -1665,6 +1665,7 @@ function loadEditorTab() {
 
   editorState.originalConfig = JSON.parse(JSON.stringify(config));
   editorState.isDirty = false;
+  hideSectionFooters();
 
   // Casal & Evento
   setVal('edCoupleNames',       config.couple?.names      ?? '');
@@ -1879,7 +1880,42 @@ function setChk(id, checked) {
   if (el) el.checked = checked;
 }
 
+// ── Section footer helpers ───────────────────────────────────
+const SECTION_FOOTER_IDS = [
+  'edSectionEvento', 'edSectionTema', 'edSectionWhatsApp', 'edSectionPresentes',
+  'edSectionMidia', 'edSectionHistoria', 'edSectionFaq', 'edSectionPages',
+];
+
+function showSectionFootersDirty() {
+  SECTION_FOOTER_IDS.forEach(id => {
+    const footer = document.getElementById('footer-' + id);
+    if (!footer) return;
+    footer.classList.remove('is-saved');
+    footer.classList.add('is-dirty');
+  });
+}
+
+function showSectionFootersSaved() {
+  SECTION_FOOTER_IDS.forEach(id => {
+    const footer = document.getElementById('footer-' + id);
+    if (!footer) return;
+    footer.classList.remove('is-dirty');
+    footer.classList.add('is-saved');
+  });
+  setTimeout(hideSectionFooters, 2500);
+}
+
+function hideSectionFooters() {
+  SECTION_FOOTER_IDS.forEach(id => {
+    const footer = document.getElementById('footer-' + id);
+    if (!footer) return;
+    footer.classList.remove('is-dirty', 'is-saved');
+  });
+}
+// ─────────────────────────────────────────────────────────────
+
 function markEditorDirty() {
+  showSectionFootersDirty();
   if (editorState.isDirty) return;
   editorState.isDirty = true;
   updateEditorSaveStatus();
@@ -2671,6 +2707,7 @@ async function saveEditorConfig() {
     editorState.originalConfig = JSON.parse(JSON.stringify(savedConfig));
     applySiteConfig(savedConfig);
     updateEditorSaveStatus('As informações do seu convite foram salvas ✓');
+    showSectionFootersSaved();
   } catch (error) {
     console.error('[saveEditorConfig]', error);
     updateEditorSaveStatus('Erro ao salvar no servidor');

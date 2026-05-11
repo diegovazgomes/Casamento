@@ -887,6 +887,20 @@ input[type="date"].field-input{width:100%;min-width:0;box-sizing:border-box;-web
 .editor-save-status.is-saved .editor-save-dot{background:var(--success)}
 .editor-save-status.is-saved{color:var(--success)}
 .editor-save-actions{display:flex;gap:10px;align-items:center}
+/* ── Rodapé de alterações não salvas por seção ── */
+.editor-section-footer{display:none;align-items:center;justify-content:space-between;gap:12px;padding:14px 20px;border-top:1px solid var(--border-faint);margin-top:8px}
+.editor-section-footer.is-dirty{display:flex;animation:footerFadeIn 0.2s ease}
+.footer-warning-msg,.footer-saved-msg{display:flex;align-items:center;gap:6px;font-size:11px;letter-spacing:0.06em;font-weight:500;line-height:1.4}
+.footer-warning-msg{color:var(--warning)}
+.footer-saved-msg{color:var(--success);display:none}
+.editor-section-footer.is-saved .footer-warning-msg{display:none}
+.editor-section-footer.is-saved .footer-saved-msg{display:flex}
+.footer-save-btn{flex-shrink:0;font-size:9px;letter-spacing:0.18em;padding:8px 18px}
+@keyframes footerFadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:768px){
+  .editor-section-footer{flex-direction:column;align-items:stretch;gap:10px}
+  .editor-section-footer .footer-save-btn{width:100%;box-sizing:border-box;justify-content:center}
+}
 @media(max-width:768px){
   .editor-savebar{padding:10px 16px;gap:8px;flex-wrap:wrap}
   .editor-save-status{width:100%;text-align:center;justify-content:center}
@@ -2085,6 +2099,18 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
               </label>
             </div>
 
+            <div class="editor-section-footer" id="footer-edSectionEvento">
+              <span class="footer-warning-msg">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                Alterações não salvas
+              </span>
+              <span class="footer-saved-msg">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                Configurações salvas ✓
+              </span>
+              <button type="button" class="btn btn-primary footer-save-btn" onclick="saveEditorConfig()">Salvar alterações</button>
+            </div>
+
           </div>
         </div>
 
@@ -2112,6 +2138,18 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
               </div>
             </div>
             <div class="field-hint" style="margin-top:-6px">Após salvar e aplicar o arquivo, recarregue o convite para ver a mudança de tema.</div>
+
+            <div class="editor-section-footer" id="footer-edSectionTema">
+              <span class="footer-warning-msg">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                Alterações não salvas
+              </span>
+              <span class="footer-saved-msg">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                Configurações salvas ✓
+              </span>
+              <button type="button" class="btn btn-primary footer-save-btn" onclick="saveEditorConfig()">Salvar alterações</button>
+            </div>
           </div>
         </div>
 
@@ -2138,6 +2176,17 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
               </div>
             </div>
 
+            <div class="editor-section-footer" id="footer-edSectionWhatsApp">
+              <span class="footer-warning-msg">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                Alterações não salvas
+              </span>
+              <span class="footer-saved-msg">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                Configurações salvas ✓
+              </span>
+              <button type="button" class="btn btn-primary footer-save-btn" onclick="saveEditorConfig()">Salvar alterações</button>
+            </div>
 
           </div>
         </div>
@@ -2320,6 +2369,18 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
               </div>
             </div>
 
+            <div class="editor-section-footer" id="footer-edSectionPresentes">
+              <span class="footer-warning-msg">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                Alterações não salvas
+              </span>
+              <span class="footer-saved-msg">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                Configurações salvas ✓
+              </span>
+              <button type="button" class="btn btn-primary footer-save-btn" onclick="saveEditorConfig()">Salvar alterações</button>
+            </div>
+
           </div>
         </div>
 
@@ -2419,6 +2480,18 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
                        min="0" step="1" placeholder="78" oninput="markEditorDirty()">
               </div>
             </div>
+
+            <div class="editor-section-footer" id="footer-edSectionMidia">
+              <span class="footer-warning-msg">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                Alterações não salvas
+              </span>
+              <span class="footer-saved-msg">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                Configurações salvas ✓
+              </span>
+              <button type="button" class="btn btn-primary footer-save-btn" onclick="saveEditorConfig()">Salvar alterações</button>
+            </div>
           </div>
         </div>
 
@@ -2509,6 +2582,18 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
               </div>
             </div>
 
+            <div class="editor-section-footer" id="footer-edSectionHistoria">
+              <span class="footer-warning-msg">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                Alterações não salvas
+              </span>
+              <span class="footer-saved-msg">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                Configurações salvas ✓
+              </span>
+              <button type="button" class="btn btn-primary footer-save-btn" onclick="saveEditorConfig()">Salvar alterações</button>
+            </div>
+
           </div>
         </div>
 
@@ -2532,6 +2617,18 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
               </button>
             </div>
             <div id="faqItemsList"></div>
+
+            <div class="editor-section-footer" id="footer-edSectionFaq">
+              <span class="footer-warning-msg">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                Alterações não salvas
+              </span>
+              <span class="footer-saved-msg">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                Configurações salvas ✓
+              </span>
+              <button type="button" class="btn btn-primary footer-save-btn" onclick="saveEditorConfig()">Salvar alterações</button>
+            </div>
           </div>
         </div>
 
@@ -2549,6 +2646,18 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
               Páginas desabilitadas não aparecem nos cards de navegação do convite.
             </p>
             <div class="pages-grid" id="edPagesGrid"></div>
+
+            <div class="editor-section-footer" id="footer-edSectionPages">
+              <span class="footer-warning-msg">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                Alterações não salvas
+              </span>
+              <span class="footer-saved-msg">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                Configurações salvas ✓
+              </span>
+              <button type="button" class="btn btn-primary footer-save-btn" onclick="saveEditorConfig()">Salvar alterações</button>
+            </div>
           </div>
         </div>
 
