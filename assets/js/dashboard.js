@@ -1722,7 +1722,7 @@ function loadEditorTab() {
   renderPixQrPreview(gift.pixQrImage || '');
   bindMediaFileSelectionMeta();
   setPixQrUploadStatus('Selecione uma imagem para QR Pix (JPG, PNG ou WEBP até 10 MB).', false, {
-    help: 'Após o envio, clique em Salvar alterações para publicar no convite.',
+    help: 'O sistema salva automaticamente após o envio.',
   });
 
   const cardOn = !!gift.cardPaymentEnabled;
@@ -1767,8 +1767,11 @@ function loadEditorTab() {
   setVal('edTrackGiftStart',  config.media?.tracks?.gift?.startTime ?? '');
   renderMediaHeroPreview(config.media?.heroImage || '');
   renderMediaGalleryGrid(config.pages?.historia?.content?.gallery || []);
-  setMediaUploadStatus('Selecione foto principal ou imagens da galeria (JPG, PNG ou WEBP até 10 MB).', false, {
-    help: 'Após o envio, clique em Salvar alterações para publicar no convite.',
+  setHeroUploadStatus('Selecione uma foto (JPG, PNG ou WEBP até 10 MB).', false, {
+    help: 'O sistema salva automaticamente após o envio.',
+  });
+  setMediaUploadStatus('Selecione imagens da galeria (JPG, PNG ou WEBP até 10 MB).', false, {
+    help: 'O sistema salva automaticamente após o envio.',
   });
 
   // Páginas extras
@@ -2354,7 +2357,7 @@ async function uploadPixQrMedia() {
       help: 'Aguarde a confirmação de salvamento.',
     });
 
-    const saveOk = await saveEditorConfig();
+    const saveOk = await saveEditorConfig(true);
     if (saveOk) {
       setPixQrUploadStatus('QR Pix enviado e salvo com sucesso.', false, {
         variant: 'success',
@@ -2444,7 +2447,7 @@ async function uploadHeroMedia() {
       help: 'Aguarde a confirmação de salvamento.',
     });
 
-    const saveOk = await saveEditorConfig();
+    const saveOk = await saveEditorConfig(true);
     if (saveOk) {
       setHeroUploadStatus('Foto principal enviada e salva com sucesso.', false, {
         variant: 'success',
@@ -2574,7 +2577,7 @@ async function uploadGalleryMedia() {
         help: 'Aguarde a confirmação de salvamento.',
       });
 
-      const saveOk = await saveEditorConfig();
+      const saveOk = await saveEditorConfig(true);
       if (saveOk && totalFailed === 0) {
         setMediaUploadStatus(`Galeria enviada e salva com sucesso (${uploadedItems.length} imagem(ns)).`, false, {
           variant: 'success',
@@ -3052,11 +3055,11 @@ function collectEditorValues() {
   return config;
 }
 
-async function saveEditorConfig() {
+async function saveEditorConfig(silent = false) {
   const config = collectEditorValues();
 
   if (!state.eventId) {
-    updateEditorSaveStatus('Evento não carregado — recarregue o dashboard');
+    if (!silent) updateEditorSaveStatus('Evento não carregado — recarregue o dashboard');
     return false;
   }
 
@@ -3069,7 +3072,7 @@ async function saveEditorConfig() {
     const data = await response.json().catch(() => ({}));
 
     if (!response.ok) {
-      updateEditorSaveStatus(data.error || 'Erro ao salvar no servidor');
+      if (!silent) updateEditorSaveStatus(data.error || 'Erro ao salvar no servidor');
       return false;
     }
 
@@ -3078,13 +3081,15 @@ async function saveEditorConfig() {
     editorState.isDirty = false;
     editorState.originalConfig = JSON.parse(JSON.stringify(savedConfig));
     applySiteConfig(savedConfig);
-    updateEditorSaveStatus('As informações do seu convite foram salvas ✓');
-    showSectionFootersSaved();
+    if (!silent) {
+      updateEditorSaveStatus('As informações do seu convite foram salvas ✓');
+      showSectionFootersSaved();
+    }
 
     return true;
   } catch (error) {
     console.error('[saveEditorConfig]', error);
-    updateEditorSaveStatus('Erro ao salvar no servidor');
+    if (!silent) updateEditorSaveStatus('Erro ao salvar no servidor');
     return false;
   }
 }

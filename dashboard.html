@@ -174,6 +174,7 @@ input[type="date"].field-input{width:100%;min-width:0;box-sizing:border-box;-web
 .btn-label-mobile{display:none}
 .btn-danger::before{background:var(--danger)}
 .btn-danger:hover{color:var(--bg);border-color:var(--danger)}
+.btn:disabled{pointer-events:none}
  
 .alert{
   padding:12px 16px;
@@ -2259,16 +2260,19 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
                   Nenhum QR Pix definido.
                 </div>
 
-                <div class="field" style="margin-top:14px">
-                  <label class="field-label" for="edGiftPixQrFile">Upload do QR Pix</label>
-                  <input type="file" class="field-input sm" id="edGiftPixQrFile" accept="image/png,image/jpeg,image/webp">
-                  <div class="field-hint">Formatos aceitos: JPG, PNG e WEBP até 10 MB. O upload substitui o QR atual.</div>
-                  <div class="upload-file-meta" id="edGiftPixQrFileMeta"></div>
+                <div class="media-upload-row" style="margin-top:14px">
+                  <div class="field">
+                    <label class="field-label" for="edGiftPixQrFile">Upload do QR Pix</label>
+                    <input type="file" class="field-input sm" id="edGiftPixQrFile" accept="image/png,image/jpeg,image/webp">
+                    <div class="field-hint">Formatos aceitos: JPG, PNG e WEBP até 10 MB. O upload substitui o QR atual.</div>
+                    <div class="upload-file-meta" id="edGiftPixQrFileMeta"></div>
+                  </div>
+                  <div class="media-upload-action">
+                    <button type="button" class="btn btn-subtle" id="btnEdGiftPixQrUpload" onclick="uploadPixQrMedia()">
+                      <span>Enviar QR Pix</span>
+                    </button>
+                  </div>
                 </div>
-
-                <button type="button" class="btn btn-subtle" id="btnEdGiftPixQrUpload" onclick="uploadPixQrMedia()" style="margin-bottom:10px;margin-top:10px">
-                  <span>Enviar QR Pix</span>
-                </button>
 
                 <div class="upload-status" id="edGiftPixQrUploadStatus" aria-live="polite">
                   <div class="upload-status-main">
@@ -2469,16 +2473,19 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
               Nenhuma foto na galeria ainda.
             </div>
 
-            <div class="field">
-              <label class="field-label" for="edMediaGalleryFiles">Upload para galeria</label>
-              <input type="file" class="field-input sm" id="edMediaGalleryFiles" accept="image/png,image/jpeg,image/webp" multiple>
-              <div class="field-hint">As imagens enviadas serão adicionadas em História → Galeria. Limite de 10 MB por arquivo.</div>
-              <div class="upload-file-meta" id="edMediaGalleryFileMeta"></div>
+            <div class="media-upload-row">
+              <div class="field">
+                <label class="field-label" for="edMediaGalleryFiles">Upload para galeria</label>
+                <input type="file" class="field-input sm" id="edMediaGalleryFiles" accept="image/png,image/jpeg,image/webp" multiple>
+                <div class="field-hint">As imagens enviadas serão adicionadas em História → Galeria. Limite de 10 MB por arquivo.</div>
+                <div class="upload-file-meta" id="edMediaGalleryFileMeta"></div>
+              </div>
+              <div class="media-upload-action">
+                <button type="button" class="btn btn-subtle" id="btnEdMediaGalleryUpload" onclick="uploadGalleryMedia()">
+                  <span>Enviar imagens da galeria</span>
+                </button>
+              </div>
             </div>
-
-            <button type="button" class="btn btn-subtle" id="btnEdMediaGalleryUpload" onclick="uploadGalleryMedia()" style="margin-bottom:10px">
-              <span>Enviar imagens da galeria</span>
-            </button>
 
             <div class="upload-status" id="edMediaUploadStatus" aria-live="polite">
               <div class="upload-status-main">
