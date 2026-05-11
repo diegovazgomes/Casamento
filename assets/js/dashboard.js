@@ -1663,6 +1663,7 @@ const editorState = {
 };
 
 const MEDIA_MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024;
+const MEDIA_BUCKET_ID = 'event-media';
 const SUPPORTED_IMAGE_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
 const DEFAULT_FAQ_ITEMS = [
@@ -2146,8 +2147,11 @@ function normalizeUploadErrorMessage(error) {
   if (/unsupported file type/i.test(raw)) {
     return 'Formato inválido. Envie JPG, PNG ou WEBP.';
   }
-  if (/10\s*mb|413|too large|maxfilesize|file size/i.test(raw)) {
+  if (/limite de 10\s*mb|excede.*10\s*mb|maxfilesize|file size/i.test(raw)) {
     return 'Arquivo muito grande. O limite é 10 MB por arquivo.';
+  }
+  if (/413|payload too large|request entity too large/i.test(raw) || Number(error?.status) === 413) {
+    return 'O servidor recusou o upload por limite de payload da infraestrutura. Tente novamente; se persistir, verifique as políticas de upload direto no bucket.';
   }
   if (/expired|sess[aã]o|unauthorized|401|forbidden|403/i.test(raw)) {
     return 'Sua sessão expirou. Faça login novamente e tente o envio.';
@@ -2205,6 +2209,84 @@ function bindMediaFileSelectionMeta() {
 }
 
 async function uploadMediaFile(type, file, options = {}) {
+  try {
+    return await uploadMediaFileDirect(type, file, options);
+  } catch (directUploadError) {
+    // Fallback de compatibilidade para projetos sem policy de upload direto no bucket.
+    return uploadMediaFileViaApi(type, file, options, directUploadError);
+  }
+}
+
+function sanitizeUploadFileBaseName(fileName) {
+  const source = String(fileName || 'upload')
+    .replace(/\.[^.]+$/, '')
+    .toLowerCase()
+    .replace(/\s+/g, '-')
+    .replace(/[^a-z0-9-_]/g, '');
+
+  return source || 'upload';
+}
+
+function resolveUploadFileExtension(file) {
+  const typeToExtension = {
+    'image/jpeg': 'jpg',
+    'image/png': 'png',
+    'image/webp': 'webp',
+  };
+
+  const mimeType = String(file?.type || '').toLowerCase();
+  if (typeToExtension[mimeType]) {
+    return typeToExtension[mimeType];
+  }
+
+  const originalName = String(file?.name || '');
+  if (originalName.includes('.')) {
+    return originalName.split('.').pop().toLowerCase();
+  }
+
+  return 'bin';
+}
+
+function buildMediaStoragePath(type, file) {
+  const storageRoot = String(state.eventId || '').trim();
+  if (!storageRoot) {
+    throw new Error('Evento não carregado no dashboard. Recarregue a página.');
+  }
+
+  const extension = resolveUploadFileExtension(file);
+
+  if (type === 'hero') {
+    return `${storageRoot}/hero/hero.${extension}`;
+  }
+
+  if (type === 'pix-qr') {
+    return `${storageRoot}/pix/pix-qr.${extension}`;
+  }
+
+  const safeBaseName = sanitizeUploadFileBaseName(file?.name || 'upload');
+  return `${storageRoot}/gallery/${Date.now()}-${safeBaseName}.${extension}`;
+}
+
+async function removeOtherMediaFilesInFolder(storage, folderPrefix, keepName) {
+  try {
+    const { data, error } = await storage.list(folderPrefix, { limit: 100 });
+    if (error || !Array.isArray(data) || data.length === 0) {
+      return;
+    }
+
+    const pathsToRemove = data
+      .filter((entry) => Boolean(entry?.name) && entry.name !== keepName)
+      .map((entry) => `${folderPrefix}/${entry.name}`);
+
+    if (pathsToRemove.length > 0) {
+      await storage.remove(pathsToRemove);
+    }
+  } catch {
+    // Limpeza não é bloqueante.
+  }
+}
+
+async function uploadMediaFileDirect(type, file, options = {}) {
   const { onProgress } = options;
 
   if (!state.eventId) {
@@ -2222,6 +2304,51 @@ async function uploadMediaFile(type, file, options = {}) {
   if (!state.authToken) {
     throw new Error('Sessão expirada. Faça login novamente no dashboard.');
   }
+
+  if (typeof onProgress === 'function') {
+    onProgress(5);
+  }
+
+  const storagePath = buildMediaStoragePath(type, file);
+  const storage = supabase.storage.from(MEDIA_BUCKET_ID);
+
+  const { error: uploadError } = await storage.upload(storagePath, file, {
+    contentType: file.type || 'application/octet-stream',
+    upsert: type === 'hero' || type === 'pix-qr',
+  });
+
+  if (uploadError) {
+    throw uploadError;
+  }
+
+  if (typeof onProgress === 'function') {
+    onProgress(95);
+  }
+
+  if (type === 'hero' || type === 'pix-qr') {
+    const folderPrefix = type === 'hero'
+      ? `${state.eventId}/hero`
+      : `${state.eventId}/pix`;
+    const newFileName = storagePath.replace(`${folderPrefix}/`, '');
+    await removeOtherMediaFilesInFolder(storage, folderPrefix, newFileName);
+  }
+
+  const { data } = storage.getPublicUrl(storagePath);
+
+  if (typeof onProgress === 'function') {
+    onProgress(100);
+  }
+
+  return {
+    eventId: state.eventId,
+    path: storagePath,
+    type,
+    url: data?.publicUrl || '',
+  };
+}
+
+function uploadMediaFileViaApi(type, file, options = {}, directUploadError = null) {
+  const { onProgress } = options;
 
   const formData = new FormData();
   formData.append('eventId', state.eventId);
@@ -2256,7 +2383,12 @@ async function uploadMediaFile(type, file, options = {}) {
         return;
       }
 
-      reject(new Error(payload.error || `Falha ao enviar mídia (${request.status})`));
+      const fallbackError = new Error(payload.error || `Falha ao enviar mídia (${request.status})`);
+      fallbackError.status = request.status;
+      if (directUploadError) {
+        fallbackError.cause = directUploadError;
+      }
+      reject(fallbackError);
     });
 
     request.send(formData);
