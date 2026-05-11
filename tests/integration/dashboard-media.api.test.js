@@ -391,4 +391,22 @@ describe('POST /api/dashboard/media', () => {
     expect(res.statusCode).toBe(400);
     expect(res.body).toEqual({ error: 'Unsupported file type' });
   });
+
+  it('returns 413 when file exceeds max size', async () => {
+    formidableMock.mockReturnValue({
+      parse: (req, callback) => callback({
+        code: 1009,
+        httpCode: 413,
+        message: 'options.maxTotalFileSize (10485760 bytes) exceeded',
+      }),
+    });
+
+    const { default: handler } = await import('../../api/dashboard/media.js');
+    const res = createMockResponse();
+
+    await handler({ method: 'POST', headers: { authorization: 'Bearer valid-token' } }, res);
+
+    expect(res.statusCode).toBe(413);
+    expect(res.body).toEqual({ error: 'Arquivo excede o limite de 10 MB.' });
+  });
 });

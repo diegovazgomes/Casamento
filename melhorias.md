@@ -55,14 +55,14 @@
 [x] - Exibir mensagem destacada de "Alterações não salvas" quando houver mudanças pendentes
 [x] - Incluir botão de salvar no rodapé de cada seção (mesma ação do botão salvar do topo)
 [x] - Após salvar com sucesso, exibir confirmação verde equivalente ao feedback do topo
-[ ] - Testar fluxo completo no mobile (editar -> aviso pendente -> salvar no rodapé -> confirmação)
+[x] - Testar fluxo completo no mobile (editar -> aviso pendente -> salvar no rodapé -> confirmação)
 
 ### 4) Upload de fotos: UX de envio e pós-envio
 
-[ ] - Melhorar instruções visuais da área de upload (hero e galeria) antes do envio
-[ ] - Adicionar estado de carregamento com feedback claro (ex.: barra/progresso ou status "carregando")
-[ ] - Exibir confirmação explícita após upload concluído com orientação para salvar alterações
-[ ] - Tratar estados de erro (falha de upload, arquivo inválido, limite excedido) com mensagens claras
+[x] - Melhorar instruções visuais da área de upload (hero e galeria) antes do envio
+[x] - Adicionar estado de carregamento com feedback claro (ex.: barra/progresso ou status "carregando")
+[x] - Exibir confirmação explícita após upload concluído com orientação para salvar alterações
+[x] - Tratar estados de erro (falha de upload, arquivo inválido, limite excedido) com mensagens claras
 [ ] - Validar jornada completa em mobile: selecionar foto -> upload -> confirmação -> salvar
 
 ### Sequência sugerida de entrega

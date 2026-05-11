@@ -922,6 +922,26 @@ input[type="date"].field-input{width:100%;min-width:0;box-sizing:border-box;-web
 .media-gallery-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;margin-bottom:20px}
 .media-gallery-card{position:relative;aspect-ratio:1;overflow:hidden;border:1px solid var(--border)}
 .media-gallery-card img{width:100%;height:100%;object-fit:cover;display:block}
+.upload-guidance{padding:12px 14px;border:1px solid var(--border);background:rgba(201,168,76,0.06);margin-bottom:12px}
+.upload-guidance-title{font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--primary-soft);margin-bottom:6px}
+.upload-guidance-text{font-size:11px;line-height:1.65;color:var(--text-dim)}
+.upload-file-meta{min-height:16px;margin-top:6px;font-size:10px;color:var(--text-dim);letter-spacing:0.02em;line-height:1.5}
+.upload-status{margin-top:8px;min-height:26px;padding:8px 10px;border:1px solid var(--border);background:rgba(255,255,255,0.01)}
+.upload-status[hidden]{display:none}
+.upload-status-main{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.upload-status-text{font-size:11px;line-height:1.5;color:var(--text-dim)}
+.upload-status-percent{font-size:10px;letter-spacing:0.08em;color:var(--text-faint);flex-shrink:0}
+.upload-status-help{margin-top:4px;font-size:10px;line-height:1.5;color:var(--text-faint)}
+.upload-progress{height:4px;background:rgba(255,255,255,0.06);margin-top:8px;overflow:hidden}
+.upload-progress-bar{height:100%;width:0%;background:var(--primary);transition:width 0.15s linear}
+.upload-status.is-loading{border-color:rgba(201,168,76,0.5);background:rgba(201,168,76,0.08)}
+.upload-status.is-loading .upload-status-text,.upload-status.is-loading .upload-status-percent{color:var(--primary-soft)}
+.upload-status.is-success{border-color:rgba(88,186,129,0.5);background:rgba(88,186,129,0.08)}
+.upload-status.is-success .upload-status-text,.upload-status.is-success .upload-status-percent{color:var(--success)}
+.upload-status.is-warning{border-color:rgba(201,168,76,0.6);background:rgba(201,168,76,0.1)}
+.upload-status.is-warning .upload-status-text,.upload-status.is-warning .upload-status-percent{color:var(--warning)}
+.upload-status.is-error{border-color:rgba(216,95,95,0.55);background:rgba(216,95,95,0.1)}
+.upload-status.is-error .upload-status-text,.upload-status.is-error .upload-status-percent{color:var(--danger)}
 
 .editor-section{
   border:1px solid var(--border);
@@ -960,6 +980,7 @@ input[type="date"].field-input{width:100%;min-width:0;box-sizing:border-box;-web
 .form-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:14px}
 .form-group{margin-bottom:14px}
 @media(max-width:760px){.form-grid-2,.form-grid-3,.media-upload-row{grid-template-columns:1fr}.media-upload-action{justify-content:stretch}.media-upload-action .btn{width:100%;min-width:0;min-height:44px}}
+@media(max-width:760px){.upload-status-main{flex-direction:column;gap:4px}.upload-status-percent{align-self:flex-end}}
 .field-input.sm{padding:10px 12px;font-size:12px}
 /* Mobile: todos os inputs sobem para 16px — previne auto-zoom do iOS Safari.
    Posicionado após .field-input.sm para ganhar na cascade (mesma especificidade, ordem vence). */
@@ -2242,7 +2263,8 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
                   <div class="field">
                     <label class="field-label" for="edGiftPixQrFile">Upload do QR Pix</label>
                     <input type="file" class="field-input sm" id="edGiftPixQrFile" accept="image/png,image/jpeg,image/webp">
-                    <div class="field-hint">Formatos aceitos: JPG, PNG e WEBP. O upload substitui o QR atual.</div>
+                    <div class="field-hint">Formatos aceitos: JPG, PNG e WEBP até 10 MB. O upload substitui o QR atual.</div>
+                    <div class="upload-file-meta" id="edGiftPixQrFileMeta"></div>
                   </div>
                   <div class="media-upload-action">
                     <button type="button" class="btn btn-subtle" id="btnEdGiftPixQrUpload" onclick="uploadPixQrMedia()">
@@ -2251,7 +2273,14 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
                   </div>
                 </div>
 
-                <p class="field-hint" id="edGiftPixQrUploadStatus" style="margin-top:8px;min-height:18px"></p>
+                <div class="upload-status" id="edGiftPixQrUploadStatus" aria-live="polite">
+                  <div class="upload-status-main">
+                    <span class="upload-status-text"></span>
+                    <span class="upload-status-percent"></span>
+                  </div>
+                  <div class="upload-progress" hidden><div class="upload-progress-bar"></div></div>
+                  <div class="upload-status-help"></div>
+                </div>
               </div>
             </div>
 
@@ -2396,6 +2425,10 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
             <svg class="editor-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
           </button>
           <div class="editor-section-body">
+            <div class="upload-guidance">
+              <div class="upload-guidance-title">Antes de enviar</div>
+              <div class="upload-guidance-text">Use imagens JPG, PNG ou WEBP de até 10 MB por arquivo. Depois do envio, clique em <strong>Salvar alterações</strong> para publicar no convite.</div>
+            </div>
             <div class="media-preview-wrap" id="edMediaHeroPreviewWrap" style="display:none">
               <div class="field-label" style="margin-bottom:8px">Foto atual do hero</div>
               <img id="edMediaHeroPreview" class="media-preview-box" src="" alt="Foto principal do casal">
@@ -2412,7 +2445,8 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
               <div class="field">
                 <label class="field-label" for="edMediaHeroFile">Upload da foto principal</label>
                 <input type="file" class="field-input sm" id="edMediaHeroFile" accept="image/png,image/jpeg,image/webp">
-                <div class="field-hint">Formatos aceitos: JPG, PNG e WEBP.</div>
+                <div class="field-hint">Formatos aceitos: JPG, PNG e WEBP até 10 MB.</div>
+                <div class="upload-file-meta" id="edMediaHeroFileMeta"></div>
               </div>
               <div class="media-upload-action">
                 <button type="button" class="btn btn-subtle" id="btnEdMediaHeroUpload" onclick="uploadHeroMedia()">
@@ -2433,7 +2467,8 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
               <div class="field">
                 <label class="field-label" for="edMediaGalleryFiles">Upload para galeria</label>
                 <input type="file" class="field-input sm" id="edMediaGalleryFiles" accept="image/png,image/jpeg,image/webp" multiple>
-                <div class="field-hint">As imagens enviadas serão adicionadas em História → Galeria.</div>
+                <div class="field-hint">As imagens enviadas serão adicionadas em História → Galeria. Limite de 10 MB por arquivo.</div>
+                <div class="upload-file-meta" id="edMediaGalleryFileMeta"></div>
               </div>
               <div class="media-upload-action">
                 <button type="button" class="btn btn-subtle" id="btnEdMediaGalleryUpload" onclick="uploadGalleryMedia()">
@@ -2442,7 +2477,14 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
               </div>
             </div>
 
-            <p class="field-hint" id="edMediaUploadStatus" style="margin-top:8px;min-height:18px"></p>
+            <div class="upload-status" id="edMediaUploadStatus" aria-live="polite">
+              <div class="upload-status-main">
+                <span class="upload-status-text"></span>
+                <span class="upload-status-percent"></span>
+              </div>
+              <div class="upload-progress" hidden><div class="upload-progress-bar"></div></div>
+              <div class="upload-status-help"></div>
+            </div>
 
             <div class="editor-rule"></div>
             <span class="editor-sub-label">Trilha sonora principal</span>

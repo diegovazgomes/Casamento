@@ -1616,6 +1616,9 @@ const editorState = {
   originalConfig: null,
 };
 
+const MEDIA_MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024;
+const SUPPORTED_IMAGE_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+
 const DEFAULT_FAQ_ITEMS = [
   {
     question: 'Tem estacionamento no local?',
@@ -1716,7 +1719,10 @@ function loadEditorTab() {
   setVal('edGiftPixKey', gift.pixKey    ?? '');
   setVal('edGiftPixQr',  gift.pixQrImage ?? '');
   renderPixQrPreview(gift.pixQrImage || '');
-  setPixQrUploadStatus('');
+  bindMediaFileSelectionMeta();
+  setPixQrUploadStatus('Selecione uma imagem para QR Pix (JPG, PNG ou WEBP até 10 MB).', false, {
+    help: 'Após o envio, clique em Salvar alterações para publicar no convite.',
+  });
 
   const cardOn = !!gift.cardPaymentEnabled;
   setChk('edGiftCardEnabled', cardOn);
@@ -1760,7 +1766,9 @@ function loadEditorTab() {
   setVal('edTrackGiftStart',  config.media?.tracks?.gift?.startTime ?? '');
   renderMediaHeroPreview(config.media?.heroImage || '');
   renderMediaGalleryGrid(config.pages?.historia?.content?.gallery || []);
-  setMediaUploadStatus('');
+  setMediaUploadStatus('Selecione foto principal ou imagens da galeria (JPG, PNG ou WEBP até 10 MB).', false, {
+    help: 'Após o envio, clique em Salvar alterações para publicar no convite.',
+  });
 
   // Páginas extras
   renderPagesGrid(config.pages || {});
@@ -1946,28 +1954,164 @@ function setEditorStatusText(msg) {
   if (el) el.textContent = msg;
 }
 
-function setMediaUploadStatus(message, isError = false) {
-  const statusEl = document.getElementById('edMediaUploadStatus');
-  if (!statusEl) return;
-
-  statusEl.textContent = message || '';
-  statusEl.style.color = isError ? 'var(--danger)' : 'var(--text-dim)';
+function formatFileSize(bytes) {
+  const value = Number(bytes) || 0;
+  if (value < 1024) return `${value} B`;
+  if (value < 1024 * 1024) return `${(value / 1024).toFixed(1)} KB`;
+  return `${(value / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-function setPixQrUploadStatus(message, isError = false) {
-  const statusEl = document.getElementById('edGiftPixQrUploadStatus');
-  if (!statusEl) return;
-
-  statusEl.textContent = message || '';
-  statusEl.style.color = isError ? 'var(--danger)' : 'var(--text-dim)';
+function getUploadStatusVariant(isError = false, forceVariant = '') {
+  if (forceVariant) return forceVariant;
+  return isError ? 'error' : 'idle';
 }
 
-async function uploadMediaFile(type, file) {
+function setUploadStatus(containerId, message, isError = false, options = {}) {
+  const statusEl = document.getElementById(containerId);
+  if (!statusEl) return;
+
+  const textEl = statusEl.querySelector('.upload-status-text');
+  const percentEl = statusEl.querySelector('.upload-status-percent');
+  const helpEl = statusEl.querySelector('.upload-status-help');
+  const progressWrapEl = statusEl.querySelector('.upload-progress');
+  const progressBarEl = statusEl.querySelector('.upload-progress-bar');
+
+  if (!textEl || !percentEl || !helpEl || !progressWrapEl || !progressBarEl) {
+    statusEl.textContent = message || '';
+    statusEl.style.color = isError ? 'var(--danger)' : 'var(--text-dim)';
+    return;
+  }
+
+  const {
+    progress = null,
+    help = '',
+    variant = '',
+  } = options;
+
+  const statusVariant = getUploadStatusVariant(isError, variant);
+
+  statusEl.hidden = !message && !help;
+  statusEl.classList.remove('is-loading', 'is-success', 'is-warning', 'is-error');
+  if (statusVariant && statusVariant !== 'idle') {
+    statusEl.classList.add(`is-${statusVariant}`);
+  }
+
+  textEl.textContent = message || '';
+  helpEl.textContent = help || '';
+
+  const hasProgress = Number.isFinite(progress);
+  if (hasProgress) {
+    const safeProgress = Math.min(100, Math.max(0, Math.round(progress)));
+    progressWrapEl.hidden = false;
+    progressBarEl.style.width = `${safeProgress}%`;
+    percentEl.textContent = `${safeProgress}%`;
+  } else {
+    progressWrapEl.hidden = true;
+    progressBarEl.style.width = '0%';
+    percentEl.textContent = '';
+  }
+}
+
+function setMediaUploadStatus(message, isError = false, options = {}) {
+  setUploadStatus('edMediaUploadStatus', message, isError, options);
+}
+
+function setPixQrUploadStatus(message, isError = false, options = {}) {
+  setUploadStatus('edGiftPixQrUploadStatus', message, isError, options);
+}
+
+function isValidMediaFile(file) {
+  if (!file) return false;
+  if (!SUPPORTED_IMAGE_MIME_TYPES.includes(file.type || '')) return false;
+  if (Number(file.size || 0) <= 0) return false;
+  return Number(file.size || 0) <= MEDIA_MAX_FILE_SIZE_BYTES;
+}
+
+function validateMediaFile(file) {
+  if (!file) {
+    return 'Arquivo não encontrado.';
+  }
+  if (!SUPPORTED_IMAGE_MIME_TYPES.includes(file.type || '')) {
+    return 'Formato inválido. Use JPG, PNG ou WEBP.';
+  }
+  if (Number(file.size || 0) > MEDIA_MAX_FILE_SIZE_BYTES) {
+    return 'Arquivo excede 10 MB. Escolha um arquivo menor.';
+  }
+  return '';
+}
+
+function normalizeUploadErrorMessage(error) {
+  const raw = String(error?.message || '').trim();
+  if (!raw) return 'Não foi possível concluir o upload. Tente novamente.';
+
+  if (/unsupported file type/i.test(raw)) {
+    return 'Formato inválido. Envie JPG, PNG ou WEBP.';
+  }
+  if (/10\s*mb|413|too large|maxfilesize|file size/i.test(raw)) {
+    return 'Arquivo muito grande. O limite é 10 MB por arquivo.';
+  }
+  if (/expired|sess[aã]o|unauthorized|401|forbidden|403/i.test(raw)) {
+    return 'Sua sessão expirou. Faça login novamente e tente o envio.';
+  }
+  if (/network|failed to fetch/i.test(raw)) {
+    return 'Falha de rede no envio. Verifique sua conexão e tente novamente.';
+  }
+  if (/internal server error|500/i.test(raw)) {
+    return 'Erro interno no servidor ao enviar mídia. Tente novamente.';
+  }
+  return raw;
+}
+
+function setFileMetaText(elementId, text = '') {
+  const el = document.getElementById(elementId);
+  if (!el) return;
+  el.textContent = text;
+}
+
+function bindInputChangeOnce(inputId, handler) {
+  const input = document.getElementById(inputId);
+  if (!input || input.dataset.boundChange === 'true') return;
+  input.addEventListener('change', handler);
+  input.dataset.boundChange = 'true';
+}
+
+function bindMediaFileSelectionMeta() {
+  bindInputChangeOnce('edGiftPixQrFile', (event) => {
+    const file = event.target?.files?.[0];
+    if (!file) {
+      setFileMetaText('edGiftPixQrFileMeta', '');
+      return;
+    }
+    setFileMetaText('edGiftPixQrFileMeta', `${file.name} (${formatFileSize(file.size)})`);
+  });
+
+  bindInputChangeOnce('edMediaHeroFile', (event) => {
+    const file = event.target?.files?.[0];
+    if (!file) {
+      setFileMetaText('edMediaHeroFileMeta', '');
+      return;
+    }
+    setFileMetaText('edMediaHeroFileMeta', `${file.name} (${formatFileSize(file.size)})`);
+  });
+
+  bindInputChangeOnce('edMediaGalleryFiles', (event) => {
+    const files = Array.from(event.target?.files || []);
+    if (!files.length) {
+      setFileMetaText('edMediaGalleryFileMeta', '');
+      return;
+    }
+    const totalBytes = files.reduce((sum, file) => sum + (Number(file.size) || 0), 0);
+    setFileMetaText('edMediaGalleryFileMeta', `${files.length} arquivo(s) selecionado(s) • ${formatFileSize(totalBytes)}`);
+  });
+}
+
+async function uploadMediaFile(type, file, options = {}) {
+  const { onProgress } = options;
+
   if (!state.eventId) {
     throw new Error('Evento não carregado no dashboard. Recarregue a página.');
   }
 
-  // Força token fresco diretamente do cliente Supabase para evitar token expirado
   const supabase = await getDashboardSupabaseClient();
   const { data: freshSession } = await supabase.auth.getSession();
   const freshToken = freshSession?.session?.access_token || null;
@@ -1985,21 +2129,39 @@ async function uploadMediaFile(type, file) {
   formData.append('type', type);
   formData.append('file', file);
 
-  const response = await fetch('/api/dashboard/media', {
-    method: 'POST',
-    body: formData,
-    headers: {
-      Authorization: `Bearer ${state.authToken}`,
-    },
+  return new Promise((resolve, reject) => {
+    const request = new XMLHttpRequest();
+    request.open('POST', '/api/dashboard/media');
+    request.setRequestHeader('Authorization', `Bearer ${state.authToken}`);
+
+    request.upload.addEventListener('progress', (event) => {
+      if (!event.lengthComputable || typeof onProgress !== 'function') return;
+      const progress = Math.round((event.loaded / event.total) * 100);
+      onProgress(progress);
+    });
+
+    request.addEventListener('error', () => {
+      reject(new Error('Falha de rede no envio de mídia.'));
+    });
+
+    request.addEventListener('load', () => {
+      let payload = {};
+      try {
+        payload = JSON.parse(request.responseText || '{}');
+      } catch {
+        payload = {};
+      }
+
+      if (request.status >= 200 && request.status < 300) {
+        resolve(payload);
+        return;
+      }
+
+      reject(new Error(payload.error || `Falha ao enviar mídia (${request.status})`));
+    });
+
+    request.send(formData);
   });
-
-  const data = await response.json().catch(() => ({}));
-
-  if (!response.ok) {
-    throw new Error(data.error || 'Falha ao enviar mídia');
-  }
-
-  return data;
 }
 
 function renderMediaHeroPreview(url) {
@@ -2117,17 +2279,41 @@ async function uploadPixQrMedia() {
   const button = document.getElementById('btnEdGiftPixQrUpload');
 
   if (!file) {
-    setPixQrUploadStatus('Selecione uma imagem para o QR Pix.', true);
+    setPixQrUploadStatus('Selecione uma imagem para o QR Pix.', true, {
+      variant: 'error',
+      help: 'Use JPG, PNG ou WEBP com até 10 MB.',
+    });
     return;
   }
 
-  setPixQrUploadStatus('Enviando QR Pix...');
+  const validationError = validateMediaFile(file);
+  if (validationError) {
+    setPixQrUploadStatus(validationError, true, {
+      variant: 'error',
+      help: 'Escolha outro arquivo e tente novamente.',
+    });
+    return;
+  }
+
+  setPixQrUploadStatus(`Enviando QR Pix: ${file.name}`, false, {
+    variant: 'loading',
+    progress: 0,
+    help: 'Aguarde até o envio terminar.',
+  });
   if (button) {
     button.disabled = true;
   }
 
   try {
-    const result = await uploadMediaFile('pix-qr', file);
+    const result = await uploadMediaFile('pix-qr', file, {
+      onProgress: (progress) => {
+        setPixQrUploadStatus(`Enviando QR Pix: ${file.name}`, false, {
+          variant: 'loading',
+          progress,
+          help: 'Aguarde até o envio terminar.',
+        });
+      },
+    });
     setVal('edGiftPixQr', result.url || '');
 
     if (window.__SITE_CONFIG__) {
@@ -2137,14 +2323,22 @@ async function uploadPixQrMedia() {
 
     renderPixQrPreview(result.url || '');
     markEditorDirty();
-    setPixQrUploadStatus('QR Pix enviado. Lembre-se de salvar as alterações.');
+    setPixQrUploadStatus('QR Pix enviado com sucesso.', false, {
+      variant: 'success',
+      progress: 100,
+      help: 'Clique em Salvar alterações para publicar no convite.',
+    });
 
     if (input) {
       input.value = '';
     }
+    setFileMetaText('edGiftPixQrFileMeta', '');
   } catch (error) {
     console.error('[uploadPixQrMedia]', error);
-    setPixQrUploadStatus(error.message || 'Erro ao enviar QR Pix.', true);
+    setPixQrUploadStatus(normalizeUploadErrorMessage(error), true, {
+      variant: 'error',
+      help: 'Revise o arquivo e tente novamente.',
+    });
   } finally {
     if (button) {
       button.disabled = false;
@@ -2158,17 +2352,41 @@ async function uploadHeroMedia() {
   const button = document.getElementById('btnEdMediaHeroUpload');
 
   if (!file) {
-    setMediaUploadStatus('Selecione uma imagem para a foto principal.', true);
+    setMediaUploadStatus('Selecione uma imagem para a foto principal.', true, {
+      variant: 'error',
+      help: 'Use JPG, PNG ou WEBP com até 10 MB.',
+    });
     return;
   }
 
-  setMediaUploadStatus('Enviando foto principal...');
+  const validationError = validateMediaFile(file);
+  if (validationError) {
+    setMediaUploadStatus(validationError, true, {
+      variant: 'error',
+      help: 'Escolha outro arquivo e tente novamente.',
+    });
+    return;
+  }
+
+  setMediaUploadStatus(`Enviando foto principal: ${file.name}`, false, {
+    variant: 'loading',
+    progress: 0,
+    help: 'Aguarde até o envio terminar.',
+  });
   if (button) {
     button.disabled = true;
   }
 
   try {
-    const result = await uploadMediaFile('hero', file);
+    const result = await uploadMediaFile('hero', file, {
+      onProgress: (progress) => {
+        setMediaUploadStatus(`Enviando foto principal: ${file.name}`, false, {
+          variant: 'loading',
+          progress,
+          help: 'Aguarde até o envio terminar.',
+        });
+      },
+    });
     setVal('edMediaHero', result.url || '');
 
     if (window.__SITE_CONFIG__) {
@@ -2179,14 +2397,22 @@ async function uploadHeroMedia() {
     renderMediaHeroPreview(result.url || '');
 
     markEditorDirty();
-    setMediaUploadStatus('Foto principal enviada. Lembre-se de salvar as alterações.');
+    setMediaUploadStatus('Foto principal enviada com sucesso.', false, {
+      variant: 'success',
+      progress: 100,
+      help: 'Clique em Salvar alterações para publicar no convite.',
+    });
 
     if (input) {
       input.value = '';
     }
+    setFileMetaText('edMediaHeroFileMeta', '');
   } catch (error) {
     console.error('[uploadHeroMedia]', error);
-    setMediaUploadStatus(error.message || 'Erro ao enviar foto principal.', true);
+    setMediaUploadStatus(normalizeUploadErrorMessage(error), true, {
+      variant: 'error',
+      help: 'Revise o arquivo e tente novamente.',
+    });
   } finally {
     if (button) {
       button.disabled = false;
@@ -2200,29 +2426,74 @@ async function uploadGalleryMedia() {
   const button = document.getElementById('btnEdMediaGalleryUpload');
 
   if (!files.length) {
-    setMediaUploadStatus('Selecione ao menos uma imagem para a galeria.', true);
+    setMediaUploadStatus('Selecione ao menos uma imagem para a galeria.', true, {
+      variant: 'error',
+      help: 'Use JPG, PNG ou WEBP com até 10 MB por arquivo.',
+    });
     return;
   }
 
-  setMediaUploadStatus(`Enviando ${files.length} imagem(ns) para a galeria...`);
+  const validFiles = [];
+  const invalidFiles = [];
+
+  files.forEach((file) => {
+    const validationError = validateMediaFile(file);
+    if (validationError) {
+      invalidFiles.push(`${file.name}: ${validationError}`);
+      return;
+    }
+    validFiles.push(file);
+  });
+
+  if (!validFiles.length) {
+    setMediaUploadStatus('Nenhum arquivo válido para envio.', true, {
+      variant: 'error',
+      help: invalidFiles.slice(0, 2).join(' | '),
+    });
+    return;
+  }
+
+  setMediaUploadStatus(`Preparando envio de ${validFiles.length} imagem(ns)...`, false, {
+    variant: 'loading',
+    progress: 0,
+    help: 'Mantenha esta aba aberta até o término do envio.',
+  });
   if (button) {
     button.disabled = true;
   }
 
-  try {
-    const uploadedItems = [];
+  const uploadedItems = [];
+  const failedItems = [];
 
-    for (let index = 0; index < files.length; index += 1) {
-      const file = files[index];
-      setMediaUploadStatus(`Enviando ${index + 1}/${files.length}: ${file.name}...`);
-      const result = await uploadMediaFile('gallery', file);
-      uploadedItems.push({
-        src: result.url || '',
-        alt: file.name.replace(/\.[^.]+$/, ''),
-      });
+  try {
+    for (let index = 0; index < validFiles.length; index += 1) {
+      const file = validFiles[index];
+      try {
+        setMediaUploadStatus(`Enviando ${index + 1}/${validFiles.length}: ${file.name}`, false, {
+          variant: 'loading',
+          progress: 0,
+          help: 'Mantenha esta aba aberta até o término do envio.',
+        });
+        const result = await uploadMediaFile('gallery', file, {
+          onProgress: (progress) => {
+            setMediaUploadStatus(`Enviando ${index + 1}/${validFiles.length}: ${file.name}`, false, {
+              variant: 'loading',
+              progress,
+              help: 'Mantenha esta aba aberta até o término do envio.',
+            });
+          },
+        });
+
+        uploadedItems.push({
+          src: result.url || '',
+          alt: file.name.replace(/\.[^.]+$/, ''),
+        });
+      } catch (error) {
+        failedItems.push(`${file.name}: ${normalizeUploadErrorMessage(error)}`);
+      }
     }
 
-    if (window.__SITE_CONFIG__) {
+    if (window.__SITE_CONFIG__ && uploadedItems.length > 0) {
       const gallery = ensureHistoriaGalleryArray(window.__SITE_CONFIG__);
       uploadedItems.forEach((item) => {
         if (item.src) {
@@ -2231,17 +2502,42 @@ async function uploadGalleryMedia() {
       });
 
       renderMediaGalleryGrid(gallery);
+      markEditorDirty();
     }
 
-    markEditorDirty();
-    setMediaUploadStatus(`Galeria atualizada com ${uploadedItems.length} nova(s) imagem(ns). Salve para persistir.`);
+    const totalFailed = failedItems.length + invalidFiles.length;
+    if (uploadedItems.length > 0 && totalFailed === 0) {
+      setMediaUploadStatus(`Galeria atualizada com ${uploadedItems.length} imagem(ns).`, false, {
+        variant: 'success',
+        progress: 100,
+        help: 'Clique em Salvar alterações para publicar no convite.',
+      });
+    } else if (uploadedItems.length > 0) {
+      setMediaUploadStatus(
+        `Upload concluído com avisos: ${uploadedItems.length} enviada(s), ${totalFailed} falha(s).`,
+        false,
+        {
+          variant: 'warning',
+          help: [...invalidFiles, ...failedItems].slice(0, 2).join(' | '),
+        }
+      );
+    } else {
+      setMediaUploadStatus('Não foi possível enviar as imagens selecionadas.', true, {
+        variant: 'error',
+        help: [...invalidFiles, ...failedItems].slice(0, 2).join(' | '),
+      });
+    }
 
     if (input) {
       input.value = '';
     }
+    setFileMetaText('edMediaGalleryFileMeta', '');
   } catch (error) {
     console.error('[uploadGalleryMedia]', error);
-    setMediaUploadStatus(error.message || 'Erro ao enviar imagens da galeria.', true);
+    setMediaUploadStatus(normalizeUploadErrorMessage(error), true, {
+      variant: 'error',
+      help: 'Revise os arquivos e tente novamente.',
+    });
   } finally {
     if (button) {
       button.disabled = false;

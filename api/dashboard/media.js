@@ -10,6 +10,15 @@ const MIME_EXTENSION_MAP = {
   'image/webp': 'webp',
 };
 
+function isFileTooLargeError(error) {
+  const code = Number(error?.code);
+  const httpCode = Number(error?.httpCode);
+  const message = String(error?.message || '');
+  return code === 1009
+    || httpCode === 413
+    || /maxfilesize|bigger than|max file size/i.test(message);
+}
+
 function setCorsHeaders(res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -190,6 +199,10 @@ export default async function handler(req, res) {
       url: data?.publicUrl || '',
     });
   } catch (error) {
+    if (isFileTooLargeError(error)) {
+      return res.status(413).json({ error: 'Arquivo excede o limite de 10 MB.' });
+    }
+
     console.error('[dashboard/media] Failed to upload media', error);
     return res.status(500).json({ error: 'Internal server error' });
   }
