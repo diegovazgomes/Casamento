@@ -2076,6 +2076,20 @@ function normalizeUploadErrorMessage(error) {
   }
   if (/10\s*mb|413|too large|maxfilesize|file size/i.test(raw)) {
     return 'Arquivo muito grande. O limite é 10 MB por arquivo.';
+
+  function appendCacheBustParam(url) {
+    const source = String(url || '').trim();
+    if (!source) return '';
+
+    try {
+      const parsed = new URL(source, window.location.origin);
+      parsed.searchParams.set('v', Date.now().toString());
+      return parsed.toString();
+    } catch {
+      const separator = source.includes('?') ? '&' : '?';
+      return `${source}${separator}v=${Date.now()}`;
+    }
+  }
   }
   if (/expired|sess[aã]o|unauthorized|401|forbidden|403/i.test(raw)) {
     return 'Sua sessão expirou. Faça login novamente e tente o envio.';
@@ -2430,14 +2444,15 @@ async function uploadHeroMedia() {
         });
       },
     });
-    setVal('edMediaHero', result.url || '');
+    const heroImageUrl = appendCacheBustParam(result.url || '');
+    setVal('edMediaHero', heroImageUrl);
 
     if (window.__SITE_CONFIG__) {
       if (!window.__SITE_CONFIG__.media) window.__SITE_CONFIG__.media = {};
-      window.__SITE_CONFIG__.media.heroImage = result.url || '';
+      window.__SITE_CONFIG__.media.heroImage = heroImageUrl;
     }
 
-    renderMediaHeroPreview(result.url || '');
+    renderMediaHeroPreview(heroImageUrl);
 
     markEditorDirty();
 
