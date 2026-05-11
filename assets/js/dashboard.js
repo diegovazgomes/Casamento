@@ -2113,6 +2113,32 @@ function validateMediaFile(file) {
   return '';
 }
 
+function appendCacheBustParam(url) {
+  const source = String(url || '').trim();
+  if (!source) return '';
+
+  try {
+    const parsed = new URL(source, window.location.origin);
+    parsed.searchParams.set('v', Date.now().toString());
+    return parsed.toString();
+  } catch {
+    const separator = source.includes('?') ? '&' : '?';
+    return `${source}${separator}v=${Date.now()}`;
+  }
+}
+
+function isHeroMediaUrl(url) {
+  const source = String(url || '').trim();
+  if (!source) return false;
+
+  try {
+    const parsed = new URL(source, window.location.origin);
+    return /\/hero\/hero\./i.test(parsed.pathname);
+  } catch {
+    return /\/hero\/hero\./i.test(source);
+  }
+}
+
 function normalizeUploadErrorMessage(error) {
   const raw = String(error?.message || '').trim();
   if (!raw) return 'Não foi possível concluir o upload. Tente novamente.';
@@ -2122,20 +2148,6 @@ function normalizeUploadErrorMessage(error) {
   }
   if (/10\s*mb|413|too large|maxfilesize|file size/i.test(raw)) {
     return 'Arquivo muito grande. O limite é 10 MB por arquivo.';
-
-  function appendCacheBustParam(url) {
-    const source = String(url || '').trim();
-    if (!source) return '';
-
-    try {
-      const parsed = new URL(source, window.location.origin);
-      parsed.searchParams.set('v', Date.now().toString());
-      return parsed.toString();
-    } catch {
-      const separator = source.includes('?') ? '&' : '?';
-      return `${source}${separator}v=${Date.now()}`;
-    }
-  }
   }
   if (/expired|sess[aã]o|unauthorized|401|forbidden|403/i.test(raw)) {
     return 'Sua sessão expirou. Faça login novamente e tente o envio.';
@@ -2490,7 +2502,12 @@ async function uploadHeroMedia() {
         });
       },
     });
-    const heroImageUrl = appendCacheBustParam(result.url || '');
+    const rawHeroUrl = String(result.url || '').trim();
+    if (!isHeroMediaUrl(rawHeroUrl)) {
+      throw new Error('Resposta de upload inválida para foto principal. Tente novamente.');
+    }
+
+    const heroImageUrl = appendCacheBustParam(rawHeroUrl);
     setVal('edMediaHero', heroImageUrl);
 
     if (window.__SITE_CONFIG__) {
