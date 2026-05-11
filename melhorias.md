@@ -51,10 +51,10 @@
 
 ### 3) Editar Evento: reforçar estado de alterações não salvas por seção
 
-[ ] - Adicionar bloco de aviso no fim de cada seção da aba Editar Evento (`Aparências`, `Página de presentes`, `Confirmação`, etc.)
-[ ] - Exibir mensagem destacada de "Alterações não salvas" quando houver mudanças pendentes
-[ ] - Incluir botão de salvar no rodapé de cada seção (mesma ação do botão salvar do topo)
-[ ] - Após salvar com sucesso, exibir confirmação verde equivalente ao feedback do topo
+[x] - Adicionar bloco de aviso no fim de cada seção da aba Editar Evento (`Aparências`, `Página de presentes`, `Confirmação`, etc.)
+[x] - Exibir mensagem destacada de "Alterações não salvas" quando houver mudanças pendentes
+[x] - Incluir botão de salvar no rodapé de cada seção (mesma ação do botão salvar do topo)
+[x] - Após salvar com sucesso, exibir confirmação verde equivalente ao feedback do topo
 [ ] - Testar fluxo completo no mobile (editar -> aviso pendente -> salvar no rodapé -> confirmação)
 
 ### 4) Upload de fotos: UX de envio e pós-envio

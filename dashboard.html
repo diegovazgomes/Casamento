@@ -888,13 +888,15 @@ input[type="date"].field-input{width:100%;min-width:0;box-sizing:border-box;-web
 .editor-save-status.is-saved{color:var(--success)}
 .editor-save-actions{display:flex;gap:10px;align-items:center}
 /* ── Rodapé de alterações não salvas por seção ── */
-.editor-section-footer{display:none;align-items:center;justify-content:space-between;gap:12px;padding:14px 20px;border-top:1px solid var(--border-faint);margin-top:8px}
-.editor-section-footer.is-dirty{display:flex;animation:footerFadeIn 0.2s ease}
-.footer-warning-msg,.footer-saved-msg{display:flex;align-items:center;gap:6px;font-size:11px;letter-spacing:0.06em;font-weight:500;line-height:1.4}
+.editor-section-footer{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 20px;border-top:1px solid var(--border-faint);margin-top:8px;background:rgba(255,255,255,0.01)}
+.editor-section-footer.is-dirty{animation:footerFadeIn 0.2s ease;background:rgba(196,145,66,0.08)}
+.footer-warning-msg,.footer-saved-msg{display:none;align-items:center;gap:6px;font-size:11px;letter-spacing:0.06em;font-weight:500;line-height:1.4}
 .footer-warning-msg{color:var(--warning)}
-.footer-saved-msg{color:var(--success);display:none}
+.footer-saved-msg{color:var(--success)}
+.editor-section-footer.is-dirty .footer-warning-msg{display:flex}
 .editor-section-footer.is-saved .footer-warning-msg{display:none}
 .editor-section-footer.is-saved .footer-saved-msg{display:flex}
+.editor-section-footer.is-saved{background:rgba(88,186,129,0.08)}
 .footer-save-btn{flex-shrink:0;font-size:9px;letter-spacing:0.18em;padding:8px 18px}
 @keyframes footerFadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
 @media(max-width:768px){
