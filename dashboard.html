@@ -882,9 +882,9 @@ input[type="date"].field-input{width:100%;min-width:0;box-sizing:border-box;-web
   background:var(--text-faint);flex-shrink:0;
   transition:background 0.3s ease;
 }
-.editor-save-status.is-dirty .editor-save-dot{background:var(--warning)}
+.editor-save-status.is-dirty .editor-save-dot{background:var(--warning);animation:pulse 1.6s ease infinite}
 .editor-save-status.is-dirty{color:var(--warning)}
-.editor-save-status.is-saved .editor-save-dot{background:var(--success)}
+.editor-save-status.is-saved .editor-save-dot{background:var(--success);animation:none}
 .editor-save-status.is-saved{color:var(--success)}
 .editor-save-actions{display:flex;gap:10px;align-items:center}
 /* ── Rodapé de alterações não salvas por seção ── */
@@ -2003,6 +2003,10 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
               <span>Ver convite</span>
             </a>
+            <button type="button" class="btn btn-subtle" onclick="saveAndPreviewInvite()" title="Salvar e abrir convite em nova aba">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/><path d="M9 17h6"/><path d="M12 14v6"/></svg>
+              <span>Salvar e visualizar</span>
+            </button>
             <button type="button" class="btn btn-subtle" onclick="reloadEditorTab()">
               <span>Descartar</span>
             </button>
@@ -2138,7 +2142,7 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
         </div>
 
         <!-- ── SEÇÃO 2: TEMA & VISUAL ─────────────────── -->
-        <div class="editor-section is-open" id="edSectionTema">
+        <div class="editor-section" id="edSectionTema">
           <button class="editor-section-header" type="button" onclick="toggleEditorSection('edSectionTema')">
             <div>
               <div class="editor-section-tag">Aparência</div>
@@ -2177,7 +2181,7 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
         </div>
 
         <!-- ── SEÇÃO 3: WHATSAPP ──────────────────────── -->
-        <div class="editor-section is-open" id="edSectionWhatsApp">
+        <div class="editor-section" id="edSectionWhatsApp">
           <button class="editor-section-header" type="button" onclick="toggleEditorSection('edSectionWhatsApp')">
             <div>
               <div class="editor-section-tag">Confirmação de presença</div>
@@ -2215,7 +2219,7 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
         </div>
 
         <!-- ── SEÇÃO 4: PRESENTES ─────────────────────── -->
-        <div class="editor-section is-open" id="edSectionPresentes">
+        <div class="editor-section" id="edSectionPresentes">
           <button class="editor-section-header" type="button" onclick="toggleEditorSection('edSectionPresentes')">
             <div>
               <div class="editor-section-tag">Página de presentes</div>
@@ -2416,10 +2420,10 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
         </div>
 
         <!-- ── SEÇÃO 5: FOTOS & MÍDIA ─────────────────── -->
-        <div class="editor-section is-open" id="edSectionMidia">
+        <div class="editor-section" id="edSectionMidia">
           <button class="editor-section-header" type="button" onclick="toggleEditorSection('edSectionMidia')">
             <div>
-              <div class="editor-section-tag">Assets</div>
+              <div class="editor-section-tag">Fotos &amp; Mídia</div>
               <div class="editor-section-title">Fotos &amp; Mídia</div>
             </div>
             <svg class="editor-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
@@ -2541,7 +2545,7 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
 
 
         <!-- ── SEÇÃO 6: NOSSA HISTÓRIA ───────────────── -->
-        <div class="editor-section is-open" id="edSectionHistoria">
+        <div class="editor-section" id="edSectionHistoria">
           <button class="editor-section-header" type="button" onclick="toggleEditorSection('edSectionHistoria')">
             <div>
               <div class="editor-section-tag">Conteúdo</div>
@@ -2642,7 +2646,7 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
         </div>
 
         <!-- ── SEÇÃO 7: FAQ ───────────────────────────── -->
-        <div class="editor-section is-open" id="edSectionFaq">
+        <div class="editor-section" id="edSectionFaq">
           <button class="editor-section-header" type="button" onclick="toggleEditorSection('edSectionFaq')">
             <div>
               <div class="editor-section-tag">Conteúdo</div>
@@ -2677,7 +2681,7 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
         </div>
 
         <!-- ── SEÇÃO 8: PÁGINAS EXTRAS ────────────────── -->
-        <div class="editor-section is-open" id="edSectionPages">
+        <div class="editor-section" id="edSectionPages">
           <button class="editor-section-header" type="button" onclick="toggleEditorSection('edSectionPages')">
             <div>
               <div class="editor-section-tag">Navegação</div>

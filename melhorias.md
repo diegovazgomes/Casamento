@@ -63,7 +63,7 @@
 [x] - Adicionar estado de carregamento com feedback claro (ex.: barra/progresso ou status "carregando")
 [x] - Exibir confirmação explícita após upload concluído com orientação para salvar alterações
 [x] - Tratar estados de erro (falha de upload, arquivo inválido, limite excedido) com mensagens claras
-[ ] - Validar jornada completa em mobile: selecionar foto -> upload -> confirmação -> salvar
+[x] - Validar jornada completa em mobile: selecionar foto -> upload -> confirmação -> salvar
 
 ### Sequência sugerida de entrega
 

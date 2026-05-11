@@ -1669,6 +1669,7 @@ function loadEditorTab() {
   editorState.originalConfig = JSON.parse(JSON.stringify(config));
   editorState.isDirty = false;
   hideSectionFooters();
+  setDefaultEditorSectionsOpenState();
 
   // Casal & Evento
   setVal('edCoupleNames',       config.couple?.names      ?? '');
@@ -1893,6 +1894,25 @@ const SECTION_FOOTER_IDS = [
   'edSectionEvento', 'edSectionTema', 'edSectionWhatsApp', 'edSectionPresentes',
   'edSectionMidia', 'edSectionHistoria', 'edSectionFaq', 'edSectionPages',
 ];
+
+const EDITOR_SECTION_IDS = [
+  'edSectionEvento',
+  'edSectionTema',
+  'edSectionWhatsApp',
+  'edSectionPresentes',
+  'edSectionMidia',
+  'edSectionHistoria',
+  'edSectionFaq',
+  'edSectionPages',
+];
+
+function setDefaultEditorSectionsOpenState() {
+  EDITOR_SECTION_IDS.forEach((id) => {
+    const section = document.getElementById(id);
+    if (!section) return;
+    section.classList.toggle('is-open', id === 'edSectionEvento');
+  });
+}
 
 function showSectionFootersDirty() {
   SECTION_FOOTER_IDS.forEach(id => {
@@ -2981,7 +3001,7 @@ async function saveEditorConfig() {
 
   if (!state.eventId) {
     updateEditorSaveStatus('Evento não carregado — recarregue o dashboard');
-    return;
+    return false;
   }
 
   try {
@@ -2994,7 +3014,7 @@ async function saveEditorConfig() {
 
     if (!response.ok) {
       updateEditorSaveStatus(data.error || 'Erro ao salvar no servidor');
-      return;
+      return false;
     }
 
     const savedConfig = data?.config && typeof data.config === 'object' ? data.config : config;
@@ -3004,10 +3024,33 @@ async function saveEditorConfig() {
     applySiteConfig(savedConfig);
     updateEditorSaveStatus('As informações do seu convite foram salvas ✓');
     showSectionFootersSaved();
+    return true;
   } catch (error) {
     console.error('[saveEditorConfig]', error);
     updateEditorSaveStatus('Erro ao salvar no servidor');
+    return false;
   }
+}
+
+async function saveAndPreviewInvite() {
+  const previewBtn = document.getElementById('btnPreviewInvite');
+  const previewHref = String(previewBtn?.href || '').trim();
+
+  if (!previewHref || previewHref.endsWith('#')) {
+    updateEditorSaveStatus('Link do convite indisponível — recarregue o dashboard');
+    return;
+  }
+
+  const previewWindow = window.open('about:blank', '_blank', 'noopener,noreferrer');
+
+  await saveEditorConfig();
+
+  if (previewWindow && !previewWindow.closed) {
+    previewWindow.location.replace(previewHref);
+    return;
+  }
+
+  window.open(previewHref, '_blank', 'noopener,noreferrer');
 }
 
 // ============================================================
