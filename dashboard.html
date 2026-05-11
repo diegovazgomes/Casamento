@@ -982,6 +982,65 @@ input[type="date"].field-input{width:100%;min-width:0;box-sizing:border-box;-web
 .form-group{margin-bottom:14px}
 @media(max-width:760px){.form-grid-2,.form-grid-3,.media-upload-row{grid-template-columns:1fr}.media-upload-action{justify-content:stretch}.media-upload-action .btn{width:100%;min-width:0;min-height:44px}}
 @media(max-width:760px){.upload-status-main{flex-direction:column;gap:4px}.upload-status-percent{align-self:flex-end}}
+
+/* Login Loading Screen */
+.login-loading-screen {
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(135deg, #0e0d0b 0%, #1a1815 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  opacity: 1;
+  transition: opacity 0.4s ease;
+}
+
+.login-loading-screen[hidden] {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.login-loading-content {
+  text-align: center;
+  max-width: 320px;
+}
+
+.login-loading-title {
+  font-size: 18px;
+  font-weight: 500;
+  color: #f0ebe1;
+  margin-bottom: 32px;
+  letter-spacing: 0.5px;
+}
+
+.login-loading-bar-wrap {
+  margin-bottom: 16px;
+}
+
+.login-loading-bar {
+  width: 100%;
+  height: 4px;
+  background: rgba(201, 165, 90, 0.15);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.login-loading-progress {
+  height: 100%;
+  background: linear-gradient(90deg, #c9a55a 0%, #e8d9b8 50%, #c9a55a 100%);
+  width: 0%;
+  transition: width 0.3s ease;
+  border-radius: 2px;
+}
+
+.login-loading-percent {
+  font-size: 13px;
+  color: #c9a55a;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+}
+
 .field-input.sm{padding:10px 12px;font-size:12px}
 /* Mobile: todos os inputs sobem para 16px — previne auto-zoom do iOS Safari.
    Posicionado após .field-input.sm para ganhar na cascade (mesma especificidade, ordem vence). */
@@ -1427,6 +1486,19 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
 </style>
 </head>
 <body>
+
+<!-- ══ LOGIN LOADING ═════════════════════════════════════════════════════ -->
+<div class="login-loading-screen" id="loginLoadingScreen" hidden>
+  <div class="login-loading-content">
+    <div class="login-loading-title">Carregando painel...</div>
+    <div class="login-loading-bar-wrap">
+      <div class="login-loading-bar">
+        <div class="login-loading-progress" id="loginLoadingProgress"></div>
+      </div>
+    </div>
+    <div class="login-loading-percent" id="loginLoadingPercent">0%</div>
+  </div>
+</div>
  
 <!-- ══ AUTH ═══════════════════════════════════════════════════════════════ -->
 <div class="auth-screen" id="authScreen">

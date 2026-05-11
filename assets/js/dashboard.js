@@ -289,8 +289,18 @@ async function handleAuth(event) {
   const password = document.getElementById('password').value.trim();
   if (!email || !password) return;
 
+  // Mostrar tela de loading
+  const loginLoadingScreen = document.getElementById('loginLoadingScreen');
+  if (loginLoadingScreen) {
+    loginLoadingScreen.removeAttribute('hidden');
+  }
+  setLoginLoadingProgress(0);
+
   try {
     authError.style.display = 'none';
+    
+    // Progresso 20% - autenticação iniciada
+    setLoginLoadingProgress(20);
     const supabase = await getDashboardSupabaseClient();
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
@@ -298,10 +308,13 @@ async function handleAuth(event) {
     });
 
     if (error || !data?.session?.access_token) {
+      hideLoginLoadingScreen();
       showAuthError(normalizeDashboardAuthMessage(error?.message || 'Erro na autenticação'));
       return;
     }
 
+    // Progresso 40% - autenticado
+    setLoginLoadingProgress(40);
     state.authToken = data.session.access_token;
     sessionStorage.setItem(DASHBOARD_ACCESS_TOKEN_STORAGE_KEY, state.authToken);
 
@@ -309,9 +322,15 @@ async function handleAuth(event) {
     authForm.reset();
 
     try {
+      // Progresso 60% - carregando contexto do evento
+      setLoginLoadingProgress(60);
       await hydrateDashboardEventContext();
+      
+      // Progresso 80% - carregando dados
+      setLoginLoadingProgress(80);
       await loadAllData();
     } catch (hydrateError) {
+      hideLoginLoadingScreen();
       console.error('[auth] Falha ao hidratar dashboard após login', hydrateError);
       await clearDashboardSession();
       showAuthScreen();
@@ -320,8 +339,16 @@ async function handleAuth(event) {
       return;
     }
 
+    // Progresso 100% - completo
+    setLoginLoadingProgress(100);
+    
     // Mostrar dashboard
     showDashboard();
+
+    // Esconder tela de loading após transição
+    setTimeout(() => {
+      hideLoginLoadingScreen();
+    }, 300);
 
     // Exibir nome do casal vindo do profile (não-bloqueante)
     fetchUserProfile().then(profile => {
@@ -333,9 +360,28 @@ async function handleAuth(event) {
 
     notifyDashboardReady();
   } catch (error) {
+    hideLoginLoadingScreen();
     console.error('[auth]', error);
     showAuthError(normalizeDashboardAuthMessage(error?.message || 'Erro ao conectar ao servidor'));
     notifyDashboardReady();
+  }
+}
+
+function setLoginLoadingProgress(percent) {
+  const progressBar = document.getElementById('loginLoadingProgress');
+  const progressPercent = document.getElementById('loginLoadingPercent');
+  if (progressBar) {
+    progressBar.style.width = percent + '%';
+  }
+  if (progressPercent) {
+    progressPercent.textContent = percent + '%';
+  }
+}
+
+function hideLoginLoadingScreen() {
+  const loginLoadingScreen = document.getElementById('loginLoadingScreen');
+  if (loginLoadingScreen) {
+    loginLoadingScreen.setAttribute('hidden', '');
   }
 }
 
