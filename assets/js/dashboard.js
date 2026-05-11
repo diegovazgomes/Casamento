@@ -3032,27 +3032,6 @@ async function saveEditorConfig() {
   }
 }
 
-async function saveAndPreviewInvite() {
-  const previewBtn = document.getElementById('btnPreviewInvite');
-  const previewHref = String(previewBtn?.href || '').trim();
-
-  if (!previewHref || previewHref.endsWith('#')) {
-    updateEditorSaveStatus('Link do convite indisponível — recarregue o dashboard');
-    return;
-  }
-
-  const previewWindow = window.open('about:blank', '_blank', 'noopener,noreferrer');
-
-  await saveEditorConfig();
-
-  if (previewWindow && !previewWindow.closed) {
-    previewWindow.location.replace(previewHref);
-    return;
-  }
-
-  window.open(previewHref, '_blank', 'noopener,noreferrer');
-}
-
 // ============================================================
 // WIZARD DE ONBOARDING
 // ============================================================
