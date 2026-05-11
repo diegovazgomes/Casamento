@@ -2996,7 +2996,7 @@ function collectEditorValues() {
   return config;
 }
 
-async function saveEditorConfig() {
+async function saveEditorConfig(uploadType = null) {
   const config = collectEditorValues();
 
   if (!state.eventId) {
@@ -3024,12 +3024,38 @@ async function saveEditorConfig() {
     applySiteConfig(savedConfig);
     updateEditorSaveStatus('As informações do seu convite foram salvas ✓');
     showSectionFootersSaved();
+    
+    // Mostrar mensagem de sucesso do upload se aplicável
+    if (uploadType) {
+      showUploadSuccessMessage(uploadType);
+    }
+    
     return true;
   } catch (error) {
     console.error('[saveEditorConfig]', error);
     updateEditorSaveStatus('Erro ao salvar no servidor');
     return false;
   }
+}
+
+function showUploadSuccessMessage(uploadType) {
+  const successElMap = {
+    'hero': 'edMediaHeroSaveSuccess',
+    'gallery': 'edMediaGallerySaveSuccess',
+    'pixqr': 'edGiftPixSaveSuccess'
+  };
+  
+  const elId = successElMap[uploadType];
+  if (!elId) return;
+  
+  const successEl = document.getElementById(elId);
+  if (!successEl) return;
+  
+  successEl.style.display = 'flex';
+  
+  setTimeout(() => {
+    successEl.style.display = 'none';
+  }, 4000);
 }
 
 // ============================================================

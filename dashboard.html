@@ -2259,19 +2259,16 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
                   Nenhum QR Pix definido.
                 </div>
 
-                <div class="media-upload-row" style="margin-top:14px">
-                  <div class="field">
-                    <label class="field-label" for="edGiftPixQrFile">Upload do QR Pix</label>
-                    <input type="file" class="field-input sm" id="edGiftPixQrFile" accept="image/png,image/jpeg,image/webp">
-                    <div class="field-hint">Formatos aceitos: JPG, PNG e WEBP até 10 MB. O upload substitui o QR atual.</div>
-                    <div class="upload-file-meta" id="edGiftPixQrFileMeta"></div>
-                  </div>
-                  <div class="media-upload-action">
-                    <button type="button" class="btn btn-subtle" id="btnEdGiftPixQrUpload" onclick="uploadPixQrMedia()">
-                      <span>Enviar QR Pix</span>
-                    </button>
-                  </div>
+                <div class="field" style="margin-top:14px">
+                  <label class="field-label" for="edGiftPixQrFile">Upload do QR Pix</label>
+                  <input type="file" class="field-input sm" id="edGiftPixQrFile" accept="image/png,image/jpeg,image/webp">
+                  <div class="field-hint">Formatos aceitos: JPG, PNG e WEBP até 10 MB. O upload substitui o QR atual.</div>
+                  <div class="upload-file-meta" id="edGiftPixQrFileMeta"></div>
                 </div>
+
+                <button type="button" class="btn btn-subtle" id="btnEdGiftPixQrUpload" onclick="uploadPixQrMedia()" style="margin-bottom:10px;margin-top:10px">
+                  <span>Enviar QR Pix</span>
+                </button>
 
                 <div class="upload-status" id="edGiftPixQrUploadStatus" aria-live="polite">
                   <div class="upload-status-main">
@@ -2282,10 +2279,15 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
                   <div class="upload-status-help"></div>
                 </div>
 
-                <button type="button" class="btn btn-primary" style="margin-top:10px;width:100%;justify-content:center" onclick="saveEditorConfig()" title="Salvar alterações de presente">
+                <button type="button" class="btn btn-primary" style="margin-top:10px;width:100%;justify-content:center" onclick="saveEditorConfig('pixqr')" title="Salvar alterações de presente">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
                   <span>Salvar presente</span>
                 </button>
+
+                <div id="edGiftPixSaveSuccess" style="display:none;margin-top:10px;padding:10px 14px;background:rgba(88,186,129,0.08);border:1px solid rgba(88,186,129,0.5);color:var(--success);font-size:11px;letter-spacing:0.06em;border-radius:4px;text-align:center;align-items:center;gap:6px">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                  <span>QR Pix salvo com sucesso!</span>
+                </div>
               </div>
             </div>
 
@@ -2482,19 +2484,16 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
               Nenhuma foto na galeria ainda.
             </div>
 
-            <div class="media-upload-row">
-              <div class="field">
-                <label class="field-label" for="edMediaGalleryFiles">Upload para galeria</label>
-                <input type="file" class="field-input sm" id="edMediaGalleryFiles" accept="image/png,image/jpeg,image/webp" multiple>
-                <div class="field-hint">As imagens enviadas serão adicionadas em História → Galeria. Limite de 10 MB por arquivo.</div>
-                <div class="upload-file-meta" id="edMediaGalleryFileMeta"></div>
-              </div>
-              <div class="media-upload-action">
-                <button type="button" class="btn btn-subtle" id="btnEdMediaGalleryUpload" onclick="uploadGalleryMedia()">
-                  <span>Enviar imagens da galeria</span>
-                </button>
-              </div>
+            <div class="field">
+              <label class="field-label" for="edMediaGalleryFiles">Upload para galeria</label>
+              <input type="file" class="field-input sm" id="edMediaGalleryFiles" accept="image/png,image/jpeg,image/webp" multiple>
+              <div class="field-hint">As imagens enviadas serão adicionadas em História → Galeria. Limite de 10 MB por arquivo.</div>
+              <div class="upload-file-meta" id="edMediaGalleryFileMeta"></div>
             </div>
+
+            <button type="button" class="btn btn-subtle" id="btnEdMediaGalleryUpload" onclick="uploadGalleryMedia()" style="margin-bottom:10px">
+              <span>Enviar imagens da galeria</span>
+            </button>
 
             <div class="upload-status" id="edMediaUploadStatus" aria-live="polite">
               <div class="upload-status-main">
@@ -2505,10 +2504,15 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
               <div class="upload-status-help"></div>
             </div>
 
-            <button type="button" class="btn btn-primary" style="margin-top:10px;width:100%;justify-content:center" onclick="saveEditorConfig()" title="Salvar alterações de galeria">
+            <button type="button" class="btn btn-primary" style="margin-top:10px;width:100%;justify-content:center" onclick="saveEditorConfig('gallery')" title="Salvar alterações de galeria">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
               <span>Salvar galeria</span>
             </button>
+
+            <div id="edMediaGallerySaveSuccess" style="display:none;margin-top:10px;padding:10px 14px;background:rgba(88,186,129,0.08);border:1px solid rgba(88,186,129,0.5);color:var(--success);font-size:11px;letter-spacing:0.06em;border-radius:4px;text-align:center;display:flex;align-items:center;justify-content:center;gap:6px">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+              <span>Galeria salva com sucesso!</span>
+            </div>
 
             <div class="editor-rule"></div>
             <span class="editor-sub-label">Trilha sonora principal</span>
