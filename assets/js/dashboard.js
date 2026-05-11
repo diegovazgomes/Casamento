@@ -2036,6 +2036,10 @@ function setMediaUploadStatus(message, isError = false, options = {}) {
   setUploadStatus('edMediaUploadStatus', message, isError, options);
 }
 
+function setHeroUploadStatus(message, isError = false, options = {}) {
+  setUploadStatus('edMediaHeroUploadStatus', message, isError, options);
+}
+
 function setPixQrUploadStatus(message, isError = false, options = {}) {
   setUploadStatus('edGiftPixQrUploadStatus', message, isError, options);
 }
@@ -2318,7 +2322,7 @@ async function uploadPixQrMedia() {
   setPixQrUploadStatus(`Enviando QR Pix: ${file.name}`, false, {
     variant: 'loading',
     progress: 0,
-    help: 'Aguarde até o envio terminar.',
+    help: 'Fazendo upload e salvando automaticamente...',
   });
   if (button) {
     button.disabled = true;
@@ -2330,7 +2334,7 @@ async function uploadPixQrMedia() {
         setPixQrUploadStatus(`Enviando QR Pix: ${file.name}`, false, {
           variant: 'loading',
           progress,
-          help: 'Aguarde até o envio terminar.',
+          help: 'Fazendo upload e salvando automaticamente...',
         });
       },
     });
@@ -2343,11 +2347,27 @@ async function uploadPixQrMedia() {
 
     renderPixQrPreview(result.url || '');
     markEditorDirty();
-    setPixQrUploadStatus('QR Pix enviado com sucesso.', false, {
-      variant: 'success',
+
+    setPixQrUploadStatus('Upload concluído. Salvando alterações...', false, {
+      variant: 'loading',
       progress: 100,
-      help: 'Clique em Salvar alterações para publicar no convite.',
+      help: 'Aguarde a confirmação de salvamento.',
     });
+
+    const saveOk = await saveEditorConfig();
+    if (saveOk) {
+      setPixQrUploadStatus('QR Pix enviado e salvo com sucesso.', false, {
+        variant: 'success',
+        progress: 100,
+        help: 'Pronto. O convite já está atualizado.',
+      });
+    } else {
+      setPixQrUploadStatus('QR Pix enviado, mas não foi possível salvar no evento.', true, {
+        variant: 'error',
+        progress: 100,
+        help: 'Tente novamente pelo botão Salvar alterações do editor.',
+      });
+    }
 
     if (input) {
       input.value = '';
@@ -2372,7 +2392,7 @@ async function uploadHeroMedia() {
   const button = document.getElementById('btnEdMediaHeroUpload');
 
   if (!file) {
-    setMediaUploadStatus('Selecione uma imagem para a foto principal.', true, {
+    setHeroUploadStatus('Selecione uma imagem para a foto principal.', true, {
       variant: 'error',
       help: 'Use JPG, PNG ou WEBP com até 10 MB.',
     });
@@ -2381,17 +2401,17 @@ async function uploadHeroMedia() {
 
   const validationError = validateMediaFile(file);
   if (validationError) {
-    setMediaUploadStatus(validationError, true, {
+    setHeroUploadStatus(validationError, true, {
       variant: 'error',
       help: 'Escolha outro arquivo e tente novamente.',
     });
     return;
   }
 
-  setMediaUploadStatus(`Enviando foto principal: ${file.name}`, false, {
+  setHeroUploadStatus(`Enviando foto principal: ${file.name}`, false, {
     variant: 'loading',
     progress: 0,
-    help: 'Aguarde até o envio terminar.',
+    help: 'Fazendo upload e salvando automaticamente...',
   });
   if (button) {
     button.disabled = true;
@@ -2400,10 +2420,10 @@ async function uploadHeroMedia() {
   try {
     const result = await uploadMediaFile('hero', file, {
       onProgress: (progress) => {
-        setMediaUploadStatus(`Enviando foto principal: ${file.name}`, false, {
+        setHeroUploadStatus(`Enviando foto principal: ${file.name}`, false, {
           variant: 'loading',
           progress,
-          help: 'Aguarde até o envio terminar.',
+          help: 'Fazendo upload e salvando automaticamente...',
         });
       },
     });
@@ -2417,11 +2437,27 @@ async function uploadHeroMedia() {
     renderMediaHeroPreview(result.url || '');
 
     markEditorDirty();
-    setMediaUploadStatus('Foto principal enviada com sucesso.', false, {
-      variant: 'success',
+
+    setHeroUploadStatus('Upload concluído. Salvando alterações...', false, {
+      variant: 'loading',
       progress: 100,
-      help: 'Clique em Salvar alterações para publicar no convite.',
+      help: 'Aguarde a confirmação de salvamento.',
     });
+
+    const saveOk = await saveEditorConfig();
+    if (saveOk) {
+      setHeroUploadStatus('Foto principal enviada e salva com sucesso.', false, {
+        variant: 'success',
+        progress: 100,
+        help: 'Pronto. O convite já está atualizado.',
+      });
+    } else {
+      setHeroUploadStatus('Foto principal enviada, mas não foi possível salvar no evento.', true, {
+        variant: 'error',
+        progress: 100,
+        help: 'Tente novamente pelo botão Salvar alterações do editor.',
+      });
+    }
 
     if (input) {
       input.value = '';
@@ -2429,7 +2465,7 @@ async function uploadHeroMedia() {
     setFileMetaText('edMediaHeroFileMeta', '');
   } catch (error) {
     console.error('[uploadHeroMedia]', error);
-    setMediaUploadStatus(normalizeUploadErrorMessage(error), true, {
+    setHeroUploadStatus(normalizeUploadErrorMessage(error), true, {
       variant: 'error',
       help: 'Revise o arquivo e tente novamente.',
     });
@@ -2476,7 +2512,7 @@ async function uploadGalleryMedia() {
   setMediaUploadStatus(`Preparando envio de ${validFiles.length} imagem(ns)...`, false, {
     variant: 'loading',
     progress: 0,
-    help: 'Mantenha esta aba aberta até o término do envio.',
+    help: 'Fazendo upload e salvando automaticamente...',
   });
   if (button) {
     button.disabled = true;
@@ -2492,14 +2528,14 @@ async function uploadGalleryMedia() {
         setMediaUploadStatus(`Enviando ${index + 1}/${validFiles.length}: ${file.name}`, false, {
           variant: 'loading',
           progress: 0,
-          help: 'Mantenha esta aba aberta até o término do envio.',
+          help: 'Fazendo upload e salvando automaticamente...',
         });
         const result = await uploadMediaFile('gallery', file, {
           onProgress: (progress) => {
             setMediaUploadStatus(`Enviando ${index + 1}/${validFiles.length}: ${file.name}`, false, {
               variant: 'loading',
               progress,
-              help: 'Mantenha esta aba aberta até o término do envio.',
+              help: 'Fazendo upload e salvando automaticamente...',
             });
           },
         });
@@ -2526,26 +2562,46 @@ async function uploadGalleryMedia() {
     }
 
     const totalFailed = failedItems.length + invalidFiles.length;
-    if (uploadedItems.length > 0 && totalFailed === 0) {
-      setMediaUploadStatus(`Galeria atualizada com ${uploadedItems.length} imagem(ns).`, false, {
-        variant: 'success',
-        progress: 100,
-        help: 'Clique em Salvar alterações para publicar no convite.',
-      });
-    } else if (uploadedItems.length > 0) {
-      setMediaUploadStatus(
-        `Upload concluído com avisos: ${uploadedItems.length} enviada(s), ${totalFailed} falha(s).`,
-        false,
-        {
-          variant: 'warning',
-          help: [...invalidFiles, ...failedItems].slice(0, 2).join(' | '),
-        }
-      );
-    } else {
+    if (uploadedItems.length <= 0) {
       setMediaUploadStatus('Não foi possível enviar as imagens selecionadas.', true, {
         variant: 'error',
         help: [...invalidFiles, ...failedItems].slice(0, 2).join(' | '),
       });
+    } else {
+      setMediaUploadStatus('Upload concluído. Salvando alterações...', false, {
+        variant: 'loading',
+        progress: 100,
+        help: 'Aguarde a confirmação de salvamento.',
+      });
+
+      const saveOk = await saveEditorConfig();
+      if (saveOk && totalFailed === 0) {
+        setMediaUploadStatus(`Galeria enviada e salva com sucesso (${uploadedItems.length} imagem(ns)).`, false, {
+          variant: 'success',
+          progress: 100,
+          help: 'Pronto. O convite já está atualizado.',
+        });
+      } else if (saveOk) {
+        setMediaUploadStatus(
+          `Galeria salva com avisos: ${uploadedItems.length} enviada(s), ${totalFailed} falha(s).`,
+          false,
+          {
+            variant: 'warning',
+            progress: 100,
+            help: [...invalidFiles, ...failedItems].slice(0, 2).join(' | '),
+          }
+        );
+      } else {
+        setMediaUploadStatus(
+          `Upload concluído (${uploadedItems.length} enviada(s)), mas o salvamento falhou.`,
+          true,
+          {
+            variant: 'error',
+            progress: 100,
+            help: 'Tente novamente pelo botão Salvar alterações do editor.',
+          }
+        );
+      }
     }
 
     if (input) {
@@ -2996,7 +3052,7 @@ function collectEditorValues() {
   return config;
 }
 
-async function saveEditorConfig(uploadType = null) {
+async function saveEditorConfig() {
   const config = collectEditorValues();
 
   if (!state.eventId) {
@@ -3024,38 +3080,13 @@ async function saveEditorConfig(uploadType = null) {
     applySiteConfig(savedConfig);
     updateEditorSaveStatus('As informações do seu convite foram salvas ✓');
     showSectionFootersSaved();
-    
-    // Mostrar mensagem de sucesso do upload se aplicável
-    if (uploadType) {
-      showUploadSuccessMessage(uploadType);
-    }
-    
+
     return true;
   } catch (error) {
     console.error('[saveEditorConfig]', error);
     updateEditorSaveStatus('Erro ao salvar no servidor');
     return false;
   }
-}
-
-function showUploadSuccessMessage(uploadType) {
-  const successElMap = {
-    'hero': 'edMediaHeroSaveSuccess',
-    'gallery': 'edMediaGallerySaveSuccess',
-    'pixqr': 'edGiftPixSaveSuccess'
-  };
-  
-  const elId = successElMap[uploadType];
-  if (!elId) return;
-  
-  const successEl = document.getElementById(elId);
-  if (!successEl) return;
-  
-  successEl.style.display = 'flex';
-  
-  setTimeout(() => {
-    successEl.style.display = 'none';
-  }, 4000);
 }
 
 // ============================================================

@@ -2278,16 +2278,6 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
                   <div class="upload-progress" hidden><div class="upload-progress-bar"></div></div>
                   <div class="upload-status-help"></div>
                 </div>
-
-                <button type="button" class="btn btn-primary" style="margin-top:10px;width:100%;justify-content:center" onclick="saveEditorConfig('pixqr')" title="Salvar alterações de presente">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-                  <span>Salvar presente</span>
-                </button>
-
-                <div id="edGiftPixSaveSuccess" style="display:none;margin-top:10px;padding:10px 14px;background:rgba(88,186,129,0.08);border:1px solid rgba(88,186,129,0.5);color:var(--success);font-size:11px;letter-spacing:0.06em;border-radius:4px;text-align:center;align-items:center;gap:6px">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-                  <span>QR Pix salvo com sucesso!</span>
-                </div>
               </div>
             </div>
 
@@ -2434,7 +2424,7 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
           <div class="editor-section-body">
             <div class="upload-guidance">
               <div class="upload-guidance-title">Antes de enviar</div>
-              <div class="upload-guidance-text">Use imagens JPG, PNG ou WEBP de até 10 MB por arquivo. Depois do envio, clique em <strong>Salvar alterações</strong> para publicar no convite.</div>
+              <div class="upload-guidance-text">Use imagens JPG, PNG ou WEBP de até 10 MB por arquivo. O sistema salva automaticamente ao final de cada envio.</div>
             </div>
             <div class="media-preview-wrap" id="edMediaHeroPreviewWrap" style="display:none">
               <div class="field-label" style="margin-bottom:8px">Foto atual do hero</div>
@@ -2471,11 +2461,6 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
               <div class="upload-status-help"></div>
             </div>
 
-            <button type="button" class="btn btn-primary" style="margin-top:10px;width:100%;justify-content:center" onclick="saveEditorConfig()" title="Salvar alterações de foto">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-              <span>Salvar foto</span>
-            </button>
-
             <div class="editor-rule"></div>
             <span class="editor-sub-label">Galeria da página Nossa História</span>
 
@@ -2502,16 +2487,6 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
               </div>
               <div class="upload-progress" hidden><div class="upload-progress-bar"></div></div>
               <div class="upload-status-help"></div>
-            </div>
-
-            <button type="button" class="btn btn-primary" style="margin-top:10px;width:100%;justify-content:center" onclick="saveEditorConfig('gallery')" title="Salvar alterações de galeria">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-              <span>Salvar galeria</span>
-            </button>
-
-            <div id="edMediaGallerySaveSuccess" style="display:none;margin-top:10px;padding:10px 14px;background:rgba(88,186,129,0.08);border:1px solid rgba(88,186,129,0.5);color:var(--success);font-size:11px;letter-spacing:0.06em;border-radius:4px;text-align:center;display:flex;align-items:center;justify-content:center;gap:6px">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-              <span>Galeria salva com sucesso!</span>
             </div>
 
             <div class="editor-rule"></div>
