@@ -264,9 +264,7 @@ async function hydrateDashboardEventContext() {
   }
 
   if (data?.event?.slug) {
-    state.eventSlug = data.event.slug;
-    const previewBtn = document.getElementById('btnPreviewInvite');
-    if (previewBtn) previewBtn.href = `${window.location.origin}/${state.eventSlug}`;
+    syncDashboardEventSlug(data.event.slug);
   }
 
   if (data?.config) {
@@ -301,15 +299,17 @@ async function handleAuth(event) {
     
     // Progresso 20% - autenticação iniciada
     setLoginLoadingProgress(20);
-    const supabase = await getDashboardSupabaseClient();
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
+    const response = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
     });
 
-    if (error || !data?.session?.access_token) {
+    const data = await response.json().catch(() => ({}));
+
+    if (!response.ok || !data?.session?.access_token) {
       hideLoginLoadingScreen();
-      showAuthError(normalizeDashboardAuthMessage(error?.message || 'Erro na autenticação'));
+      showAuthError(normalizeDashboardAuthMessage(data.error || 'Erro na autenticação'));
       return;
     }
 
@@ -317,6 +317,7 @@ async function handleAuth(event) {
     setLoginLoadingProgress(40);
     state.authToken = data.session.access_token;
     sessionStorage.setItem(DASHBOARD_ACCESS_TOKEN_STORAGE_KEY, state.authToken);
+    sessionStorage.setItem(DASHBOARD_SUPABASE_STORAGE_KEY, JSON.stringify(data.session));
 
     // Limpar form
     authForm.reset();
@@ -397,8 +398,20 @@ function normalizeDashboardAuthMessage(message) {
     return 'E-mail ou senha inválidos. Confira os dados e tente novamente.';
   }
 
+  if (normalized.includes('e-mail ou senha inválidos')) {
+    return 'E-mail ou senha inválidos. Confira os dados e tente novamente.';
+  }
+
   if (normalized.includes('email not confirmed')) {
     return 'Confirme seu e-mail antes de acessar o dashboard.';
+  }
+
+  if (normalized.includes('confirme seu e-mail')) {
+    return 'Confirme seu e-mail antes de acessar o dashboard.';
+  }
+
+  if (normalized.includes('falha de conexão com o supabase')) {
+    return 'Falha de conexão com o Supabase. Verifique a configuração do ambiente.';
   }
 
   if (normalized.includes('too many requests') || normalized.includes('rate limit')) {
@@ -1441,17 +1454,7 @@ function buildGuestInviteLink(token, explicitLink = '') {
 }
 
 function syncPreviewInviteLink(slug) {
-  const normalizedSlug = String(slug || '').trim();
-  if (!normalizedSlug) {
-    return;
-  }
-
-  state.eventSlug = normalizedSlug;
-
-  const previewBtn = document.getElementById('btnPreviewInvite');
-  if (previewBtn) {
-    previewBtn.href = `${window.location.origin}/${encodeURIComponent(normalizedSlug)}`;
-  }
+  syncDashboardEventSlug(slug);
 }
 
 function sendInviteWhatsApp(grupoId) {
@@ -1700,6 +1703,48 @@ const LAYOUT_THEMES = {
     { key: 'black-silver', label: 'Moderno Preto & Prata' },
   ],
 };
+
+function resolveDashboardThemePath(activeTheme, layoutKey = 'classic') {
+  const themeValue = String(activeTheme || '').trim();
+  if (!themeValue) {
+    return '';
+  }
+
+  if (themeValue.startsWith('assets/')) {
+    return themeValue;
+  }
+
+  return `assets/layouts/${layoutKey}/themes/${themeValue}.json`;
+}
+
+function extractDashboardThemeKey(activeThemePath) {
+  const themePath = String(activeThemePath || '').trim();
+  if (!themePath) {
+    return '';
+  }
+
+  const match = themePath.match(/\/themes\/([^/]+)\.json$/i);
+  return match ? match[1] : themePath;
+}
+
+function syncDashboardEventSlug(slug) {
+  const normalizedSlug = String(slug || '').trim();
+  if (!normalizedSlug) {
+    return;
+  }
+
+  state.eventSlug = normalizedSlug;
+
+  const previewBtn = document.getElementById('btnPreviewInvite');
+  if (previewBtn) {
+    previewBtn.href = `${window.location.origin}/${encodeURIComponent(normalizedSlug)}`;
+  }
+
+  const currentUrl = new URL(window.location.href);
+  currentUrl.searchParams.set('slug', normalizedSlug);
+  const nextUrl = `${currentUrl.pathname}${currentUrl.search}${currentUrl.hash}`;
+  history.replaceState(null, '', nextUrl);
+}
 
 function loadEditorTab() {
   if (!state.eventId) {
@@ -2857,16 +2902,23 @@ function populateThemeSelect(layout, currentPath) {
   if (!select) return;
 
   const themes = LAYOUT_THEMES[layout] || LAYOUT_THEMES.classic;
+  const normalizedCurrentPath = resolveDashboardThemePath(currentPath, layout);
   select.innerHTML = themes.map(t => {
     const path = `assets/layouts/${layout}/themes/${t.key}.json`;
-    const sel  = currentPath === path ? ' selected' : '';
+    const sel  = normalizedCurrentPath === path ? ' selected' : '';
     return `<option value="${escapeHtml(path)}"${sel}>${escapeHtml(t.label)}</option>`;
   }).join('');
+
+  if (!select.value && themes.length > 0) {
+    select.value = `assets/layouts/${layout}/themes/${themes[0].key}.json`;
+  }
 }
 
 function onLayoutChange() {
   const layout = document.getElementById('edActiveLayout')?.value || 'classic';
-  populateThemeSelect(layout, '');
+  const currentTheme = document.getElementById('edActiveTheme')?.value || '';
+  const currentThemeKey = extractDashboardThemeKey(currentTheme);
+  populateThemeSelect(layout, currentThemeKey);
 }
 
 // ── Catálogo de presentes ─────────────────────────────────────
@@ -3181,7 +3233,8 @@ function collectEditorValues() {
 
   // Tema
   config.activeLayout = document.getElementById('edActiveLayout')?.value || 'classic';
-  config.activeTheme  = document.getElementById('edActiveTheme')?.value  || config.activeTheme;
+  const rawThemeValue = document.getElementById('edActiveTheme')?.value || config.activeTheme;
+  config.activeTheme = resolveDashboardThemePath(rawThemeValue, config.activeLayout) || config.activeTheme;
 
   // WhatsApp & RSVP
   if (!config.whatsapp) config.whatsapp = {};
@@ -3286,6 +3339,7 @@ async function saveEditorConfig(silent = false) {
       return false;
     }
 
+    syncDashboardEventSlug(data?.event?.slug);
     const savedConfig = data?.config && typeof data.config === 'object' ? data.config : config;
     window.__SITE_CONFIG__ = savedConfig;
     editorState.isDirty = false;
@@ -3813,7 +3867,10 @@ async function maybeShowWizard(config) {
     if (disp) disp.value = existingNames;
   }
 
-  _wizardSelectedTheme = config.activeTheme || 'classic-gold';
+  _wizardSelectedTheme = extractDashboardThemeKey(config.activeTheme || 'classic-gold') || 'classic-gold';
+  if (!WIZARD_THEME_KEYS.includes(_wizardSelectedTheme)) {
+    _wizardSelectedTheme = 'classic-gold';
+  }
   _populateWizardTimeOptions(config?.event?.time || '17:00');
 
   const dateInput = document.getElementById('wzDate');
@@ -3905,7 +3962,7 @@ async function _saveWizard() {
   const dateLabels = dateVal ? _wizardDeriveDateLabels(dateVal) : {};
 
   const configPatch = {
-    activeTheme:  _wizardSelectedTheme,
+    activeTheme:  resolveDashboardThemePath(_wizardSelectedTheme, 'classic'),
     activeLayout: 'classic',
     couple: {
       names: displayName,

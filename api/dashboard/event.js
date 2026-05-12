@@ -59,12 +59,6 @@ function validateSlugCandidate(value) {
   return { ok: true, slug: normalized };
 }
 
-function buildDefaultEventSlug(coupleName, userId) {
-  const baseSlug = slugify(coupleName) || 'casal';
-  const userSuffix = slugify(String(userId || '').slice(0, 8)) || Date.now().toString(36);
-  return `${baseSlug}-${userSuffix}`;
-}
-
 function splitCoupleNames(value) {
   const source = String(value || '').trim();
   if (!source) {
@@ -289,60 +283,6 @@ async function seedDefaultEventGifts(supabase, eventId) {
   }
 }
 
-async function ensureOwnedEventExists(supabase, user) {
-  const { data: existingEvent, error: existingError } = await supabase
-    .from('events')
-    .select('id,slug')
-    .eq('user_id', user.id)
-    .maybeSingle();
-
-  if (existingError) {
-    throw existingError;
-  }
-
-  if (existingEvent) {
-    return existingEvent;
-  }
-
-  const { data: profile, error: profileError } = await supabase
-    .from('profiles')
-    .select('couple_name,whatsapp')
-    .eq('id', user.id)
-    .maybeSingle();
-
-  if (profileError) {
-    throw profileError;
-  }
-
-  const coupleName = String(profile?.couple_name || 'Novo Casal').trim() || 'Novo Casal';
-  const whatsapp = String(profile?.whatsapp || '').replace(/\D/g, '');
-  const slug = buildDefaultEventSlug(coupleName, user.id);
-  const config = buildInitialEventConfig({ coupleName, slug, whatsapp });
-  const seedFields = buildInitialEventTableFields();
-
-  const { data: createdEvent, error: createError } = await supabase
-    .from('events')
-    .insert({
-      slug,
-      user_id: user.id,
-      couple_names: coupleName,
-      active_theme: 'classic-gold',
-      active_layout: 'classic',
-      ...seedFields,
-      config,
-    })
-    .select('id,slug')
-    .maybeSingle();
-
-  if (createError) {
-    throw createError;
-  }
-
-  await seedDefaultEventGifts(supabase, createdEvent?.id);
-
-  return createdEvent;
-}
-
 /**
  * Extrai campos que vão direto na tabela events a partir do config completo
  */
@@ -439,14 +379,6 @@ export default async function handler(req, res) {
         allowFallbackOwnedEvent: true,
         selectClause: `${EVENT_RESPONSE_SELECT},event_gifts(id,type,enabled,sort_order,config)`,
       });
-
-      if (!ownedEvent.ok && ownedEvent.status === 404 && ownedEvent.supabase && ownedEvent.user) {
-        await ensureOwnedEventExists(ownedEvent.supabase, ownedEvent.user);
-        ownedEvent = await requireOwnedEvent(req, {
-          allowFallbackOwnedEvent: true,
-          selectClause: `${EVENT_RESPONSE_SELECT},event_gifts(id,type,enabled,sort_order,config)`,
-        });
-      }
 
       if (!ownedEvent.ok) {
         return res.status(ownedEvent.status).json({ error: ownedEvent.error });

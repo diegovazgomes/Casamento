@@ -169,6 +169,56 @@ describe('/api/dashboard/event', () => {
     });
   });
 
+  it('falls back to the latest owned event on GET when slug lookup is stale', async () => {
+    const staleLookupBuilder = createSelectBuilder({ data: null, error: null });
+    const latestOwnedBuilder = createOrderedSelectBuilder({
+      data: {
+        id: 'event-2',
+        slug: 'ana-leo-2026-novo',
+        user_id: 'user-1',
+        active_theme: 'assets/layouts/classic/themes/classic-gold.json',
+        active_layout: 'classic',
+        updated_at: '2026-05-12T12:00:00.000Z',
+        couple_names: 'Ana & Leo',
+        bride_name: 'Ana',
+        groom_name: 'Leo',
+        event_date: '2026-09-06',
+        event_time: '17:00:00',
+        venue_name: 'Casa da Serra',
+        venue_address: 'Rua das Flores, 123',
+        venue_maps_link: 'https://maps.example.com',
+        config: {},
+        event_gifts: [],
+      },
+      error: null,
+    });
+
+    const fromMock = vi.fn()
+      .mockReturnValueOnce(staleLookupBuilder)
+      .mockReturnValueOnce(latestOwnedBuilder);
+
+    createClientMock.mockReturnValue({
+      auth: {
+        getUser: vi.fn().mockResolvedValue({ data: { user: { id: 'user-1' } }, error: null }),
+      },
+      from: fromMock,
+      storage: createStorageMock(),
+    });
+
+    const { default: handler } = await import('../../api/dashboard/event.js');
+    const res = createMockResponse();
+
+    await handler({
+      method: 'GET',
+      headers: { authorization: 'Bearer valid-token' },
+      query: { slug: 'ana-leo-2026-antigo' },
+    }, res);
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.event.slug).toBe('ana-leo-2026-novo');
+    expect(fromMock).toHaveBeenCalledTimes(2);
+  });
+
   it('updates allowed fields and deep-merges config for the authenticated owner', async () => {
     const currentEventBuilder = createSelectBuilder({
       data: {
@@ -194,10 +244,11 @@ describe('/api/dashboard/event', () => {
         venue_name: 'Venue',
         venue_address: 'Address',
         venue_maps_link: 'https://maps.google.com',
-        active_theme: 'classic-blue',
+        active_theme: 'assets/layouts/classic/themes/classic-blue.json',
         active_layout: 'classic',
         updated_at: '2026-04-26T10:00:00Z',
         config: {
+          activeTheme: 'assets/layouts/classic/themes/classic-blue.json',
           texts: { metaTitle: 'Depois' },
           pages: { faq: { enabled: true }, historia: { enabled: true } },
         },
@@ -229,7 +280,7 @@ describe('/api/dashboard/event', () => {
       body: {
         eventId: 'event-1',
         config: {
-          activeTheme: 'classic-blue',
+          activeTheme: 'assets/layouts/classic/themes/classic-blue.json',
           texts: { metaTitle: 'Depois' },
           pages: { historia: { enabled: true } },
         },
@@ -238,9 +289,9 @@ describe('/api/dashboard/event', () => {
 
     expect(res.statusCode).toBe(200);
     expect(updatedEventBuilder.update).toHaveBeenCalledWith({
-      active_theme: 'classic-blue',
+      active_theme: 'assets/layouts/classic/themes/classic-blue.json',
       config: {
-        activeTheme: 'classic-blue',
+        activeTheme: 'assets/layouts/classic/themes/classic-blue.json',
         texts: { metaTitle: 'Depois' },
         pages: { faq: { enabled: true }, historia: { enabled: true } },
       },
@@ -258,7 +309,7 @@ describe('/api/dashboard/event', () => {
         venue_name: 'Venue',
         venue_address: 'Address',
         venue_maps_link: 'https://maps.google.com',
-        active_theme: 'classic-blue',
+        active_theme: 'assets/layouts/classic/themes/classic-blue.json',
         active_layout: 'classic',
         updated_at: '2026-04-26T10:00:00Z',
       },
