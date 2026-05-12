@@ -299,17 +299,15 @@ async function handleAuth(event) {
     
     // Progresso 20% - autenticação iniciada
     setLoginLoadingProgress(20);
-    const response = await fetch('/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
+    const supabase = await getDashboardSupabaseClient();
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
     });
 
-    const data = await response.json().catch(() => ({}));
-
-    if (!response.ok || !data?.session?.access_token) {
+    if (error || !data?.session?.access_token) {
       hideLoginLoadingScreen();
-      showAuthError(normalizeDashboardAuthMessage(data.error || 'Erro na autenticação'));
+      showAuthError(normalizeDashboardAuthMessage(error?.message || 'Erro na autenticação'));
       return;
     }
 
