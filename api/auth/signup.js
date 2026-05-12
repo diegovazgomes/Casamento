@@ -157,9 +157,8 @@ function slugify(value) {
 }
 
 function buildDefaultEventSlug(coupleName, userId) {
-  const baseSlug = slugify(coupleName) || 'casal';
   const userSuffix = slugify(String(userId || '').slice(0, 8)) || Date.now().toString(36);
-  return `${baseSlug}-${userSuffix}`;
+  return `convite-${userSuffix}`;
 }
 
 const MONTHS_SHORT = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
@@ -292,15 +291,19 @@ async function seedDefaultEventGifts(supabase, eventId) {
 }
 
 async function ensureInitialEventForUser(supabase, { userId, coupleName, brideName, groomName, whatsapp }) {
-  const { data: existingEvent, error: existingError } = await supabase
+  const { data: existingEvents, error: existingError } = await supabase
     .from('events')
     .select('id,slug')
     .eq('user_id', userId)
-    .maybeSingle();
+    .order('updated_at', { ascending: false })
+    .order('created_at', { ascending: false })
+    .limit(1);
 
   if (existingError) {
     throw existingError;
   }
+
+  const existingEvent = Array.isArray(existingEvents) ? existingEvents[0] : null;
 
   if (existingEvent) {
     return existingEvent;
@@ -327,6 +330,27 @@ async function ensureInitialEventForUser(supabase, { userId, coupleName, brideNa
     .maybeSingle();
 
   if (createError) {
+    // Evita corrida de criação: se outra requisição criou o evento antes,
+    // reaproveita o existente em vez de falhar o onboarding.
+    if (String(createError?.code || '') === '23505') {
+      const { data: conflictEvents, error: conflictError } = await supabase
+        .from('events')
+        .select('id,slug')
+        .eq('user_id', userId)
+        .order('updated_at', { ascending: false })
+        .order('created_at', { ascending: false })
+        .limit(1);
+
+      if (conflictError) {
+        throw conflictError;
+      }
+
+      const conflictedEvent = Array.isArray(conflictEvents) ? conflictEvents[0] : null;
+      if (conflictedEvent) {
+        return conflictedEvent;
+      }
+    }
+
     throw createError;
   }
 

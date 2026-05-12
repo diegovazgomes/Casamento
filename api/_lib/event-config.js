@@ -373,8 +373,12 @@ export function buildEventConfigResponse(eventRecord) {
   const sourceConfig = isPlainObject(eventRecord?.config) ? cloneValue(eventRecord.config) : {};
   const nextConfig = mergeDeep(sourceConfig, {});
 
-  setIfDefined(nextConfig, 'activeTheme', eventRecord?.active_theme);
-  setIfDefined(nextConfig, 'activeLayout', eventRecord?.active_layout);
+  if (!String(nextConfig.activeTheme || '').trim()) {
+    setIfDefined(nextConfig, 'activeTheme', eventRecord?.active_theme);
+  }
+  if (!String(nextConfig.activeLayout || '').trim()) {
+    setIfDefined(nextConfig, 'activeLayout', eventRecord?.active_layout);
+  }
 
   nextConfig.couple = mergeDeep(nextConfig.couple, {});
   setIfDefined(nextConfig.couple, 'names', eventRecord?.couple_names);
