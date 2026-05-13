@@ -2294,8 +2294,14 @@ function resolveUploadFileExtension(file) {
   return 'bin';
 }
 
+function getEventStorageRoot() {
+  // The API always prefers slug over ID as storage root.
+  // Direct uploads must use the same root to keep paths consistent.
+  return String(state.eventSlug || state.eventId || '').trim();
+}
+
 function buildMediaStoragePath(type, file) {
-  const storageRoot = String(state.eventId || '').trim();
+  const storageRoot = getEventStorageRoot();
   if (!storageRoot) {
     throw new Error('Evento não carregado no dashboard. Recarregue a página.');
   }
@@ -2373,9 +2379,10 @@ async function uploadMediaFileDirect(type, file, options = {}) {
   }
 
   if (type === 'hero' || type === 'pix-qr') {
+    const storageRoot = getEventStorageRoot();
     const folderPrefix = type === 'hero'
-      ? `${state.eventId}/hero`
-      : `${state.eventId}/pix`;
+      ? `${storageRoot}/hero`
+      : `${storageRoot}/pix`;
     const newFileName = storagePath.replace(`${folderPrefix}/`, '');
     await removeOtherMediaFilesInFolder(storage, folderPrefix, newFileName);
   }
