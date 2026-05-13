@@ -2865,14 +2865,12 @@ function renderMediaGalleryGrid(images) {
       <img src="${src}" alt="${alt}" onerror="this.style.opacity=0.3">
       <div class="media-gallery-card-overlay">
         <div class="media-gallery-card-top">
-          <span class="media-gallery-card-badge">${index + 1}</span>
+          <span class="media-gallery-order">${index + 1}</span>
           <input type="checkbox" class="media-gallery-check" aria-label="Selecionar ${alt}" ${checked}
             onchange="toggleGalleryImageSelectionByIndex(${index}, this.checked)">
         </div>
         <div class="media-gallery-card-bottom">
-          <span class="media-gallery-card-badge">${name || 'imagem'}</span>
           <div class="media-gallery-actions">
-            <button type="button" class="media-gallery-action-btn media-gallery-drag-handle" title="Arrastar para ordenar">↕</button>
             <button type="button" class="media-gallery-action-btn" title="Mover para cima" ${index === 0 ? 'disabled' : ''}
               onclick="moveGalleryImageByOffset(${index}, -1)">↑</button>
             <button type="button" class="media-gallery-action-btn" title="Mover para baixo" ${index === images.length - 1 ? 'disabled' : ''}
