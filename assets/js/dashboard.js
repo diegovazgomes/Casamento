@@ -2715,6 +2715,71 @@ async function fetchSongsList(currentSrc = '') {
   }
 }
 
+// ── Preview de música no editor ──────────────────────────────────────────────
+
+let _previewAudio = null;
+
+function _updatePreviewStatus(text, isError = false) {
+  const el = document.getElementById('edPreviewStatus');
+  if (el) {
+    el.textContent = text;
+    el.style.color = isError ? '#e74c3c' : '';
+  }
+}
+
+function audioPreviewPlay() {
+  const src    = document.getElementById('edTrackSrc')?.value;
+  const volume = parseFloat(document.getElementById('edTrackVolume')?.value) || 0.14;
+  const start  = parseInt(document.getElementById('edTrackStart')?.value)    || 0;
+
+  if (!src) {
+    _updatePreviewStatus('Selecione uma música primeiro.', true);
+    return;
+  }
+
+  const isNewSrc = !_previewAudio || _previewAudio.src !== src;
+  if (isNewSrc) {
+    if (_previewAudio) _previewAudio.pause();
+    _previewAudio = new Audio(src);
+    _previewAudio.loop = true;
+    _previewAudio.onerror = () => _updatePreviewStatus('Erro ao carregar áudio.', true);
+  }
+
+  _previewAudio.volume = volume;
+  _updatePreviewStatus('Carregando…');
+
+  const doPlay = () => {
+    try { _previewAudio.currentTime = start; } catch {}
+    _previewAudio.play()
+      .then(() => _updatePreviewStatus('▶ Tocando'))
+      .catch(() => _updatePreviewStatus('Erro ao reproduzir.', true));
+  };
+
+  if (_previewAudio.readyState >= 1) {
+    doPlay();
+  } else {
+    _previewAudio.addEventListener('loadedmetadata', doPlay, { once: true });
+    _previewAudio.load();
+  }
+}
+
+function audioPreviewPause() {
+  if (!_previewAudio || _previewAudio.paused) {
+    _updatePreviewStatus('Nada tocando.');
+    return;
+  }
+  _previewAudio.pause();
+  _updatePreviewStatus('⏸ Pausado');
+}
+
+function audioPreviewStop() {
+  if (!_previewAudio) return;
+  _previewAudio.pause();
+  const start = parseInt(document.getElementById('edTrackStart')?.value) || 0;
+  try { _previewAudio.currentTime = start; } catch {}
+  _updatePreviewStatus('⏹ Parado');
+}
+
 async function requestGalleryReorder(orderNames) {
   const response = await fetchWithAuth('/api/dashboard/media', {
     method: 'PATCH',

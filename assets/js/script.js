@@ -10,6 +10,7 @@ import { onConfigLoaded } from './debug-badge.js';
 
 const TYPOGRAPHY_CONFIG_URL = 'assets/config/typography.json';
 const INVITATION_STARTED_STORAGE_KEY = 'wedding-invitation-started';
+const AUDIO_PAUSED_STORAGE_KEY = 'wedding-audio-paused';
 const NAVIGATION_SECTION_PARAM = 'section';
 const GUEST_TOKEN_API_URL = '/api/guest-token';
 
@@ -587,6 +588,9 @@ class InvitationExperience {
         this.rsvp = null;
         this.presentPage = new PresentPage();
         this.audio = new AudioController(this.getAudioTracks());
+        if (this.wasAudioPaused()) {
+            this.audio.userPaused = true;
+        }
         this.hasStarted = false;
         this.mainInitialized = false;
 
@@ -729,9 +733,21 @@ class InvitationExperience {
         this.initializeMainSite();
         if (audioPromise) {
             await audioPromise;
-        } else if (this.isAudioEnabled()) {
+        } else if (this.isAudioEnabled() && !this.audio.userPaused) {
             await this.audio.unlock();
-            await this.audio.setContext(this.getInitialAudioContext());
+            const _ctx = this.getInitialAudioContext();
+            const _played = await this.audio.setContext(_ctx);
+            if (!_played) {
+                // Autoplay bloqueado pelo navegador — tenta no primeiro gesto do usuário
+                const _tryResume = async () => {
+                    if (!this.audio.userPaused) {
+                        await this.audio.setContext(_ctx);
+                        this.syncAudioButton();
+                    }
+                };
+                document.addEventListener('click', _tryResume, { once: true, passive: true });
+                document.addEventListener('touchstart', _tryResume, { once: true, passive: true });
+            }
         }
 
         this.syncAudioButton();
@@ -839,6 +855,21 @@ class InvitationExperience {
         }
     }
 
+    wasAudioPaused() {
+        try {
+            return window.sessionStorage.getItem(AUDIO_PAUSED_STORAGE_KEY) === 'true';
+        } catch {
+            return false;
+        }
+    }
+
+    markAudioPaused(paused) {
+        try {
+            window.sessionStorage.setItem(AUDIO_PAUSED_STORAGE_KEY, String(Boolean(paused)));
+        } catch {
+        }
+    }
+
     syncAudioButton() {
         if (!this.audioToggle) {
             return;
@@ -853,6 +884,7 @@ class InvitationExperience {
             hasError: Boolean(this.audio.lastError)
         };
 
+        this.markAudioPaused(detail.userPaused);
         this.audioToggle.hidden = !this.hasStarted || !this.isAudioEnabled();
         this.audioToggle.classList.toggle('is-paused', detail.userPaused || !detail.isPlaying);
         this.audioToggle.classList.toggle('is-disabled', detail.hasError && !detail.isPlaying);

@@ -2661,6 +2661,23 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
               </div>
             </div>
 
+            <div style="margin-top:14px;display:flex;align-items:center;gap:8px;padding:8px 14px;border-radius:8px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.09)">
+              <span style="font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.08em;opacity:.55;min-width:58px">Testar</span>
+              <button type="button" onclick="audioPreviewPlay()" title="Play"
+                      style="width:30px;height:30px;padding:0;border-radius:50%;border:1.5px solid var(--primary);background:transparent;color:var(--primary);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0">
+                <svg width="10" height="12" viewBox="0 0 10 12" fill="currentColor"><path d="M0 0l10 6-10 6V0z"/></svg>
+              </button>
+              <button type="button" onclick="audioPreviewPause()" title="Pausar"
+                      style="width:30px;height:30px;padding:0;border-radius:50%;border:1.5px solid rgba(255,255,255,0.18);background:transparent;color:inherit;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0">
+                <svg width="10" height="12" viewBox="0 0 10 12" fill="currentColor"><rect x="0" y="0" width="3.5" height="12"/><rect x="6.5" y="0" width="3.5" height="12"/></svg>
+              </button>
+              <button type="button" onclick="audioPreviewStop()" title="Parar"
+                      style="width:30px;height:30px;padding:0;border-radius:50%;border:1.5px solid rgba(255,255,255,0.18);background:transparent;color:inherit;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0">
+                <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor"><rect x="0" y="0" width="10" height="10"/></svg>
+              </button>
+              <span id="edPreviewStatus" style="font-size:12px;opacity:.6;margin-left:4px"></span>
+            </div>
+
             <div class="editor-section-footer" id="footer-edSectionMidia">
               <span class="footer-warning-msg">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
