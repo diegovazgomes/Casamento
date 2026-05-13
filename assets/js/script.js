@@ -593,6 +593,7 @@ class InvitationExperience {
         }
         this.hasStarted = false;
         this.mainInitialized = false;
+        this.heroResponsiveModeBound = false;
 
         this.introScreen = document.getElementById('introScreen');
         this.openInviteButton = document.getElementById('openInviteButton');
@@ -991,6 +992,7 @@ class InvitationExperience {
             heroPhoto.setAttribute('src', heroImage);
             heroPhoto.setAttribute('alt', this.config.texts?.heroPhotoAlt || `${names.names} em retrato do casal`);
         }
+        this.setupDesktopHeroImageMode(heroPhoto);
 
         setText('mainFooterNames', names.names);
         setText('mainFooterNote', this.config.texts?.footerNote);
@@ -1002,6 +1004,48 @@ class InvitationExperience {
                 greeting.removeAttribute('hidden');
             }
         }
+    }
+
+    setupDesktopHeroImageMode(heroPhoto) {
+        if (!heroPhoto || this.heroResponsiveModeBound) {
+            this.applyDesktopHeroImageMode(heroPhoto);
+            return;
+        }
+
+        const updateHeroMode = () => this.applyDesktopHeroImageMode(heroPhoto);
+
+        heroPhoto.addEventListener('load', updateHeroMode);
+        window.addEventListener('resize', () => {
+            window.requestAnimationFrame(updateHeroMode);
+        }, { passive: true });
+
+        this.heroResponsiveModeBound = true;
+        updateHeroMode();
+    }
+
+    applyDesktopHeroImageMode(heroPhoto) {
+        const hero = document.getElementById('hero');
+        if (!hero) {
+            return;
+        }
+
+        hero.classList.remove('hero--full-photo', 'hero--cover-photo');
+
+        if (!heroPhoto || !window.matchMedia('(min-width: 768px)').matches) {
+            return;
+        }
+
+        const naturalWidth = Number(heroPhoto.naturalWidth || 0);
+        const naturalHeight = Number(heroPhoto.naturalHeight || 0);
+
+        if (!naturalWidth || !naturalHeight) {
+            return;
+        }
+
+        const aspectRatio = naturalWidth / naturalHeight;
+        const shouldShowFullImage = aspectRatio < 1.35;
+
+        hero.classList.add(shouldShowFullImage ? 'hero--full-photo' : 'hero--cover-photo');
     }
 
     setEventDetails() {

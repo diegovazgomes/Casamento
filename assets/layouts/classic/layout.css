@@ -1544,6 +1544,31 @@
 }
 
 @media (min-width: 768px) {
+    .hero.hero--cover-photo .hero-photo {
+        object-fit: cover;
+        object-position: center top;
+    }
+
+    .hero.hero--full-photo {
+        align-items: flex-end;
+        padding-bottom: 72px;
+    }
+
+    .hero.hero--full-photo .hero-photo {
+        object-fit: contain;
+        object-position: center center;
+        background: #0e0d0b;
+    }
+
+    .hero.hero--full-photo .hero-overlay {
+        background: linear-gradient(to bottom, rgba(14, 13, 11, 0.2) 0%, rgba(14, 13, 11, 0.4) 62%, rgba(14, 13, 11, 0.88) 100%);
+    }
+
+    .hero.hero--full-photo .hero-content {
+        width: min(100%, 760px);
+        padding-bottom: max(calc(var(--hero-content-padding-bottom) + 34px), calc(var(--scroll-hint-bottom) + var(--scroll-arrow-height) + 24px));
+    }
+
     .detail-card-gift {
         max-width: calc((100% - var(--details-grid-gap)) / 2);
     }
