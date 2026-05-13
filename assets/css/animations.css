@@ -297,7 +297,7 @@ html.ls-pending::before {
     stroke: #c9a55a;
     stroke-width: 1.5;
     stroke-linecap: round;
-    stroke-dasharray: 90 790;
+    stroke-dasharray: 90 766;
     stroke-dashoffset: 0;
     animation: brandBeamTravel 3.1s linear infinite;
     animation-delay: 2.8s;
@@ -562,7 +562,7 @@ html.ls-pending::before {
 
 @keyframes brandBeamTravel {
     to {
-        stroke-dashoffset: -880; /* perimetro: 2 × (336 + 104) = 880 */
+        stroke-dashoffset: -856; /* perimetro real: 2×(308+76) + 2π×14 ≈ 856 (inclui arcos rx=14) */
     }
 }
 

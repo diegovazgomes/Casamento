@@ -38,7 +38,7 @@ function buildLoadingHTML(prefill = null, options = {}) {
         <div class="brand-phase-center">
             <p class="brand-studio-tag">— DEVAZI STUDIO —</p>
             <div class="brand-name-frame">
-                <svg class="brand-frame-svg" viewBox="0 0 340 108" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <svg class="brand-frame-svg" viewBox="0 0 340 108" preserveAspectRatio="none" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                     <rect class="brand-frame-track" x="2" y="2" width="336" height="104" rx="14" ry="14"/>
                     <rect class="brand-frame-beam"  x="2" y="2" width="336" height="104" rx="14" ry="14"/>
                 </svg>
