@@ -24,6 +24,7 @@ const DASHBOARD_SUPABASE_STORAGE_KEY = 'dashboard-supabase-auth';
 const DASHBOARD_ACCESS_TOKEN_STORAGE_KEY = 'dashboard-access-token';
 
 let dashboardSupabaseClientPromise = null;
+let loginLoadingHideTimer = null;
 
 function redirectRecoveryCallbackToResetPage() {
   const currentUrl = new URL(window.location.href);
@@ -290,6 +291,11 @@ async function handleAuth(event) {
   // Mostrar tela de loading
   const loginLoadingScreen = document.getElementById('loginLoadingScreen');
   if (loginLoadingScreen) {
+    if (loginLoadingHideTimer) {
+      clearTimeout(loginLoadingHideTimer);
+      loginLoadingHideTimer = null;
+    }
+    loginLoadingScreen.classList.remove('is-hiding');
     loginLoadingScreen.removeAttribute('hidden');
   }
   setLoginLoadingProgress(0);
@@ -369,19 +375,54 @@ async function handleAuth(event) {
 function setLoginLoadingProgress(percent) {
   const progressBar = document.getElementById('loginLoadingProgress');
   const progressPercent = document.getElementById('loginLoadingPercent');
+  const progressTrack = document.querySelector('.login-loading-track[role="progressbar"]');
+  const progressStage = document.getElementById('loginLoadingStage');
+  const clampedPercent = Math.max(0, Math.min(100, Number(percent) || 0));
+
+  let stageLabel = 'Iniciando autenticação...';
+  if (clampedPercent >= 100) {
+    stageLabel = 'Finalizando acesso...';
+  } else if (clampedPercent >= 80) {
+    stageLabel = 'Carregando painel e confirmações...';
+  } else if (clampedPercent >= 60) {
+    stageLabel = 'Sincronizando evento...';
+  } else if (clampedPercent >= 40) {
+    stageLabel = 'Validando sessão...';
+  } else if (clampedPercent >= 20) {
+    stageLabel = 'Conectando com segurança...';
+  }
+
   if (progressBar) {
-    progressBar.style.width = percent + '%';
+    progressBar.style.width = `${clampedPercent}%`;
   }
   if (progressPercent) {
-    progressPercent.textContent = percent + '%';
+    progressPercent.textContent = `${clampedPercent}%`;
+  }
+  if (progressTrack) {
+    progressTrack.setAttribute('aria-valuenow', String(clampedPercent));
+  }
+  if (progressStage) {
+    progressStage.textContent = stageLabel;
   }
 }
 
 function hideLoginLoadingScreen() {
   const loginLoadingScreen = document.getElementById('loginLoadingScreen');
-  if (loginLoadingScreen) {
-    loginLoadingScreen.setAttribute('hidden', '');
+  if (!loginLoadingScreen) {
+    return;
   }
+
+  if (loginLoadingHideTimer) {
+    clearTimeout(loginLoadingHideTimer);
+    loginLoadingHideTimer = null;
+  }
+
+  loginLoadingScreen.classList.add('is-hiding');
+  loginLoadingHideTimer = setTimeout(() => {
+    loginLoadingScreen.setAttribute('hidden', '');
+    loginLoadingScreen.classList.remove('is-hiding');
+    loginLoadingHideTimer = null;
+  }, 360);
 }
 
 function normalizeDashboardAuthMessage(message) {

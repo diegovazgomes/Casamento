@@ -1036,58 +1036,199 @@ input[type="date"].field-input{width:100%;min-width:0;box-sizing:border-box;-web
 .login-loading-screen {
   position: fixed;
   inset: 0;
-  background: linear-gradient(135deg, #0e0d0b 0%, #1a1815 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
   z-index: 9999;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background:
+    radial-gradient(circle at 15% 15%, rgba(255,255,255,0.06) 0%, transparent 42%),
+    radial-gradient(circle at 82% 22%, rgba(192,192,192,0.10) 0%, transparent 45%),
+    linear-gradient(150deg, #0a0908 0%, #13110f 54%, #1c1916 100%);
   opacity: 1;
-  transition: opacity 0.4s ease;
+  transform: scale(1);
+  transition: opacity 0.35s ease, transform 0.35s ease;
 }
 
-.login-loading-screen[hidden] {
+.login-loading-screen.is-hiding {
   opacity: 0;
-  pointer-events: none;
+  transform: scale(1.02);
 }
 
-.login-loading-content {
+.login-loading-screen::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.012) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.012) 1px, transparent 1px);
+  background-size: 44px 44px;
+  opacity: 0.42;
+}
+
+.login-loading-shell {
+  position: relative;
+  width: min(100%, 460px);
+  padding: 34px 30px 28px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+  border: 1px solid var(--border);
+  box-shadow: 0 24px 56px rgba(0,0,0,0.45);
+  overflow: hidden;
+}
+
+.login-loading-shell::before,
+.login-loading-shell::after {
+  content: '';
+  position: absolute;
+  left: 20px;
+  right: 20px;
+  height: 1px;
+  background: linear-gradient(to right, transparent, var(--primary), transparent);
+  opacity: 0.48;
+}
+
+.login-loading-shell::before { top: 0; }
+.login-loading-shell::after { bottom: 0; }
+
+.login-loading-head {
+  margin-bottom: 22px;
   text-align: center;
-  max-width: 320px;
+}
+
+.login-loading-label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 9px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--primary-soft);
 }
 
 .login-loading-title {
-  font-size: 18px;
-  font-weight: 500;
-  color: #f0ebe1;
-  margin-bottom: 32px;
-  letter-spacing: 0.5px;
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(27px, 5vw, 34px);
+  font-weight: 400;
+  font-style: italic;
+  line-height: 1.08;
+  color: var(--text);
 }
 
-.login-loading-bar-wrap {
-  margin-bottom: 16px;
+.login-loading-sub {
+  margin-top: 6px;
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-dim);
 }
 
-.login-loading-bar {
+.login-loading-track-wrap {
+  position: relative;
+}
+
+.login-loading-track {
+  position: relative;
   width: 100%;
-  height: 4px;
-  background: rgba(201, 165, 90, 0.15);
-  border-radius: 2px;
+  height: 8px;
+  background: linear-gradient(90deg, rgba(255,255,255,0.07), rgba(255,255,255,0.04));
+  border: 1px solid rgba(192,192,192,0.25);
   overflow: hidden;
 }
 
 .login-loading-progress {
+  position: relative;
   height: 100%;
-  background: linear-gradient(90deg, #c9a55a 0%, #e8d9b8 50%, #c9a55a 100%);
   width: 0%;
-  transition: width 0.3s ease;
-  border-radius: 2px;
+  background: linear-gradient(90deg, rgba(192,192,192,0.75), var(--primary), rgba(255,255,255,0.85));
+  transition: width 0.32s var(--ease);
+}
+
+.login-loading-progress::after {
+  content: '';
+  position: absolute;
+  top: -3px;
+  right: -4px;
+  width: 10px;
+  height: 14px;
+  background: radial-gradient(circle, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0) 72%);
+  opacity: 0.7;
+}
+
+.login-loading-meta {
+  margin-top: 12px;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.login-loading-stage {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: var(--text-soft);
 }
 
 .login-loading-percent {
-  font-size: 13px;
-  color: #c9a55a;
+  font-family: var(--font-display);
+  font-size: 21px;
   font-weight: 500;
-  letter-spacing: 0.3px;
+  color: var(--primary-soft);
+  line-height: 1;
+  letter-spacing: 0.03em;
+}
+
+.login-loading-pulse {
+  margin-top: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 9px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+.login-loading-pulse-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--primary);
+  box-shadow: 0 0 0 0 rgba(192,192,192,0.35);
+  animation: loginPulseDot 1.8s ease infinite;
+}
+
+@keyframes loginPulseDot {
+  0% {
+    box-shadow: 0 0 0 0 rgba(192,192,192,0.38);
+    transform: scale(1);
+  }
+  70% {
+    box-shadow: 0 0 0 8px rgba(192,192,192,0);
+    transform: scale(0.92);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(192,192,192,0);
+    transform: scale(1);
+  }
+}
+
+@media (max-width: 560px) {
+  .login-loading-screen {
+    padding: 16px;
+  }
+
+  .login-loading-shell {
+    padding: 26px 20px 22px;
+  }
+
+  .login-loading-sub,
+  .login-loading-pulse {
+    letter-spacing: 0.14em;
+  }
+
+  .login-loading-percent {
+    font-size: 19px;
+  }
 }
 
 .field-input.sm{padding:10px 12px;font-size:12px}
@@ -1547,14 +1688,25 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
 
 <!-- ══ LOGIN LOADING ═════════════════════════════════════════════════════ -->
 <div class="login-loading-screen" id="loginLoadingScreen" hidden>
-  <div class="login-loading-content">
-    <div class="login-loading-title">Carregando painel...</div>
-    <div class="login-loading-bar-wrap">
-      <div class="login-loading-bar">
+  <div class="login-loading-shell" role="status" aria-live="polite" aria-atomic="true">
+    <div class="login-loading-head">
+      <span class="login-loading-label">Painel Devazi</span>
+      <h2 class="login-loading-title">Preparando seu dashboard</h2>
+      <p class="login-loading-sub">Sincronizando dados do evento</p>
+    </div>
+    <div class="login-loading-track-wrap">
+      <div class="login-loading-track" role="progressbar" aria-label="Progresso de carregamento do painel" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
         <div class="login-loading-progress" id="loginLoadingProgress"></div>
       </div>
+      <div class="login-loading-meta">
+        <span class="login-loading-stage" id="loginLoadingStage">Iniciando autenticação...</span>
+        <div class="login-loading-percent" id="loginLoadingPercent">0%</div>
+      </div>
     </div>
-    <div class="login-loading-percent" id="loginLoadingPercent">0%</div>
+    <div class="login-loading-pulse" id="loginLoadingPulse">
+      <span class="login-loading-pulse-dot" aria-hidden="true"></span>
+      <span>Aguarde um instante</span>
+    </div>
   </div>
 </div>
  
