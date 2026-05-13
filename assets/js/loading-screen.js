@@ -35,28 +35,16 @@ function buildLoadingHTML(prefill = null, options = {}) {
 <div class="loading-screen${showCouplePhase ? ' loading-screen--phase-couple' : ''}" id="loadingScreen" aria-hidden="true">
     <div class="loading-backdrop"></div>
     <div class="loading-phase loading-phase--brand" id="loadingPhaseBrand" role="status" aria-live="polite" aria-label="Carregando"${showCouplePhase ? ' hidden' : ''}>
-        <div class="brand-loader-art" aria-hidden="true">
-            <svg viewBox="0 0 1080 1920" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
-                <defs>
-                    <clipPath id="brandLogoReveal">
-                        <rect x="0" y="780" width="0" height="230">
-                            <animate attributeName="width" from="0" to="1080" dur="1.4s" begin="0.3s" fill="freeze" calcMode="spline" keySplines="0.4 0 0.2 1" />
-                        </rect>
-                    </clipPath>
-                </defs>
-                <rect width="1080" height="1920" fill="#0e0d0b"></rect>
-                <text x="540" y="820" font-size="16" font-weight="500" letter-spacing="7" fill="#c9a55a" fill-opacity="0.7" text-anchor="middle">- DEVAZI STUDIO -</text>
-                <text x="540" y="970" font-size="180" font-weight="400" fill="#f0ebe1" text-anchor="middle" letter-spacing="2" clip-path="url(#brandLogoReveal)">Devazi</text>
-                <line x1="470" y1="1010" x2="610" y2="1010" stroke="#c9a55a" stroke-opacity="0.7" stroke-width="0.75"></line>
-                <text x="540" y="1060" font-size="14" font-weight="500" fill="#c9a55a" text-anchor="middle" letter-spacing="6">EXPERIENCIAS DIGITAIS DE CASAMENTO</text>
-            </svg>
-        </div>
-        <div class="brand-loader-ring" aria-hidden="true">
-            <svg viewBox="0 0 220 220">
-                <circle class="brand-loader-ring-track" cx="110" cy="110" r="105"></circle>
-                <circle class="brand-loader-ring-arc" cx="110" cy="110" r="105"></circle>
-            </svg>
-            <span class="brand-loader-ring-letter">D</span>
+        <div class="brand-phase-center">
+            <p class="brand-studio-tag">— DEVAZI STUDIO —</p>
+            <div class="brand-name-frame">
+                <svg class="brand-frame-svg" viewBox="0 0 340 108" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <rect class="brand-frame-track" x="2" y="2" width="336" height="104" rx="14" ry="14"/>
+                    <rect class="brand-frame-beam"  x="2" y="2" width="336" height="104" rx="14" ry="14"/>
+                </svg>
+                <span class="brand-name-word">Devazi</span>
+            </div>
+            <p class="brand-tagline">EXPERIÊNCIAS DIGITAIS</p>
         </div>
     </div>
 
