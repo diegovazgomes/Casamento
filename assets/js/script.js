@@ -594,6 +594,7 @@ class InvitationExperience {
         this.hasStarted = false;
         this.mainInitialized = false;
         this.heroResponsiveModeBound = false;
+        this.heroPhotoElement = null;
 
         this.introScreen = document.getElementById('introScreen');
         this.openInviteButton = document.getElementById('openInviteButton');
@@ -836,7 +837,15 @@ class InvitationExperience {
                     if (heroPhoto) heroPhoto.classList.add('anim-main-photo');
                     if (heroNames) heroNames.classList.add('anim-main-name');
                     if (heroLabel) heroLabel.classList.add('anim-main-subtitle');
+
+                    // Recalcula o modo responsivo da hero depois que a shell ficou visível.
+                    // Evita estado intermitente quando dimensões ainda eram 0 no primeiro cálculo.
+                    this.refreshDesktopHeroImageMode();
                 });
+
+                window.setTimeout(() => {
+                    this.refreshDesktopHeroImageMode();
+                }, 120);
             });
         }
 
@@ -992,6 +1001,7 @@ class InvitationExperience {
             heroPhoto.setAttribute('src', heroImage);
             heroPhoto.setAttribute('alt', this.config.texts?.heroPhotoAlt || `${names.names} em retrato do casal`);
         }
+        this.heroPhotoElement = heroPhoto;
         this.setupDesktopHeroImageMode(heroPhoto);
 
         setText('mainFooterNames', names.names);
@@ -1015,12 +1025,26 @@ class InvitationExperience {
         const updateHeroMode = () => this.applyDesktopHeroImageMode(heroPhoto);
 
         heroPhoto.addEventListener('load', updateHeroMode);
+        heroPhoto.addEventListener('loadedmetadata', updateHeroMode);
         window.addEventListener('resize', () => {
             window.requestAnimationFrame(updateHeroMode);
         }, { passive: true });
 
         this.heroResponsiveModeBound = true;
         updateHeroMode();
+
+        if (heroPhoto.complete) {
+            window.requestAnimationFrame(updateHeroMode);
+        }
+    }
+
+    refreshDesktopHeroImageMode() {
+        const heroPhoto = this.heroPhotoElement || document.getElementById('couplePhoto');
+        if (!heroPhoto) {
+            return;
+        }
+
+        this.applyDesktopHeroImageMode(heroPhoto);
     }
 
     applyDesktopHeroImageMode(heroPhoto) {
@@ -1057,6 +1081,7 @@ class InvitationExperience {
         const heroHeight = Number(hero.clientHeight || 0);
 
         if (!heroWidth || !heroHeight) {
+            window.requestAnimationFrame(() => this.refreshDesktopHeroImageMode());
             return;
         }
 
