@@ -156,7 +156,16 @@ function slugify(value) {
     .replace(/-{2,}/g, '-');
 }
 
-function buildDefaultEventSlug(coupleName, userId) {
+function buildDefaultEventSlug(brideName, groomName, userId) {
+  const brideSlugged = slugify(String(brideName || '').trim());
+  const groomSlugged = slugify(String(groomName || '').trim());
+  const randomSuffix = Math.floor(Math.random() * 1000000).toString().padStart(6, '0');
+  
+  if (brideSlugged && groomSlugged) {
+    return `${brideSlugged}-${groomSlugged}-${randomSuffix}`;
+  }
+  
+  // Fallback if names are invalid
   const userSuffix = slugify(String(userId || '').slice(0, 8)) || Date.now().toString(36);
   return `convite-${userSuffix}`;
 }
@@ -309,7 +318,7 @@ async function ensureInitialEventForUser(supabase, { userId, coupleName, brideNa
     return existingEvent;
   }
 
-  const slug = buildDefaultEventSlug(coupleName, userId);
+  const slug = buildDefaultEventSlug(brideName, groomName, userId);
   const config = buildInitialEventConfig({ coupleName, brideName, groomName, slug, whatsapp });
   const seedFields = buildInitialEventTableFields();
 

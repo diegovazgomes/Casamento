@@ -3687,6 +3687,28 @@ function _wizardDisplayName() {
   return document.getElementById('wzDisplayName')?.value.trim() || '';
 }
 
+function _parseDisplayNameParts(displayName) {
+  const input = String(displayName || '').trim();
+  
+  // Try common separators in order
+  const separators = [' e ', ' & ', ' + ', ' - '];
+  
+  for (const sep of separators) {
+    if (input.includes(sep)) {
+      const parts = input.split(sep);
+      if (parts.length >= 2) {
+        return {
+          first: parts[0].trim(),
+          second: parts.slice(1).join(sep).trim(),
+        };
+      }
+    }
+  }
+  
+  // Fallback: return empty if parsing fails
+  return { first: '', second: '' };
+}
+
 function _updateWizardPreview() {
   const previewCard = document.getElementById('wzPreviewCard');
   if (!previewCard) return;
@@ -3918,7 +3940,16 @@ async function maybeShowWizard(config) {
     btn.addEventListener('click', () => {
       const displayInput = document.getElementById('wzDisplayName');
       if (displayInput) {
-        displayInput.value = btn.textContent.trim();
+        const separator = btn.dataset.sep || ' & ';
+        const currentValue = displayInput.value.trim();
+        
+        if (currentValue) {
+          const { first, second } = _parseDisplayNameParts(currentValue);
+          if (first && second) {
+            displayInput.value = `${first}${separator}${second}`;
+          }
+        }
+        
         displayInput.dataset.userEdited = '1';
         _updateWizardPreview();
       }
