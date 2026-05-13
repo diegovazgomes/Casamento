@@ -36,7 +36,7 @@ function buildLoadingHTML(prefill = null, options = {}) {
     <div class="loading-backdrop"></div>
     <div class="loading-phase loading-phase--brand" id="loadingPhaseBrand" role="status" aria-live="polite" aria-label="Carregando"${showCouplePhase ? ' hidden' : ''}>
         <div class="brand-phase-center">
-            <p class="brand-studio-tag">— DEVAZI STUDIO —</p>
+            <p class="brand-studio-tag">Stúdio</p>
             <div class="brand-name-frame">
                 <svg class="brand-frame-svg" viewBox="0 0 340 108" preserveAspectRatio="none" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                     <rect class="brand-frame-track" x="2" y="2" width="336" height="104" rx="14" ry="14"/>
@@ -44,6 +44,7 @@ function buildLoadingHTML(prefill = null, options = {}) {
                 </svg>
                 <span class="brand-name-word">Devazi</span>
             </div>
+            <p class="brand-tagline">Experiências digitais</p>
         </div>
     </div>
 
@@ -412,19 +413,19 @@ export async function hideLoadingScreen() {
     });
     await Promise.race([contentTimeout, contentCheck]);
 
-    // Garantir mínimo de 4.8s desde o início da loading screen.
-    // 0.8s escuro + 2s fade-in Devazi + 2s mínimo do retângulo animado.
-    const MIN_DURATION = 4800;
+    // Garantir mínimo de 4.6s desde o início da loading screen.
+    // 1.6s fade-in textos + 3s mínimo do retângulo animado.
+    const MIN_DURATION = 4600;
     const elapsed = Date.now() - loadingStartTime;
     const remaining = Math.max(0, MIN_DURATION - elapsed);
     await new Promise(r => setTimeout(r, remaining));
 
-    // Fade-out de 1s
+    // Fade-out de 1.2s
     loadingScreen.classList.add('fade-out');
     setTimeout(() => {
         if (loadingScreen.parentNode) {
             document.documentElement.classList.remove('ls-pending');
             loadingScreen.remove();
         }
-    }, 1000);
+    }, 1200);
 }
