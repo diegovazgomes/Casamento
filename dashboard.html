@@ -980,7 +980,13 @@ input[type="date"].field-input{width:100%;min-width:0;box-sizing:border-box;-web
 .form-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
 .form-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:14px}
 .form-group{margin-bottom:14px}
-@media(max-width:760px){.form-grid-2,.form-grid-3,.media-upload-row{grid-template-columns:1fr}.media-upload-action{justify-content:stretch}.media-upload-action .btn{width:100%;min-width:0;min-height:44px}}
+@media(max-width:760px){
+  .form-grid-2,.form-grid-3,.media-upload-row{grid-template-columns:1fr}
+  .media-upload-action{justify-content:stretch}
+  .media-upload-action .btn{width:100%;min-width:0;min-height:44px}
+  .catalog-item{grid-template-columns:48px minmax(0,1fr) 66px 34px;gap:6px}
+  .catalog-item > input[type="text"].field-input.sm{font-size:11px}
+}
 @media(max-width:760px){.upload-status-main{flex-direction:column;gap:4px}.upload-status-percent{align-self:flex-end}}
 
 /* Login Loading Screen */
@@ -2127,7 +2133,6 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
                 <label class="field-label" for="edEventDate">Data do evento *</label>
                 <input type="date" class="field-input sm" id="edEventDate"
                        onchange="onEventDateChange(); markEditorDirty();">
-                <div class="field-hint">Os formatos abaixo são gerados automaticamente.</div>
               </div>
               <div class="field">
                 <label class="field-label" for="edEventTime">Horário de exibição</label>
@@ -2135,7 +2140,7 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
               </div>
             </div>
             <!-- Campos derivados — gerados automaticamente ao mudar a data -->
-            <div class="form-grid-3">
+            <div class="form-grid-3" hidden>
               <div class="field">
                 <label class="field-label">Data no hero <span class="field-badge-auto">auto</span></label>
                 <input type="text" class="field-input sm field-auto" id="edEventHeroDate"
