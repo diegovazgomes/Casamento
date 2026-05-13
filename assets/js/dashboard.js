@@ -2535,7 +2535,8 @@ function extractGalleryNameFromSource(source) {
 }
 
 function normalizeGalleryImageItem(image, index) {
-  const src = String(image?.src || '').trim();
+  // API response uses `url`; config JSON uses `src` — accept both
+  const src = String(image?.src || image?.url || '').trim();
   const path = String(image?.path || '').trim();
   const name = String(image?.name || extractGalleryNameFromSource(path || src)).trim();
   const alt = String(image?.alt || `Foto ${index + 1}`).trim() || `Foto ${index + 1}`;
