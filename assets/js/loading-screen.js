@@ -37,14 +37,12 @@ function buildLoadingHTML(prefill = null, options = {}) {
     <div class="loading-phase loading-phase--brand" id="loadingPhaseBrand" role="status" aria-live="polite" aria-label="Carregando"${showCouplePhase ? ' hidden' : ''}>
         <div class="brand-phase-center">
             <p class="brand-studio-tag">— DEVAZI STUDIO —</p>
-            <div class="brand-name-frame">
-                <svg class="brand-frame-svg" viewBox="0 0 340 108" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                    <rect class="brand-frame-track" x="2" y="2" width="336" height="104" rx="14" ry="14"/>
-                    <rect class="brand-frame-beam"  x="2" y="2" width="336" height="104" rx="14" ry="14"/>
-                </svg>
-                <span class="brand-name-word">Devazi</span>
+            <span class="brand-name-word">Devazi</span>
+            <div class="brand-progress-wrap">
+                <div class="brand-progress-track">
+                    <div class="brand-progress-beam"></div>
+                </div>
             </div>
-            <p class="brand-tagline">EXPERIÊNCIAS DIGITAIS</p>
         </div>
     </div>
 
