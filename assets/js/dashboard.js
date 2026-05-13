@@ -1854,7 +1854,9 @@ function loadEditorTab() {
   setVal('edMediaHero',       config.media?.heroImage             ?? '');
   const _mainTrack = config.media?.tracks?.main ?? {};
   setChk('edTrackEnabled', _mainTrack.enabled !== false);
-  setVal('edTrackVolume', _mainTrack.volume   ?? '');
+  const _vol = Math.round((_mainTrack.volume ?? 0.14) * 100);
+  setVal('edTrackVolume', _vol);
+  _syncVolumeSlider(document.getElementById('edTrackVolume'));
   setVal('edTrackStart',  _mainTrack.startTime ?? '');
   fetchSongsList(_mainTrack.src ?? '');
   renderMediaHeroPreview(config.media?.heroImage || '');
@@ -2719,6 +2721,14 @@ async function fetchSongsList(currentSrc = '') {
 
 let _previewAudio = null;
 
+function _syncVolumeSlider(el) {
+  if (!el) return;
+  const pct = el.value + '%';
+  el.style.setProperty('--vol-pct', pct);
+  const display = document.getElementById('edTrackVolumeDisplay');
+  if (display) display.textContent = pct;
+}
+
 function _updatePreviewStatus(text, isError = false) {
   const el = document.getElementById('edPreviewStatus');
   if (el) {
@@ -2729,7 +2739,7 @@ function _updatePreviewStatus(text, isError = false) {
 
 function audioPreviewPlay() {
   const src    = document.getElementById('edTrackSrc')?.value;
-  const volume = parseFloat(document.getElementById('edTrackVolume')?.value) || 0.14;
+  const volume = (parseFloat(document.getElementById('edTrackVolume')?.value) || 14) / 100;
   const start  = parseInt(document.getElementById('edTrackStart')?.value)    || 0;
 
   if (!src) {
@@ -3718,7 +3728,7 @@ function collectEditorValues() {
   if (!config.media.tracks.gift) config.media.tracks.gift = {};
   const _musicEnabled = document.getElementById('edTrackEnabled')?.checked ?? true;
   const _musicSrc     = document.getElementById('edTrackSrc')?.value.trim()     || '';
-  const _musicVolume  = parseFloat(document.getElementById('edTrackVolume')?.value) || 0.14;
+  const _musicVolume  = (parseFloat(document.getElementById('edTrackVolume')?.value) || 14) / 100;
   const _musicStart   = parseInt(document.getElementById('edTrackStart')?.value)    || 0;
   ['main', 'gift'].forEach((ctx) => {
     config.media.tracks[ctx].enabled   = _musicEnabled;

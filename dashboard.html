@@ -126,6 +126,13 @@ body::before{
 .field-input::placeholder{color:var(--text-dim);font-style:italic}
 .field-input:focus{border-color:var(--primary);background:rgba(192,192,192,0.04)}
 input[type="date"].field-input{width:100%;min-width:0;box-sizing:border-box;-webkit-appearance:none;appearance:none;font-size:13px;padding:10px 12px;height:36px;line-height:1;display:block;text-align:left}
+/* ── Volume range slider ── */
+#edTrackVolume{-webkit-appearance:none;appearance:none;width:100%;height:3px;border-radius:2px;background:linear-gradient(to right,var(--primary) var(--vol-pct,14%),rgba(255,255,255,0.12) var(--vol-pct,14%));outline:none;cursor:pointer;border:none;padding:0;margin:8px 0 2px;display:block}
+#edTrackVolume::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--primary);cursor:pointer;box-shadow:0 0 0 3px rgba(255,255,255,0.08);transition:box-shadow .15s,transform .15s}
+#edTrackVolume::-webkit-slider-thumb:hover{box-shadow:0 0 0 5px rgba(255,255,255,0.14);transform:scale(1.15)}
+#edTrackVolume::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:var(--primary);cursor:pointer;border:none;box-shadow:0 0 0 3px rgba(255,255,255,0.08)}
+#edTrackVolume::-moz-range-track{height:3px;border-radius:2px;background:rgba(255,255,255,0.12)}
+#edTrackVolume:focus::-webkit-slider-thumb{box-shadow:0 0 0 5px rgba(255,255,255,0.18)}
 @media (min-width:761px){
   input[type="date"].field-input{
     -webkit-appearance:auto;appearance:auto;
@@ -2649,9 +2656,12 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
 
             <div class="form-grid-3">
               <div class="field">
-                <label class="field-label" for="edTrackVolume">Volume (0–1)</label>
-                <input type="number" class="field-input sm" id="edTrackVolume"
-                       min="0" max="1" step="0.01" placeholder="0.14" oninput="markEditorDirty()">
+                <label class="field-label" for="edTrackVolume" style="display:flex;justify-content:space-between;align-items:center">
+                  Volume
+                  <span id="edTrackVolumeDisplay" style="font-weight:600;font-size:12px;letter-spacing:.02em;color:var(--primary);opacity:.9">14%</span>
+                </label>
+                <input type="range" id="edTrackVolume" min="0" max="100" step="1"
+                       oninput="markEditorDirty();_syncVolumeSlider(this)">
               </div>
               <div class="field" style="grid-column: span 2">
                 <label class="field-label" for="edTrackStart">Início em (seg)</label>
@@ -2661,21 +2671,24 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
               </div>
             </div>
 
-            <div style="margin-top:14px;display:flex;align-items:center;gap:8px;padding:8px 14px;border-radius:8px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.09)">
-              <span style="font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.08em;opacity:.55;min-width:58px">Testar</span>
+            <div style="margin-top:14px;display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);box-shadow:inset 0 1px 0 rgba(255,255,255,0.04)">
               <button type="button" onclick="audioPreviewPlay()" title="Play"
-                      style="width:30px;height:30px;padding:0;border-radius:50%;border:1.5px solid var(--primary);background:transparent;color:var(--primary);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0">
+                      style="width:32px;height:32px;padding:0;border-radius:50%;border:none;background:var(--primary);color:#fff;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,0.28);transition:opacity .15s"
+                      onmouseover="this.style.opacity='.82'" onmouseout="this.style.opacity='1'">
                 <svg width="10" height="12" viewBox="0 0 10 12" fill="currentColor"><path d="M0 0l10 6-10 6V0z"/></svg>
               </button>
               <button type="button" onclick="audioPreviewPause()" title="Pausar"
-                      style="width:30px;height:30px;padding:0;border-radius:50%;border:1.5px solid rgba(255,255,255,0.18);background:transparent;color:inherit;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0">
-                <svg width="10" height="12" viewBox="0 0 10 12" fill="currentColor"><rect x="0" y="0" width="3.5" height="12"/><rect x="6.5" y="0" width="3.5" height="12"/></svg>
+                      style="width:28px;height:28px;padding:0;border-radius:50%;border:1px solid rgba(255,255,255,0.14);background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.72);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;transition:border-color .15s,background .15s"
+                      onmouseover="this.style.borderColor='rgba(255,255,255,.28)';this.style.background='rgba(255,255,255,.1)'" onmouseout="this.style.borderColor='rgba(255,255,255,.14)';this.style.background='rgba(255,255,255,.05)'">
+                <svg width="9" height="11" viewBox="0 0 9 11" fill="currentColor"><rect x="0" y="0" width="3" height="11"/><rect x="6" y="0" width="3" height="11"/></svg>
               </button>
               <button type="button" onclick="audioPreviewStop()" title="Parar"
-                      style="width:30px;height:30px;padding:0;border-radius:50%;border:1.5px solid rgba(255,255,255,0.18);background:transparent;color:inherit;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0">
-                <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor"><rect x="0" y="0" width="10" height="10"/></svg>
+                      style="width:28px;height:28px;padding:0;border-radius:50%;border:1px solid rgba(255,255,255,0.14);background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.72);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;transition:border-color .15s,background .15s"
+                      onmouseover="this.style.borderColor='rgba(255,255,255,.28)';this.style.background='rgba(255,255,255,.1)'" onmouseout="this.style.borderColor='rgba(255,255,255,.14)';this.style.background='rgba(255,255,255,.05)'">
+                <svg width="9" height="9" viewBox="0 0 9 9" fill="currentColor"><rect x="0" y="0" width="9" height="9" rx="1"/></svg>
               </button>
-              <span id="edPreviewStatus" style="font-size:12px;opacity:.6;margin-left:4px"></span>
+              <div style="width:1px;height:18px;background:rgba(255,255,255,0.09);flex-shrink:0;margin:0 2px"></div>
+              <span id="edPreviewStatus" style="font-size:11.5px;letter-spacing:.01em;opacity:.55;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></span>
             </div>
 
             <div class="editor-section-footer" id="footer-edSectionMidia">
