@@ -1661,6 +1661,9 @@ const editorState = {
   catalogItems: [],
   faqItems: [],
   originalConfig: null,
+  galleryImages: [],
+  selectedGalleryNames: [],
+  draggingGalleryName: '',
 };
 
 const MEDIA_MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024;
@@ -1856,7 +1859,8 @@ function loadEditorTab() {
   setVal('edTrackGiftVolume', config.media?.tracks?.gift?.volume  ?? '');
   setVal('edTrackGiftStart',  config.media?.tracks?.gift?.startTime ?? '');
   renderMediaHeroPreview(config.media?.heroImage || '');
-  renderMediaGalleryGrid(config.pages?.historia?.content?.gallery || []);
+  setEditorGalleryImages(config.pages?.historia?.content?.gallery || []);
+  refreshGalleryFromApi(true);
   setHeroUploadStatus('Selecione uma foto (JPG, PNG ou WEBP até 10 MB).', false, {
     help: 'O sistema salva automaticamente após o envio.',
   });
@@ -2514,6 +2518,316 @@ function renderPixQrPreview(url) {
   emptyEl.style.display = '';
 }
 
+function extractGalleryNameFromSource(source) {
+  const input = String(source || '').trim();
+  if (!input) return '';
+
+  const match = input.match(/\/gallery\/([^/?#]+)$/i);
+  if (match?.[1]) {
+    try {
+      return decodeURIComponent(match[1]);
+    } catch {
+      return match[1];
+    }
+  }
+
+  return '';
+}
+
+function normalizeGalleryImageItem(image, index) {
+  const src = String(image?.src || '').trim();
+  const path = String(image?.path || '').trim();
+  const name = String(image?.name || extractGalleryNameFromSource(path || src)).trim();
+  const alt = String(image?.alt || `Foto ${index + 1}`).trim() || `Foto ${index + 1}`;
+
+  return {
+    src,
+    path,
+    name,
+    alt,
+    key: name || src || `gallery-${index + 1}`,
+  };
+}
+
+function syncGalleryToSiteConfig() {
+  if (!window.__SITE_CONFIG__) return;
+  const gallery = ensureHistoriaGalleryArray(window.__SITE_CONFIG__);
+  gallery.length = 0;
+  editorState.galleryImages.forEach((image) => {
+    gallery.push({ src: image.src || '', alt: image.alt || '' });
+  });
+}
+
+function updateMediaGalleryToolbar() {
+  const toolbar = document.getElementById('edMediaGalleryToolbar');
+  const info = document.getElementById('edMediaGallerySelectionInfo');
+  const deleteBtn = document.getElementById('btnGalleryDeleteSelected');
+  const selectAllBtn = document.getElementById('btnGallerySelectAll');
+  const total = editorState.galleryImages.length;
+  const selected = editorState.selectedGalleryNames.length;
+
+  if (toolbar) {
+    toolbar.hidden = total === 0;
+  }
+
+  if (info) {
+    const selectedLabel = selected === 1 ? '1 foto selecionada' : `${selected} fotos selecionadas`;
+    const totalLabel = total === 1 ? '1 foto' : `${total} fotos`;
+    info.textContent = `${selectedLabel} de ${totalLabel}`;
+  }
+
+  if (deleteBtn) {
+    deleteBtn.disabled = selected === 0;
+  }
+
+  if (selectAllBtn) {
+    const allSelected = total > 0 && selected === total;
+    const span = selectAllBtn.querySelector('span');
+    if (span) {
+      span.textContent = allSelected ? 'Desmarcar todas' : 'Selecionar todas';
+    }
+  }
+}
+
+function setEditorGalleryImages(images, options = {}) {
+  const { preserveSelection = false } = options;
+  const nextImages = (Array.isArray(images) ? images : [])
+    .map((image, index) => normalizeGalleryImageItem(image, index))
+    .filter((image) => Boolean(image.src));
+
+  const previousSelection = preserveSelection ? new Set(editorState.selectedGalleryNames) : new Set();
+
+  editorState.galleryImages = nextImages;
+  editorState.selectedGalleryNames = nextImages
+    .map((image) => image.name)
+    .filter((name) => name && previousSelection.has(name));
+
+  syncGalleryToSiteConfig();
+  renderMediaGalleryGrid(nextImages);
+}
+
+function toggleGalleryImageSelectionByIndex(index, checked) {
+  const item = editorState.galleryImages[index];
+  if (!item?.name) return;
+
+  if (checked) {
+    if (!editorState.selectedGalleryNames.includes(item.name)) {
+      editorState.selectedGalleryNames.push(item.name);
+    }
+  } else {
+    editorState.selectedGalleryNames = editorState.selectedGalleryNames.filter((name) => name !== item.name);
+  }
+
+  renderMediaGalleryGrid(editorState.galleryImages);
+}
+
+function toggleSelectAllGalleryImages() {
+  const total = editorState.galleryImages.length;
+  if (!total) return;
+
+  if (editorState.selectedGalleryNames.length === total) {
+    editorState.selectedGalleryNames = [];
+  } else {
+    editorState.selectedGalleryNames = editorState.galleryImages
+      .map((image) => image.name)
+      .filter(Boolean);
+  }
+
+  renderMediaGalleryGrid(editorState.galleryImages);
+}
+
+async function requestGalleryList() {
+  const response = await fetchWithAuth(`/api/dashboard/media?type=gallery&eventId=${encodeURIComponent(state.eventId)}`);
+  const payload = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    throw new Error(payload.error || 'Não foi possível carregar a galeria.');
+  }
+
+  return Array.isArray(payload.items) ? payload.items : [];
+}
+
+async function refreshGalleryFromApi(silent = false) {
+  if (!state.eventId) return;
+
+  try {
+    const items = await requestGalleryList();
+    setEditorGalleryImages(items, { preserveSelection: true });
+  } catch (error) {
+    if (!silent) {
+      setMediaUploadStatus(normalizeUploadErrorMessage(error), true, {
+        variant: 'error',
+        help: 'Não foi possível atualizar a galeria do Storage.',
+      });
+    }
+  }
+}
+
+async function requestGalleryReorder(orderNames) {
+  const response = await fetchWithAuth('/api/dashboard/media', {
+    method: 'PATCH',
+    body: JSON.stringify({
+      eventId: state.eventId,
+      type: 'gallery',
+      order: orderNames,
+    }),
+  });
+  const payload = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    throw new Error(payload.error || 'Não foi possível salvar a ordem da galeria.');
+  }
+
+  return Array.isArray(payload.items) ? payload.items : [];
+}
+
+async function persistGalleryOrder() {
+  const orderNames = editorState.galleryImages.map((image) => image.name).filter(Boolean);
+  if (!orderNames.length) return;
+
+  setMediaUploadStatus('Salvando nova ordem da galeria...', false, {
+    variant: 'loading',
+    progress: 100,
+    help: 'Aguarde a confirmação.',
+  });
+
+  const items = await requestGalleryReorder(orderNames);
+  setEditorGalleryImages(items, { preserveSelection: true });
+  setMediaUploadStatus('Ordem da galeria atualizada com sucesso.', false, {
+    variant: 'success',
+    progress: 100,
+    help: 'Pronto. A ordem já está salva.',
+  });
+}
+
+async function moveGalleryImageByOffset(index, delta) {
+  const targetIndex = index + delta;
+  if (index < 0 || targetIndex < 0 || targetIndex >= editorState.galleryImages.length) {
+    return;
+  }
+
+  const reordered = [...editorState.galleryImages];
+  const [moved] = reordered.splice(index, 1);
+  reordered.splice(targetIndex, 0, moved);
+  editorState.galleryImages = reordered;
+  syncGalleryToSiteConfig();
+  renderMediaGalleryGrid(reordered);
+
+  try {
+    await persistGalleryOrder();
+  } catch (error) {
+    setMediaUploadStatus(normalizeUploadErrorMessage(error), true, {
+      variant: 'error',
+      help: 'Não foi possível salvar a nova ordem. Tente novamente.',
+    });
+    await refreshGalleryFromApi(true);
+  }
+}
+
+function handleGalleryDragStart(event, index) {
+  const item = editorState.galleryImages[index];
+  if (!item?.name) return;
+
+  editorState.draggingGalleryName = item.name;
+  event.dataTransfer.effectAllowed = 'move';
+  event.dataTransfer.setData('text/plain', item.name);
+  event.currentTarget.classList.add('is-dragging');
+}
+
+function handleGalleryDragOver(event) {
+  event.preventDefault();
+  event.dataTransfer.dropEffect = 'move';
+  event.currentTarget.classList.add('is-drop-target');
+}
+
+function handleGalleryDragLeave(event) {
+  event.currentTarget.classList.remove('is-drop-target');
+}
+
+async function handleGalleryDrop(event, dropIndex) {
+  event.preventDefault();
+  event.currentTarget.classList.remove('is-drop-target');
+
+  const draggedName = editorState.draggingGalleryName || event.dataTransfer.getData('text/plain');
+  if (!draggedName) return;
+
+  const fromIndex = editorState.galleryImages.findIndex((image) => image.name === draggedName);
+  if (fromIndex < 0 || fromIndex === dropIndex) return;
+
+  const reordered = [...editorState.galleryImages];
+  const [moved] = reordered.splice(fromIndex, 1);
+  reordered.splice(dropIndex, 0, moved);
+
+  editorState.galleryImages = reordered;
+  syncGalleryToSiteConfig();
+  renderMediaGalleryGrid(reordered);
+
+  try {
+    await persistGalleryOrder();
+  } catch (error) {
+    setMediaUploadStatus(normalizeUploadErrorMessage(error), true, {
+      variant: 'error',
+      help: 'Não foi possível salvar a nova ordem. Tente novamente.',
+    });
+    await refreshGalleryFromApi(true);
+  }
+}
+
+function handleGalleryDragEnd(event) {
+  editorState.draggingGalleryName = '';
+  event.currentTarget.classList.remove('is-dragging');
+  document.querySelectorAll('#edMediaGalleryGrid .media-gallery-card').forEach((card) => {
+    card.classList.remove('is-drop-target');
+  });
+}
+
+async function deleteSelectedGalleryImages() {
+  const names = [...editorState.selectedGalleryNames].filter(Boolean);
+  if (!names.length) {
+    return;
+  }
+
+  const label = names.length === 1 ? '1 foto selecionada' : `${names.length} fotos selecionadas`;
+  if (!confirm(`Deseja excluir ${label} da galeria? Esta ação não pode ser desfeita.`)) {
+    return;
+  }
+
+  setMediaUploadStatus('Excluindo fotos selecionadas...', false, {
+    variant: 'loading',
+    progress: 100,
+    help: 'Aguarde a confirmação.',
+  });
+
+  try {
+    const response = await fetchWithAuth('/api/dashboard/media', {
+      method: 'DELETE',
+      body: JSON.stringify({
+        eventId: state.eventId,
+        type: 'gallery',
+        names,
+      }),
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      throw new Error(payload.error || 'Não foi possível excluir as fotos selecionadas.');
+    }
+
+    editorState.selectedGalleryNames = [];
+    await refreshGalleryFromApi(true);
+
+    setMediaUploadStatus('Fotos selecionadas excluídas com sucesso.', false, {
+      variant: 'success',
+      progress: 100,
+      help: 'A galeria foi atualizada.',
+    });
+  } catch (error) {
+    setMediaUploadStatus(normalizeUploadErrorMessage(error), true, {
+      variant: 'error',
+      help: 'Não foi possível excluir as fotos. Tente novamente.',
+    });
+  }
+}
+
 function renderMediaGalleryGrid(images) {
   const grid = document.getElementById('edMediaGalleryGrid');
   const emptyEl = document.getElementById('edMediaGalleryEmpty');
@@ -2525,15 +2839,50 @@ function renderMediaGalleryGrid(images) {
   if (!Array.isArray(images) || images.length === 0) {
     grid.innerHTML = '';
     emptyEl.style.display = '';
+    updateMediaGalleryToolbar();
     return;
   }
 
   emptyEl.style.display = 'none';
+  const isDesktop = typeof window.matchMedia === 'function'
+    ? window.matchMedia('(min-width: 761px)').matches
+    : true;
   grid.innerHTML = images.map((image, index) => {
     const src = escapeHtml(image?.src || '');
     const alt = escapeHtml(image?.alt || `Foto ${index + 1}`);
-    return `<div class="media-gallery-card"><img src="${src}" alt="${alt}" onerror="this.style.opacity=0.3"></div>`;
+    const name = escapeHtml(image?.name || '');
+    const checked = image?.name && editorState.selectedGalleryNames.includes(image.name) ? 'checked' : '';
+    const selectedClass = checked ? ' is-selected' : '';
+
+    return `<div class="media-gallery-card${selectedClass}"
+      draggable="${isDesktop ? 'true' : 'false'}"
+      ondragstart="handleGalleryDragStart(event, ${index})"
+      ondragover="handleGalleryDragOver(event)"
+      ondragleave="handleGalleryDragLeave(event)"
+      ondrop="handleGalleryDrop(event, ${index})"
+      ondragend="handleGalleryDragEnd(event)">
+      <img src="${src}" alt="${alt}" onerror="this.style.opacity=0.3">
+      <div class="media-gallery-card-overlay">
+        <div class="media-gallery-card-top">
+          <span class="media-gallery-card-badge">${index + 1}</span>
+          <input type="checkbox" class="media-gallery-check" aria-label="Selecionar ${alt}" ${checked}
+            onchange="toggleGalleryImageSelectionByIndex(${index}, this.checked)">
+        </div>
+        <div class="media-gallery-card-bottom">
+          <span class="media-gallery-card-badge">${name || 'imagem'}</span>
+          <div class="media-gallery-actions">
+            <button type="button" class="media-gallery-action-btn media-gallery-drag-handle" title="Arrastar para ordenar">↕</button>
+            <button type="button" class="media-gallery-action-btn" title="Mover para cima" ${index === 0 ? 'disabled' : ''}
+              onclick="moveGalleryImageByOffset(${index}, -1)">↑</button>
+            <button type="button" class="media-gallery-action-btn" title="Mover para baixo" ${index === images.length - 1 ? 'disabled' : ''}
+              onclick="moveGalleryImageByOffset(${index}, 1)">↓</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
   }).join('');
+
+  updateMediaGalleryToolbar();
 }
 
 function ensureHistoriaGalleryArray(config) {
@@ -2805,16 +3154,8 @@ async function uploadGalleryMedia() {
       }
     }
 
-    if (window.__SITE_CONFIG__ && uploadedItems.length > 0) {
-      const gallery = ensureHistoriaGalleryArray(window.__SITE_CONFIG__);
-      uploadedItems.forEach((item) => {
-        if (item.src) {
-          gallery.push(item);
-        }
-      });
-
-      renderMediaGalleryGrid(gallery);
-      markEditorDirty();
+    if (uploadedItems.length > 0) {
+      await refreshGalleryFromApi(true);
     }
 
     const totalFailed = failedItems.length + invalidFiles.length;
@@ -2824,37 +3165,20 @@ async function uploadGalleryMedia() {
         help: [...invalidFiles, ...failedItems].slice(0, 2).join(' | '),
       });
     } else {
-      setMediaUploadStatus('Upload concluído. Salvando alterações...', false, {
-        variant: 'loading',
-        progress: 100,
-        help: 'Aguarde a confirmação de salvamento.',
-      });
-
-      const saveOk = await saveEditorConfig(true);
-      if (saveOk && totalFailed === 0) {
-        setMediaUploadStatus(`Galeria enviada e salva com sucesso (${uploadedItems.length} imagem(ns)).`, false, {
+      if (totalFailed === 0) {
+        setMediaUploadStatus(`Galeria enviada com sucesso (${uploadedItems.length} imagem(ns)).`, false, {
           variant: 'success',
           progress: 100,
-          help: 'Pronto. O convite já está atualizado.',
+          help: 'Pronto. As fotos já estão organizadas na galeria.',
         });
-      } else if (saveOk) {
+      } else {
         setMediaUploadStatus(
-          `Galeria salva com avisos: ${uploadedItems.length} enviada(s), ${totalFailed} falha(s).`,
+          `Upload concluído com avisos: ${uploadedItems.length} enviada(s), ${totalFailed} falha(s).`,
           false,
           {
             variant: 'warning',
             progress: 100,
             help: [...invalidFiles, ...failedItems].slice(0, 2).join(' | '),
-          }
-        );
-      } else {
-        setMediaUploadStatus(
-          `Upload concluído (${uploadedItems.length} enviada(s)), mas o salvamento falhou.`,
-          true,
-          {
-            variant: 'error',
-            progress: 100,
-            help: 'Tente novamente pelo botão Salvar alterações do editor.',
           }
         );
       }

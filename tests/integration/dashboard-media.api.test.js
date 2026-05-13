@@ -125,6 +125,7 @@ describe('POST /api/dashboard/media', () => {
     expect(removeMock).not.toHaveBeenCalled();
     expect(res.body).toEqual({
       eventId: 'event-1',
+      name: 'hero.jpg',
       path: 'ana-leo-2026/hero/hero.jpg',
       type: 'hero',
       url: 'https://cdn.example.com/ana-leo-2026/hero/hero.jpg',
@@ -294,6 +295,7 @@ describe('POST /api/dashboard/media', () => {
     expect(removeMock).not.toHaveBeenCalled();
     expect(res.body).toEqual({
       eventId: 'event-1',
+      name: 'pix-qr.png',
       path: 'ana-leo-2026/pix/pix-qr.png',
       type: 'pix-qr',
       url: 'https://cdn.example.com/ana-leo-2026/pix/pix-qr.png',
@@ -408,5 +410,166 @@ describe('POST /api/dashboard/media', () => {
 
     expect(res.statusCode).toBe(413);
     expect(res.body).toEqual({ error: 'Arquivo excede o limite de 10 MB.' });
+  });
+});
+
+describe('Gallery operations on /api/dashboard/media', () => {
+  beforeEach(() => {
+    vi.resetModules();
+    createClientMock.mockReset();
+    formidableMock.mockReset();
+    readFileMock.mockReset();
+    process.env.SUPABASE_URL = 'https://example.supabase.co';
+    process.env.SUPABASE_SERVICE_ROLE_KEY = 'service-role-key';
+  });
+
+  function mockOwnedEventWithStorage(storageImpl) {
+    createClientMock.mockReturnValue({
+      auth: {
+        getUser: vi.fn().mockResolvedValue({ data: { user: { id: 'user-1' } }, error: null }),
+      },
+      from: vi.fn(() => createSelectBuilder({
+        data: { id: 'event-1', user_id: 'user-1', slug: 'ana-leo-2026', config: {} },
+        error: null,
+      })),
+      storage: {
+        from: vi.fn(() => storageImpl),
+      },
+    });
+  }
+
+  it('lists gallery images with public URLs', async () => {
+    const listMock = vi.fn().mockResolvedValue({
+      data: [{ name: '001-primeira.jpg' }, { name: '002-segunda.png' }],
+      error: null,
+    });
+    const getPublicUrlMock = vi.fn((path) => ({
+      data: { publicUrl: `https://cdn.example.com/${path}` },
+    }));
+
+    mockOwnedEventWithStorage({
+      list: listMock,
+      getPublicUrl: getPublicUrlMock,
+    });
+
+    const { default: handler } = await import('../../api/dashboard/media.js');
+    const res = createMockResponse();
+
+    await handler({
+      method: 'GET',
+      headers: { authorization: 'Bearer valid-token' },
+      query: { eventId: 'event-1', type: 'gallery' },
+    }, res);
+
+    expect(res.statusCode).toBe(200);
+    expect(listMock).toHaveBeenCalledWith('ana-leo-2026/gallery', {
+      limit: 500,
+      sortBy: { column: 'name', order: 'asc' },
+    });
+    expect(res.body.items).toEqual([
+      {
+        name: '001-primeira.jpg',
+        path: 'ana-leo-2026/gallery/001-primeira.jpg',
+        url: 'https://cdn.example.com/ana-leo-2026/gallery/001-primeira.jpg',
+        alt: 'Primeira',
+      },
+      {
+        name: '002-segunda.png',
+        path: 'ana-leo-2026/gallery/002-segunda.png',
+        url: 'https://cdn.example.com/ana-leo-2026/gallery/002-segunda.png',
+        alt: 'Segunda',
+      },
+    ]);
+  });
+
+  it('reorders gallery files using storage move and returns refreshed list', async () => {
+    const listMock = vi.fn()
+      .mockResolvedValueOnce({
+        data: [
+          { name: '001-a.jpg' },
+          { name: '002-b.jpg' },
+          { name: '003-c.jpg' },
+        ],
+        error: null,
+      })
+      .mockResolvedValueOnce({
+        data: [
+          { name: '001-b.jpg' },
+          { name: '002-a.jpg' },
+          { name: '003-c.jpg' },
+        ],
+        error: null,
+      });
+    const moveMock = vi.fn().mockResolvedValue({ error: null });
+    const getPublicUrlMock = vi.fn((path) => ({
+      data: { publicUrl: `https://cdn.example.com/${path}` },
+    }));
+
+    mockOwnedEventWithStorage({
+      list: listMock,
+      move: moveMock,
+      getPublicUrl: getPublicUrlMock,
+    });
+
+    const { default: handler } = await import('../../api/dashboard/media.js');
+    const res = createMockResponse();
+
+    await handler({
+      method: 'PATCH',
+      headers: { authorization: 'Bearer valid-token' },
+      body: {
+        eventId: 'event-1',
+        type: 'gallery',
+        order: ['002-b.jpg', '001-a.jpg', '003-c.jpg'],
+      },
+      query: {},
+    }, res);
+
+    expect(res.statusCode).toBe(200);
+    expect(moveMock).toHaveBeenCalledTimes(4);
+    expect(res.body.items.map((item) => item.name)).toEqual(['001-b.jpg', '002-a.jpg', '003-c.jpg']);
+  });
+
+  it('deletes selected gallery files by name or path', async () => {
+    const listMock = vi.fn().mockResolvedValue({
+      data: [
+        { name: '001-a.jpg' },
+        { name: '002-b.jpg' },
+        { name: '003-c.jpg' },
+      ],
+      error: null,
+    });
+    const removeMock = vi.fn().mockResolvedValue({ error: null });
+
+    mockOwnedEventWithStorage({
+      list: listMock,
+      remove: removeMock,
+      getPublicUrl: vi.fn(),
+    });
+
+    const { default: handler } = await import('../../api/dashboard/media.js');
+    const res = createMockResponse();
+
+    await handler({
+      method: 'DELETE',
+      headers: { authorization: 'Bearer valid-token' },
+      body: {
+        eventId: 'event-1',
+        type: 'gallery',
+        names: ['001-a.jpg'],
+        paths: ['ana-leo-2026/gallery/003-c.jpg'],
+      },
+      query: {},
+    }, res);
+
+    expect(res.statusCode).toBe(200);
+    expect(removeMock).toHaveBeenCalledWith([
+      'ana-leo-2026/gallery/001-a.jpg',
+      'ana-leo-2026/gallery/003-c.jpg',
+    ]);
+    expect(res.body).toEqual({
+      deleted: ['001-a.jpg', '003-c.jpg'],
+      deletedCount: 2,
+    });
   });
 });
