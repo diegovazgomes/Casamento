@@ -2630,41 +2630,34 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
             </div>
 
             <div class="editor-rule"></div>
-            <span class="editor-sub-label">Trilha sonora principal</span>
-            <div class="form-grid-3">
-              <div class="field">
-                <label class="field-label" for="edTrackMainSrc">Arquivo</label>
-                <input type="text" class="field-input sm" id="edTrackMainSrc"
-                       placeholder="assets/audio/main-theme.mp3" oninput="markEditorDirty()">
-              </div>
-              <div class="field">
-                <label class="field-label" for="edTrackMainVolume">Volume (0–1)</label>
-                <input type="number" class="field-input sm" id="edTrackMainVolume"
-                       min="0" max="1" step="0.01" placeholder="0.14" oninput="markEditorDirty()">
-              </div>
-              <div class="field">
-                <label class="field-label" for="edTrackMainStart">Início (seg)</label>
-                <input type="number" class="field-input sm" id="edTrackMainStart"
-                       min="0" step="1" placeholder="8" oninput="markEditorDirty()">
-              </div>
+            <span class="editor-sub-label">Música do convite</span>
+            <div class="form-group">
+              <label class="toggle">
+                <input type="checkbox" class="toggle-input" id="edTrackEnabled" onchange="markEditorDirty()">
+                <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                <span class="toggle-label">Habilitar música no convite</span>
+              </label>
             </div>
 
-            <span class="editor-sub-label" style="margin-top:8px">Trilha da página de presentes</span>
+            <div class="field" style="margin-bottom:12px">
+              <label class="field-label" for="edTrackSrc">Música</label>
+              <select class="field-input sm" id="edTrackSrc" onchange="markEditorDirty()">
+                <option value="">— Carregando músicas… —</option>
+              </select>
+              <div class="field-hint" id="edTrackSrcHint" style="margin-top:4px">As músicas são carregadas da pasta <code>songs/</code> no Storage.</div>
+            </div>
+
             <div class="form-grid-3">
               <div class="field">
-                <label class="field-label" for="edTrackGiftSrc">Arquivo</label>
-                <input type="text" class="field-input sm" id="edTrackGiftSrc"
-                       placeholder="assets/audio/gift-theme.mp3" oninput="markEditorDirty()">
+                <label class="field-label" for="edTrackVolume">Volume (0–1)</label>
+                <input type="number" class="field-input sm" id="edTrackVolume"
+                       min="0" max="1" step="0.01" placeholder="0.14" oninput="markEditorDirty()">
               </div>
-              <div class="field">
-                <label class="field-label" for="edTrackGiftVolume">Volume (0–1)</label>
-                <input type="number" class="field-input sm" id="edTrackGiftVolume"
-                       min="0" max="1" step="0.01" placeholder="0.12" oninput="markEditorDirty()">
-              </div>
-              <div class="field">
-                <label class="field-label" for="edTrackGiftStart">Início (seg)</label>
-                <input type="number" class="field-input sm" id="edTrackGiftStart"
-                       min="0" step="1" placeholder="78" oninput="markEditorDirty()">
+              <div class="field" style="grid-column: span 2">
+                <label class="field-label" for="edTrackStart">Início em (seg)</label>
+                <input type="number" class="field-input sm" id="edTrackStart"
+                       min="0" step="1" placeholder="0" oninput="markEditorDirty()">
+                <div class="field-hint" style="margin-top:4px">A música reinicia neste ponto ao navegar entre páginas do convite.</div>
               </div>
             </div>
 

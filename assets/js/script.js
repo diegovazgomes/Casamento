@@ -636,8 +636,9 @@ class InvitationExperience {
         }
 
         this.openInviteButton.addEventListener('click', () => {
-            const initialContext = this.getInitialAudioContext();
-            const audioPromise = this.audio.startFromGesture(initialContext);
+            const audioPromise = this.isAudioEnabled()
+                ? this.audio.startFromGesture(this.getInitialAudioContext())
+                : null;
             this.enterInvitation({ audioPromise });
         });
     }
@@ -728,7 +729,7 @@ class InvitationExperience {
         this.initializeMainSite();
         if (audioPromise) {
             await audioPromise;
-        } else {
+        } else if (this.isAudioEnabled()) {
             await this.audio.unlock();
             await this.audio.setContext(this.getInitialAudioContext());
         }
@@ -852,7 +853,7 @@ class InvitationExperience {
             hasError: Boolean(this.audio.lastError)
         };
 
-        this.audioToggle.hidden = !this.hasStarted;
+        this.audioToggle.hidden = !this.hasStarted || !this.isAudioEnabled();
         this.audioToggle.classList.toggle('is-paused', detail.userPaused || !detail.isPlaying);
         this.audioToggle.classList.toggle('is-disabled', detail.hasError && !detail.isPlaying);
         this.audioToggle.setAttribute('aria-pressed', String(!detail.userPaused && detail.isPlaying));
@@ -871,6 +872,10 @@ class InvitationExperience {
         if (this.audioToggleLabel) {
             this.audioToggleLabel.textContent = 'Som';
         }
+    }
+
+    isAudioEnabled() {
+        return this.config.media?.tracks?.main?.enabled !== false;
     }
 
     getAudioTracks() {

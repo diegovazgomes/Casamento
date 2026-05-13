@@ -1850,14 +1850,13 @@ function loadEditorTab() {
   setVal('edExternalUrl',   ext.url   ?? '');
   setVal('edExternalLabel', ext.label ?? '');
 
-  // Fotos & Mídia
+  // Fotos & Mídia — Áudio
   setVal('edMediaHero',       config.media?.heroImage             ?? '');
-  setVal('edTrackMainSrc',    config.media?.tracks?.main?.src     ?? '');
-  setVal('edTrackMainVolume', config.media?.tracks?.main?.volume  ?? '');
-  setVal('edTrackMainStart',  config.media?.tracks?.main?.startTime ?? '');
-  setVal('edTrackGiftSrc',    config.media?.tracks?.gift?.src     ?? '');
-  setVal('edTrackGiftVolume', config.media?.tracks?.gift?.volume  ?? '');
-  setVal('edTrackGiftStart',  config.media?.tracks?.gift?.startTime ?? '');
+  const _mainTrack = config.media?.tracks?.main ?? {};
+  setChk('edTrackEnabled', _mainTrack.enabled !== false);
+  setVal('edTrackVolume', _mainTrack.volume   ?? '');
+  setVal('edTrackStart',  _mainTrack.startTime ?? '');
+  fetchSongsList(_mainTrack.src ?? '');
   renderMediaHeroPreview(config.media?.heroImage || '');
   setEditorGalleryImages(config.pages?.historia?.content?.gallery || []);
   refreshGalleryFromApi(true);
@@ -2668,6 +2667,51 @@ async function refreshGalleryFromApi(silent = false) {
         help: 'Não foi possível atualizar a galeria do Storage.',
       });
     }
+  }
+}
+
+async function fetchSongsList(currentSrc = '') {
+  const sel = document.getElementById('edTrackSrc');
+  const hint = document.getElementById('edTrackSrcHint');
+  if (!sel) return;
+
+  try {
+    const response = await fetchWithAuth(`/api/dashboard/media?type=songs&eventId=${encodeURIComponent(state.eventId)}`);
+    const payload = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      sel.innerHTML = '<option value="">— Erro ao carregar músicas —</option>';
+      if (hint) hint.textContent = payload.error || 'Não foi possível carregar as músicas do Storage.';
+      return;
+    }
+
+    const files = Array.isArray(payload.files) ? payload.files : [];
+
+    if (files.length === 0) {
+      sel.innerHTML = '<option value="">— Nenhuma música na pasta songs/ —</option>';
+      if (hint) hint.textContent = 'Carregue arquivos de áudio (.mp3) na pasta songs/ do bucket event-media no Supabase.';
+      return;
+    }
+
+    const selectedValue = currentSrc || sel.value;
+    const options = files.map((f) => {
+      const label = f.name.replace(/\.(mp3|m4a|ogg|wav|aac)$/i, '').replace(/[-_]+/g, ' ');
+      const selected = f.url === selectedValue ? ' selected' : '';
+      return `<option value="${f.url}"${selected}>${label}</option>`;
+    });
+
+    // Preserve a custom src that isn't in the list
+    if (selectedValue && !files.some((f) => f.url === selectedValue)) {
+      const label = selectedValue.split('/').pop() || selectedValue;
+      options.unshift(`<option value="${selectedValue}" selected>${label} (personalizado)</option>`);
+    }
+
+    sel.innerHTML = options.join('');
+    if (hint) hint.textContent = `${files.length} música${files.length !== 1 ? 's' : ''} disponível${files.length !== 1 ? 'eis' : ''}.`;
+  } catch (err) {
+    sel.innerHTML = '<option value="">— Erro ao carregar músicas —</option>';
+    if (hint) hint.textContent = 'Não foi possível carregar as músicas do Storage.';
+    console.error('[dashboard] fetchSongsList error', err);
   }
 }
 
@@ -3607,12 +3651,16 @@ function collectEditorValues() {
   if (!config.media.tracks)      config.media.tracks      = {};
   if (!config.media.tracks.main) config.media.tracks.main = {};
   if (!config.media.tracks.gift) config.media.tracks.gift = {};
-  config.media.tracks.main.src       = document.getElementById('edTrackMainSrc')?.value.trim()    || '';
-  config.media.tracks.main.volume    = parseFloat(document.getElementById('edTrackMainVolume')?.value)  || 0.14;
-  config.media.tracks.main.startTime = parseInt(document.getElementById('edTrackMainStart')?.value)     || 0;
-  config.media.tracks.gift.src       = document.getElementById('edTrackGiftSrc')?.value.trim()    || '';
-  config.media.tracks.gift.volume    = parseFloat(document.getElementById('edTrackGiftVolume')?.value)  || 0.12;
-  config.media.tracks.gift.startTime = parseInt(document.getElementById('edTrackGiftStart')?.value)     || 0;
+  const _musicEnabled = document.getElementById('edTrackEnabled')?.checked ?? true;
+  const _musicSrc     = document.getElementById('edTrackSrc')?.value.trim()     || '';
+  const _musicVolume  = parseFloat(document.getElementById('edTrackVolume')?.value) || 0.14;
+  const _musicStart   = parseInt(document.getElementById('edTrackStart')?.value)    || 0;
+  ['main', 'gift'].forEach((ctx) => {
+    config.media.tracks[ctx].enabled   = _musicEnabled;
+    config.media.tracks[ctx].src       = _musicSrc;
+    config.media.tracks[ctx].volume    = _musicVolume;
+    config.media.tracks[ctx].startTime = _musicStart;
+  });
 
   // Páginas extras
   if (!config.pages) config.pages = {};

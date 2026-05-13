@@ -11,6 +11,7 @@ const MIME_EXTENSION_MAP = {
 };
 
 const GALLERY_IMAGE_EXTENSION_PATTERN = /\.(jpe?g|png|webp)$/i;
+const AUDIO_EXTENSION_PATTERN = /\.(mp3|m4a|ogg|wav|aac)$/i;
 
 function isFileTooLargeError(error) {
   const code = Number(error?.code);
@@ -354,6 +355,39 @@ async function handleGalleryReorder(req, res) {
   });
 }
 
+async function handleSongsList(req, res, eventId) {
+  if (!eventId) {
+    return res.status(400).json({ error: 'eventId required' });
+  }
+
+  const ownedEvent = await resolveOwnedEventFromRequest(req, eventId);
+  if (!ownedEvent.ok) {
+    return res.status(ownedEvent.status).json({ error: ownedEvent.error });
+  }
+
+  const storage = ownedEvent.supabase.storage.from('event-media');
+  const { data, error } = await storage.list('songs', {
+    limit: 200,
+    sortBy: { column: 'name', order: 'asc' },
+  });
+
+  if (error) {
+    throw error;
+  }
+
+  const files = (Array.isArray(data) ? data : [])
+    .filter((entry) => Boolean(entry?.name) && AUDIO_EXTENSION_PATTERN.test(entry.name))
+    .map((entry) => {
+      const { data: urlData } = storage.getPublicUrl(`songs/${entry.name}`);
+      return {
+        name: entry.name,
+        url: urlData?.publicUrl || '',
+      };
+    });
+
+  return res.status(200).json({ files });
+}
+
 export default async function handler(req, res) {
   setCorsHeaders(res);
 
@@ -369,8 +403,11 @@ export default async function handler(req, res) {
     if (req.method === 'GET') {
       const eventId = getSingleValue(req.query?.eventId);
       const type = getSingleValue(req.query?.type || 'gallery');
+      if (type === 'songs') {
+        return handleSongsList(req, res, eventId);
+      }
       if (type !== 'gallery') {
-        return res.status(400).json({ error: 'type must be gallery' });
+        return res.status(400).json({ error: 'type must be gallery or songs' });
       }
       return handleGalleryList(req, res, eventId);
     }
