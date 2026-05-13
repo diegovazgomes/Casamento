@@ -597,8 +597,26 @@ class InvitationExperience {
         this.introScreen = document.getElementById('introScreen');
         this.openInviteButton = document.getElementById('openInviteButton');
         this.siteShell = document.getElementById('siteShell');
-        this.audioToggle = document.getElementById('audioToggle');
+        this.audioToggle = document.getElementById('audioToggle') ?? this.ensureAudioToggle();
         this.audioToggleLabel = this.audioToggle?.querySelector('.audio-toggle__label') ?? null;
+    }
+
+    ensureAudioToggle() {
+        const body = document.body;
+        if (!body) {
+            return null;
+        }
+
+        const button = document.createElement('button');
+        button.className = 'audio-toggle';
+        button.id = 'audioToggle';
+        button.type = 'button';
+        button.hidden = true;
+        button.setAttribute('aria-label', 'Pausar som');
+        button.setAttribute('aria-pressed', 'false');
+        button.innerHTML = '<span class="audio-toggle__pulse" aria-hidden="true"></span><span class="audio-toggle__label">Som</span>';
+        body.appendChild(button);
+        return button;
     }
 
     async init() {
@@ -713,8 +731,7 @@ class InvitationExperience {
     }
 
     getInitialAudioContext() {
-        const isGiftOrExtraPage = document.body.classList.contains('gift-page') || document.body.classList.contains('extra-page');
-        return isGiftOrExtraPage ? 'gift' : 'main';
+        return 'main';
     }
 
     async enterInvitation({ skipIntro = false, targetSection = null, forceTop = false, audioPromise = null, shouldNavigate = true } = {}) {
@@ -911,12 +928,12 @@ class InvitationExperience {
     }
 
     getAudioTracks() {
-        const mainTrack = this.config.media?.tracks?.main ?? {};
-        const giftTrack = this.config.media?.tracks?.gift ?? {};
+        const mainTrack = this.config.media?.tracks?.main ?? DEFAULT_SITE_CONTENT.media?.tracks?.main ?? {};
+        const unifiedTrack = { ...mainTrack };
 
         return {
-            main: mainTrack,
-            gift: giftTrack
+            main: unifiedTrack,
+            gift: { ...unifiedTrack }
         };
     }
 
