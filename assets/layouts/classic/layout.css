@@ -1565,8 +1565,24 @@
     }
 
     .hero.hero--full-photo .hero-content {
-        width: min(100%, 760px);
+        width: min(92vw, var(--hero-photo-render-width, 760px));
         padding-bottom: max(calc(var(--hero-content-padding-bottom) + 34px), calc(var(--scroll-hint-bottom) + var(--scroll-arrow-height) + 24px));
+    }
+
+    .hero.hero--full-photo .hero-label {
+        font-size: clamp(8px, calc(var(--hero-label-size) * var(--hero-photo-text-scale, 1)), 14px);
+    }
+
+    .hero.hero--full-photo .hero-names {
+        font-size: clamp(
+            calc(var(--hero-name-min) * var(--hero-photo-text-scale, 1)),
+            calc(var(--hero-name-fluid) * var(--hero-photo-text-scale, 1)),
+            calc(var(--hero-name-max) * var(--hero-photo-text-scale, 1))
+        );
+    }
+
+    .hero.hero--full-photo .hero-date {
+        font-size: clamp(9px, calc(var(--hero-date-size) * var(--hero-photo-text-scale, 1)), 15px);
     }
 
     .detail-card-gift {

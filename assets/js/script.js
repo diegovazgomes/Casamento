@@ -1030,6 +1030,8 @@ class InvitationExperience {
         }
 
         hero.classList.remove('hero--full-photo', 'hero--cover-photo');
+        hero.style.removeProperty('--hero-photo-render-width');
+        hero.style.removeProperty('--hero-photo-text-scale');
 
         if (!heroPhoto || !window.matchMedia('(min-width: 768px)').matches) {
             return;
@@ -1046,6 +1048,23 @@ class InvitationExperience {
         const shouldShowFullImage = aspectRatio < 1.35;
 
         hero.classList.add(shouldShowFullImage ? 'hero--full-photo' : 'hero--cover-photo');
+
+        if (!shouldShowFullImage) {
+            return;
+        }
+
+        const heroWidth = Number(hero.clientWidth || 0);
+        const heroHeight = Number(hero.clientHeight || 0);
+
+        if (!heroWidth || !heroHeight) {
+            return;
+        }
+
+        const renderedImageWidth = Math.min(heroWidth, heroHeight * aspectRatio);
+        const textScale = Math.max(0.64, Math.min(renderedImageWidth / 760, 1));
+
+        hero.style.setProperty('--hero-photo-render-width', `${Math.round(renderedImageWidth)}px`);
+        hero.style.setProperty('--hero-photo-text-scale', textScale.toFixed(3));
     }
 
     setEventDetails() {
