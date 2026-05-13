@@ -37,11 +37,12 @@ function buildLoadingHTML(prefill = null, options = {}) {
     <div class="loading-phase loading-phase--brand" id="loadingPhaseBrand" role="status" aria-live="polite" aria-label="Carregando"${showCouplePhase ? ' hidden' : ''}>
         <div class="brand-phase-center">
             <p class="brand-studio-tag">— DEVAZI STUDIO —</p>
-            <span class="brand-name-word">Devazi</span>
-            <div class="brand-progress-wrap">
-                <div class="brand-progress-track">
-                    <div class="brand-progress-beam"></div>
-                </div>
+            <div class="brand-name-frame">
+                <svg class="brand-frame-svg" viewBox="0 0 340 108" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <rect class="brand-frame-track" x="2" y="2" width="336" height="104" rx="14" ry="14"/>
+                    <rect class="brand-frame-beam"  x="2" y="2" width="336" height="104" rx="14" ry="14"/>
+                </svg>
+                <span class="brand-name-word">Devazi</span>
             </div>
         </div>
     </div>
@@ -411,20 +412,19 @@ export async function hideLoadingScreen() {
     });
     await Promise.race([contentTimeout, contentCheck]);
 
-    // Garantir mínimo de 4s desde o início da loading screen.
-    // Isso assegura que o Supabase já respondeu (~500ms) e o fade-in das iniciais
-    // (CSS animation-delay: 2s + duração 2s) completou antes de fechar.
-    const MIN_DURATION = 4000;
+    // Garantir mínimo de 4.8s desde o início da loading screen.
+    // 0.8s escuro + 2s fade-in Devazi + 2s mínimo do retângulo animado.
+    const MIN_DURATION = 4800;
     const elapsed = Date.now() - loadingStartTime;
     const remaining = Math.max(0, MIN_DURATION - elapsed);
     await new Promise(r => setTimeout(r, remaining));
 
-    // Aí sim desaparece com fade-out de 600ms
+    // Fade-out de 1s
     loadingScreen.classList.add('fade-out');
     setTimeout(() => {
         if (loadingScreen.parentNode) {
             document.documentElement.classList.remove('ls-pending');
             loadingScreen.remove();
         }
-    }, 600);
+    }, 1000);
 }

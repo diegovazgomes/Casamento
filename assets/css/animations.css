@@ -250,7 +250,7 @@ html.ls-pending::before {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 0;
+    gap: 18px;
     opacity: 0;
     animation: brandFadeIn 2s ease-out 0.8s forwards;
 }
@@ -262,7 +262,46 @@ html.ls-pending::before {
     letter-spacing: 6px;
     color: rgba(201, 165, 90, 0.65);
     text-transform: uppercase;
-    margin: 0 0 20px;
+    margin: 0;
+}
+
+/* Wrapper do nome com retângulo SVG sobreposto */
+.brand-name-frame {
+    position: relative;
+    width: min(340px, 82vw);
+    padding: 20px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+}
+
+.brand-frame-svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+}
+
+/* Trilha de fundo do retângulo */
+.brand-frame-track {
+    stroke: rgba(201, 165, 90, 0.18);
+    stroke-width: 1.5;
+    fill: none;
+}
+
+/* Beam animado — inicia em 2.8s, quando Devazi já está visível */
+.brand-frame-beam {
+    fill: none;
+    stroke: #c9a55a;
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-dasharray: 90 790;
+    stroke-dashoffset: 0;
+    animation: brandBeamTravel 3.1s linear infinite;
+    animation-delay: 2.8s;
+    filter: drop-shadow(0 0 5px rgba(201, 165, 90, 0.55));
 }
 
 .brand-name-word {
@@ -272,34 +311,8 @@ html.ls-pending::before {
     color: #f0ebe1;
     letter-spacing: 2px;
     line-height: 1;
-    display: block;
-    margin: 0 0 28px;
-}
-
-.brand-progress-wrap {
-    opacity: 0;
-    animation: lsFadeIn 0.6s ease-out 2s forwards;
-}
-
-.brand-progress-track {
-    width: min(240px, 60vw);
-    height: 2px;
-    background: rgba(201, 165, 90, 0.18);
-    border-radius: 2px;
-    overflow: hidden;
     position: relative;
-}
-
-.brand-progress-beam {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 45%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, #c9a55a 40%, #f0d887 60%, #c9a55a, transparent);
-    border-radius: 2px;
-    box-shadow: 0 0 8px rgba(201, 165, 90, 0.6);
-    animation: brandProgressSlide 3.1s ease-in-out infinite;
+    z-index: 1;
 }
 
 .loading-phase--couple {
@@ -547,9 +560,10 @@ html.ls-pending::before {
     }
 }
 
-@keyframes brandProgressSlide {
-    0%   { transform: translateX(-250%); }
-    100% { transform: translateX(380%); }
+@keyframes brandBeamTravel {
+    to {
+        stroke-dashoffset: -880; /* perimetro: 2 × (336 + 104) = 880 */
+    }
 }
 
 @media (max-width: 480px) {
@@ -601,7 +615,7 @@ html.ls-pending::before {
 }
 
 .loading-screen.fade-out {
-    animation: loadingFadeOut 0.6s ease-out forwards;
+    animation: loadingFadeOut 1s ease-out forwards;
 }
 
 @keyframes loadingFadeOut {
