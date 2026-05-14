@@ -1,4 +1,4 @@
-# Melhorias
+# Melhorias.md
 ## Bride/Groom
 [x] - Adicionar dois novos campos de texto no signup.html (bride_name e groom_name)
 [x] - Atualizar API `/api/auth/signup.js` para persistir bride_name e groom_name
