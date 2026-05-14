@@ -112,6 +112,7 @@ document.addEventListener('DOMContentLoaded', () => {
   setupModalListeners();
   setupDesktopDatePicker();
   syncActiveTab();
+  maybeShowPaymentBanner();
 });
 
 function setupDesktopDatePicker() {
@@ -208,6 +209,7 @@ function debounce(fn, delay) {
 function bindUiEvents() {
   authForm.addEventListener('submit', handleAuth);
   logoutButton.addEventListener('click', handleLogout);
+  document.getElementById('btnUpgrade')?.addEventListener('click', handleUpgrade);
   
   // Tab switching
   document.querySelectorAll('.nav-item[data-tab]').forEach(button => {
@@ -356,12 +358,13 @@ async function handleAuth(event) {
       hideLoginLoadingScreen();
     }, 300);
 
-    // Exibir nome do casal vindo do profile (não-bloqueante)
+    // Exibir nome do casal e plano vindos do profile (não-bloqueante)
     fetchUserProfile().then(profile => {
       if (profile?.couple_name) {
         const sidebarCouple = document.getElementById('sidebarCouple');
         if (sidebarCouple) sidebarCouple.textContent = profile.couple_name;
       }
+      renderPlanBadge(profile);
     }).catch(() => {});
 
     notifyDashboardReady();
@@ -616,6 +619,74 @@ async function fetchUserProfile() {
 
 function isPremiumPlan(planValue) {
   return String(planValue || '').trim().toLowerCase() === 'premium';
+}
+
+function renderPlanBadge(profile) {
+  const container = document.getElementById('sidebarPlan');
+  const nameEl = document.getElementById('sidebarPlanName');
+  const btnUpgrade = document.getElementById('btnUpgrade');
+  if (!container || !nameEl) return;
+
+  const plan = String(profile?.plan || 'free');
+  nameEl.textContent = isPremiumPlan(plan) ? 'Premium' : 'Free';
+  container.hidden = false;
+
+  if (btnUpgrade) {
+    btnUpgrade.hidden = isPremiumPlan(plan);
+  }
+}
+
+async function handleUpgrade() {
+  const btn = document.getElementById('btnUpgrade');
+  if (btn) { btn.disabled = true; btn.textContent = 'Aguarde...'; }
+
+  try {
+    const token = state.authToken;
+    if (!token) throw new Error('Sessão expirada.');
+
+    const res = await fetch('/api/payments?action=checkout', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}` },
+    });
+
+    const data = await res.json().catch(() => ({}));
+
+    if (!res.ok) {
+      throw new Error(data.error || 'Não foi possível iniciar o pagamento.');
+    }
+
+    if (data.url) {
+      window.location.href = data.url;
+    }
+  } catch (err) {
+    alert(err.message || 'Erro ao iniciar pagamento. Tente novamente.');
+    if (btn) { btn.disabled = false; btn.textContent = 'Fazer upgrade para Premium'; }
+  }
+}
+
+function maybeShowPaymentBanner() {
+  const params = new URLSearchParams(window.location.search);
+  const payment = params.get('payment');
+  if (!payment) return;
+
+  // Remove o parâmetro da URL sem recarregar
+  params.delete('payment');
+  const newSearch = params.toString();
+  const newUrl = window.location.pathname + (newSearch ? `?${newSearch}` : '');
+  history.replaceState(null, '', newUrl);
+
+  if (payment === 'success') {
+    const banner = document.createElement('div');
+    banner.className = 'payment-banner';
+    banner.innerHTML = '✓ Pagamento confirmado! Seu plano Premium está ativo.';
+    const main = document.querySelector('.main') || document.body;
+    main.prepend(banner);
+    setTimeout(() => banner.remove(), 8000);
+
+    // Recarrega o perfil para refletir o novo plano
+    state.userProfile = null;
+    fetchUserProfile().then(renderPlanBadge).catch(() => {});
+  }
 }
 
 async function ensureUserProfileLoaded() {

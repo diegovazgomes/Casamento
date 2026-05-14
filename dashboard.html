@@ -370,7 +370,24 @@ input[type="date"].field-input{width:100%;min-width:0;box-sizing:border-box;-web
   0%,100%{opacity:1;transform:scale(1)}
   50%{opacity:0.5;transform:scale(0.9)}
 }
- 
+.sidebar-plan{
+  margin-bottom:14px;
+  display:flex;flex-direction:column;gap:8px;
+}
+.sidebar-plan-label{
+  font-size:10px;letter-spacing:0.12em;text-transform:uppercase;
+  color:var(--text-dim);
+}
+.sidebar-plan-label strong{
+  color:var(--text);font-weight:600;text-transform:capitalize;
+}
+.payment-banner{
+  margin:16px 0;padding:12px 16px;
+  background:var(--success,#22c55e);color:#fff;
+  border-radius:8px;font-size:13px;font-weight:500;
+  display:flex;align-items:center;gap:8px;
+}
+
 /* Main Content */
 .main{
   flex:1;min-width:0;
@@ -1947,6 +1964,12 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
       <div class="sidebar-status">
         <span class="sidebar-status-dot"></span>
         <span>Sincronizado</span>
+      </div>
+      <div class="sidebar-plan" id="sidebarPlan" hidden>
+        <span class="sidebar-plan-label">Plano: <strong id="sidebarPlanName">Free</strong></span>
+        <button class="btn btn-primary btn-full btn-sm" id="btnUpgrade" hidden>
+          Fazer upgrade para Premium
+        </button>
       </div>
       <button class="btn btn-subtle btn-full" id="logoutButton">
         <span>Sair do painel</span>
