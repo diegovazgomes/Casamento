@@ -836,9 +836,9 @@ async function loadGrupos() {
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4 20-7z"/><path d="M22 2 11 13"/></svg>
               <span class="icon-btn-label">Convidar</span>
             </button>
-            <button class="icon-btn"${phoneDisabledAttr}${phoneDisabledClass} onclick="${hasPhone ? `openWhatsApp('${escapeHtmlAttribute(grupo.phone)}')` : ''}" aria-label="Abrir WhatsApp de ${escapeHtml(grupo.group_name)}" title="${hasPhone ? 'Abrir WhatsApp' : 'Telefone não cadastrado'}">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
-              <span class="icon-btn-label">WhatsApp</span>
+            <button class="icon-btn"${phoneDisabledAttr}${phoneDisabledClass} onclick="${hasPhone ? `copyInviteWhatsAppMessage('${escapeHtmlAttribute(grupo.id)}', this)` : ''}" aria-label="Copiar texto do convite de ${escapeHtml(grupo.group_name)}" title="${hasPhone ? 'Copiar texto do convite' : 'Telefone não cadastrado'}">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              <span class="icon-btn-label">Copiar texto</span>
             </button>
             <button class="icon-btn" onclick="editGrupo('${grupo.id}')" aria-label="Editar grupo ${escapeHtml(grupo.group_name)}" title="Editar">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 1 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
@@ -1497,16 +1497,8 @@ function syncPreviewInviteLink(slug) {
   syncDashboardEventSlug(slug);
 }
 
-function sendInviteWhatsApp(grupoId) {
-  const grupo = state.grupos.find(g => g.id === grupoId);
-  if (!grupo || !grupo.phone) return;
-
-  const coupleNames = window.__SITE_CONFIG__?.couple?.names || 'os noivos';
-  const link = buildGuestInviteLink(grupo.token, grupo.inviteLink);
-  const vagas = grupo.max_confirmations;
-  const vagasTexto = vagas === 1 ? '1 pessoa' : `${vagas} pessoas`;
-  const isIndividualInvite = Number(vagas) === 1;
-  const buildMessage = window.buildInviteWhatsAppMessage || ((options) => {
+function getInviteMessageBuilder() {
+  return window.buildInviteWhatsAppMessage || ((options) => {
     const inviteLink = String(options?.link || '').trim();
     const inviteCoupleNames = String(options?.coupleNames || 'os noivos').trim() || 'os noivos';
 
@@ -1526,23 +1518,68 @@ function sendInviteWhatsApp(grupoId) {
       `Aguardamos você com muito carinho! 🤍`
     );
   });
+}
 
-  const mensagem = buildMessage({
+function buildInviteMessageForGroup(grupo) {
+  if (!grupo) return '';
+
+  const coupleNames = window.__SITE_CONFIG__?.couple?.names || 'os noivos';
+  const link = buildGuestInviteLink(grupo.token, grupo.inviteLink);
+  const vagas = grupo.max_confirmations;
+  const vagasTexto = vagas === 1 ? '1 pessoa' : `${vagas} pessoas`;
+  const isIndividualInvite = Number(vagas) === 1;
+
+  return getInviteMessageBuilder()({
     coupleNames,
     link,
     isIndividual: isIndividualInvite,
     groupSizeLabel: vagasTexto,
   });
+}
+
+async function copyTextToClipboard(text) {
+  const value = String(text || '');
+  if (!value) return;
+
+  if (navigator.clipboard?.writeText) {
+    await navigator.clipboard.writeText(value);
+    return;
+  }
+
+  const ta = document.createElement('textarea');
+  ta.value = value;
+  ta.style.cssText = 'position:fixed;opacity:0;top:0;left:0';
+  document.body.appendChild(ta);
+  ta.select();
+  document.execCommand('copy');
+  document.body.removeChild(ta);
+}
+
+function sendInviteWhatsApp(grupoId) {
+  const grupo = state.grupos.find(g => g.id === grupoId);
+  if (!grupo || !grupo.phone) return;
+
+  const mensagem = buildInviteMessageForGroup(grupo);
 
   const digits = grupo.phone.replace(/\D/g, '');
   const url = `https://wa.me/${digits}?text=${encodeURIComponent(mensagem)}`;
   window.open(url, '_blank', 'noopener,noreferrer');
 }
 
-function openWhatsApp(phone) {
-  if (!phone) return;
-  const digits = phone.replace(/\D/g, '');
-  window.open(`https://wa.me/${digits}`, '_blank', 'noopener,noreferrer');
+async function copyInviteWhatsAppMessage(grupoId, triggerButton) {
+  const grupo = state.grupos.find((g) => g.id === grupoId);
+  if (!grupo) return;
+
+  const mensagem = buildInviteMessageForGroup(grupo);
+  if (!mensagem) return;
+
+  try {
+    await copyTextToClipboard(mensagem);
+    showCopyFeedback('', triggerButton);
+  } catch (error) {
+    console.error('[copyInviteWhatsAppMessage]', error);
+    alert('Não foi possível copiar o texto do convite.');
+  }
 }
 
 // ============================================================
@@ -1568,8 +1605,10 @@ async function copyInviteLink(token) {
   }
 }
 
-function showCopyFeedback(token) {
-  const btn = document.querySelector(`[data-copy-token="${CSS.escape(token)}"]`);
+function showCopyFeedback(token, triggerButton = null) {
+  const btn = triggerButton || (token
+    ? document.querySelector(`[data-copy-token="${CSS.escape(token)}"]`)
+    : null);
   if (!btn) return;
   const original = btn.innerHTML;
   const originalBorder = btn.style.borderColor;
