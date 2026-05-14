@@ -134,14 +134,14 @@ describe('POST /api/dashboard/media', () => {
 
   it('removes old hero file after uploading new hero with different extension', async () => {
     const uploadMock = vi.fn().mockResolvedValue({ error: null });
-    // after upload, folder contains both the old jpg and the new webp
+    // after upload, folder contains both the normalized jpg and old webp
     const listMock = vi.fn().mockResolvedValue({
       data: [{ name: 'hero.jpg' }, { name: 'hero.webp' }],
       error: null,
     });
     const removeMock = vi.fn().mockResolvedValue({ error: null });
     const getPublicUrlMock = vi.fn().mockReturnValue({
-      data: { publicUrl: 'https://cdn.example.com/ana-leo-2026/hero/hero.webp' },
+      data: { publicUrl: 'https://cdn.example.com/ana-leo-2026/hero/hero.jpg' },
     });
 
     createClientMock.mockReturnValue({
@@ -183,12 +183,12 @@ describe('POST /api/dashboard/media', () => {
 
     expect(res.statusCode).toBe(200);
     expect(uploadMock).toHaveBeenCalledWith(
-      'ana-leo-2026/hero/hero.webp',
+      'ana-leo-2026/hero/hero.jpg',
       expect.any(Buffer),
-      { contentType: 'image/webp', upsert: true }
+      { contentType: 'image/jpeg', upsert: true }
     );
-    // only the old jpg is removed; new webp is kept
-    expect(removeMock).toHaveBeenCalledWith(['ana-leo-2026/hero/hero.jpg']);
+    // only the old webp is removed; normalized jpg is kept
+    expect(removeMock).toHaveBeenCalledWith(['ana-leo-2026/hero/hero.webp']);
   });
 
   it('upload succeeds even when post-upload cleanup list call fails', async () => {

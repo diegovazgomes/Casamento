@@ -2338,77 +2338,15 @@ function bindMediaFileSelectionMeta() {
 }
 
 async function uploadMediaFile(type, file, options = {}) {
-  let uploadFile = file;
-
   if (type === 'hero') {
-    uploadFile = await normalizeHeroImageForUpload(file);
+    return uploadMediaFileViaApi(type, file, options);
   }
 
   try {
-    return await uploadMediaFileDirect(type, uploadFile, options);
+    return await uploadMediaFileDirect(type, file, options);
   } catch (directUploadError) {
     // Fallback de compatibilidade para projetos sem policy de upload direto no bucket.
-    return uploadMediaFileViaApi(type, uploadFile, options, directUploadError);
-  }
-}
-
-async function normalizeHeroImageForUpload(file) {
-  if (!(file instanceof File) || !String(file.type || '').toLowerCase().startsWith('image/')) {
-    return file;
-  }
-
-  const objectUrl = URL.createObjectURL(file);
-
-  try {
-    const image = await new Promise((resolve, reject) => {
-      const element = new Image();
-      element.onload = () => resolve(element);
-      element.onerror = () => reject(new Error('Falha ao carregar imagem para normalização.'));
-      element.src = objectUrl;
-    });
-
-    const width = Number(image.naturalWidth || image.width || 0);
-    const height = Number(image.naturalHeight || image.height || 0);
-
-    if (!width || !height) {
-      return file;
-    }
-
-    const canvas = document.createElement('canvas');
-    canvas.width = width;
-    canvas.height = height;
-
-    const context = canvas.getContext('2d');
-    if (!context) {
-      return file;
-    }
-
-    context.drawImage(image, 0, 0, width, height);
-
-    const outputType = String(file.type || '').toLowerCase() === 'image/png'
-      ? 'image/png'
-      : 'image/jpeg';
-    const outputFileName = outputType === 'image/png'
-      ? 'hero.png'
-      : 'hero.jpg';
-
-    const normalizedBlob = await new Promise((resolve) => {
-      canvas.toBlob((blob) => resolve(blob), outputType, outputType === 'image/jpeg' ? 0.92 : undefined);
-    });
-
-    if (!(normalizedBlob instanceof Blob)) {
-      return file;
-    }
-
-    return new File([normalizedBlob], outputFileName, {
-      type: outputType,
-      lastModified: Date.now(),
-    });
-  } catch {
-    // Se a normalização falhar, continua com arquivo original sem bloquear upload.
-    return file;
-  } finally {
-    URL.revokeObjectURL(objectUrl);
+    return uploadMediaFileViaApi(type, file, options, directUploadError);
   }
 }
 

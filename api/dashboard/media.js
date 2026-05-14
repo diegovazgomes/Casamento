@@ -131,6 +131,20 @@ function buildStoragePath(storageRoot, type, file) {
   return `${storageRoot}/gallery/${Date.now()}-${safeBaseName}.${extension}`;
 }
 
+async function normalizeHeroImageBuffer(buffer) {
+  try {
+    const { default: sharp } = await import('sharp');
+
+    return await sharp(buffer)
+      .rotate()
+      .jpeg({ quality: 86, mozjpeg: true })
+      .toBuffer();
+  } catch {
+    // Fallback seguro: se o processamento falhar, não interrompe o upload.
+    return buffer;
+  }
+}
+
 function getEventStorageRoot(eventRecord, fallbackEventId = '') {
   const eventSlug = String(eventRecord?.slug || '').trim();
   if (eventSlug) {
@@ -464,13 +478,21 @@ export default async function handler(req, res) {
       return res.status(ownedEvent.status).json({ error: ownedEvent.error });
     }
 
-    const buffer = await readFile(file.filepath);
+    let buffer = await readFile(file.filepath);
     const storageRoot = getEventStorageRoot(ownedEvent.event, eventId);
-    const storagePath = buildStoragePath(storageRoot, type, file);
+    let storagePath = buildStoragePath(storageRoot, type, file);
+    let contentType = file.mimetype;
+
+    if (type === 'hero') {
+      buffer = await normalizeHeroImageBuffer(buffer);
+      storagePath = `${storageRoot}/hero/hero.jpg`;
+      contentType = 'image/jpeg';
+    }
+
     const storage = ownedEvent.supabase.storage.from('event-media');
 
     const { error: uploadError } = await storage.upload(storagePath, buffer, {
-      contentType: file.mimetype,
+      contentType,
       upsert: type === 'hero' || type === 'pix-qr',
     });
 
