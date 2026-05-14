@@ -102,7 +102,7 @@ O roadmap correto começa em:
 - [x] Padronizar ownership entre `profiles`, `events` e demais tabelas relacionadas.
 - [x] Substituir a autenticação simples do dashboard por Supabase Auth real.
 - [x] Implementar sessão do casal no dashboard com login, logout e proteção de rotas.
-- [ ] Configurar ambiente de produção separado no Supabase.
+- [x] Configurar ambiente de produção separado no Supabase.
 - [x] Configurar variáveis de ambiente de produção no Vercel.
 - [x] Validar RLS de ponta a ponta com usuário autenticado vendo apenas o próprio evento.
 

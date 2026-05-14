@@ -359,7 +359,7 @@ body::before {
   // Com tokens: tentar confirmar a sessão via Supabase client
   showState('loading');
 
-  fetch('/api/config')
+  fetch('/api/event-config?mode=client-config')
     .then(r => r.ok ? r.json() : Promise.reject('config-fail'))
     .then(({ supabaseUrl, supabaseAnonKey }) => {
       if (!supabaseUrl || !supabaseAnonKey) return Promise.reject('no-config');

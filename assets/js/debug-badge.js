@@ -110,7 +110,7 @@ function updateBadge({ fetchTime, theme, cached, commit }) {
 
 async function loadCommitInfo() {
     try {
-        const response = await fetch('/api/config', { cache: 'no-store' });
+        const response = await fetch('/api/event-config?mode=client-config', { cache: 'no-store' });
         if (!response.ok) {
             updateBadge({ commit: '' });
             return;

@@ -496,7 +496,7 @@ async function getDashboardSupabaseClient() {
         throw new Error('SDK do Supabase não carregado no dashboard');
       }
 
-      const response = await fetch('/api/config');
+      const response = await fetch('/api/event-config?mode=client-config');
       const config = await response.json().catch(() => ({}));
 
       if (!response.ok) {

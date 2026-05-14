@@ -16,7 +16,7 @@ async function getConfig() {
     if (_config) return _config;
 
     try {
-        const res = await fetch('/api/config');
+        const res = await fetch('/api/event-config?mode=client-config');
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
         const data = await res.json();
@@ -26,10 +26,10 @@ async function getConfig() {
         };
 
         if (!_config.supabaseUrl || !_config.supabaseAnonKey) {
-            console.warn('[rsvp-persistence] /api/config respondeu sem SUPABASE_URL ou SUPABASE_ANON_KEY. Verifique as variáveis de ambiente no deploy.');
+            console.warn('[rsvp-persistence] /api/event-config?mode=client-config respondeu sem SUPABASE_URL ou SUPABASE_ANON_KEY. Verifique as variáveis de ambiente no deploy.');
         }
     } catch (error) {
-        console.warn(`[rsvp-persistence] Não foi possível carregar /api/config: ${error.message}`);
+        console.warn(`[rsvp-persistence] Não foi possível carregar /api/event-config?mode=client-config: ${error.message}`);
         _config = { supabaseUrl: null, supabaseAnonKey: null };
     }
 
