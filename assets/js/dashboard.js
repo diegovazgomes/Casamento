@@ -25,6 +25,7 @@ const DASHBOARD_ACCESS_TOKEN_STORAGE_KEY = 'dashboard-access-token';
 
 let dashboardSupabaseClientPromise = null;
 let loginLoadingHideTimer = null;
+let galleryOrderSaveTimer = null;
 
 function redirectRecoveryCallbackToResetPage() {
   const currentUrl = new URL(window.location.href);
@@ -2859,8 +2860,7 @@ async function persistGalleryOrder() {
     help: 'Aguarde a confirmação.',
   });
 
-  const items = await requestGalleryReorder(orderNames);
-  setEditorGalleryImages(items, { preserveSelection: true });
+  await requestGalleryReorder(orderNames);
   setMediaUploadStatus('Ordem da galeria atualizada com sucesso.', false, {
     variant: 'success',
     progress: 100,
@@ -2868,7 +2868,27 @@ async function persistGalleryOrder() {
   });
 }
 
-async function moveGalleryImageByOffset(index, delta) {
+function schedulePersistGalleryOrder() {
+  clearTimeout(galleryOrderSaveTimer);
+  setMediaUploadStatus('Aguardando para salvar...', false, {
+    variant: 'loading',
+    progress: 50,
+    help: 'A ordem será salva automaticamente.',
+  });
+  galleryOrderSaveTimer = setTimeout(async () => {
+    try {
+      await persistGalleryOrder();
+    } catch (error) {
+      setMediaUploadStatus(normalizeUploadErrorMessage(error), true, {
+        variant: 'error',
+        help: 'Não foi possível salvar a nova ordem. Tente novamente.',
+      });
+      await refreshGalleryFromApi(true);
+    }
+  }, 2000);
+}
+
+function moveGalleryImageByOffset(index, delta) {
   const targetIndex = index + delta;
   if (index < 0 || targetIndex < 0 || targetIndex >= editorState.galleryImages.length) {
     return;
@@ -2880,16 +2900,7 @@ async function moveGalleryImageByOffset(index, delta) {
   editorState.galleryImages = reordered;
   syncGalleryToSiteConfig();
   renderMediaGalleryGrid(reordered);
-
-  try {
-    await persistGalleryOrder();
-  } catch (error) {
-    setMediaUploadStatus(normalizeUploadErrorMessage(error), true, {
-      variant: 'error',
-      help: 'Não foi possível salvar a nova ordem. Tente novamente.',
-    });
-    await refreshGalleryFromApi(true);
-  }
+  schedulePersistGalleryOrder();
 }
 
 function handleGalleryDragStart(event, index) {
@@ -2929,16 +2940,7 @@ async function handleGalleryDrop(event, dropIndex) {
   editorState.galleryImages = reordered;
   syncGalleryToSiteConfig();
   renderMediaGalleryGrid(reordered);
-
-  try {
-    await persistGalleryOrder();
-  } catch (error) {
-    setMediaUploadStatus(normalizeUploadErrorMessage(error), true, {
-      variant: 'error',
-      help: 'Não foi possível salvar a nova ordem. Tente novamente.',
-    });
-    await refreshGalleryFromApi(true);
-  }
+  schedulePersistGalleryOrder();
 }
 
 function handleGalleryDragEnd(event) {
