@@ -9,6 +9,7 @@ import {
 } from '../_lib/event-config.js';
 import {
   getDashboardEventLookup,
+  getUserPlan,
   requireOwnedEvent,
 } from '../_lib/dashboard-auth.js';
 
@@ -422,8 +423,18 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'config must be a valid object' });
     }
 
-    const sanitizedIncomingConfig = stripHistoriaGalleryFromConfig(body.config);
+    let sanitizedIncomingConfig = stripHistoriaGalleryFromConfig(body.config);
     const existingConfig = ownedEvent.event.config || {};
+
+    // Bloquear configuração de áudio para plano free
+    const plan = await getUserPlan(ownedEvent.supabase, ownedEvent.user.id);
+    if (plan !== 'premium' && sanitizedIncomingConfig.media?.tracks) {
+      const { tracks: _stripped, ...mediaWithoutTracks } = sanitizedIncomingConfig.media;
+      sanitizedIncomingConfig = {
+        ...sanitizedIncomingConfig,
+        media: mediaWithoutTracks,
+      };
+    }
     const shouldAutoGenerateSlug = body.autoGenerateSlug === true;
 
     let normalizedIncomingSlug = null;

@@ -17,6 +17,7 @@ const RATE_LIMIT_SAME_SLUG_GRACE_MS = 5_000;
 const EVENT_SELECT = [
   'id',
   'slug',
+  'user_id',
   'couple_names',
   'bride_name',
   'groom_name',
@@ -30,6 +31,9 @@ const EVENT_SELECT = [
   'config',
   'event_gifts(id,type,enabled,sort_order,config)',
 ].join(',');
+
+const FREE_THEME = 'classic-gold';
+const FREE_LAYOUT = 'classic';
 
 const RESERVED_SLUGS = new Set([
   'api',
@@ -449,14 +453,32 @@ export default async function handler(req, res) {
       return res.status(404).json({ error: 'Event not found' });
     }
 
+    // Buscar plano do dono do evento
+    let plan = 'free';
+    if (data.user_id) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('plan')
+        .eq('id', data.user_id)
+        .maybeSingle();
+      plan = String(profile?.plan || 'free').toLowerCase();
+    }
+
     const mappedConfig = buildEventConfigResponse(data);
+
+    // Forçar tema fixo para plano free
+    if (plan !== 'premium') {
+      mappedConfig.activeTheme = FREE_THEME;
+      mappedConfig.activeLayout = FREE_LAYOUT;
+    }
+
     const galleryImages = await resolveEventGalleryFromStorage(supabase, data.id, data.slug);
     const pixQrUrl = await resolveEventPixQrFromStorage(supabase, data.id, data.slug);
     const withPixQr = applyPixQrToGiftConfig(mappedConfig, pixQrUrl);
     const finalConfig = applyGalleryToHistoriaConfig(withPixQr, galleryImages);
 
     res.setHeader('Cache-Control', CACHE_CONTROL_HEADER);
-    return res.status(200).json(finalConfig);
+    return res.status(200).json({ ...finalConfig, plan });
   } catch (error) {
     console.error('[event-config] Failed to load event config', error);
     return res.status(500).json({ error: 'Internal server error' });

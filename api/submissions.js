@@ -1,5 +1,6 @@
 import { createSupabaseServerClient } from './_lib/supabase-server.js';
 
+const FREE_RSVP_LIMIT = 50;
 const RSVP_TABLE = 'rsvp_confirmations';
 const GUEST_TABLE = 'guest_submissions';
 const ALLOWED_TABLES = new Set([RSVP_TABLE, GUEST_TABLE]);
@@ -20,6 +21,44 @@ function stripOptionalRsvpColumns(payload) {
   delete nextPayload.group_name;
   delete nextPayload.group_max_confirmations;
   return nextPayload;
+}
+
+async function checkRsvpLimit(supabase, eventId) {
+  try {
+    const { data: event } = await supabase
+      .from('events')
+      .select('user_id')
+      .eq('id', eventId)
+      .maybeSingle();
+
+    if (!event?.user_id) return null;
+
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('plan')
+      .eq('id', event.user_id)
+      .maybeSingle();
+
+    const plan = String(profile?.plan || 'free').toLowerCase();
+    if (plan === 'premium') return null;
+
+    const { count } = await supabase
+      .from('rsvp_confirmations')
+      .select('id', { count: 'exact', head: true })
+      .eq('event_id', eventId);
+
+    if ((count || 0) >= FREE_RSVP_LIMIT) {
+      return {
+        code: 'RSVP_LIMIT_REACHED',
+        message: `Este convite atingiu o limite de ${FREE_RSVP_LIMIT} confirmações do plano gratuito.`,
+        details: '',
+        hint: '',
+      };
+    }
+  } catch {
+    // Silencioso — não bloquear o RSVP por falha de verificação
+  }
+  return null;
 }
 
 async function insertSubmission(supabase, table, payload) {
@@ -173,6 +212,12 @@ export default async function handler(req, res) {
   }
 
   try {
+    // Verificar limite de convidados para plano free
+    if (table === RSVP_TABLE && payload.event_id) {
+      const limitError = await checkRsvpLimit(supabase, payload.event_id);
+      if (limitError) return res.status(429).json(limitError);
+    }
+
     const result = await insertSubmission(supabase, table, payload);
 
     if (!result.ok) {

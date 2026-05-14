@@ -184,3 +184,21 @@ export function buildEventUpdatePayload(body, fieldMap, existingConfig, mergeDee
 
   return { update };
 }
+
+/**
+ * Retorna o plano do usuário ('free' | 'basic' | 'premium').
+ * Usa service role — chamável de qualquer endpoint backend.
+ */
+export async function getUserPlan(supabase, userId) {
+  if (!supabase || !userId) return 'free';
+  try {
+    const { data } = await supabase
+      .from('profiles')
+      .select('plan')
+      .eq('id', userId)
+      .maybeSingle();
+    return String(data?.plan || 'free').toLowerCase();
+  } catch {
+    return 'free';
+  }
+}

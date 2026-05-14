@@ -2,7 +2,10 @@ import { readFile } from 'fs/promises';
 
 import formidable from 'formidable';
 
-import { requireOwnedEvent } from '../_lib/dashboard-auth.js';
+import { getUserPlan, requireOwnedEvent } from '../_lib/dashboard-auth.js';
+
+const GALLERY_LIMIT_FREE = 3;
+const GALLERY_LIMIT_PREMIUM = 5;
 
 const MIME_EXTENSION_MAP = {
   'image/jpeg': 'jpg',
@@ -476,6 +479,21 @@ export default async function handler(req, res) {
 
     if (!ownedEvent.ok) {
       return res.status(ownedEvent.status).json({ error: ownedEvent.error });
+    }
+
+    // Verificar limite de galeria por plano
+    if (type === 'gallery') {
+      const plan = await getUserPlan(ownedEvent.supabase, ownedEvent.user.id);
+      const limit = plan === 'premium' ? GALLERY_LIMIT_PREMIUM : GALLERY_LIMIT_FREE;
+      const storageRootCheck = getEventStorageRoot(ownedEvent.event, eventId);
+      const storage = ownedEvent.supabase.storage.from('event-media');
+      const existing = await loadGalleryEntries(storage, storageRootCheck);
+      if (existing.length >= limit) {
+        return res.status(403).json({
+          error: `Limite de ${limit} ${plan === 'premium' ? '' : '(plano free) '}fotos na galeria atingido.`,
+          upgrade_required: plan !== 'premium',
+        });
+      }
     }
 
     let buffer = await readFile(file.filepath);

@@ -45,6 +45,17 @@ function buildLoadingHTML(prefill = null, options = {}) {
                 <span class="brand-name-word">Devazi</span>
             </div>
             <p class="brand-tagline">Experiências digitais</p>
+            <button class="ls-brand-btn" id="loadingBrandBtn" type="button" hidden>Abrir convite</button>
+        </div>
+    </div>
+
+    <div class="loading-phase loading-phase--card" id="loadingPhaseCard" hidden>
+        <div class="ls-card">
+            <div class="ls-card__ornament"></div>
+            <p class="ls-card__names" id="loadingCardNames"></p>
+            <p class="ls-card__date" id="loadingCardDate"></p>
+            <div class="ls-card__ornament"></div>
+            <button class="ls-card__btn" id="loadingCardBtn" type="button">Abrir convite</button>
         </div>
     </div>
 
@@ -389,6 +400,78 @@ export let contentReady = false;
  */
 export function markContentReady() {
     contentReady = true;
+}
+
+/**
+ * Ativa o botão "Abrir convite" na fase brand (plano free).
+ * @param {() => void} onOpen — callback disparado ao clicar
+ */
+export function showFreeInviteButton(onOpen) {
+    const btn = document.getElementById('loadingBrandBtn');
+    if (!btn) return;
+    btn.hidden = false;
+    btn.addEventListener('click', () => onOpen(), { once: true });
+}
+
+/**
+ * Ativa a experiência de entrada premium:
+ * 1. Detecta se o tema é claro e anima o backdrop para a cor de fundo.
+ * 2. Troca para o card com nomes e botão "Abrir convite".
+ *
+ * @param {{ coupleNames: string, eventDate: string, onOpen: () => void }} options
+ */
+export function showPremiumInviteCard({ coupleNames = '', eventDate = '', onOpen }) {
+    const backdrop = document.querySelector('.loading-backdrop');
+    const brandPhase = document.getElementById('loadingPhaseBrand');
+    const couplePhase = document.getElementById('loadingPhaseCouple');
+    const cardPhase = document.getElementById('loadingPhaseCard');
+    const cardNames = document.getElementById('loadingCardNames');
+    const cardDate = document.getElementById('loadingCardDate');
+    const cardBtn = document.getElementById('loadingCardBtn');
+
+    if (!cardPhase) return;
+
+    // Preencher nomes e data
+    if (cardNames) cardNames.textContent = coupleNames || '';
+    if (cardDate && eventDate) {
+        const match = String(eventDate).match(/^(\d{4})-(\d{2})-(\d{2})/);
+        if (match) cardDate.textContent = `${match[3]}.${match[2]}.${match[1]}`;
+    }
+
+    // Detectar luminância do tema para decidir transição de cor
+    const bgColor = getComputedStyle(document.documentElement)
+        .getPropertyValue('--color-background').trim()
+        || getComputedStyle(document.documentElement)
+        .getPropertyValue('--ls-bg-color').trim();
+
+    const isLightTheme = bgColor ? isLightColor(bgColor) : false;
+
+    if (isLightTheme && backdrop) {
+        backdrop.style.backgroundColor = bgColor;
+    }
+
+    // Esconder fases anteriores e mostrar card
+    if (brandPhase) brandPhase.hidden = true;
+    if (couplePhase) couplePhase.hidden = true;
+    cardPhase.hidden = false;
+
+    // Conectar botão
+    if (cardBtn) {
+        cardBtn.addEventListener('click', () => onOpen(), { once: true });
+    }
+}
+
+function isLightColor(hex) {
+    try {
+        const clean = hex.replace('#', '');
+        if (clean.length < 6) return false;
+        const r = parseInt(clean.slice(0, 2), 16);
+        const g = parseInt(clean.slice(2, 4), 16);
+        const b = parseInt(clean.slice(4, 6), 16);
+        return (0.299 * r + 0.587 * g + 0.114 * b) / 255 > 0.55;
+    } catch {
+        return false;
+    }
 }
 
 export async function hideLoadingScreen() {

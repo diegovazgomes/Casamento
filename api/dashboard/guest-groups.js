@@ -9,6 +9,7 @@ import { createClient } from '@supabase/supabase-js';
 import {
   authenticateDashboardRequest,
   findOwnedGuestToken,
+  getUserPlan,
   requireOwnedEvent,
 } from '../_lib/dashboard-auth.js';
 
@@ -132,6 +133,14 @@ async function handleCreateGroup(req, res) {
     }
 
     const supabase = ownedEvent.supabase;
+
+    const plan = await getUserPlan(supabase, ownedEvent.user.id);
+    if (plan !== 'premium') {
+      return res.status(403).json({
+        error: 'Grupos de convidados estão disponíveis apenas no plano Premium.',
+        upgrade_required: true,
+      });
+    }
 
     // Gerar token único
     const guestToken = generateGuestToken();

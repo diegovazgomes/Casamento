@@ -5,7 +5,7 @@ import { PresentPage } from './presente.js';
 import { AudioController } from './audio.js';
 import { cloneDeep, mergeDeep, setInputPlaceholder, setText } from './utils.js';
 import { getEventSlugFromPath, resolveSiteConfigSource, resolveThemePath } from './config-source.js';
-import { markBootstrapComplete, hideLoadingScreen, applyThemeToLoadingScreen, applyEventDataToLoadingScreen } from './loading-screen.js';
+import { markBootstrapComplete, hideLoadingScreen, applyThemeToLoadingScreen, applyEventDataToLoadingScreen, showFreeInviteButton, showPremiumInviteCard } from './loading-screen.js';
 import { onConfigLoaded } from './debug-badge.js';
 
 const TYPOGRAPHY_CONFIG_URL = 'assets/config/typography.json';
@@ -1406,8 +1406,39 @@ async function bootstrap() {
         const experience = new InvitationExperience(config, effectiveTheme, navigationState);
         await experience.init();
         window.dispatchEvent(new CustomEvent('app:ready', { detail: { config, theme: effectiveTheme } }));
-        markBootstrapComplete();
-        await hideLoadingScreen();
+
+        const plan = String(config.plan || 'free').toLowerCase();
+
+        // Mostrar marca d'água Devazi para plano free
+        if (plan !== 'premium') {
+            const watermark = document.getElementById('devaziWatermark');
+            if (watermark) watermark.hidden = false;
+        }
+
+        if (experience.hasStarted) {
+            // Usuário retornando ou skipIntro ativo → esconder loading imediatamente
+            markBootstrapComplete();
+            await hideLoadingScreen();
+        } else {
+            // Primeira visita → exibir entrada baseada no plano
+            markBootstrapComplete();
+            const onOpen = async () => {
+                const audioPromise = experience.isAudioEnabled()
+                    ? experience.audio.startFromGesture(experience.getInitialAudioContext())
+                    : null;
+                experience.enterInvitation({ skipIntro: true, audioPromise });
+                await hideLoadingScreen();
+            };
+            if (plan === 'premium') {
+                showPremiumInviteCard({
+                    coupleNames: config.couple?.names || '',
+                    eventDate: config.event?.date || '',
+                    onOpen,
+                });
+            } else {
+                showFreeInviteButton(onOpen);
+            }
+        }
     } catch (error) {
         console.error('Falha ao carregar a configuracao da pagina.', error);
         renderBootstrapError(error, configSource);
