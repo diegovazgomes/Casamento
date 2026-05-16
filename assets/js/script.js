@@ -5,7 +5,7 @@ import { PresentPage } from './presente.js';
 import { AudioController } from './audio.js';
 import { cloneDeep, mergeDeep, setInputPlaceholder, setText } from './utils.js';
 import { getEventSlugFromPath, resolveSiteConfigSource, resolveThemePath } from './config-source.js';
-import { markBootstrapComplete, hideLoadingScreen, applyThemeToLoadingScreen, applyEventDataToLoadingScreen, showPremiumInviteCard } from './loading-screen.js';
+import { markBootstrapComplete, hideLoadingScreen, applyThemeToLoadingScreen, applyEventDataToLoadingScreen, showFreeInviteButton, showPremiumInviteCard } from './loading-screen.js';
 import { onConfigLoaded } from './debug-badge.js';
 
 const TYPOGRAPHY_CONFIG_URL = 'assets/config/typography.json';
@@ -1415,8 +1415,8 @@ async function bootstrap() {
             if (watermark) watermark.hidden = false;
         }
 
-        if (plan === 'premium' && !experience.hasStarted) {
-            // Premium, primeira visita → card de entrada na loading screen (sem intro screen)
+        if (!experience.hasStarted) {
+            // Primeira visita → loading screen é o ponto de entrada para ambos os planos
             markBootstrapComplete();
             const onOpen = async () => {
                 const audioPromise = experience.isAudioEnabled()
@@ -1425,13 +1425,17 @@ async function bootstrap() {
                 experience.enterInvitation({ skipIntro: true, audioPromise });
                 await hideLoadingScreen();
             };
-            showPremiumInviteCard({
-                coupleNames: config.couple?.names || '',
-                eventDate: config.event?.date || '',
-                onOpen,
-            });
+            if (plan === 'premium') {
+                showPremiumInviteCard({
+                    coupleNames: config.couple?.names || '',
+                    eventDate: config.event?.date || '',
+                    onOpen,
+                });
+            } else {
+                showFreeInviteButton(onOpen);
+            }
         } else {
-            // Free (qualquer visita) ou premium retornando → loading some, intro screen aparece normalmente
+            // Retornando → esconde loading, convite já aberto
             markBootstrapComplete();
             await hideLoadingScreen();
         }
