@@ -1409,6 +1409,10 @@ async function bootstrap() {
 
         const plan = String(config.plan || 'free').toLowerCase();
 
+        // Persistir plano no localStorage para que a loading screen
+        // esconda a brand Devazi nas próximas visitas de usuários premium
+        try { localStorage.setItem('devazi_plan', plan); } catch { /* silencioso */ }
+
         // Mostrar marca d'água Devazi para plano free
         if (plan !== 'premium') {
             const watermark = document.getElementById('devaziWatermark');
@@ -1428,7 +1432,8 @@ async function bootstrap() {
             if (plan === 'premium') {
                 showPremiumInviteCard({
                     coupleNames: config.couple?.names || '',
-                    eventDate: config.event?.date || '',
+                    label: config.texts?.introLabel || '',
+                    subtitle: config.couple?.subtitle || config.texts?.intro || '',
                     onOpen,
                 });
             } else {

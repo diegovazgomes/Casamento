@@ -27,6 +27,7 @@ let loadingStartTime = 0;
  */
 function buildLoadingHTML(prefill = null, options = {}) {
     const showCouplePhase = options.showCouplePhase === true;
+    const hideBrand = options.hideBrand === true;
     const initialA = prefill?.first  || '';
     const initialB = prefill?.second || '';
     const dateText = normalizeLoadingDateText(prefill?.date || '');
@@ -34,7 +35,7 @@ function buildLoadingHTML(prefill = null, options = {}) {
     return `
 <div class="loading-screen${showCouplePhase ? ' loading-screen--phase-couple' : ''}" id="loadingScreen" aria-hidden="true">
     <div class="loading-backdrop"></div>
-    <div class="loading-phase loading-phase--brand" id="loadingPhaseBrand" role="status" aria-live="polite" aria-label="Carregando"${showCouplePhase ? ' hidden' : ''}>
+    <div class="loading-phase loading-phase--brand" id="loadingPhaseBrand" role="status" aria-live="polite" aria-label="Carregando"${(showCouplePhase || hideBrand) ? ' hidden' : ''}>
         <div class="brand-phase-center">
             <p class="brand-studio-tag">Stúdio</p>
             <div class="brand-name-frame">
@@ -51,8 +52,9 @@ function buildLoadingHTML(prefill = null, options = {}) {
 
     <div class="loading-phase loading-phase--card" id="loadingPhaseCard" hidden>
         <div class="ls-card">
+            <p class="ls-card__label" id="loadingCardLabel"></p>
             <p class="ls-card__names" id="loadingCardNames"></p>
-            <p class="ls-card__date" id="loadingCardDate"></p>
+            <p class="ls-card__subtitle" id="loadingCardSubtitle"></p>
             <button class="ls-card__btn" id="loadingCardBtn" type="button">Abrir convite</button>
         </div>
     </div>
@@ -119,8 +121,10 @@ export function initLoadingScreen() {
             : null;
 
         const dataReady = ssGet(LOADING_DATA_READY_KEY) === '1';
+        const isPremium = lsGet('devazi_plan') === 'premium';
         document.body.insertAdjacentHTML('afterbegin', buildLoadingHTML(prefill, {
-            showCouplePhase: dataReady,
+            showCouplePhase: dataReady && !isPremium,
+            hideBrand: isPremium,
         }));
     } catch (error) {
         console.warn('[LoadingScreen] Erro ao inicializar.', error);
@@ -320,6 +324,14 @@ function ssSet(key, value) {
     try { sessionStorage.setItem(key, value); } catch { /* silencioso */ }
 }
 
+/** Helpers silenciosos para localStorage */
+function lsGet(key) {
+    try { return localStorage.getItem(key) || ''; } catch { return ''; }
+}
+function lsSet(key, value) {
+    try { localStorage.setItem(key, value); } catch { /* silencioso */ }
+}
+
 function persistThemeColors(bg, text, primary) {
     try {
         sessionStorage.setItem('ls-theme-colors', JSON.stringify({ bg, text, primary }));
@@ -418,23 +430,25 @@ export function showFreeInviteButton(onOpen) {
  *
  * @param {{ coupleNames: string, eventDate: string, onOpen: () => void }} options
  */
-export function showPremiumInviteCard({ coupleNames = '', eventDate = '', onOpen }) {
+export function showPremiumInviteCard({ coupleNames = '', label = '', subtitle = '', onOpen }) {
     const backdrop = document.querySelector('.loading-backdrop');
     const brandPhase = document.getElementById('loadingPhaseBrand');
     const couplePhase = document.getElementById('loadingPhaseCouple');
     const cardPhase = document.getElementById('loadingPhaseCard');
+    const cardLabel = document.getElementById('loadingCardLabel');
     const cardNames = document.getElementById('loadingCardNames');
-    const cardDate = document.getElementById('loadingCardDate');
+    const cardSubtitle = document.getElementById('loadingCardSubtitle');
     const cardBtn = document.getElementById('loadingCardBtn');
 
     if (!cardPhase) return;
 
-    // Preencher nomes e data
+    // Salvar plano no localStorage para esconder Devazi nas próximas visitas
+    lsSet('devazi_plan', 'premium');
+
+    // Preencher label, nomes e subtítulo
+    if (cardLabel) cardLabel.textContent = label || 'Convite';
     if (cardNames) cardNames.textContent = coupleNames || '';
-    if (cardDate && eventDate) {
-        const match = String(eventDate).match(/^(\d{4})-(\d{2})-(\d{2})/);
-        if (match) cardDate.textContent = `${match[3]}.${match[2]}.${match[1]}`;
-    }
+    if (cardSubtitle) cardSubtitle.textContent = subtitle || '';
 
     // Detectar luminância do tema para decidir transição de cor
     const bgColor = getComputedStyle(document.documentElement)

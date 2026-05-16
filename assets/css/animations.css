@@ -702,12 +702,19 @@ html.ls-pending::before {
     white-space: nowrap;
 }
 
-.ls-card__date {
-    font-size: 11px;
-    letter-spacing: 0.22em;
+.ls-card__label {
+    color: var(--gold, var(--ls-primary-color, #c9a84c));
+    font-size: 9px;
+    letter-spacing: 0.42em;
     text-transform: uppercase;
-    color: var(--ls-primary-color, #c9a84c);
-    opacity: 0.8;
+}
+
+.ls-card__subtitle {
+    width: min(100%, 280px);
+    color: var(--color-text-soft, rgba(240, 237, 232, 0.65));
+    font-size: 12px;
+    line-height: 1.8;
+    letter-spacing: 0.04em;
 }
 
 .ls-card__btn {
