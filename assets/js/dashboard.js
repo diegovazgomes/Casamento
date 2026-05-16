@@ -206,10 +206,37 @@ function debounce(fn, delay) {
   };
 }
 
+function openDrawer() {
+  const drawer = document.getElementById('mobileDrawer');
+  const backdrop = document.getElementById('drawerBackdrop');
+  const hamburger = document.getElementById('sidebarHamburger');
+  drawer?.classList.add('is-open');
+  drawer?.setAttribute('aria-hidden', 'false');
+  if (backdrop) backdrop.hidden = false;
+  hamburger?.setAttribute('aria-expanded', 'true');
+}
+
+function closeDrawer() {
+  const drawer = document.getElementById('mobileDrawer');
+  const backdrop = document.getElementById('drawerBackdrop');
+  const hamburger = document.getElementById('sidebarHamburger');
+  drawer?.classList.remove('is-open');
+  drawer?.setAttribute('aria-hidden', 'true');
+  if (backdrop) backdrop.hidden = true;
+  hamburger?.setAttribute('aria-expanded', 'false');
+}
+
 function bindUiEvents() {
   authForm.addEventListener('submit', handleAuth);
   logoutButton.addEventListener('click', handleLogout);
   document.getElementById('btnUpgrade')?.addEventListener('click', handleUpgrade);
+
+  // Drawer mobile
+  document.getElementById('sidebarHamburger')?.addEventListener('click', openDrawer);
+  document.getElementById('drawerClose')?.addEventListener('click', closeDrawer);
+  document.getElementById('drawerBackdrop')?.addEventListener('click', closeDrawer);
+  document.getElementById('drawerLogout')?.addEventListener('click', () => { closeDrawer(); handleLogout(); });
+  document.getElementById('drawerBtnUpgrade')?.addEventListener('click', handleUpgrade);
   
   // Tab switching
   document.querySelectorAll('.nav-item[data-tab]').forEach(button => {
@@ -622,18 +649,23 @@ function isPremiumPlan(planValue) {
 }
 
 function renderPlanBadge(profile) {
+  const plan = String(profile?.plan || 'free');
+  const isPremium = isPremiumPlan(plan);
+  const planLabel = isPremium ? 'Premium' : 'Free';
+
+  // Sidebar desktop
   const container = document.getElementById('sidebarPlan');
   const nameEl = document.getElementById('sidebarPlanName');
   const btnUpgrade = document.getElementById('btnUpgrade');
-  if (!container || !nameEl) return;
+  if (container) container.hidden = false;
+  if (nameEl) nameEl.textContent = planLabel;
+  if (btnUpgrade) btnUpgrade.hidden = isPremium;
 
-  const plan = String(profile?.plan || 'free');
-  nameEl.textContent = isPremiumPlan(plan) ? 'Premium' : 'Free';
-  container.hidden = false;
-
-  if (btnUpgrade) {
-    btnUpgrade.hidden = isPremiumPlan(plan);
-  }
+  // Drawer mobile
+  const drawerName = document.getElementById('drawerPlanName');
+  const drawerBtnUp = document.getElementById('drawerBtnUpgrade');
+  if (drawerName) drawerName.textContent = planLabel;
+  if (drawerBtnUp) drawerBtnUp.hidden = isPremium;
 }
 
 async function handleUpgrade() {
@@ -660,7 +692,7 @@ async function handleUpgrade() {
     }
   } catch (err) {
     alert(err.message || 'Erro ao iniciar pagamento. Tente novamente.');
-    if (btn) { btn.disabled = false; btn.textContent = 'Fazer upgrade para Premium'; }
+    if (btn) { btn.disabled = false; btn.textContent = 'Upgrade para Premium'; }
   }
 }
 
