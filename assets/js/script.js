@@ -5,7 +5,7 @@ import { PresentPage } from './presente.js';
 import { AudioController } from './audio.js';
 import { cloneDeep, mergeDeep, setInputPlaceholder, setText } from './utils.js';
 import { getEventSlugFromPath, resolveSiteConfigSource, resolveThemePath } from './config-source.js';
-import { markBootstrapComplete, hideLoadingScreen, applyThemeToLoadingScreen, applyEventDataToLoadingScreen, showFreeInviteButton, showPremiumInviteCard } from './loading-screen.js';
+import { markBootstrapComplete, hideLoadingScreen, applyThemeToLoadingScreen, applyEventDataToLoadingScreen, showPremiumInviteCard } from './loading-screen.js';
 import { onConfigLoaded } from './debug-badge.js';
 
 const TYPOGRAPHY_CONFIG_URL = 'assets/config/typography.json';
@@ -1415,12 +1415,8 @@ async function bootstrap() {
             if (watermark) watermark.hidden = false;
         }
 
-        if (experience.hasStarted) {
-            // Usuário retornando ou skipIntro ativo → esconder loading imediatamente
-            markBootstrapComplete();
-            await hideLoadingScreen();
-        } else {
-            // Primeira visita → exibir entrada baseada no plano
+        if (plan === 'premium' && !experience.hasStarted) {
+            // Premium, primeira visita → card de entrada na loading screen (sem intro screen)
             markBootstrapComplete();
             const onOpen = async () => {
                 const audioPromise = experience.isAudioEnabled()
@@ -1429,15 +1425,15 @@ async function bootstrap() {
                 experience.enterInvitation({ skipIntro: true, audioPromise });
                 await hideLoadingScreen();
             };
-            if (plan === 'premium') {
-                showPremiumInviteCard({
-                    coupleNames: config.couple?.names || '',
-                    eventDate: config.event?.date || '',
-                    onOpen,
-                });
-            } else {
-                showFreeInviteButton(onOpen);
-            }
+            showPremiumInviteCard({
+                coupleNames: config.couple?.names || '',
+                eventDate: config.event?.date || '',
+                onOpen,
+            });
+        } else {
+            // Free (qualquer visita) ou premium retornando → loading some, intro screen aparece normalmente
+            markBootstrapComplete();
+            await hideLoadingScreen();
         }
     } catch (error) {
         console.error('Falha ao carregar a configuracao da pagina.', error);

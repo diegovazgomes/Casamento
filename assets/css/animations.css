@@ -660,27 +660,38 @@ html.ls-pending::before {
 }
 
 .ls-card {
+    position: relative;
+    width: min(100%, 420px);
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 28px;
-    padding: 48px 40px;
+    padding: 44px 28px 34px;
     text-align: center;
+    border: 1px solid var(--color-border-soft);
+    background: var(--intro-card-gradient);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.28);
+    border-radius: var(--radius-card, 0px);
     opacity: 0;
     animation: lsCardFadeIn 1s ease-out 0.3s forwards;
 }
 
+.ls-card::before,
+.ls-card::after {
+    content: '';
+    position: absolute;
+    left: 22px;
+    right: 22px;
+    height: 1px;
+    background: linear-gradient(to right, transparent, var(--color-primary), transparent);
+}
+
+.ls-card::before { top: 0; }
+.ls-card::after  { bottom: 0; }
+
 @keyframes lsCardFadeIn {
     from { opacity: 0; transform: translateY(12px); }
     to   { opacity: 1; transform: translateY(0); }
-}
-
-.ls-card__ornament {
-    width: 48px;
-    height: 1px;
-    background: var(--ls-primary-color, #c9a84c);
-    opacity: 0.6;
-    align-self: center;
 }
 
 .ls-card__names {
@@ -744,21 +755,17 @@ html.ls-pending::before {
 
 /* ── Watermark ── */
 .devazi-watermark {
-    position: fixed;
-    bottom: 14px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 100;
+    display: block;
+    margin-top: 18px;
     font-size: 10px;
     letter-spacing: 0.14em;
     text-transform: uppercase;
-    color: rgba(255,255,255,0.35);
-    white-space: nowrap;
-    pointer-events: auto;
+    color: rgba(255,255,255,0.25);
+    text-align: center;
     text-decoration: none;
     transition: color 0.2s;
 }
 
 .devazi-watermark:hover {
-    color: rgba(255,255,255,0.65);
+    color: rgba(255,255,255,0.55);
 }

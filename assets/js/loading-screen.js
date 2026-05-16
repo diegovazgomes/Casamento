@@ -51,10 +51,8 @@ function buildLoadingHTML(prefill = null, options = {}) {
 
     <div class="loading-phase loading-phase--card" id="loadingPhaseCard" hidden>
         <div class="ls-card">
-            <div class="ls-card__ornament"></div>
             <p class="ls-card__names" id="loadingCardNames"></p>
             <p class="ls-card__date" id="loadingCardDate"></p>
-            <div class="ls-card__ornament"></div>
             <button class="ls-card__btn" id="loadingCardBtn" type="button">Abrir convite</button>
         </div>
     </div>
