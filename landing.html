@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="description" content="Devazi — Convites digitais, sites cerimoniais e RSVPs para casamentos. Experiências premium desenhadas à medida para o seu dia.">
+<meta name="description" content="Devazi — Convites digitais, sites cerimoniais e RSVPs para casamentos. Experiências com temas cuidadosamente criados para o seu dia.">
 <meta property="og:title" content="Devazi — Experiências digitais de casamento">
 <meta property="og:description" content="Convite interativo, RSVP em tempo real e painel de gestão de convidados. Publique em minutos, impressione para sempre.">
 <meta property="og:type" content="website">
@@ -336,8 +336,8 @@ a { color: inherit; text-decoration: none; }
 
 .hero-title-tail {
   display: inline-flex;
-  align-items: baseline;
-  gap: 0.1em;
+  align-items: center;
+  gap: 0.03em;
   white-space: nowrap;
 }
 
@@ -1293,6 +1293,21 @@ a { color: inherit; text-decoration: none; }
 .plan-cta:hover { color: var(--marfim); }
 .plan-cta span { position: relative; z-index: 1; }
 
+.plan-lock-badge {
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ouro-velho);
+  opacity: 0.75;
+  margin-bottom: 6px;
+}
+.plan-cta--locked {
+  cursor: not-allowed;
+  opacity: 0.4;
+  pointer-events: none;
+}
+.encomendas-track [hidden] { display: none !important; }
+
 .plan.is-featured {
   background: var(--carvao);
   color: var(--marfim);
@@ -1617,7 +1632,7 @@ footer {
 
     <div class="hero-content">
       <div class="hero-eyebrow-row">
-        <span class="eyebrow">Mais de 200 casais · MMXXVI</span>
+        <span class="eyebrow">Convites digitais para casamentos · MMXXVI</span>
       </div>
 
       <h1 class="hero-title">
@@ -1681,8 +1696,8 @@ footer {
       </h1>
 
       <p class="hero-sub">
-        Convites digitais, sites cerimoniais e RSVPs desenhados à medida —
-        com a mesma atenção que um ateliê dedica a um vestido feito à mão.
+        Convites digitais, sites cerimoniais e RSVPs
+        com temas cerimoniais criados para diferentes estilos de casal.
       </p>
 
       <div class="hero-ctas">
@@ -1717,14 +1732,14 @@ footer {
 <!-- ══ MARQUEE ═════════════════════════════════════════════════════════════ -->
 <div class="marquee-strip" aria-hidden="true">
   <div class="marquee-track">
-    <span class="marquee-item">Tipografia à medida</span>
+    <span class="marquee-item">Temas cerimoniais</span>
     <span class="marquee-item">Animações cinematográficas</span>
     <span class="marquee-item">RSVP em tempo real</span>
     <span class="marquee-item">Trilha sonora personalizada</span>
     <span class="marquee-item">Experiência premium</span>
     <span class="marquee-item">Painel cerimonial</span>
     <span class="marquee-item">Publicação em minutos</span>
-    <span class="marquee-item">Tipografia à medida</span>
+    <span class="marquee-item">Temas cerimoniais</span>
     <span class="marquee-item">Animações cinematográficas</span>
     <span class="marquee-item">RSVP em tempo real</span>
     <span class="marquee-item">Trilha sonora personalizada</span>
@@ -1784,9 +1799,8 @@ footer {
         O convite como <em>primeira cena.</em>
       </h2>
       <p class="section-sub">
-        Cada peça é desenhada à medida — tipografia escolhida para o casal,
-        sistema próprio de cores, micro-animações que revelam a data como
-        uma cortina se abrindo.
+        Cada convite reúne tipografia cerimonial, animações de entrada e
+        micro-detalhes que revelam a data como uma cortina se abrindo.
       </p>
     </div>
 
@@ -1848,7 +1862,7 @@ footer {
     <div class="reveal">
       <div class="section-num">03 — As peças</div>
       <h2 class="section-title">
-        Três peças <em>desenhadas à medida.</em>
+        Três peças <em>para o seu casamento.</em>
       </h2>
     </div>
 
@@ -1856,7 +1870,7 @@ footer {
       <div class="aplicacao">
         <div class="aplicacao-num">03.01 · Convite</div>
         <h3 class="aplicacao-title">Convite digital</h3>
-        <p class="aplicacao-desc">A primeira cena. Convite interativo com tipografia escolhida para o casal, animações de entrada e trilha sonora personalizada.</p>
+        <p class="aplicacao-desc">A primeira cena. Convite interativo com tipografia cerimonial, animações de entrada e trilha sonora.</p>
         <div class="aplicacao-meta">
           <div class="aplicacao-meta-row">
             <span class="aplicacao-meta-label">Entrega</span>
@@ -1933,7 +1947,7 @@ footer {
 </section>
 
 <!-- ══ NÚMEROS ════════════════════════════════════════════════════════════ -->
-<section class="numeros" id="numeros">
+<section class="numeros" id="numeros" hidden>
   <div class="numeros-inner reveal">
     <div class="numero-item">
       <div class="numero-value" data-count="200" data-suffix="+">0</div>
@@ -1955,7 +1969,7 @@ footer {
 </section>
 
 <!-- ══ DEPOIMENTOS ════════════════════════════════════════════════════════ -->
-<section class="section depoimentos" id="depoimentos">
+<section class="section depoimentos" id="depoimentos" hidden>
   <div class="section-inner">
     <div class="reveal">
       <div class="section-num">— Depoimentos</div>
@@ -1999,8 +2013,7 @@ footer {
     <div class="section-num">05 — Encomendas</div>
     <h2 class="section-title">Comece com uma <em>cortesia.</em></h2>
     <p class="section-sub">
-      Três níveis de encomenda — pagamento único, sem mensalidade.
-      Comece gratuitamente e escolha o cuidado que seu dia merece.
+      Comece gratuitamente. O plano pago com recursos completos estará disponível em breve.
     </p>
     <div class="encomendas-meta">
       <span class="encomendas-hint">Arraste para explorar</span>
@@ -2032,6 +2045,7 @@ footer {
     <!-- CLASSIC — DESTAQUE -->
     <article class="plan is-featured">
       <div class="plan-badge">Mais escolhido</div>
+      <div class="plan-lock-badge">🔒 Pagamento em breve</div>
       <div class="plan-num">— Encomenda essencial</div>
       <h3 class="plan-name">Classic</h3>
       <p class="plan-pitch">Tudo o que seu dia merece, com a discrição de um ateliê.</p>
@@ -2049,11 +2063,11 @@ footer {
         <li>Exportação de dados</li>
         <li>Suporte prioritário</li>
       </ul>
-      <a href="signup.html" class="plan-cta"><span>Encomendar Classic</span></a>
+      <span class="plan-cta plan-cta--locked" aria-disabled="true"><span>🔒 Em breve</span></span>
     </article>
 
-    <!-- PREMIUM -->
-    <article class="plan">
+    <!-- PREMIUM — oculto até Stripe estar em produção -->
+    <article class="plan" hidden>
       <div class="plan-num">— Encomenda completa</div>
       <h3 class="plan-name">Premium</h3>
       <p class="plan-pitch">Para casais que querem cada detalhe pensado à mão.</p>
@@ -2074,8 +2088,8 @@ footer {
       <a href="signup.html" class="plan-cta"><span>Encomendar Premium</span></a>
     </article>
 
-    <!-- ATELIER -->
-    <article class="plan">
+    <!-- ATELIER — oculto até Stripe estar em produção -->
+    <article class="plan" hidden>
       <div class="plan-num">— Sob convite</div>
       <h3 class="plan-name">Atelier</h3>
       <p class="plan-pitch">Encomenda exclusiva, desenhada do zero para o casal.</p>

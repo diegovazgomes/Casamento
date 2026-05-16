@@ -37,49 +37,75 @@ Tela de entrada free:
 ## Checklist de implementação
 
 ### 1. Campo `plan` na resposta do event-config
-- [ ] `api/event-config.js` inclui `plan` do `profiles` na resposta JSON
-- [ ] Campo disponível no frontend via `config.plan`
+- [x] `api/event-config.js` inclui `plan` do `profiles` na resposta JSON
+- [x] Campo disponível no frontend via `config.plan`
 
 ### 2. Tela de entrada (loading screen)
-- [ ] Overlay estático em `index.html` cobre tudo antes do JS carregar
-- [ ] `script.js` lê `config.plan` após `app:ready`
-- [ ] Se premium: detecta luminância de `var(--color-background)`, anima overlay, exibe card com nomes
-- [ ] Se free: exibe logo devazi no overlay com botão de abertura
-- [ ] Ambos: botão dispara `enterInvitation()`
+- [x] Overlay estático em `index.html` cobre tudo antes do JS carregar (`loading-screen.js`)
+- [x] `script.js` lê `config.plan` após bootstrap e salva em `localStorage`
+- [x] Se premium: tela preta → fade para cor do tema → card com label, nomes e subtítulo do casal
+- [x] Se free: logo devazi no overlay com botão "Abrir convite"
+- [x] Ambos: botão dispara `enterInvitation({ skipIntro: true })`
+- [x] Premium: `localStorage` esconde a brand devazi em visitas seguintes
 
 ### 3. Marca d'água no convite free
-- [ ] `index.html` tem elemento `#watermark` oculto por padrão
-- [ ] `script.js` exibe `#watermark` quando `config.plan !== 'premium'`
-- [ ] Estilo: rodapé fixo discreto com link para devazi.com.br
+- [x] `index.html` tem `#devaziWatermark` oculto por padrão (dentro do `<footer>`)
+- [x] `script.js` exibe quando `config.plan !== 'premium'`
+- [x] URL corrigida para `www.devazi.app`; posicionado no rodapé (sem sobreposição mobile)
 
 ### 4. Tema fixo para free
-- [ ] `api/event-config.js` força `activeTheme = 'classic-gold'` quando `plan = 'free'`
-- [ ] Dashboard bloqueia seleção de tema para usuários free (UI + backend)
+- [x] `api/event-config.js` força `activeTheme = FREE_THEME` e `activeLayout = FREE_LAYOUT` quando `plan !== 'premium'`
+- [ ] Dashboard bloqueia seleção de tema para usuários free (UI + CTA de upgrade) ← **próximo passo**
 
 ### 5. Bloqueio de grupos (free)
-- [ ] `api/dashboard/guest-groups.js` recusa `POST` quando `plan = 'free'`
-- [ ] Dashboard oculta/bloqueia botão "Novo grupo" para free com CTA de upgrade
+- [x] `api/dashboard/guest-groups.js` recusa `POST` com 403 quando `plan = 'free'`
+- [ ] Dashboard oculta/bloqueia botão "Novo grupo" para free com CTA de upgrade ← **próximo passo**
 
 ### 6. Limite de 50 convidados (free)
-- [ ] `api/submissions.js` conta RSVPs do evento antes de inserir
-- [ ] Recusa quando `count >= 50` e `plan = 'free'`
-- [ ] Retorna erro claro para o frontend
+- [x] `api/submissions.js` conta RSVPs via `checkRsvpLimit()` antes de inserir
+- [x] Recusa com 429 quando `count >= 50` e `plan = 'free'`
+- [x] Retorna erro claro para o frontend
 
 ### 7. Limite de galeria
-- [ ] `api/dashboard/media.js` conta imagens existentes antes do upload
-- [ ] Free: recusa acima de 3 imagens na galeria
-- [ ] Premium: recusa acima de 5 imagens na galeria
+- [x] `api/dashboard/media.js` conta imagens existentes antes do upload
+- [x] Free: recusa acima de 3 imagens (`GALLERY_LIMIT_FREE = 3`)
+- [x] Premium: recusa acima de 5 imagens (`GALLERY_LIMIT_PREMIUM = 5`)
 
 ### 8. Áudio bloqueado no free
-- [ ] `api/dashboard/event.js` ignora campos de áudio no PATCH quando `plan = 'free'`
-- [ ] Dashboard bloqueia seção de áudio para free com CTA de upgrade
+- [x] `api/dashboard/event.js` remove `media.tracks` no PATCH quando `plan !== 'premium'`
+- [ ] Dashboard bloqueia seção de áudio para free com CTA de upgrade ← **próximo passo**
 
-### 9. Página de upgrade no dashboard
-- [ ] Card de upgrade visível para usuários free em pontos de bloqueio
-- [ ] Botão "Fazer upgrade" chama `POST /api/payments?action=checkout`
-- [ ] Após upgrade: banner de confirmação + plano atualizado na sidebar
+### 9. Integração de pagamento (Stripe)
+- [x] `api/payments.js` existe com `?action=checkout` e `?action=webhook`
+- [x] Checkout cria sessão Stripe com `mode: 'payment'`
+- [x] Webhook atualiza `profiles.plan = 'premium'` e `expires_at = now() + 1 ano`
+- [x] Dashboard: `renderPlanBadge()` exibe plano atual na sidebar e no drawer mobile
+- [x] Dashboard: botão "Upgrade para Premium" visível apenas para free (sidebar desktop + drawer mobile)
+- [x] Dashboard: `handleUpgrade()` chama `POST /api/payments?action=checkout`
+- [x] Dashboard: `maybeShowPaymentBanner()` exibe banner após `?payment=success`
+- [ ] Stripe configurado em produção (produto + price + webhook + env vars no Vercel) ← **pendente MEI**
 
-### 10. Testes
-- [ ] Fluxo completo free: cadastro → convite publicado → marca d'água visível → bloqueios ativos
-- [ ] Fluxo completo premium: pagamento → plano atualizado → todos os limites removidos → tela de entrada premium
+### 10. Testes end-to-end
+- [ ] Fluxo completo free: cadastro → convite → marca d'água → bloqueios ativos
+- [ ] Fluxo completo premium: pagamento → plano atualizado → limites removidos → tela de entrada premium
 - [ ] Reenvio de webhook não duplica atualização de plano
+
+---
+
+## Próximos passos (por prioridade)
+
+### A — Frontend: CTAs de bloqueio no dashboard (itens 4, 5, 8)
+Usuários free conseguem ver e interagir com funcionalidades premium que são silenciosamente bloqueadas no backend. A UX fica confusa. Implementar:
+- Seleção de tema: desabilitar temas non-free + botão "Disponível no Premium"
+- Botão "Novo grupo": desabilitar + tooltip/CTA de upgrade
+- Seção de áudio: desabilitar campos + mensagem de upgrade
+
+### B — Stripe em produção
+Depende de MEI ativo. Quando disponível:
+1. Criar produto + price no Stripe Dashboard → copiar `STRIPE_PRICE_ID`
+2. Criar webhook endpoint → copiar `STRIPE_WEBHOOK_SECRET`
+3. Adicionar env vars no Vercel: `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_ID`, `APP_URL`
+4. Testar com Stripe CLI: `stripe listen --forward-to localhost:3000/api/payments?action=webhook`
+
+### C — Testes (item 10)
+Após B estar configurado, realizar os testes de ponta a ponta dos dois fluxos.
