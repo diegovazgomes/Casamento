@@ -326,6 +326,7 @@
   cursor: pointer;
   transition: border-color 0.3s ease, background 0.3s ease;
   text-align: left; width: 100%;
+  text-decoration: none;
 }
 .gift-payment-opt:hover {
   border-color: var(--color-border);
@@ -751,9 +752,7 @@
 
 <footer>
   <div class="footer-names" id="mainFooterNames"></div>
-  <p class="footer-note" id="mainFooterNote">06 . 09 . 2026 | São Bernardo do Campo</p>
-</footer>
-
+  <p class="footer-note" id="mainFooterNote"></p>
 <script type="module" src="assets/js/script.js"></script>
 <script type="module" src="assets/js/presente.js"></script>
 
@@ -908,7 +907,13 @@ function buildMercadoPagoUrl(baseUrl, amount) {
   if (!baseUrl) return fallbackUrl;
 
   try {
-    const url = new URL(baseUrl, window.location.href);
+    // Se a URL não tem protocolo, adicionar https://
+    let urlToProcess = baseUrl;
+    if (!baseUrl.startsWith('http://') && !baseUrl.startsWith('https://')) {
+      urlToProcess = 'https://' + baseUrl;
+    }
+    
+    const url = new URL(urlToProcess);
     url.searchParams.set('amount', formatAmountForMercadoPagoParam(amount));
     return url.toString();
   } catch {
@@ -977,7 +982,7 @@ function openModal(itemId, pixKey, qrSrc, paymentBaseUrl) {
   if (paymentUrl !== '#') {
     linkBtn.style.display = '';
     linkBtn.href = paymentUrl;
-    document.getElementById('giftOptLinkLabel').textContent = 'Pagar no Mercado Pago';
+    document.getElementById('giftOptLinkLabel').textContent = 'Pagar com link de pagamento';
     document.getElementById('giftOptLinkHint').textContent  = `Valor sugerido: ${item.price || formatBRL(item.amount)}`;
   } else {
     linkBtn.style.display = 'none';

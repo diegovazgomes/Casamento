@@ -631,6 +631,7 @@ class InvitationExperience {
         this.setEventDetails();
         this.setTexts();
         this.setGift();
+        this.setFooters();
         this.setPages();
         this.applyNavigationLinks();
         this.presentPage.init();
@@ -1142,6 +1143,15 @@ class InvitationExperience {
         setText('detailGiftSub', this.config.texts?.detailsGiftSub);
     }
 
+    setFooters() {
+        const footerNote = this.config.texts?.footerNote;
+        if (footerNote) {
+            document.querySelectorAll('#mainFooterNote').forEach((element) => {
+                element.textContent = footerNote;
+            });
+        }
+    }
+
     setGift() {
         setText('giftTag', this.config.texts?.giftTag);
         setText('giftOverlayTitle', this.config.texts?.giftTitle);
@@ -1159,8 +1169,6 @@ class InvitationExperience {
         const footerNote = this.config.texts?.footerNote;
         const cardEnabled = this.config.gift?.cardPaymentEnabled === true;
         const cardLink = String(this.config.gift?.cardPaymentLink ?? '').trim();
-
-        setText('mainFooterNote', footerNote);
 
         if (pixCode) {
             document.querySelectorAll('#pixCode').forEach((element) => {
