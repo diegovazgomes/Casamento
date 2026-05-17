@@ -422,6 +422,22 @@ function normalizeEventDateFields(config, defaults = null) {
     }
 
     const nextEvent = { ...event };
+
+    function buildFooterNote(event = {}) {
+        const dateParts = buildEventDateDisplayParts(event.date);
+        const dateText = dateParts?.heroDate || String(event.heroDate || event.displayDate || '').trim();
+        const locationText = String(event.locationName || '').trim();
+
+        if (!dateText && !locationText) {
+            return '';
+        }
+
+        if (dateText && locationText) {
+            return `${dateText} | ${locationText}`;
+        }
+
+        return dateText || locationText;
+    }
     const keys = ['heroDate', 'detailDate', 'displayDate', 'weekday'];
 
     keys.forEach((key) => {
@@ -1006,7 +1022,6 @@ class InvitationExperience {
         this.setupDesktopHeroImageMode(heroPhoto);
 
         setText('mainFooterNames', names.names);
-        setText('mainFooterNote', this.config.texts?.footerNote);
 
         if (this.guestTokenData?.group_name) {
             const greeting = document.getElementById('guestGreeting');
@@ -1144,7 +1159,7 @@ class InvitationExperience {
     }
 
     setFooters() {
-        const footerNote = this.config.texts?.footerNote;
+        const footerNote = buildFooterNote(this.config.event);
         if (footerNote) {
             document.querySelectorAll('#mainFooterNote').forEach((element) => {
                 element.textContent = footerNote;
@@ -1166,7 +1181,6 @@ class InvitationExperience {
 
         const pixCode = this.config.gift?.pixKey;
         const pixImage = this.config.gift?.pixQrImage;
-        const footerNote = this.config.texts?.footerNote;
         const cardEnabled = this.config.gift?.cardPaymentEnabled === true;
         const cardLink = String(this.config.gift?.cardPaymentLink ?? '').trim();
 
