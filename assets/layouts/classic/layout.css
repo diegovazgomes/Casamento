@@ -55,7 +55,7 @@
 
 .hero-label {
     margin-bottom: var(--hero-label-gap);
-    color: var(--gold-light);
+    color: var(--hero-label-color, var(--gold-light));
     font-family: var(--typo-heroSubtitle-family);
     font-size: var(--typo-heroSubtitle-size);
     font-weight: var(--typo-heroSubtitle-weight);

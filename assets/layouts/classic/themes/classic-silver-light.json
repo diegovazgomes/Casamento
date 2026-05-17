@@ -9,6 +9,7 @@
     "surfaceSoft": "rgba(0,0,0,0.025)",
     "primary": "#8A8F96",
     "primarySoft": "#C9CED4",
+    "heroLabel": "#5A6067",
     "text": "#1D2126",
     "textMuted": "rgba(29,33,38,0.60)",
     "textSoft": "rgba(29,33,38,0.66)",

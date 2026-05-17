@@ -211,6 +211,7 @@ function applyTheme(theme) {
         '--cream': colors.text ?? dt.colors.text,
         '--gold': colors.primary ?? dt.colors.primary,
         '--gold-light': colors.primarySoft ?? dt.colors.primarySoft,
+        '--hero-label-color': colors.heroLabel ?? colors.primarySoft ?? dt.colors.primarySoft,
         '--dark': colors.background ?? dt.colors.background,
         '--border-soft': colors.border ?? dt.colors.border,
         '--surface-soft': colors.surfaceSoft ?? dt.colors.surfaceSoft,
