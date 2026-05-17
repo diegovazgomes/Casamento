@@ -422,22 +422,6 @@ function normalizeEventDateFields(config, defaults = null) {
     }
 
     const nextEvent = { ...event };
-
-    function buildFooterNote(event = {}) {
-        const dateParts = buildEventDateDisplayParts(event.date);
-        const dateText = dateParts?.heroDate || String(event.heroDate || event.displayDate || '').trim();
-        const locationText = String(event.locationName || '').trim();
-
-        if (!dateText && !locationText) {
-            return '';
-        }
-
-        if (dateText && locationText) {
-            return `${dateText} | ${locationText}`;
-        }
-
-        return dateText || locationText;
-    }
     const keys = ['heroDate', 'detailDate', 'displayDate', 'weekday'];
 
     keys.forEach((key) => {
@@ -452,6 +436,22 @@ function normalizeEventDateFields(config, defaults = null) {
 
     safeConfig.event = nextEvent;
     return safeConfig;
+}
+
+function buildFooterNote(event = {}) {
+    const dateParts = buildEventDateDisplayParts(event.date);
+    const dateText = dateParts?.heroDate || String(event.heroDate || event.displayDate || '').trim();
+    const locationText = String(event.locationName || '').trim();
+
+    if (!dateText && !locationText) {
+        return '';
+    }
+
+    if (dateText && locationText) {
+        return `${dateText} | ${locationText}`;
+    }
+
+    return dateText || locationText;
 }
 
 async function loadDefaults() {
