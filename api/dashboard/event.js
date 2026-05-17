@@ -8,8 +8,10 @@ import {
   stripHistoriaGalleryFromConfig,
 } from '../_lib/event-config.js';
 import {
+  buildDemoReadOnlyError,
   getDashboardEventLookup,
   getUserPlan,
+  isDemoLockedEvent,
   requireOwnedEvent,
 } from '../_lib/dashboard-auth.js';
 
@@ -416,6 +418,10 @@ export default async function handler(req, res) {
 
     if (!ownedEvent.ok) {
       return res.status(ownedEvent.status).json({ error: ownedEvent.error });
+    }
+
+    if (isDemoLockedEvent(ownedEvent.event)) {
+      return res.status(403).json(buildDemoReadOnlyError());
     }
 
     // Validar que config foi enviado

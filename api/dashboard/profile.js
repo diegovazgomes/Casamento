@@ -11,6 +11,7 @@
  *     couple_name: string,
  *     email: string,
  *     whatsapp: string | null,
+ *     is_demo_account: boolean,
  *     plan: "free" | "basic" | "premium",
  *     expires_at: string | null,
  *     created_at: string
@@ -36,7 +37,7 @@ export default async function handler(req, res) {
 
   const { data, error } = await auth.supabase
     .from('profiles')
-    .select('id, couple_name, email, whatsapp, plan, expires_at, created_at')
+    .select('id, couple_name, email, whatsapp, is_demo_account, plan, expires_at, created_at')
     .eq('id', auth.user.id)
     .maybeSingle();
 

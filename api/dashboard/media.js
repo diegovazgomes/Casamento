@@ -2,7 +2,12 @@ import { readFile } from 'fs/promises';
 
 import formidable from 'formidable';
 
-import { getUserPlan, requireOwnedEvent } from '../_lib/dashboard-auth.js';
+import {
+  buildDemoReadOnlyError,
+  getUserPlan,
+  isDemoLockedEvent,
+  requireOwnedEvent,
+} from '../_lib/dashboard-auth.js';
 
 const GALLERY_LIMIT_FREE = 3;
 const GALLERY_LIMIT_PREMIUM = 5;
@@ -245,6 +250,10 @@ async function handleGalleryList(req, res, eventId) {
     return res.status(ownedEvent.status).json({ error: ownedEvent.error });
   }
 
+  if (isDemoLockedEvent(ownedEvent.event)) {
+    return res.status(403).json(buildDemoReadOnlyError());
+  }
+
   const storageRoot = getEventStorageRoot(ownedEvent.event, eventId);
   const storage = ownedEvent.supabase.storage.from('event-media');
   const entries = await loadGalleryEntries(storage, storageRoot);
@@ -266,6 +275,10 @@ async function handleGalleryDelete(req, res) {
   const ownedEvent = await resolveOwnedEventFromRequest(req, eventId);
   if (!ownedEvent.ok) {
     return res.status(ownedEvent.status).json({ error: ownedEvent.error });
+  }
+
+  if (isDemoLockedEvent(ownedEvent.event)) {
+    return res.status(403).json(buildDemoReadOnlyError());
   }
 
   const storageRoot = getEventStorageRoot(ownedEvent.event, eventId);
@@ -479,6 +492,10 @@ export default async function handler(req, res) {
 
     if (!ownedEvent.ok) {
       return res.status(ownedEvent.status).json({ error: ownedEvent.error });
+    }
+
+    if (isDemoLockedEvent(ownedEvent.event)) {
+      return res.status(403).json(buildDemoReadOnlyError());
     }
 
     // Verificar limite de galeria por plano

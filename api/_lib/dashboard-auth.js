@@ -11,6 +11,18 @@ function getLookupValue(value) {
   return String(value || '').trim();
 }
 
+export function isDemoLockedEvent(event) {
+  return event?.is_demo_locked === true
+    || event?.config?.demo?.locked === true;
+}
+
+export function buildDemoReadOnlyError() {
+  return {
+    error: 'Este convite de demonstração é somente leitura.',
+    code: 'DEMO_READ_ONLY',
+  };
+}
+
 export function getDashboardEventLookup(req) {
   const query = req?.query || {};
   const body = req?.body || {};
@@ -149,7 +161,7 @@ export async function findOwnedGuestToken(supabase, userId, tokenId, selectClaus
 
   const { data, error } = await supabase
     .from('guest_tokens')
-    .select(`${selectClause},events!inner(id,user_id,slug)`)
+    .select(`${selectClause},events!inner(id,user_id,slug,config)`)
     .eq('id', tokenId)
     .eq('events.user_id', userId)
     .maybeSingle();
