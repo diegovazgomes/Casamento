@@ -3138,7 +3138,119 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
           </div>
         </div>
 
-        <!-- ── SEÇÃO 8: PÁGINAS EXTRAS ────────────────── -->
+        <!-- ── SEÇÃO 8: TRAJE & PALETAS ─────────────────── -->
+        <div class="editor-section" id="edSectionTraje">
+          <button class="editor-section-header" type="button" onclick="toggleEditorSection('edSectionTraje')">
+            <div>
+              <div class="editor-section-tag">Conteúdo</div>
+              <div class="editor-section-title">Traje &amp; Paletas</div>
+            </div>
+            <svg class="editor-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="editor-section-body">
+            <p style="font-size:11px;color:var(--text-dim);margin-bottom:16px;letter-spacing:0.03em;line-height:1.7">
+              Aparece como card de detalhes na página principal. Ao clicar, abre a página com dress code e paletas de cores.
+            </p>
+
+            <!-- Tipo de traje -->
+            <div class="field" style="margin-bottom:16px">
+              <label class="field-label" for="edDresscode">Tipo de traje</label>
+              <select class="field-input sm" id="edDresscode" onchange="markEditorDirty()">
+                <option value="">Selecione...</option>
+                <option value="Black tie">Black tie</option>
+                <option value="Black tie opcional">Black tie opcional</option>
+                <option value="Passeio completo">Passeio completo</option>
+                <option value="Esporte fino elegante">Esporte fino elegante</option>
+                <option value="Esporte fino">Esporte fino</option>
+                <option value="Casual elegante">Casual elegante</option>
+                <option value="Casual">Casual</option>
+              </select>
+            </div>
+
+            <!-- Paleta das madrinhas -->
+            <div style="margin-bottom:20px">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+                <span class="editor-sub-label" style="margin-bottom:0">Paleta das Madrinhas</span>
+                <button type="button" class="btn btn-subtle" style="padding:6px 14px;font-size:10px"
+                        id="edAddBridesmaid" onclick="addBridesmaidColor()">
+                  + Adicionar cor
+                </button>
+              </div>
+              <p style="font-size:10px;color:var(--text-dim);margin-bottom:8px">Máximo 5 cores</p>
+              <div id="bridesmaidsPaletteList"></div>
+            </div>
+
+            <!-- Paleta dos padrinhos -->
+            <div style="margin-bottom:20px">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+                <span class="editor-sub-label" style="margin-bottom:0">Paleta dos Padrinhos</span>
+                <button type="button" class="btn btn-subtle" style="padding:6px 14px;font-size:10px"
+                        id="edAddGroomsman" onclick="addGroomsmanColor()">
+                  + Adicionar cor
+                </button>
+              </div>
+              <p style="font-size:10px;color:var(--text-dim);margin-bottom:8px">Máximo 5 cores</p>
+              <div id="groomsMenPaletteList"></div>
+            </div>
+
+            <!-- Cor da noiva -->
+            <div style="margin-bottom:20px">
+              <span class="editor-sub-label">Cor da Noiva</span>
+              <div style="display:flex;gap:8px;align-items:center;margin-top:8px">
+                <input type="color" id="edBrideColorPicker" style="width:40px;height:36px;border:1px solid var(--border);border-radius:4px;padding:2px;cursor:pointer;background:none"
+                       oninput="syncColorFromPicker('edBrideColorHex', this.value); markEditorDirty()">
+                <input type="text" class="field-input sm" id="edBrideColorHex"
+                       placeholder="#ffffff" maxlength="7" style="width:90px"
+                       oninput="syncColorToPicker('edBrideColorPicker', this.value); markEditorDirty()">
+                <input type="text" class="field-input sm" id="edBrideColorName"
+                       placeholder="Nome da cor (opcional)"
+                       oninput="markEditorDirty()">
+              </div>
+            </div>
+
+            <!-- Cor do noivo -->
+            <div style="margin-bottom:20px">
+              <span class="editor-sub-label">Cor do Noivo</span>
+              <div style="display:flex;gap:8px;align-items:center;margin-top:8px">
+                <input type="color" id="edGroomColorPicker" style="width:40px;height:36px;border:1px solid var(--border);border-radius:4px;padding:2px;cursor:pointer;background:none"
+                       oninput="syncColorFromPicker('edGroomColorHex', this.value); markEditorDirty()">
+                <input type="text" class="field-input sm" id="edGroomColorHex"
+                       placeholder="#ffffff" maxlength="7" style="width:90px"
+                       oninput="syncColorToPicker('edGroomColorPicker', this.value); markEditorDirty()">
+                <input type="text" class="field-input sm" id="edGroomColorName"
+                       placeholder="Nome da cor (opcional)"
+                       oninput="markEditorDirty()">
+              </div>
+            </div>
+
+            <!-- Observação dos noivos -->
+            <div class="field" style="margin-bottom:8px">
+              <label class="field-label" for="edTrajeNote">
+                Observação dos noivos
+                <span style="font-size:10px;color:var(--text-dim);font-weight:400;letter-spacing:0;text-transform:none"> — máximo 200 caracteres</span>
+              </label>
+              <textarea class="field-input sm" id="edTrajeNote" rows="3"
+                        maxlength="200"
+                        placeholder="Ex: Sugerimos evitar tons verdes, reservados aos padrinhos."
+                        oninput="updateTrajeNoteCounter(); markEditorDirty()"></textarea>
+              <span style="font-size:10px;color:var(--text-dim);display:block;margin-top:4px;text-align:right" id="edTrajeNoteCounter">0/200</span>
+            </div>
+
+            <div class="editor-section-footer" id="footer-edSectionTraje">
+              <span class="footer-warning-msg">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                Alterações não salvas
+              </span>
+              <span class="footer-saved-msg">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                Configurações salvas ✓
+              </span>
+              <button type="button" class="btn btn-primary footer-save-btn" onclick="saveEditorConfig()">Salvar alterações</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── SEÇÃO 9: PÁGINAS EXTRAS ────────────────── -->
         <div class="editor-section" id="edSectionPages">
           <button class="editor-section-header" type="button" onclick="toggleEditorSection('edSectionPages')">
             <div>

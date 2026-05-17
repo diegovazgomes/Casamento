@@ -217,6 +217,22 @@
       "enabled": true,
       "cardLabel": "Lista de Presentes",
       "cardHint": "Ver opções"
+    },
+    "traje": {
+      "enabled": true,
+      "cardLabel": "Traje & Paletas",
+      "cardHint": "Ver detalhes",
+      "content": {
+        "tag": "Traje & Paletas",
+        "title": "Dress Code",
+        "intro": "Queremos que você esteja confortável e elegante no nosso grande dia.",
+        "dresscode": "",
+        "bridesmaidsPalette": [],
+        "groomsMenPalette": [],
+        "brideColor": { "hex": "", "name": "" },
+        "groomColor": { "hex": "", "name": "" },
+        "note": ""
+      }
     }
   },
   "whatsapp": {

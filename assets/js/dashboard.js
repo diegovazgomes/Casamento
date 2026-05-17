@@ -1848,6 +1848,8 @@ const editorState = {
   galleryImages: [],
   selectedGalleryNames: [],
   draggingGalleryName: '',
+  bridesmaidsPalette: [],
+  groomsMenPalette: [],
 };
 
 const MEDIA_MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024;
@@ -2090,6 +2092,27 @@ function loadEditorTab() {
     ? _savedFaq.map(it => ({ question: it.question || '', answer: it.answer || '' }))
     : DEFAULT_FAQ_ITEMS.map(it => ({ ...it }));
   renderFaqItems();
+
+  // Traje & Paletas
+  const _trajeContent = config.pages?.traje?.content ?? {};
+  const _dresscodeEl = document.getElementById('edDresscode');
+  if (_dresscodeEl) _dresscodeEl.value = _trajeContent.dresscode ?? '';
+
+  editorState.bridesmaidsPalette = (Array.isArray(_trajeContent.bridesmaidsPalette) ? _trajeContent.bridesmaidsPalette : []).map(c => ({ ...c }));
+  editorState.groomsMenPalette   = (Array.isArray(_trajeContent.groomsMenPalette)   ? _trajeContent.groomsMenPalette   : []).map(c => ({ ...c }));
+  renderBridesmaidsPalette();
+  renderGroomsmenPalette();
+
+  setColorField('edBrideColorPicker', 'edBrideColorHex', _trajeContent.brideColor?.hex ?? '');
+  const _brideNameEl = document.getElementById('edBrideColorName');
+  if (_brideNameEl) _brideNameEl.value = _trajeContent.brideColor?.name ?? '';
+
+  setColorField('edGroomColorPicker', 'edGroomColorHex', _trajeContent.groomColor?.hex ?? '');
+  const _groomNameEl = document.getElementById('edGroomColorName');
+  if (_groomNameEl) _groomNameEl.value = _trajeContent.groomColor?.name ?? '';
+
+  const _noteEl = document.getElementById('edTrajeNote');
+  if (_noteEl) { _noteEl.value = _trajeContent.note ?? ''; updateTrajeNoteCounter(); }
 
   updateEditorSaveStatus();
 }
@@ -3841,6 +3864,101 @@ function updateFaqItem(index, field, value) {
   }
 }
 
+// ── Traje & Paletas ───────────────────────────────────────────
+
+function setColorField(pickerId, hexId, hex) {
+  const picker = document.getElementById(pickerId);
+  const hexEl  = document.getElementById(hexId);
+  const safe   = (hex && /^#[0-9a-fA-F]{3,6}$/.test(hex)) ? hex : '#c9a84c';
+  if (picker) picker.value = safe;
+  if (hexEl)  hexEl.value  = hex || '';
+}
+
+function syncColorFromPicker(hexId, value) {
+  const el = document.getElementById(hexId);
+  if (el) el.value = value;
+}
+
+function syncColorToPicker(pickerId, value) {
+  const picker = document.getElementById(pickerId);
+  if (picker && /^#[0-9a-fA-F]{6}$/.test(value)) picker.value = value;
+}
+
+function updateTrajeNoteCounter() {
+  const el      = document.getElementById('edTrajeNote');
+  const counter = document.getElementById('edTrajeNoteCounter');
+  if (el && counter) counter.textContent = `${el.value.length}/200`;
+}
+
+function renderColorPaletteList(containerId, items, updateFn, removeFn, addBtnId, max) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  container.innerHTML = items.map((c, i) => `
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
+      <input type="color"
+             value="${(c.hex && /^#[0-9a-fA-F]{3,6}$/.test(c.hex)) ? c.hex : '#c9a84c'}"
+             style="width:40px;height:36px;border:1px solid var(--border);border-radius:4px;padding:2px;cursor:pointer;background:none;flex-shrink:0"
+             oninput="${updateFn}(${i},'hex',this.value)">
+      <input type="text" class="field-input sm" value="${c.hex || ''}"
+             placeholder="#c9a84c" maxlength="7" style="width:90px;flex-shrink:0"
+             oninput="${updateFn}(${i},'hex',this.value)">
+      <input type="text" class="field-input sm" value="${c.name || ''}"
+             placeholder="Nome (opcional)"
+             oninput="${updateFn}(${i},'name',this.value)">
+      <button type="button" class="btn btn-subtle" style="padding:4px 10px;font-size:12px;flex-shrink:0"
+              onclick="${removeFn}(${i})" aria-label="Remover cor">&times;</button>
+    </div>
+  `).join('');
+  const addBtn = document.getElementById(addBtnId);
+  if (addBtn) addBtn.disabled = items.length >= max;
+}
+
+function renderBridesmaidsPalette() {
+  renderColorPaletteList('bridesmaidsPaletteList', editorState.bridesmaidsPalette,
+    'updateBridesmaidColor', 'removeBridesmaidColor', 'edAddBridesmaid', 5);
+}
+
+function renderGroomsmenPalette() {
+  renderColorPaletteList('groomsMenPaletteList', editorState.groomsMenPalette,
+    'updateGroomsmanColor', 'removeGroomsmanColor', 'edAddGroomsman', 5);
+}
+
+function addBridesmaidColor() {
+  if (editorState.bridesmaidsPalette.length >= 5) return;
+  editorState.bridesmaidsPalette.push({ hex: '#c9a84c', name: '' });
+  renderBridesmaidsPalette(); markEditorDirty();
+}
+
+function removeBridesmaidColor(i) {
+  editorState.bridesmaidsPalette.splice(i, 1);
+  renderBridesmaidsPalette(); markEditorDirty();
+}
+
+function updateBridesmaidColor(i, field, value) {
+  if (editorState.bridesmaidsPalette[i]) {
+    editorState.bridesmaidsPalette[i][field] = value;
+    markEditorDirty();
+  }
+}
+
+function addGroomsmanColor() {
+  if (editorState.groomsMenPalette.length >= 5) return;
+  editorState.groomsMenPalette.push({ hex: '#c9a84c', name: '' });
+  renderGroomsmenPalette(); markEditorDirty();
+}
+
+function removeGroomsmanColor(i) {
+  editorState.groomsMenPalette.splice(i, 1);
+  renderGroomsmenPalette(); markEditorDirty();
+}
+
+function updateGroomsmanColor(i, field, value) {
+  if (editorState.groomsMenPalette[i]) {
+    editorState.groomsMenPalette[i][field] = value;
+    markEditorDirty();
+  }
+}
+
 // ── Grid de páginas extras ────────────────────────────────────
 
 function renderPagesGrid(pages) {
@@ -4015,6 +4133,22 @@ function collectEditorValues() {
   config.pages.faq.content.items = editorState.faqItems
     .filter(it => (it.question || '').trim())
     .map(it => ({ question: it.question.trim(), answer: it.answer.trim() }));
+
+  // Traje & Paletas
+  if (!config.pages.traje) config.pages.traje = {};
+  if (!config.pages.traje.content) config.pages.traje.content = {};
+  config.pages.traje.content.dresscode = document.getElementById('edDresscode')?.value?.trim() ?? '';
+  config.pages.traje.content.bridesmaidsPalette = editorState.bridesmaidsPalette.filter(c => c.hex?.trim()).slice(0, 5);
+  config.pages.traje.content.groomsMenPalette   = editorState.groomsMenPalette.filter(c => c.hex?.trim()).slice(0, 5);
+  config.pages.traje.content.brideColor = {
+    hex:  document.getElementById('edBrideColorHex')?.value?.trim()  ?? '',
+    name: document.getElementById('edBrideColorName')?.value?.trim() ?? '',
+  };
+  config.pages.traje.content.groomColor = {
+    hex:  document.getElementById('edGroomColorHex')?.value?.trim()  ?? '',
+    name: document.getElementById('edGroomColorName')?.value?.trim() ?? '',
+  };
+  config.pages.traje.content.note = (document.getElementById('edTrajeNote')?.value ?? '').slice(0, 200).trim();
 
   // Imagens da galeria não têm campo de formulário — vivem em window.__SITE_CONFIG__
   // (modificado pelos uploads). Preserva o estado vivo para não descartar ao salvar.

@@ -1115,7 +1115,6 @@ class InvitationExperience {
         setText('detailTimeTitle', this.config.texts?.detailsTimeLabel);
         setText('detailCeremonyTitle', this.config.texts?.detailsCeremonyLabel || this.config.texts?.detailsLocationLabel || 'Cerimônia');
         setText('detailPartyTitle', this.config.texts?.detailsPartyLabel || 'Festa');
-        setText('detailOccasionTitle', this.config.texts?.detailsOccasionLabel);
         setText('detailGiftTitle', this.config.texts?.detailsGiftTitle);
         setText('detailDateValue', this.config.event?.detailDate || this.config.event?.displayDate);
         setText('detailDateSub', this.config.event?.weekday);
@@ -1137,8 +1136,10 @@ class InvitationExperience {
         setText('detailPartyCity', partyCity);
         setText('detailPartyHint', this.config.texts?.detailsLocationHint);
 
-        setText('detailOccasionValue', this.config.texts?.detailsOccasionValue);
-        setText('detailOccasionSub', this.config.texts?.detailsOccasionSub);
+        setText('detailDresscodeValue',
+            this.config.pages?.traje?.content?.dresscode ??
+            this.config.texts?.detailsOccasionValue
+        );
 
         const setLocationLink = (elementId, mapLink, locationName, fallbackLabel) => {
             const locationLink = document.getElementById(elementId);
@@ -1287,6 +1288,11 @@ class InvitationExperience {
         const detailGiftLink = document.querySelector('.detail-card-gift');
         if (detailGiftLink) {
             detailGiftLink.setAttribute('href', buildInternalUrl('presente.html', this.guestToken));
+        }
+
+        const detailDresscodeLink = document.querySelector('.detail-card-traje');
+        if (detailDresscodeLink) {
+            detailDresscodeLink.setAttribute('href', buildInternalUrl('traje.html', this.guestToken));
         }
     }
 

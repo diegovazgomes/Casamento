@@ -1219,6 +1219,99 @@
     border-color: var(--color-border-strong);
 }
 
+/* ─── Traje & Paletas ────────────────────────────────────────────────────── */
+
+.traje-section {
+    padding-inline: var(--section-padding-inline);
+}
+
+.traje-group-title {
+    color: var(--gold);
+    font-size: 9px;
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    font-weight: 400;
+    margin-bottom: 24px;
+    font-family: var(--font-primary);
+}
+
+.traje-dresscode-value {
+    color: var(--cream);
+    font-family: var(--font-serif);
+    font-size: clamp(28px, 6vw, 42px);
+    font-weight: 300;
+    line-height: 1.15;
+    text-align: center;
+}
+
+.traje-palette {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+}
+
+.traje-swatch {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.traje-swatch-circle {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    border: 1px solid var(--color-border);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+    flex-shrink: 0;
+}
+
+.traje-swatch-label {
+    color: var(--color-text-soft);
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    text-align: center;
+    line-height: 1.6;
+    font-family: var(--font-primary);
+}
+
+.traje-solo-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+}
+
+.traje-solo-circle {
+    width: 88px;
+    height: 88px;
+    border-radius: 50%;
+    border: 1px solid var(--color-border);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+.traje-solo-label {
+    color: var(--color-text-soft);
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    text-align: center;
+    line-height: 1.6;
+    font-family: var(--font-primary);
+}
+
+.traje-note-text {
+    color: var(--color-text-soft);
+    font-size: var(--section-body-size, 13px);
+    line-height: 1.85;
+    text-align: center;
+    max-width: 520px;
+    margin-inline: auto;
+    font-family: var(--font-primary);
+}
+
 /* ─── Galeria de Fotos ───────────────────────────────────────────────────── */
 
 .historia-gallery-section {
@@ -1388,6 +1481,16 @@
 /* ─── Responsive: layout-specific ───────────────────────────────────────── */
 
 @media (max-width: 640px) {
+    .traje-swatch-circle {
+        width: 48px;
+        height: 48px;
+    }
+
+    .traje-solo-circle {
+        width: 72px;
+        height: 72px;
+    }
+
     .gift-main {
         padding-top: max(28px, env(safe-area-inset-top));
     }
