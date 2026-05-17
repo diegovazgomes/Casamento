@@ -101,7 +101,7 @@ a { color: inherit; text-decoration: none; }
 }
 .nav-brand {
   font-family: var(--serif);
-  font-size: 26px;
+  font-size: 48px;
   font-weight: 400;
   color: var(--carvao);
   letter-spacing: -0.02em;
@@ -996,6 +996,8 @@ a { color: inherit; text-decoration: none; }
   background: var(--marfim);
   padding: 56px 40px;
   position: relative;
+  display: flex;
+  flex-direction: column;
   transition: background 0.5s var(--ease);
 }
 .aplicacao:hover { background: var(--linho); }
@@ -1030,7 +1032,7 @@ a { color: inherit; text-decoration: none; }
   color: var(--tinta-soft);
 }
 .aplicacao-meta {
-  margin-top: 32px;
+  margin-top: auto;
   padding-top: 24px;
   border-top: 1px solid var(--line);
   display: flex; flex-direction: column; gap: 8px;
@@ -1632,14 +1634,14 @@ footer {
 
     <div class="hero-content">
       <div class="hero-eyebrow-row">
-        <span class="eyebrow">Convites digitais para casamentos · MMXXVI</span>
+        <span class="eyebrow">Experiências digitais para casamentos · MMXXVI</span>
       </div>
 
       <h1 class="hero-title">
-        A primeira página<br>
-        do livro que
+        Um dia tão especial<br>
+        merece uma
         <span class="hero-title-tail">
-          <em>começa no sim.</em>
+          <em>experiência premium.</em>
 
           <!-- Anel de brilhante animado (inline no final da escrita) -->
           <span class="ring-wrap" aria-hidden="true">
@@ -1705,8 +1707,8 @@ footer {
           <span>Criar meu convite</span>
           <span class="arrow">→</span>
         </a>
-        <a href="#oficio" class="btn btn-ghost">
-          Conhecer o ofício
+        <a href="#experiencia" class="btn btn-ghost">
+          Conhecer experiência
         </a>
       </div>
 
@@ -1763,7 +1765,7 @@ footer {
 </section>
 
 <!-- ══ OFÍCIO ══════════════════════════════════════════════════════════════ -->
-<section class="section oficio" id="oficio">
+<section class="section oficio" id="oficio" hidden>
   <div class="section-inner">
     <div class="oficio-grid">
       <div class="reveal">
@@ -1794,7 +1796,7 @@ footer {
 <section class="section experiencia" id="experiencia">
   <div class="section-inner">
     <div class="reveal">
-      <div class="section-num">02 — A experiência</div>
+      <div class="section-num">01 — A experiência</div>
       <h2 class="section-title">
         O convite como <em>primeira cena.</em>
       </h2>
@@ -2241,7 +2243,7 @@ footer {
     <div>
       <div class="footer-col-label">Produto</div>
       <div class="footer-col-links">
-        <a href="#oficio">O ofício</a>
+        <a href="#experiencia">Experiência</a>
         <a href="#aplicacoes">Aplicações</a>
         <a href="#encomendas">Encomendas</a>
         <a href="#faq">Perguntas</a>
