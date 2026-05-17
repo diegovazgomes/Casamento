@@ -10,9 +10,22 @@
     "weekday": "Domingo",
     "time": "17:00",
     "timezone": "Horário de Brasília",
-    "locationName": "Mansão Ilha de Capri",
-    "locationCity": "São Bernardo do Campo",
-    "mapsLink": "https://share.google/7Qt15gWSb3IAGGofM",
+    "ceremonyLocationName": "Igreja São José",
+    "ceremonyLocationCity": "São Bernardo do Campo",
+    "ceremonyMapsLink": "https://share.google/7Qt15gWSb3IAGGofM",
+    "ceremonyCoordinates": {
+      "lat": -23.851,
+      "lng": -46.575
+    },
+    "ceremonyAddress": "Rua da Cerimônia, 100, São Bernardo do Campo - SP",
+    "partyLocationName": "Mansão Ilha de Capri",
+    "partyLocationCity": "São Bernardo do Campo",
+    "partyMapsLink": "https://share.google/7Qt15gWSb3IAGGofM",
+    "partyCoordinates": {
+      "lat": -23.8545,
+      "lng": -46.5797
+    },
+    "partyAddress": "Rodovia Anchieta, SP-150, km 28, São Bernardo do Campo - SP",
     "mapEnabled": false,
     "venueCoordinates": {
       "lat": -23.8545,
@@ -35,6 +48,8 @@
     "detailsIntro": "Uma celebração íntima, pensada para compartilhar esse momento com quem faz parte da nossa história.",
     "detailsDateLabel": "Data",
     "detailsTimeLabel": "Horário",
+    "detailsCeremonyLabel": "Cerimônia",
+    "detailsPartyLabel": "Festa",
     "detailsLocationLabel": "Local",
     "detailsOccasionLabel": "Ocasião",
     "detailsOccasionValue": "Cerimônia & Recepção",

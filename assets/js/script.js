@@ -350,7 +350,8 @@ function warnConfigIssues(config) {
     const critical = [
         ['couple.names', config?.couple?.names],
         ['event.date', config?.event?.date],
-        ['event.mapsLink', config?.event?.mapsLink],
+        ['event.ceremonyMapsLink', config?.event?.ceremonyMapsLink],
+        ['event.partyMapsLink', config?.event?.partyMapsLink || config?.event?.mapsLink],
         ['whatsapp.destinationPhone', config?.whatsapp?.destinationPhone],
     ];
     critical.forEach(([path, val]) => {
@@ -441,7 +442,7 @@ function normalizeEventDateFields(config, defaults = null) {
 function buildFooterNote(event = {}) {
     const dateParts = buildEventDateDisplayParts(event.date);
     const dateText = dateParts?.heroDate || String(event.heroDate || event.displayDate || '').trim();
-    const locationText = String(event.locationCity || '').trim();
+    const locationText = String(event.partyLocationCity || event.locationCity || '').trim();
 
     if (!dateText && !locationText) {
         return '';
@@ -1111,25 +1112,45 @@ class InvitationExperience {
     setEventDetails() {
         setText('detailDateTitle', this.config.texts?.detailsDateLabel);
         setText('detailTimeTitle', this.config.texts?.detailsTimeLabel);
-        setText('detailLocationTitle', this.config.texts?.detailsLocationLabel);
+        setText('detailCeremonyTitle', this.config.texts?.detailsCeremonyLabel || this.config.texts?.detailsLocationLabel || 'Cerimônia');
+        setText('detailPartyTitle', this.config.texts?.detailsPartyLabel || 'Festa');
         setText('detailOccasionTitle', this.config.texts?.detailsOccasionLabel);
         setText('detailGiftTitle', this.config.texts?.detailsGiftTitle);
         setText('detailDateValue', this.config.event?.detailDate || this.config.event?.displayDate);
         setText('detailDateSub', this.config.event?.weekday);
         setText('detailTimeValue', this.config.event?.time);
         setText('detailTimeSub', this.config.event?.timezone);
-        setText('detailLocationName', this.config.event?.locationName);
-        setText('detailLocationCity', this.config.event?.locationCity);
-        setText('detailLocationHint', this.config.texts?.detailsLocationHint);
+
+        const ceremonyName = this.config.event?.ceremonyLocationName || this.config.event?.locationName;
+        const ceremonyCity = this.config.event?.ceremonyLocationCity || this.config.event?.locationCity;
+        const ceremonyMapsLink = this.config.event?.ceremonyMapsLink || this.config.event?.mapsLink;
+
+        const partyName = this.config.event?.partyLocationName || this.config.event?.locationName;
+        const partyCity = this.config.event?.partyLocationCity || this.config.event?.locationCity;
+        const partyMapsLink = this.config.event?.partyMapsLink || this.config.event?.mapsLink;
+
+        setText('detailCeremonyName', ceremonyName);
+        setText('detailCeremonyCity', ceremonyCity);
+        setText('detailCeremonyHint', this.config.texts?.detailsLocationHint);
+        setText('detailPartyName', partyName);
+        setText('detailPartyCity', partyCity);
+        setText('detailPartyHint', this.config.texts?.detailsLocationHint);
+
         setText('detailOccasionValue', this.config.texts?.detailsOccasionValue);
         setText('detailOccasionSub', this.config.texts?.detailsOccasionSub);
 
-        const locationLink = document.getElementById('detailLocationLink');
-        if (locationLink && this.config.event?.mapsLink) {
-            locationLink.setAttribute('href', this.config.event.mapsLink);
-            const locationName = this.config.event.locationName || 'local do evento';
-            locationLink.setAttribute('aria-label', `Abrir localização de ${locationName} no mapa`);
-        }
+        const setLocationLink = (elementId, mapLink, locationName, fallbackLabel) => {
+            const locationLink = document.getElementById(elementId);
+            if (!locationLink || !mapLink) {
+                return;
+            }
+
+            locationLink.setAttribute('href', mapLink);
+            locationLink.setAttribute('aria-label', `Abrir localização de ${locationName || fallbackLabel} no mapa`);
+        };
+
+        setLocationLink('detailCeremonyLink', ceremonyMapsLink, ceremonyName, 'cerimônia');
+        setLocationLink('detailPartyLink', partyMapsLink, partyName, 'festa');
     }
 
     setTexts() {

@@ -393,9 +393,33 @@ export function buildEventConfigResponse(eventRecord) {
     buildEventDateTimeString(eventRecord?.event_date, eventRecord?.event_time, nextConfig.event?.date)
   );
   setIfDefined(nextConfig.event, 'time', normalizeTimeValue(eventRecord?.event_time) || nextConfig.event?.time);
-  setIfDefined(nextConfig.event, 'locationName', eventRecord?.venue_name);
-  setIfDefined(nextConfig.event, 'venueAddress', eventRecord?.venue_address);
-  setIfDefined(nextConfig.event, 'mapsLink', eventRecord?.venue_maps_link);
+
+  const ceremonyName = eventRecord?.ceremony_name;
+  const ceremonyAddress = eventRecord?.ceremony_address;
+  const ceremonyMapsLink = eventRecord?.ceremony_maps_link;
+  const ceremonyCoordinates = eventRecord?.ceremony_coordinates;
+
+  const partyName = eventRecord?.party_name || eventRecord?.venue_name;
+  const partyAddress = eventRecord?.party_address || eventRecord?.venue_address;
+  const partyMapsLink = eventRecord?.party_maps_link || eventRecord?.venue_maps_link;
+  const partyCoordinates = eventRecord?.party_coordinates || eventRecord?.venue_coordinates;
+
+  setIfDefined(nextConfig.event, 'ceremonyLocationName', ceremonyName);
+  setIfDefined(nextConfig.event, 'ceremonyAddress', ceremonyAddress);
+  setIfDefined(nextConfig.event, 'ceremonyMapsLink', ceremonyMapsLink);
+  setIfDefined(nextConfig.event, 'ceremonyCoordinates', ceremonyCoordinates);
+
+  setIfDefined(nextConfig.event, 'partyLocationName', partyName);
+  setIfDefined(nextConfig.event, 'partyAddress', partyAddress);
+  setIfDefined(nextConfig.event, 'partyMapsLink', partyMapsLink);
+  setIfDefined(nextConfig.event, 'partyCoordinates', partyCoordinates);
+
+  // Compat: mantém aliases legados apontando para o local da festa.
+  setIfDefined(nextConfig.event, 'locationName', partyName);
+  setIfDefined(nextConfig.event, 'venueAddress', partyAddress);
+  setIfDefined(nextConfig.event, 'mapsLink', partyMapsLink);
+  setIfDefined(nextConfig.event, 'venueCoordinates', partyCoordinates);
+
   nextConfig.event = normalizeEventDateFields(nextConfig.event, nextConfig.event?.date, sourceEventConfig);
 
   nextConfig.rsvp = normalizeRsvpConfig(nextConfig.rsvp, eventRecord?.slug);

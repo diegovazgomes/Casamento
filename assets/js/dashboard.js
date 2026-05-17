@@ -1969,12 +1969,31 @@ function loadEditorTab() {
   } else if (datePart) {
     onEventDateChange();
   }
-  setVal('edEventLocation',     config.event?.locationName  ?? '');
-  setVal('edEventCity',         config.event?.locationCity  ?? '');
-  setVal('edEventMapsLink',     config.event?.mapsLink      ?? '');
-  setVal('edEventVenueAddress', config.event?.venueAddress  ?? '');
-  setVal('edEventLat', config.event?.venueCoordinates?.lat ?? '');
-  setVal('edEventLng', config.event?.venueCoordinates?.lng ?? '');
+  const ceremonyName = config.event?.ceremonyLocationName ?? '';
+  const ceremonyCity = config.event?.ceremonyLocationCity ?? '';
+  const ceremonyMaps = config.event?.ceremonyMapsLink ?? '';
+  const ceremonyAddress = config.event?.ceremonyAddress ?? '';
+  const ceremonyCoordinates = config.event?.ceremonyCoordinates || {};
+
+  const partyName = config.event?.partyLocationName ?? config.event?.locationName ?? '';
+  const partyCity = config.event?.partyLocationCity ?? config.event?.locationCity ?? '';
+  const partyMaps = config.event?.partyMapsLink ?? config.event?.mapsLink ?? '';
+  const partyAddress = config.event?.partyAddress ?? config.event?.venueAddress ?? '';
+  const partyCoordinates = config.event?.partyCoordinates || config.event?.venueCoordinates || {};
+
+  setVal('edCeremonyLocation', ceremonyName);
+  setVal('edCeremonyCity', ceremonyCity);
+  setVal('edCeremonyMapsLink', ceremonyMaps);
+  setVal('edCeremonyAddress', ceremonyAddress);
+  setVal('edCeremonyLat', ceremonyCoordinates?.lat ?? '');
+  setVal('edCeremonyLng', ceremonyCoordinates?.lng ?? '');
+
+  setVal('edPartyLocation', partyName);
+  setVal('edPartyCity', partyCity);
+  setVal('edPartyMapsLink', partyMaps);
+  setVal('edPartyAddress', partyAddress);
+  setVal('edPartyLat', partyCoordinates?.lat ?? '');
+  setVal('edPartyLng', partyCoordinates?.lng ?? '');
   setChk('edEventMapEnabled', !!config.event?.mapEnabled);
 
   // Tema
@@ -2090,11 +2109,30 @@ function extractCoordsFromMapsLink(url) {
   return null;
 }
 
-function onMapsLinkExtract() {
-  const input   = document.getElementById('edEventMapsLink');
-  const statusEl = document.getElementById('edEventCoordsStatus');
-  const latEl   = document.getElementById('edEventLat');
-  const lngEl   = document.getElementById('edEventLng');
+function getLocationFieldIds(scope = 'party') {
+  if (scope === 'ceremony') {
+    return {
+      link: 'edCeremonyMapsLink',
+      status: 'edCeremonyCoordsStatus',
+      lat: 'edCeremonyLat',
+      lng: 'edCeremonyLng',
+    };
+  }
+
+  return {
+    link: 'edPartyMapsLink',
+    status: 'edPartyCoordsStatus',
+    lat: 'edPartyLat',
+    lng: 'edPartyLng',
+  };
+}
+
+function onMapsLinkExtract(scope = 'party') {
+  const ids = getLocationFieldIds(scope);
+  const input = document.getElementById(ids.link);
+  const statusEl = document.getElementById(ids.status);
+  const latEl = document.getElementById(ids.lat);
+  const lngEl = document.getElementById(ids.lng);
   if (!input || !statusEl) return;
 
   const url = input.value.trim();
@@ -3859,13 +3897,42 @@ function collectEditorValues() {
     config.event.detailDate = config.event.displayDate;
   }
   config.event.weekday     = document.getElementById('edEventWeekday')?.value.trim()     || '';
-  config.event.locationName = document.getElementById('edEventLocation')?.value.trim()    || '';
-  config.event.locationCity = document.getElementById('edEventCity')?.value.trim()        || '';
-  config.event.mapsLink     = document.getElementById('edEventMapsLink')?.value.trim()    || '';
-  config.event.venueAddress = document.getElementById('edEventVenueAddress')?.value.trim() || '';
-  const lat = parseFloat(document.getElementById('edEventLat')?.value);
-  const lng = parseFloat(document.getElementById('edEventLng')?.value);
-  if (!isNaN(lat) && !isNaN(lng)) config.event.venueCoordinates = { lat, lng };
+
+  config.event.ceremonyLocationName = document.getElementById('edCeremonyLocation')?.value.trim() || '';
+  config.event.ceremonyLocationCity = document.getElementById('edCeremonyCity')?.value.trim() || '';
+  config.event.ceremonyMapsLink = document.getElementById('edCeremonyMapsLink')?.value.trim() || '';
+  config.event.ceremonyAddress = document.getElementById('edCeremonyAddress')?.value.trim() || '';
+  const ceremonyLat = parseFloat(document.getElementById('edCeremonyLat')?.value);
+  const ceremonyLng = parseFloat(document.getElementById('edCeremonyLng')?.value);
+  if (!isNaN(ceremonyLat) && !isNaN(ceremonyLng)) {
+    config.event.ceremonyCoordinates = { lat: ceremonyLat, lng: ceremonyLng };
+  } else {
+    delete config.event.ceremonyCoordinates;
+  }
+
+  config.event.partyLocationName = document.getElementById('edPartyLocation')?.value.trim() || '';
+  config.event.partyLocationCity = document.getElementById('edPartyCity')?.value.trim() || '';
+  config.event.partyMapsLink = document.getElementById('edPartyMapsLink')?.value.trim() || '';
+  config.event.partyAddress = document.getElementById('edPartyAddress')?.value.trim() || '';
+  const partyLat = parseFloat(document.getElementById('edPartyLat')?.value);
+  const partyLng = parseFloat(document.getElementById('edPartyLng')?.value);
+  if (!isNaN(partyLat) && !isNaN(partyLng)) {
+    config.event.partyCoordinates = { lat: partyLat, lng: partyLng };
+  } else {
+    delete config.event.partyCoordinates;
+  }
+
+  // Compatibilidade: mantém aliases antigos apontando para a festa.
+  config.event.locationName = config.event.partyLocationName;
+  config.event.locationCity = config.event.partyLocationCity;
+  config.event.mapsLink = config.event.partyMapsLink;
+  config.event.venueAddress = config.event.partyAddress;
+  if (config.event.partyCoordinates) {
+    config.event.venueCoordinates = { ...config.event.partyCoordinates };
+  } else {
+    delete config.event.venueCoordinates;
+  }
+
   config.event.mapEnabled = document.getElementById('edEventMapEnabled')?.checked ?? false;
 
   // Tema
@@ -4292,8 +4359,8 @@ async function _validateWizardSlugAvailability({ immediate = false } = {}) {
 }
 
 function isFirstTimeUser(config) {
-  const loc = config?.event?.locationName || '';
-  return loc === '' || loc === 'Definir local';
+  const loc = config?.event?.partyLocationName || config?.event?.locationName || '';
+  return loc === '' || loc === 'Definir local' || loc === 'Definir local da festa';
 }
 
 async function _loadWizardThemes() {
@@ -4645,8 +4712,19 @@ async function _saveWizard() {
         time:    timeVal,
         ...dateLabels,
       }),
-      locationName: venueName   || 'A definir',
+      ceremonyLocationName: venueName || 'A definir',
+      ceremonyLocationCity: '',
+      ceremonyAddress: venueAddress || 'A definir',
+      ceremonyMapsLink: '',
+      partyLocationName: venueName || 'A definir',
+      partyLocationCity: '',
+      partyAddress: venueAddress || 'A definir',
+      partyMapsLink: '',
+
+      // Compatibilidade com consumidores legados.
+      locationName: venueName || 'A definir',
       venueAddress: venueAddress || 'A definir',
+      mapsLink: '',
     },
   };
 

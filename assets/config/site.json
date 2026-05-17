@@ -32,9 +32,22 @@
     "weekday": "Domingo",
     "time": "17:00",
     "timezone": "Horário de Brasília",
-    "locationName": "Mansão Ilha de Capri",
-    "locationCity": "São Bernardo do Campo",
-    "mapsLink": "https://www.google.com/maps/dir//Ilha+de+Capri+Buffet+Eventos,+Rodovia+Anchieta,+SP-150,+km+28+-+Vila+Balnearia,+S%C3%A3o+Bernardo+do+Campo+-+SP,+09822-250/@-23.6611535,-46.6029821,15z/data=!4m8!4m7!1m0!1m5!1m1!1s0x94ce41794f164f17:0x93eaef9188424c1b!2m2!1d-46.535788!2d-23.767335?entry=ttu&g_ep=EgoyMDI2MDQwMS4wIKXMDSoASAFQAw%3D%3D",
+    "ceremonyLocationName": "Igreja São José",
+    "ceremonyLocationCity": "São Bernardo do Campo",
+    "ceremonyMapsLink": "https://www.google.com/maps/dir//Par%C3%B3quia+S%C3%A3o+Jos%C3%A9,+S%C3%A3o+Bernardo+do+Campo,+SP/",
+    "ceremonyCoordinates": {
+      "lat": -23.851,
+      "lng": -46.575
+    },
+    "ceremonyAddress": "Rua da Cerimônia, 100, São Bernardo do Campo - SP",
+    "partyLocationName": "Mansão Ilha de Capri",
+    "partyLocationCity": "São Bernardo do Campo",
+    "partyMapsLink": "https://www.google.com/maps/dir//Ilha+de+Capri+Buffet+Eventos,+Rodovia+Anchieta,+SP-150,+km+28+-+Vila+Balnearia,+S%C3%A3o+Bernardo+do+Campo+-+SP,+09822-250/@-23.6611535,-46.6029821,15z/data=!4m8!4m7!1m0!1m5!1m1!1s0x94ce41794f164f17:0x93eaef9188424c1b!2m2!1d-46.535788!2d-23.767335?entry=ttu&g_ep=EgoyMDI2MDQwMS4wIKXMDSoASAFQAw%3D%3D",
+    "partyCoordinates": {
+      "lat": -23.8545,
+      "lng": -46.5797
+    },
+    "partyAddress": "Rodovia Anchieta, SP-150, km 28, São Bernardo do Campo - SP",
     "mapEnabled": true,
     "venueCoordinates": {
       "lat": -23.8545,
@@ -58,6 +71,8 @@
     "detailsIntro": "Uma celebração íntima, pensada para compartilhar esse momento com quem faz parte da nossa história.",
     "detailsDateLabel": "Data",
     "detailsTimeLabel": "Horário",
+    "detailsCeremonyLabel": "Cerimônia",
+    "detailsPartyLabel": "Festa",
     "detailsLocationLabel": "Local",
     "detailsOccasionLabel": "Ocasião",
     "detailsOccasionValue": "Cerimônia & Recepção",

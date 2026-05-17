@@ -38,7 +38,7 @@
     "event": {
       "type": "object",
       "description": "Dados do evento",
-      "required": ["date", "displayDate", "heroDate", "detailDate", "weekday", "time", "timezone", "locationName", "locationCity", "mapsLink"],
+      "required": ["date", "displayDate", "heroDate", "detailDate", "weekday", "time", "timezone", "ceremonyLocationName", "ceremonyLocationCity", "ceremonyMapsLink", "ceremonyAddress", "partyLocationName", "partyLocationCity", "partyMapsLink", "partyAddress"],
       "properties": {
         "date": {
           "type": "string",
@@ -68,36 +68,67 @@
           "type": "string",
           "description": "Descrição do fuso horário"
         },
-        "locationName": {
+        "ceremonyLocationName": {
           "type": "string",
-          "description": "Nome do local do evento"
+          "description": "Nome do local da cerimônia"
         },
-        "locationCity": {
+        "ceremonyLocationCity": {
           "type": "string",
-          "description": "Cidade do evento"
+          "description": "Cidade da cerimônia"
         },
-        "mapsLink": {
+        "ceremonyMapsLink": {
           "type": "string",
           "format": "uri",
-          "description": "Link do Google Maps para o local"
+          "description": "Link do Google Maps para a cerimônia"
         },
-        "mapEnabled": {
-          "type": "boolean",
-          "description": "Ativa mapa interativo na página de hospedagem"
-        },
-        "venueCoordinates": {
+        "ceremonyCoordinates": {
           "type": "object",
-          "description": "Coordenadas do local para renderização do mapa",
+          "description": "Coordenadas da cerimônia para renderização do mapa",
           "required": ["lat", "lng"],
           "properties": {
             "lat": { "type": "number" },
             "lng": { "type": "number" }
           }
         },
-        "venueAddress": {
+        "ceremonyAddress": {
           "type": "string",
-          "description": "Endereço textual exibido no popup do mapa"
-        }
+          "description": "Endereço textual da cerimônia"
+        },
+        "partyLocationName": {
+          "type": "string",
+          "description": "Nome do local da festa"
+        },
+        "partyLocationCity": {
+          "type": "string",
+          "description": "Cidade da festa"
+        },
+        "partyMapsLink": {
+          "type": "string",
+          "format": "uri",
+          "description": "Link do Google Maps para a festa"
+        },
+        "partyCoordinates": {
+          "type": "object",
+          "description": "Coordenadas da festa para renderização do mapa",
+          "required": ["lat", "lng"],
+          "properties": {
+            "lat": { "type": "number" },
+            "lng": { "type": "number" }
+          }
+        },
+        "partyAddress": {
+          "type": "string",
+          "description": "Endereço textual da festa"
+        },
+        "mapEnabled": {
+          "type": "boolean",
+          "description": "Ativa mapa interativo na página de hospedagem"
+        },
+        "locationName": { "type": "string" },
+        "locationCity": { "type": "string" },
+        "mapsLink": { "type": "string", "format": "uri" },
+        "venueCoordinates": { "type": "object" },
+        "venueAddress": { "type": "string" }
       }
     },
     "texts": {
@@ -126,6 +157,8 @@
         "detailsIntro": { "type": "string" },
         "detailsDateLabel": { "type": "string" },
         "detailsTimeLabel": { "type": "string" },
+        "detailsCeremonyLabel": { "type": "string" },
+        "detailsPartyLabel": { "type": "string" },
         "detailsLocationLabel": { "type": "string" },
         "detailsOccasionLabel": { "type": "string" },
         "detailsOccasionValue": { "type": "string" },

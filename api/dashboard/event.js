@@ -22,6 +22,14 @@ const EVENT_RESPONSE_SELECT = [
   'groom_name',
   'event_date',
   'event_time',
+  'ceremony_name',
+  'ceremony_address',
+  'ceremony_maps_link',
+  'ceremony_coordinates',
+  'party_name',
+  'party_address',
+  'party_maps_link',
+  'party_coordinates',
   'venue_name',
   'venue_address',
   'venue_maps_link',
@@ -202,9 +210,14 @@ function buildInitialEventConfig({ coupleName, slug, whatsapp }) {
       displayDate: dateLabels.displayDate,
       weekday: dateLabels.weekday,
       time: '17:00',
-      locationName: 'Definir local',
-      venueAddress: 'Definir endereço',
-      mapsLink: '',
+      ceremonyLocationName: 'Definir local da cerimônia',
+      ceremonyLocationCity: '',
+      ceremonyAddress: 'Definir endereço da cerimônia',
+      ceremonyMapsLink: '',
+      partyLocationName: 'Definir local da festa',
+      partyLocationCity: '',
+      partyAddress: 'Definir endereço da festa',
+      partyMapsLink: '',
     },
     rsvp: {
       eventId: slug,
@@ -224,8 +237,14 @@ function buildInitialEventTableFields() {
   return {
     event_date: new Date().toISOString().slice(0, 10),
     event_time: '17:00',
-    venue_name: 'Definir local',
-    venue_address: 'Definir endereço',
+    ceremony_name: 'Definir local da cerimônia',
+    ceremony_address: 'Definir endereço da cerimônia',
+    ceremony_maps_link: '',
+    party_name: 'Definir local da festa',
+    party_address: 'Definir endereço da festa',
+    party_maps_link: '',
+    venue_name: 'Definir local da festa',
+    venue_address: 'Definir endereço da festa',
     venue_maps_link: '',
   };
 }
@@ -319,18 +338,45 @@ function extractEventTableFields(config) {
     fields.event_time = config.event.time;
   }
 
-  // Local
-  if (config?.event?.locationName) {
-    fields.venue_name = config.event.locationName;
+  // Local (cerimônia + festa)
+  const ceremonyName = config?.event?.ceremonyLocationName;
+  const ceremonyAddress = config?.event?.ceremonyAddress;
+  const ceremonyMapsLink = config?.event?.ceremonyMapsLink;
+  const ceremonyCoordinates = config?.event?.ceremonyCoordinates;
+
+  const partyName = config?.event?.partyLocationName || config?.event?.locationName;
+  const partyAddress = config?.event?.partyAddress || config?.event?.venueAddress;
+  const partyMapsLink = config?.event?.partyMapsLink || config?.event?.mapsLink;
+  const partyCoordinates = config?.event?.partyCoordinates || config?.event?.venueCoordinates;
+
+  if (ceremonyName) {
+    fields.ceremony_name = ceremonyName;
   }
-  if (config?.event?.venueAddress) {
-    fields.venue_address = config.event.venueAddress;
+  if (ceremonyAddress) {
+    fields.ceremony_address = ceremonyAddress;
   }
-  if (config?.event?.mapsLink) {
-    fields.venue_maps_link = config.event.mapsLink;
+  if (ceremonyMapsLink) {
+    fields.ceremony_maps_link = ceremonyMapsLink;
   }
-  if (config?.event?.venueCoordinates) {
-    fields.venue_coordinates = config.event.venueCoordinates;
+  if (ceremonyCoordinates) {
+    fields.ceremony_coordinates = ceremonyCoordinates;
+  }
+
+  if (partyName) {
+    fields.party_name = partyName;
+    fields.venue_name = partyName;
+  }
+  if (partyAddress) {
+    fields.party_address = partyAddress;
+    fields.venue_address = partyAddress;
+  }
+  if (partyMapsLink) {
+    fields.party_maps_link = partyMapsLink;
+    fields.venue_maps_link = partyMapsLink;
+  }
+  if (partyCoordinates) {
+    fields.party_coordinates = partyCoordinates;
+    fields.venue_coordinates = partyCoordinates;
   }
 
   // Tema e Layout
@@ -658,6 +704,14 @@ export default async function handler(req, res) {
         groom_name: data.groom_name,
         event_date: data.event_date,
         event_time: data.event_time,
+        ceremony_name: data.ceremony_name,
+        ceremony_address: data.ceremony_address,
+        ceremony_maps_link: data.ceremony_maps_link,
+        ceremony_coordinates: data.ceremony_coordinates,
+        party_name: data.party_name,
+        party_address: data.party_address,
+        party_maps_link: data.party_maps_link,
+        party_coordinates: data.party_coordinates,
         venue_name: data.venue_name,
         venue_address: data.venue_address,
         venue_maps_link: data.venue_maps_link,
