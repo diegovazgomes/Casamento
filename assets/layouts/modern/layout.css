@@ -391,7 +391,7 @@
 }
 
 .detail-card-gift {
-    grid-column: 1 / -1;
+    grid-column: auto;
 }
 
 .detail-icon {

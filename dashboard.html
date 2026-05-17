@@ -1342,6 +1342,24 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
   color:var(--text-dim);margin-bottom:12px;display:block;
 }
 
+.location-group-label{
+  display:block;
+  margin:10px 0 10px;
+  font-size:10px;
+  font-weight:600;
+  letter-spacing:0.2em;
+  text-transform:uppercase;
+  color:var(--text-soft);
+}
+
+@media(max-width:768px){
+  .location-group-label{
+    font-size:12px;
+    letter-spacing:0.14em;
+    color:var(--text);
+  }
+}
+
 /* Toggle switch */
 .toggle{display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none}
 .toggle-input{display:none}
@@ -2459,20 +2477,20 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
             <div class="editor-rule"></div>
             <span class="editor-sub-label">Locais do evento</span>
 
-            <div class="field-hint" style="margin-bottom:10px">Cerimônia</div>
+            <span class="location-group-label">Dados da cerimônia</span>
             <div class="form-grid-2">
               <div class="field">
-                <label class="field-label" for="edCeremonyLocation">Nome do local</label>
+                <label class="field-label" for="edCeremonyLocation">NOME DO LOCAL (CERIMÔNIA)</label>
                 <input type="text" class="field-input sm" id="edCeremonyLocation" placeholder="Igreja, Cartório, Espaço..." oninput="markEditorDirty()">
               </div>
               <div class="field">
-                <label class="field-label" for="edCeremonyCity">Cidade</label>
+                <label class="field-label" for="edCeremonyCity">CIDADE (CERIMÔNIA)</label>
                 <input type="text" class="field-input sm" id="edCeremonyCity" placeholder="São Paulo, SP" oninput="markEditorDirty()">
               </div>
             </div>
             <div class="form-group">
               <div class="field">
-                <label class="field-label" for="edCeremonyMapsLink">Link do Google Maps</label>
+                <label class="field-label" for="edCeremonyMapsLink">LINK DO GOOGLE MAPS (CERIMÔNIA)</label>
                 <input type="url" class="field-input sm" id="edCeremonyMapsLink"
                        placeholder="Cole aqui o link do Google Maps da cerimônia"
                        oninput="markEditorDirty()"
@@ -2483,7 +2501,7 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
             </div>
             <div class="form-group">
               <div class="field">
-                <label class="field-label" for="edCeremonyAddress">Endereço completo</label>
+                <label class="field-label" for="edCeremonyAddress">ENDEREÇO COMPLETO (CERIMÔNIA)</label>
                 <input type="text" class="field-input sm" id="edCeremonyAddress"
                        placeholder="Rua da Cerimônia, 100 — São Paulo, SP" oninput="markEditorDirty()">
               </div>
@@ -2491,20 +2509,20 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
             <input type="hidden" id="edCeremonyLat">
             <input type="hidden" id="edCeremonyLng">
 
-            <div class="field-hint" style="margin:14px 0 10px">Festa</div>
+            <span class="location-group-label">Dados da festa</span>
             <div class="form-grid-2">
               <div class="field">
-                <label class="field-label" for="edPartyLocation">Nome do local</label>
+                <label class="field-label" for="edPartyLocation">NOME DO LOCAL (FESTA)</label>
                 <input type="text" class="field-input sm" id="edPartyLocation" placeholder="Mansão, Sítio, Salão de Festas..." oninput="markEditorDirty()">
               </div>
               <div class="field">
-                <label class="field-label" for="edPartyCity">Cidade</label>
+                <label class="field-label" for="edPartyCity">CIDADE (FESTA)</label>
                 <input type="text" class="field-input sm" id="edPartyCity" placeholder="São Bernardo do Campo, SP" oninput="markEditorDirty()">
               </div>
             </div>
             <div class="form-group">
               <div class="field">
-                <label class="field-label" for="edPartyMapsLink">Link do Google Maps</label>
+                <label class="field-label" for="edPartyMapsLink">LINK DO GOOGLE MAPS (FESTA)</label>
                 <input type="url" class="field-input sm" id="edPartyMapsLink"
                        placeholder="Cole aqui o link do Google Maps da festa"
                        oninput="markEditorDirty()"
@@ -2515,7 +2533,7 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
             </div>
             <div class="form-group">
               <div class="field">
-                <label class="field-label" for="edPartyAddress">Endereço completo</label>
+                <label class="field-label" for="edPartyAddress">ENDEREÇO COMPLETO (FESTA)</label>
                 <input type="text" class="field-input sm" id="edPartyAddress"
                        placeholder="Rua da Festa, 200 — São Paulo, SP" oninput="markEditorDirty()">
               </div>
