@@ -1223,6 +1223,7 @@
 
 .traje-section {
     padding-inline: var(--section-padding-inline);
+    padding-block: var(--space-3xl, 56px);
 }
 
 .traje-group-title {

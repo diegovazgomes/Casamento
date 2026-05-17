@@ -27,9 +27,41 @@ function renderSoloColor(containerId, color) {
     `;
 }
 
+const OPTIONAL_SECTION_IDS = [
+    'trajeBridesmaidsPaletteSection',
+    'trajeGroomsmenPaletteSection',
+    'trajeBrideColorSection',
+    'trajeGroomColorSection',
+    'trajeNoteSection',
+];
+
 function toggleSection(id, show) {
     const el = document.getElementById(id);
     if (el && show) el.removeAttribute('hidden');
+}
+
+function makeDivider() {
+    const el = document.createElement('div');
+    el.className = 'divider reveal';
+    el.setAttribute('aria-hidden', 'true');
+    el.innerHTML = '<div class="divider-line"></div><div class="divider-diamond"></div><div class="divider-line"></div>';
+    return el;
+}
+
+function insertDividersBetweenSections() {
+    const parent = document.querySelector('.extra-main');
+    if (!parent) return;
+
+    const visible = OPTIONAL_SECTION_IDS
+        .map(id => document.getElementById(id))
+        .filter(el => el && !el.hasAttribute('hidden'));
+
+    // Primeiro visível: o divider estático após dresscode já o separa.
+    // A partir do segundo: inserir um divider antes de cada um.
+    visible.forEach((section, i) => {
+        if (i === 0) return;
+        parent.insertBefore(makeDivider(), section);
+    });
 }
 
 initExtraPage({
@@ -57,5 +89,7 @@ initExtraPage({
         const hasNote = content.note?.trim();
         toggleSection('trajeNoteSection', hasNote);
         if (hasNote) setText('trajeNote', content.note);
+
+        insertDividersBetweenSections();
     },
 });
