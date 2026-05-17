@@ -441,7 +441,7 @@ function normalizeEventDateFields(config, defaults = null) {
 function buildFooterNote(event = {}) {
     const dateParts = buildEventDateDisplayParts(event.date);
     const dateText = dateParts?.heroDate || String(event.heroDate || event.displayDate || '').trim();
-    const locationText = String(event.locationName || '').trim();
+    const locationText = String(event.locationCity || '').trim();
 
     if (!dateText && !locationText) {
         return '';
@@ -1359,15 +1359,15 @@ function renderBootstrapError(error, configSource) {
     const isNotFound = configSource?.usesApi && Number(error?.status) === 404;
 
     setText('configErrorTitle', isNotFound
-        ? 'Convite nao encontrado.'
-        : 'Nao foi possivel carregar este convite.');
+        ? 'Convite não encontrado.'
+        : 'Não foi possivel carregar este convite.');
     setText('configErrorBody', isNotFound
         ? 'Confira se o link esta completo ou solicite um novo acesso aos noivos.'
         : 'Tente novamente em instantes. Se o problema continuar, fale com quem enviou o convite.');
 
     document.title = isNotFound
-        ? 'Convite nao encontrado.'
-        : 'Nao foi possivel carregar este convite.';
+        ? 'Convite não encontrado.'
+        : 'Não foi possivel carregar este convite.';
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
