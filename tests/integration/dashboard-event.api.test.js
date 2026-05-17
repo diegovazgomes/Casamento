@@ -529,50 +529,6 @@ describe('/api/dashboard/event', () => {
     expect(res.body).toEqual({ error: 'Unauthorized' });
   });
 
-  it('blocks PATCH for demo locked events', async () => {
-    const currentEventBuilder = createSelectBuilder({
-      data: {
-        id: 'event-1',
-        user_id: 'user-1',
-        slug: 'siannah-diego-2026',
-        config: {
-          demo: { locked: true },
-          texts: { metaTitle: 'Demo' },
-        },
-      },
-      error: null,
-    });
-
-    const fromMock = vi.fn().mockReturnValueOnce(currentEventBuilder);
-
-    createClientMock.mockReturnValue({
-      auth: {
-        getUser: vi.fn().mockResolvedValue({ data: { user: { id: 'user-1' } }, error: null }),
-      },
-      from: fromMock,
-      storage: createStorageMock(),
-    });
-
-    const { default: handler } = await import('../../api/dashboard/event.js');
-    const res = createMockResponse();
-
-    await handler({
-      method: 'PATCH',
-      headers: { authorization: 'Bearer valid-token' },
-      body: {
-        eventId: 'event-1',
-        config: {
-          texts: { metaTitle: 'Novo título' },
-        },
-      },
-    }, res);
-
-    expect(res.statusCode).toBe(403);
-    expect(res.body).toEqual({
-      error: 'Este convite de demonstração é somente leitura.',
-      code: 'DEMO_READ_ONLY',
-    });
-  });
 });
 
 describe('/api/dashboard/guest-groups', () => {

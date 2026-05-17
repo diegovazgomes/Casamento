@@ -9,8 +9,27 @@
  */
 
 let _config = null;
+let _lastSubmissionError = null;
 
 const SERVER_SUBMISSIONS_ENDPOINT = '/api/submissions';
+
+export function getLastSubmissionError() {
+    return _lastSubmissionError;
+}
+
+function setLastSubmissionError(error) {
+    if (!error) {
+        _lastSubmissionError = null;
+        return;
+    }
+
+    _lastSubmissionError = {
+        code: error.code ?? null,
+        message: error.message ?? '',
+        details: error.details ?? '',
+        hint: error.hint ?? '',
+    };
+}
 
 async function getConfig() {
     if (_config) return _config;
@@ -138,6 +157,8 @@ function isUnsupportedRsvpColumnError(parsedError) {
  * @returns {Promise<boolean>}
  */
 export async function saveRsvpConfirmation({ name, phone, attendance, eventId, tokenId = null, groupName = null, groupMaxConfirmations = null, marketingConsent = false }) {
+    setLastSubmissionError(null);
+
     const payload = {
         name:                     name.trim(),
         phone:                    phone.trim(),
@@ -155,10 +176,12 @@ export async function saveRsvpConfirmation({ name, phone, attendance, eventId, t
 
     const firstAttempt = await postToSupabaseDetailed('rsvp_confirmations', payload);
     if (firstAttempt.ok) {
+        setLastSubmissionError(null);
         return true;
     }
 
     if (!isUnsupportedRsvpColumnError(firstAttempt.error)) {
+        setLastSubmissionError(firstAttempt.error);
         return false;
     }
 
@@ -174,6 +197,12 @@ export async function saveRsvpConfirmation({ name, phone, attendance, eventId, t
     delete fallbackPayload.group_max_confirmations;
 
     const fallbackAttempt = await postToSupabaseDetailed('rsvp_confirmations', fallbackPayload);
+    if (!fallbackAttempt.ok) {
+        setLastSubmissionError(fallbackAttempt.error);
+        return false;
+    }
+
+    setLastSubmissionError(null);
     return fallbackAttempt.ok;
 }
 
@@ -232,7 +261,9 @@ export async function saveSongSuggestion({ guestName, songTitle, songArtist, son
  * @returns {Promise<boolean>}
  */
 async function postToSupabase(table, payload) {
+    setLastSubmissionError(null);
     const result = await postToSupabaseDetailed(table, payload);
+    setLastSubmissionError(result.ok ? null : result.error);
     return result.ok;
 }
 

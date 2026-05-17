@@ -1,6 +1,8 @@
 import { initExtraPage } from './extra-page.js';
 import { setInputPlaceholder, setText } from './utils.js';
-import { saveSongSuggestion } from './rsvp-persistence.js';
+import { getLastSubmissionError, saveSongSuggestion } from './rsvp-persistence.js';
+
+const DEMO_SUBMISSIONS_BLOCKED_CODE = 'DEMO_PUBLIC_SUBMISSIONS_BLOCKED';
 
 function setFieldValidity(field, isInvalid) {
     if (!field) return;
@@ -95,7 +97,12 @@ function bindMusicForm(content, config) {
             if (!saved) {
                 console.warn('[musica] Falha na persistência da sugestão.');
                 feedback.classList.add('is-error');
-                feedback.textContent = content?.errorMessage || 'Não foi possível enviar sua sugestão agora. Tente novamente.';
+                const lastSubmissionError = getLastSubmissionError();
+                if (lastSubmissionError?.code === DEMO_SUBMISSIONS_BLOCKED_CODE) {
+                    feedback.textContent = lastSubmissionError.message || 'Este convite e demonstrativo. RSVP, mensagens e musicas estao desativados no exemplo.';
+                } else {
+                    feedback.textContent = content?.errorMessage || 'Não foi possível enviar sua sugestão agora. Tente novamente.';
+                }
                 if (submitButton) {
                     submitButton.disabled = false;
                 }

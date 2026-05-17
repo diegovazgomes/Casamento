@@ -8,10 +8,8 @@
 import { createClient } from '@supabase/supabase-js';
 import {
   authenticateDashboardRequest,
-  buildDemoReadOnlyError,
   findOwnedGuestToken,
   getUserPlan,
-  isDemoLockedEvent,
   requireOwnedEvent,
 } from '../_lib/dashboard-auth.js';
 
@@ -65,10 +63,6 @@ async function handleGetGroups(req, res) {
 
     if (!ownedEvent.ok) {
       return res.status(ownedEvent.status).json({ error: ownedEvent.error });
-    }
-
-    if (isDemoLockedEvent(ownedEvent.event)) {
-      return res.status(403).json(buildDemoReadOnlyError());
     }
 
     const supabase = ownedEvent.supabase;
@@ -213,10 +207,6 @@ async function handleUpdateGroup(req, res) {
       return res.status(404).json({ error: 'Group not found' });
     }
 
-    if (isDemoLockedEvent(ownedToken.events)) {
-      return res.status(403).json(buildDemoReadOnlyError());
-    }
-
     const supabase = auth.supabase;
     const updateData = {};
     if (maxConfirmations !== undefined) updateData.max_confirmations = maxConfirmations;
@@ -278,10 +268,6 @@ async function handleDeleteGroup(req, res) {
 
     if (!ownedToken) {
       return res.status(404).json({ error: 'Group not found' });
-    }
-
-    if (isDemoLockedEvent(ownedToken.events)) {
-      return res.status(403).json(buildDemoReadOnlyError());
     }
 
     const supabase = auth.supabase;

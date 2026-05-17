@@ -6,6 +6,63 @@ const GUEST_TABLE = 'guest_submissions';
 const ALLOWED_TABLES = new Set([RSVP_TABLE, GUEST_TABLE]);
 const RSVP_ATTENDANCE = new Set(['yes', 'no']);
 const GUEST_TYPES = new Set(['message', 'song']);
+const DEMO_SUBMISSIONS_BLOCKED_CODE = 'DEMO_PUBLIC_SUBMISSIONS_BLOCKED';
+const DEMO_SUBMISSIONS_BLOCKED_MESSAGE = 'Este convite e demonstrativo. RSVP, mensagens e musicas estao desativados no exemplo.';
+
+function isDemoPublicShowcaseEvent(eventRecord) {
+  const demoConfig = eventRecord?.config?.demo;
+  if (!demoConfig || typeof demoConfig !== 'object') {
+    return false;
+  }
+
+  return demoConfig.publicShowcase === true
+    || demoConfig.blockPublicSubmissions === true
+    || demoConfig.locked === true;
+}
+
+async function findSubmissionEvent(supabase, eventReference) {
+  const normalizedReference = String(eventReference || '').trim();
+  if (!normalizedReference) {
+    return null;
+  }
+
+  const eventsTable = supabase?.from?.('events');
+  if (!eventsTable || typeof eventsTable.select !== 'function') {
+    return null;
+  }
+
+  try {
+    const bySlugQuery = supabase
+      .from('events')
+      .select('id,slug,config')
+      .eq('slug', normalizedReference)
+      .maybeSingle();
+
+    if (bySlugQuery && typeof bySlugQuery.then === 'function') {
+      const { data: bySlugEvent, error: bySlugError } = await bySlugQuery;
+      if (!bySlugError && bySlugEvent) {
+        return bySlugEvent;
+      }
+    }
+
+    const byIdQuery = supabase
+      .from('events')
+      .select('id,slug,config')
+      .eq('id', normalizedReference)
+      .maybeSingle();
+
+    if (byIdQuery && typeof byIdQuery.then === 'function') {
+      const { data: byIdEvent, error: byIdError } = await byIdQuery;
+      if (!byIdError && byIdEvent) {
+        return byIdEvent;
+      }
+    }
+  } catch {
+    return null;
+  }
+
+  return null;
+}
 
 function isUnsupportedRsvpColumnError(error) {
   const haystack = [error?.message, error?.details, error?.hint]
@@ -212,9 +269,20 @@ export default async function handler(req, res) {
   }
 
   try {
+    const submissionEvent = await findSubmissionEvent(supabase, payload.event_id);
+    if (isDemoPublicShowcaseEvent(submissionEvent)) {
+      return res.status(403).json({
+        code: DEMO_SUBMISSIONS_BLOCKED_CODE,
+        message: DEMO_SUBMISSIONS_BLOCKED_MESSAGE,
+        details: '',
+        hint: '',
+      });
+    }
+
     // Verificar limite de convidados para plano free
     if (table === RSVP_TABLE && payload.event_id) {
-      const limitError = await checkRsvpLimit(supabase, payload.event_id);
+      const limitCheckEventId = submissionEvent?.id || payload.event_id;
+      const limitError = await checkRsvpLimit(supabase, limitCheckEventId);
       if (limitError) return res.status(429).json(limitError);
     }
 

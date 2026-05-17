@@ -3,9 +3,7 @@ import { readFile } from 'fs/promises';
 import formidable from 'formidable';
 
 import {
-  buildDemoReadOnlyError,
   getUserPlan,
-  isDemoLockedEvent,
   requireOwnedEvent,
 } from '../_lib/dashboard-auth.js';
 
@@ -250,10 +248,6 @@ async function handleGalleryList(req, res, eventId) {
     return res.status(ownedEvent.status).json({ error: ownedEvent.error });
   }
 
-  if (isDemoLockedEvent(ownedEvent.event)) {
-    return res.status(403).json(buildDemoReadOnlyError());
-  }
-
   const storageRoot = getEventStorageRoot(ownedEvent.event, eventId);
   const storage = ownedEvent.supabase.storage.from('event-media');
   const entries = await loadGalleryEntries(storage, storageRoot);
@@ -275,10 +269,6 @@ async function handleGalleryDelete(req, res) {
   const ownedEvent = await resolveOwnedEventFromRequest(req, eventId);
   if (!ownedEvent.ok) {
     return res.status(ownedEvent.status).json({ error: ownedEvent.error });
-  }
-
-  if (isDemoLockedEvent(ownedEvent.event)) {
-    return res.status(403).json(buildDemoReadOnlyError());
   }
 
   const storageRoot = getEventStorageRoot(ownedEvent.event, eventId);
@@ -492,10 +482,6 @@ export default async function handler(req, res) {
 
     if (!ownedEvent.ok) {
       return res.status(ownedEvent.status).json({ error: ownedEvent.error });
-    }
-
-    if (isDemoLockedEvent(ownedEvent.event)) {
-      return res.status(403).json(buildDemoReadOnlyError());
     }
 
     // Verificar limite de galeria por plano
