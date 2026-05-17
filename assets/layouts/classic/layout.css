@@ -293,7 +293,7 @@
 .detail-card-gift {
     grid-column: auto;
     width: 100%;
-    justify-self: center;
+    justify-self: stretch;
 }
 
 .detail-icon {
@@ -1587,7 +1587,7 @@
     }
 
     .detail-card-gift {
-        max-width: calc((100% - var(--details-grid-gap)) / 2);
+        max-width: none;
     }
 
     .detail-card-link:hover {
