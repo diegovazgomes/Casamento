@@ -1,6 +1,6 @@
 # Checklist de Segurança — Convite de Casamento
 
-> Auditoria realizada em 2026-05-18. Cobre frontend estático, Vercel Functions, Supabase e gestão de secrets.
+> Auditoria realizada em 2026-05-18. Cobre frontend estático, Vercel Functions, Supabase e gestão do secrets.
 > Verificações C1, RLS e Storage executadas em 2026-05-18 — resultados inline em cada item.
 
 > **Isolamento de ambientes confirmado em 2026-05-18:** dev (`zunizibunrsjizgsfdlr.supabase.co`) e produção (`lrlmjalkbgbzzsbgdfax.supabase.co`) são projetos completamente separados — Supabase, Vercel, GitHub e emails distintos, todas as chaves independentes. O ambiente dev não representa risco para dados de produção.
