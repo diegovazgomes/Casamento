@@ -28,7 +28,7 @@ O arquivo `.env` contém um GitHub Personal Access Token real (`github_pat_...`)
 
 **Impacto:** Quem tiver acesso à máquina local ou a um backup/clone que inclua o arquivo pode usar o token para autenticar como o dono da conta GitHub, acessar ou modificar repositórios privados, disparar Actions e comprometer o pipeline de deploy.
 
-#### Resultado da verificação executada em 2026-05-18
+#### Resultado da verificação executada em 2026-05-18.
 
 | Verificação | Comando | Resultado |
 |---|---|---|
