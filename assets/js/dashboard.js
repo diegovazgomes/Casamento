@@ -1844,6 +1844,8 @@ const editorState = {
   isDirty: false,
   catalogItems: [],
   faqItems: [],
+  hospedagemHotels: [],
+  hospedagemRestaurants: [],
   originalConfig: null,
   galleryImages: [],
   selectedGalleryNames: [],
@@ -2093,6 +2095,35 @@ function loadEditorTab() {
     : DEFAULT_FAQ_ITEMS.map(it => ({ ...it }));
   renderFaqItems();
 
+  // Hospedagem
+  const _hospedagemContent = config.pages?.hospedagem?.content ?? {};
+  setVal('edHospTag', _hospedagemContent.tag ?? 'Hospedagem');
+  setVal('edHospTitle', _hospedagemContent.title ?? 'Para quem vem de fora');
+  setVal('edHospIntro', _hospedagemContent.intro ?? 'Selecionamos algumas opções de hospedagem e restaurantes próximos para facilitar sua experiência no grande dia.');
+  setVal('edHospHotelsTitle', _hospedagemContent.hotelsTitle ?? 'Hotéis');
+  setVal('edHospRestaurantsTitle', _hospedagemContent.restaurantsTitle ?? 'Restaurantes');
+
+  editorState.hospedagemHotels = Array.isArray(_hospedagemContent.hotels)
+    ? _hospedagemContent.hotels.map((item) => ({
+      name: item?.name || '',
+      description: item?.description || '',
+      link: item?.link || '',
+      linkLabel: item?.linkLabel || '',
+    }))
+    : [];
+
+  editorState.hospedagemRestaurants = Array.isArray(_hospedagemContent.restaurants)
+    ? _hospedagemContent.restaurants.map((item) => ({
+      name: item?.name || '',
+      description: item?.description || '',
+      link: item?.link || '',
+      linkLabel: item?.linkLabel || '',
+    }))
+    : [];
+
+  renderHospedagemHotels();
+  renderHospedagemRestaurants();
+
   // Traje & Paletas
   const _trajeContent = config.pages?.traje?.content ?? {};
   const _dresscodeEl = document.getElementById('edDresscode');
@@ -2235,7 +2266,7 @@ function setChk(id, checked) {
 // ── Section footer helpers ───────────────────────────────────
 const SECTION_FOOTER_IDS = [
   'edSectionEvento', 'edSectionTema', 'edSectionWhatsApp', 'edSectionPresentes',
-  'edSectionMidia', 'edSectionHistoria', 'edSectionFaq', 'edSectionPages',
+  'edSectionMidia', 'edSectionHistoria', 'edSectionFaq', 'edSectionHospedagem', 'edSectionPages',
   'edSectionTraje',
 ];
 
@@ -2247,6 +2278,7 @@ const EDITOR_SECTION_IDS = [
   'edSectionMidia',
   'edSectionHistoria',
   'edSectionFaq',
+  'edSectionHospedagem',
   'edSectionPages',
 ];
 
@@ -3865,6 +3897,96 @@ function updateFaqItem(index, field, value) {
   }
 }
 
+// ── Hospedagem ───────────────────────────────────────────────
+
+function renderHospedagemList(containerId, items, type) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+
+  const removeFn = type === 'hotel' ? 'removeHotelItem' : 'removeRestaurantItem';
+  const updateFn = type === 'hotel' ? 'updateHotelItem' : 'updateRestaurantItem';
+
+  if (!items.length) {
+    const emptyLabel = type === 'hotel' ? 'hotel' : 'restaurante';
+    container.innerHTML = `<p class="field-hint" style="text-align:center;padding:12px 0">Nenhum ${emptyLabel} cadastrado ainda.</p>`;
+    return;
+  }
+
+  container.innerHTML = items.map((item, i) => `
+    <div class="faq-item-block">
+      <div class="faq-item-header">
+        <span class="faq-item-num">${type === 'hotel' ? 'Hotel' : 'Restaurante'} ${i + 1}</span>
+        <button type="button" class="btn-icon-sm" onclick="${removeFn}(${i})" aria-label="Remover item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+      <div class="field" style="margin-bottom:8px">
+        <label class="field-label">Nome</label>
+        <input type="text" class="field-input sm" value="${escapeHtml(item.name || '')}" placeholder="Nome" oninput="${updateFn}(${i},'name',this.value)">
+      </div>
+      <div class="field" style="margin-bottom:8px">
+        <label class="field-label">Descrição</label>
+        <textarea class="field-input sm" rows="2" placeholder="Descrição" oninput="${updateFn}(${i},'description',this.value)">${escapeHtml(item.description || '')}</textarea>
+      </div>
+      <div class="form-grid-2">
+        <div class="field">
+          <label class="field-label">Link</label>
+          <input type="url" class="field-input sm" value="${escapeHtml(item.link || '')}" placeholder="https://..." oninput="${updateFn}(${i},'link',this.value)">
+        </div>
+        <div class="field">
+          <label class="field-label">Texto do link</label>
+          <input type="text" class="field-input sm" value="${escapeHtml(item.linkLabel || '')}" placeholder="Ver no mapa" oninput="${updateFn}(${i},'linkLabel',this.value)">
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function renderHospedagemHotels() {
+  renderHospedagemList('edHospHotelsList', editorState.hospedagemHotels, 'hotel');
+}
+
+function renderHospedagemRestaurants() {
+  renderHospedagemList('edHospRestaurantsList', editorState.hospedagemRestaurants, 'restaurant');
+}
+
+function addHotelItem() {
+  editorState.hospedagemHotels.push({ name: '', description: '', link: '', linkLabel: '' });
+  renderHospedagemHotels();
+  markEditorDirty();
+}
+
+function removeHotelItem(index) {
+  editorState.hospedagemHotels.splice(index, 1);
+  renderHospedagemHotels();
+  markEditorDirty();
+}
+
+function updateHotelItem(index, field, value) {
+  if (!editorState.hospedagemHotels[index]) return;
+  editorState.hospedagemHotels[index][field] = value;
+  markEditorDirty();
+}
+
+function addRestaurantItem() {
+  editorState.hospedagemRestaurants.push({ name: '', description: '', link: '', linkLabel: '' });
+  renderHospedagemRestaurants();
+  markEditorDirty();
+}
+
+function removeRestaurantItem(index) {
+  editorState.hospedagemRestaurants.splice(index, 1);
+  renderHospedagemRestaurants();
+  markEditorDirty();
+}
+
+function updateRestaurantItem(index, field, value) {
+  if (!editorState.hospedagemRestaurants[index]) return;
+  editorState.hospedagemRestaurants[index][field] = value;
+  markEditorDirty();
+}
+
 // ── Traje & Paletas ───────────────────────────────────────────
 
 function setColorField(pickerId, hexId, hex) {
@@ -4146,6 +4268,31 @@ function collectEditorValues() {
   config.pages.faq.content.items = editorState.faqItems
     .filter(it => (it.question || '').trim())
     .map(it => ({ question: it.question.trim(), answer: it.answer.trim() }));
+
+  // Hospedagem
+  if (!config.pages.hospedagem) config.pages.hospedagem = {};
+  if (!config.pages.hospedagem.content) config.pages.hospedagem.content = {};
+  config.pages.hospedagem.content.tag = document.getElementById('edHospTag')?.value.trim() || '';
+  config.pages.hospedagem.content.title = document.getElementById('edHospTitle')?.value.trim() || '';
+  config.pages.hospedagem.content.intro = document.getElementById('edHospIntro')?.value.trim() || '';
+  config.pages.hospedagem.content.hotelsTitle = document.getElementById('edHospHotelsTitle')?.value.trim() || '';
+  config.pages.hospedagem.content.restaurantsTitle = document.getElementById('edHospRestaurantsTitle')?.value.trim() || '';
+  config.pages.hospedagem.content.hotels = editorState.hospedagemHotels
+    .filter((item) => (item.name || '').trim() || (item.description || '').trim() || (item.link || '').trim())
+    .map((item) => ({
+      name: (item.name || '').trim(),
+      description: (item.description || '').trim(),
+      link: (item.link || '').trim(),
+      linkLabel: (item.linkLabel || '').trim(),
+    }));
+  config.pages.hospedagem.content.restaurants = editorState.hospedagemRestaurants
+    .filter((item) => (item.name || '').trim() || (item.description || '').trim() || (item.link || '').trim())
+    .map((item) => ({
+      name: (item.name || '').trim(),
+      description: (item.description || '').trim(),
+      link: (item.link || '').trim(),
+      linkLabel: (item.linkLabel || '').trim(),
+    }));
 
   // Traje & Paletas
   if (!config.pages.traje) config.pages.traje = {};

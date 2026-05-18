@@ -3138,7 +3138,80 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
           </div>
         </div>
 
-        <!-- ── SEÇÃO 8: TRAJE & PALETAS ─────────────────── -->
+        <!-- ── SEÇÃO 8: HOSPEDAGEM ───────────────────────── -->
+        <div class="editor-section" id="edSectionHospedagem">
+          <button class="editor-section-header" type="button" onclick="toggleEditorSection('edSectionHospedagem')">
+            <div>
+              <div class="editor-section-tag">Conteúdo</div>
+              <div class="editor-section-title">Hospedagem</div>
+            </div>
+            <svg class="editor-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="editor-section-body">
+            <p style="font-size:11px;color:var(--text-dim);margin-bottom:16px;letter-spacing:0.03em;line-height:1.7">
+              Configure os textos da página de hospedagem e adicione opções de hotéis e restaurantes para os convidados.
+            </p>
+
+            <div class="form-grid-2">
+              <div class="field">
+                <label class="field-label" for="edHospTag">Tag da seção</label>
+                <input type="text" class="field-input sm" id="edHospTag" placeholder="Hospedagem" oninput="markEditorDirty()">
+              </div>
+              <div class="field">
+                <label class="field-label" for="edHospTitle">Título principal</label>
+                <input type="text" class="field-input sm" id="edHospTitle" placeholder="Para quem vem de fora" oninput="markEditorDirty()">
+              </div>
+            </div>
+
+            <div class="field" style="margin-bottom:16px">
+              <label class="field-label" for="edHospIntro">Introdução</label>
+              <textarea class="field-input sm" id="edHospIntro" rows="3" placeholder="Texto de introdução da página de hospedagem..." oninput="markEditorDirty()"></textarea>
+            </div>
+
+            <div class="form-grid-2" style="margin-bottom:16px">
+              <div class="field">
+                <label class="field-label" for="edHospHotelsTitle">Título da seção de hotéis</label>
+                <input type="text" class="field-input sm" id="edHospHotelsTitle" placeholder="Hotéis" oninput="markEditorDirty()">
+              </div>
+              <div class="field">
+                <label class="field-label" for="edHospRestaurantsTitle">Título da seção de restaurantes</label>
+                <input type="text" class="field-input sm" id="edHospRestaurantsTitle" placeholder="Restaurantes" oninput="markEditorDirty()">
+              </div>
+            </div>
+
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+              <span class="editor-sub-label" style="margin-bottom:0">Hotéis</span>
+              <button type="button" class="btn btn-subtle" style="padding:6px 14px;font-size:10px" onclick="addHotelItem()">
+                + Adicionar hotel
+              </button>
+            </div>
+            <div id="edHospHotelsList"></div>
+
+            <div class="editor-rule"></div>
+
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+              <span class="editor-sub-label" style="margin-bottom:0">Restaurantes</span>
+              <button type="button" class="btn btn-subtle" style="padding:6px 14px;font-size:10px" onclick="addRestaurantItem()">
+                + Adicionar restaurante
+              </button>
+            </div>
+            <div id="edHospRestaurantsList"></div>
+
+            <div class="editor-section-footer" id="footer-edSectionHospedagem">
+              <span class="footer-warning-msg">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                Alterações não salvas
+              </span>
+              <span class="footer-saved-msg">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                Configurações salvas ✓
+              </span>
+              <button type="button" class="btn btn-primary footer-save-btn" onclick="saveEditorConfig()">Salvar alterações</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── SEÇÃO 9: TRAJE & PALETAS ─────────────────── -->
         <div class="editor-section" id="edSectionTraje">
           <button class="editor-section-header" type="button" onclick="toggleEditorSection('edSectionTraje')">
             <div>
@@ -3258,7 +3331,7 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
           </div>
         </div>
 
-        <!-- ── SEÇÃO 9: PÁGINAS EXTRAS ────────────────── -->
+        <!-- ── SEÇÃO 10: PÁGINAS EXTRAS ───────────────── -->
         <div class="editor-section" id="edSectionPages">
           <button class="editor-section-header" type="button" onclick="toggleEditorSection('edSectionPages')">
             <div>
