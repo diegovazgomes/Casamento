@@ -1872,7 +1872,7 @@ const DEFAULT_FAQ_ITEMS = [
 const PAGE_LABELS = {
   historia:   'Nossa História',
   faq:        'Perguntas Frequentes',
-  hospedagem: 'Hospedagem',
+  hospedagem: 'Para quem vem de fora',
   mensagem:   'Mensagem ao Casal',
   musica:     'Sugestão de Música',
   presente:   'Lista de Presentes',
@@ -2097,7 +2097,7 @@ function loadEditorTab() {
 
   // Hospedagem
   const _hospedagemContent = config.pages?.hospedagem?.content ?? {};
-  setVal('edHospTag', _hospedagemContent.tag ?? 'Hospedagem');
+  setVal('edHospTag', _hospedagemContent.tag ?? 'Para quem vem de fora');
   setVal('edHospTitle', _hospedagemContent.title ?? 'Para quem vem de fora');
   setVal('edHospIntro', _hospedagemContent.intro ?? 'Selecionamos algumas opções de hospedagem e restaurantes próximos para facilitar sua experiência no grande dia.');
   setVal('edHospHotelsTitle', _hospedagemContent.hotelsTitle ?? 'Hotéis');
@@ -2108,7 +2108,6 @@ function loadEditorTab() {
       name: item?.name || '',
       description: item?.description || '',
       link: item?.link || '',
-      linkLabel: item?.linkLabel || '',
     }))
     : [];
 
@@ -2117,7 +2116,6 @@ function loadEditorTab() {
       name: item?.name || '',
       description: item?.description || '',
       link: item?.link || '',
-      linkLabel: item?.linkLabel || '',
     }))
     : [];
 
@@ -3935,10 +3933,6 @@ function renderHospedagemList(containerId, items, type) {
           <label class="field-label">Link</label>
           <input type="url" class="field-input sm" value="${escapeHtml(item.link || '')}" placeholder="https://..." oninput="${updateFn}(${i},'link',this.value)">
         </div>
-        <div class="field">
-          <label class="field-label">Texto do link</label>
-          <input type="text" class="field-input sm" value="${escapeHtml(item.linkLabel || '')}" placeholder="Ver no mapa" oninput="${updateFn}(${i},'linkLabel',this.value)">
-        </div>
       </div>
     </div>`).join('');
 }
@@ -3952,7 +3946,7 @@ function renderHospedagemRestaurants() {
 }
 
 function addHotelItem() {
-  editorState.hospedagemHotels.push({ name: '', description: '', link: '', linkLabel: '' });
+  editorState.hospedagemHotels.push({ name: '', description: '', link: '' });
   renderHospedagemHotels();
   markEditorDirty();
 }
@@ -3970,7 +3964,7 @@ function updateHotelItem(index, field, value) {
 }
 
 function addRestaurantItem() {
-  editorState.hospedagemRestaurants.push({ name: '', description: '', link: '', linkLabel: '' });
+  editorState.hospedagemRestaurants.push({ name: '', description: '', link: '' });
   renderHospedagemRestaurants();
   markEditorDirty();
 }
@@ -4283,7 +4277,6 @@ function collectEditorValues() {
       name: (item.name || '').trim(),
       description: (item.description || '').trim(),
       link: (item.link || '').trim(),
-      linkLabel: (item.linkLabel || '').trim(),
     }));
   config.pages.hospedagem.content.restaurants = editorState.hospedagemRestaurants
     .filter((item) => (item.name || '').trim() || (item.description || '').trim() || (item.link || '').trim())
@@ -4291,7 +4284,6 @@ function collectEditorValues() {
       name: (item.name || '').trim(),
       description: (item.description || '').trim(),
       link: (item.link || '').trim(),
-      linkLabel: (item.linkLabel || '').trim(),
     }));
 
   // Traje & Paletas

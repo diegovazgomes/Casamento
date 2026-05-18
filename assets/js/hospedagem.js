@@ -10,13 +10,28 @@ function isSafeUrl(url) {
     }
 }
 
-function renderCards(containerId, items) {
+function normalizeExternalUrl(url) {
+    const raw = String(url || '').trim();
+    if (!raw) return '';
+
+    if (isSafeUrl(raw)) {
+        return raw;
+    }
+
+    const prefixed = `https://${raw.replace(/^\/+/, '')}`;
+    return isSafeUrl(prefixed) ? prefixed : '';
+}
+
+function renderCards(containerId, items, type) {
     const container = document.getElementById(containerId);
     if (!container || !Array.isArray(items)) return;
 
+    const defaultLinkLabel = type === 'hotels' ? 'Conferir no mapa' : 'Ver site';
+
     container.innerHTML = items.map((item) => {
-        const linkHtml = item.link && isSafeUrl(item.link)
-            ? `<a class="hospedagem-card-link" href="${escapeHtml(item.link)}" target="_blank" rel="noopener noreferrer">${escapeHtml(item.linkLabel ?? 'Ver mais')}</a>`
+        const normalizedLink = normalizeExternalUrl(item.link);
+        const linkHtml = normalizedLink
+            ? `<a class="hospedagem-card-link" href="${escapeHtml(normalizedLink)}" target="_blank" rel="noopener noreferrer">${escapeHtml(defaultLinkLabel)}</a>`
             : '';
 
         return `
@@ -35,7 +50,7 @@ initExtraPage({
     onReady: (content) => {
         setText('hospedagemHotelsTitle', content.hotelsTitle);
         setText('hospedagemRestaurantsTitle', content.restaurantsTitle);
-        renderCards('hospedagemHotels', content.hotels);
-        renderCards('hospedagemRestaurants', content.restaurants);
+        renderCards('hospedagemHotels', content.hotels, 'hotels');
+        renderCards('hospedagemRestaurants', content.restaurants, 'restaurants');
     },
 });
