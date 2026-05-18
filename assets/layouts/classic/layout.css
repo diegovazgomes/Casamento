@@ -1227,9 +1227,10 @@
 }
 
 /* Remove a margem-top nativa do .divider entre seções traje,
-   pois as seções já têm padding-block simétrico de 40px. */
+   pois as seções já têm padding-block simétrico de 40px.
+   Usa shorthand físico para preservar o centering "auto" inline do .divider base. */
 .traje-section + .divider {
-    margin-block: 0;
+    margin: 0 auto;
 }
 
 .traje-group-title {
