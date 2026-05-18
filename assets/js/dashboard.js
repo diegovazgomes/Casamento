@@ -22,6 +22,7 @@ const state = {
 const LEGACY_DASHBOARD_TOKEN_STORAGE_KEY = 'dashboardToken';
 const DASHBOARD_SUPABASE_STORAGE_KEY = 'dashboard-supabase-auth';
 const DASHBOARD_ACCESS_TOKEN_STORAGE_KEY = 'dashboard-access-token';
+const DASHBOARD_PAYMENT_SYNC_PENDING_KEY = 'dashboard-payment-sync-pending';
 
 let dashboardSupabaseClientPromise = null;
 let loginLoadingHideTimer = null;
@@ -177,6 +178,19 @@ async function initializeDashboard() {
         await hydrateDashboardEventContext();
         await loadAllData();
         showDashboard();
+
+        // Mantem o badge de plano sincronizado ao retornar do checkout.
+        fetchUserProfile({ forceRefresh: true }).then((profile) => {
+          if (profile?.couple_name) {
+            const sidebarCouple = document.getElementById('sidebarCouple');
+            if (sidebarCouple) sidebarCouple.textContent = profile.couple_name;
+          }
+          renderPlanBadge(profile);
+
+          if (sessionStorage.getItem(DASHBOARD_PAYMENT_SYNC_PENDING_KEY)) {
+            syncPlanStatusAfterPayment().catch(() => {});
+          }
+        }).catch(() => {});
       } catch (error) {
         console.error('[dashboard] Falha ao hidratar evento com token salvo.', error);
         await clearDashboardSession();
@@ -386,12 +400,16 @@ async function handleAuth(event) {
     }, 300);
 
     // Exibir nome do casal e plano vindos do profile (não-bloqueante)
-    fetchUserProfile().then(profile => {
+    fetchUserProfile({ forceRefresh: true }).then(profile => {
       if (profile?.couple_name) {
         const sidebarCouple = document.getElementById('sidebarCouple');
         if (sidebarCouple) sidebarCouple.textContent = profile.couple_name;
       }
       renderPlanBadge(profile);
+
+      if (sessionStorage.getItem(DASHBOARD_PAYMENT_SYNC_PENDING_KEY)) {
+        syncPlanStatusAfterPayment().catch(() => {});
+      }
     }).catch(() => {});
 
     notifyDashboardReady();
@@ -623,8 +641,8 @@ async function clearDashboardSession() {
   }
 }
 
-async function fetchUserProfile() {
-  if (state.userProfile) {
+async function fetchUserProfile({ forceRefresh = false } = {}) {
+  if (!forceRefresh && state.userProfile) {
     return state.userProfile;
   }
 
@@ -632,8 +650,9 @@ async function fetchUserProfile() {
   if (!token) return null;
 
   try {
-    const response = await fetch('/api/dashboard/profile', {
+    const response = await fetch(`/api/dashboard/profile?ts=${Date.now()}`, {
       headers: { 'Authorization': `Bearer ${token}` },
+      cache: 'no-store',
     });
     if (!response.ok) return null;
     const profile = await response.json();
@@ -666,6 +685,37 @@ function renderPlanBadge(profile) {
   const drawerBtnUp = document.getElementById('drawerBtnUpgrade');
   if (drawerName) drawerName.textContent = planLabel;
   if (drawerBtnUp) drawerBtnUp.hidden = isPremium;
+}
+
+function delay(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function syncPlanStatusAfterPayment({ attempts = 12, intervalMs = 1500 } = {}) {
+  for (let index = 0; index < attempts; index += 1) {
+    if (!state.authToken) return false;
+
+    state.userProfile = null;
+    const profile = await fetchUserProfile({ forceRefresh: true });
+    renderPlanBadge(profile);
+
+    if (isPremiumPlan(profile?.plan)) {
+      sessionStorage.removeItem(DASHBOARD_PAYMENT_SYNC_PENDING_KEY);
+      return true;
+    }
+
+    await delay(intervalMs);
+  }
+
+  return false;
+}
+
+function queuePlanSyncAfterPayment() {
+  sessionStorage.setItem(DASHBOARD_PAYMENT_SYNC_PENDING_KEY, '1');
+
+  if (state.authToken) {
+    syncPlanStatusAfterPayment().catch(() => {});
+  }
 }
 
 async function handleUpgrade() {
@@ -742,9 +792,8 @@ function maybeShowPaymentBanner() {
     main.prepend(banner);
     setTimeout(() => banner.remove(), 8000);
 
-    // Recarrega o perfil para refletir o novo plano
-    state.userProfile = null;
-    fetchUserProfile().then(renderPlanBadge).catch(() => {});
+    // O webhook pode demorar alguns segundos; agenda sincronização até premium.
+    queuePlanSyncAfterPayment();
     return;
   }
 
