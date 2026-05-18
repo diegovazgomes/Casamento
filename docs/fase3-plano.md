@@ -75,7 +75,16 @@ Tela de entrada free:
 - [x] `api/dashboard/event.js` remove `media.tracks` no PATCH quando `plan !== 'premium'`
 - [ ] Dashboard bloqueia seção de áudio para free com CTA de upgrade ← **próximo passo**
 
-### 9. Integração de pagamento (Stripe)
+### 9. Correções de UI/UX do dashboard e convite
+- [x] Layout "modern" oculto do `<select>` de layout no dashboard (`dashboard.html`) — estava quebrado e visível para o usuário
+- [x] Layout "modern" removido da renderização de cards no editor (`editor.js` → `layoutSelectorHtml()`)
+- [x] Cards de preview de tema no wizard passaram a exibir borda colorida semitransparente (cor primária do tema) em todos os estados — temas claros deixavam de aparecer como caixas brancas vazias no desktop
+- [x] Laterais da hero (letterboxing no desktop) corrigidas para usar `var(--color-bg, #0e0d0b)` em vez de preto fixo (`layout.css`) — agora refletem o fundo do tema ativo
+- [x] Overlay escuro da hero no desktop (`hero--full-photo`) corrigido de gradiente hardcoded (20%→40%→88%) para `var(--hero-overlay-gradient)` (10%→18%→78%→100%) — alinhado com o comportamento mobile, removendo a máscara excessivamente escura sobre a foto do casal
+- [x] `<option>` dos `<select>` do dashboard passaram a herdar o fundo escuro do tema (`background: var(--surface); color: var(--text)`) — dropdown de seleção de tema não exibe mais fundo branco
+- [x] Bug de auto-scroll corrigido em `script.js` (`enterInvitation`): `navigateWithinInvitation()` movido para antes dos `await` de áudio, eliminando o retorno involuntário ao topo da página durante a primeira rolagem
+
+### 10. Integração de pagamento (Stripe)
 - [x] `api/payments.js` existe com `?action=checkout` e `?action=webhook`
 - [x] Checkout cria sessão Stripe com `mode: 'payment'`
 - [x] Webhook atualiza `profiles.plan = 'premium'` e `expires_at = now() + 1 ano`
@@ -85,7 +94,7 @@ Tela de entrada free:
 - [x] Dashboard: `maybeShowPaymentBanner()` exibe banner após `?payment=success`
 - [ ] Stripe configurado em produção (produto + price + webhook + env vars no Vercel) ← **pendente MEI**
 
-### 10. Testes end-to-end
+### 11. Testes end-to-end
 - [ ] Fluxo completo free: cadastro → convite → marca d'água → bloqueios ativos
 - [ ] Fluxo completo premium: pagamento → plano atualizado → limites removidos → tela de entrada premium
 - [ ] Reenvio de webhook não duplica atualização de plano

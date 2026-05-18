@@ -8,7 +8,6 @@
  * Retorna false quando não consegue persistir.
  */
 
-let _config = null;
 let _lastSubmissionError = null;
 
 const SERVER_SUBMISSIONS_ENDPOINT = '/api/submissions';
@@ -31,66 +30,24 @@ function setLastSubmissionError(error) {
     };
 }
 
-async function getConfig() {
-    if (_config) return _config;
-
-    try {
-        const res = await fetch('/api/event-config?mode=client-config');
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
-        const data = await res.json();
-        _config = {
-            supabaseUrl: data?.supabaseUrl || null,
-            supabaseAnonKey: data?.supabaseAnonKey || null,
-        };
-
-        if (!_config.supabaseUrl || !_config.supabaseAnonKey) {
-            console.warn('[rsvp-persistence] /api/event-config?mode=client-config respondeu sem SUPABASE_URL ou SUPABASE_ANON_KEY. Verifique as variáveis de ambiente no deploy.');
-        }
-    } catch (error) {
-        console.warn(`[rsvp-persistence] Não foi possível carregar /api/event-config?mode=client-config: ${error.message}`);
-        _config = { supabaseUrl: null, supabaseAnonKey: null };
-    }
-
-    return _config;
-}
-
-function shouldFallbackToLegacySupabase(status) {
-    return status === 401 || status === 403 || status === 404 || status === 405 || status === 500 || status === 503;
-}
-
 async function postToServer(table, payload) {
     try {
         const response = await fetch(SERVER_SUBMISSIONS_ENDPOINT, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ table, payload }),
         });
 
         if (!response.ok) {
             const errorText = await response.text();
-            const parsedError = parseSupabaseError(errorText);
-
-            return {
-                ok: false,
-                error: parsedError,
-                shouldFallback: shouldFallbackToLegacySupabase(response.status),
-            };
+            return { ok: false, error: parseSupabaseError(errorText) };
         }
 
-        return { ok: true, error: null, shouldFallback: false };
+        return { ok: true, error: null };
     } catch (error) {
         return {
             ok: false,
-            error: {
-                code: null,
-                message: error.message,
-                details: '',
-                hint: '',
-            },
-            shouldFallback: true,
+            error: { code: null, message: error.message, details: '', hint: '' },
         };
     }
 }
@@ -269,79 +226,19 @@ async function postToSupabase(table, payload) {
 
 async function postToSupabaseDetailed(table, payload) {
     const serverAttempt = await postToServer(table, payload);
-    if (serverAttempt.ok) {
-        return { ok: true, error: null };
-    }
 
-    if (!serverAttempt.shouldFallback) {
+    if (!serverAttempt.ok) {
         console.warn(
             `[rsvp-persistence] Falha ao salvar via ${SERVER_SUBMISSIONS_ENDPOINT}.`,
             {
                 code: serverAttempt.error?.code,
                 message: serverAttempt.error?.message,
-                details: serverAttempt.error?.details,
-                hint: serverAttempt.error?.hint,
                 table,
                 type: payload?.type,
                 source: payload?.source,
             }
         );
-
-        return { ok: false, error: serverAttempt.error };
     }
 
-    try {
-        const { supabaseUrl, supabaseAnonKey } = await getConfig();
-
-        if (!supabaseUrl || !supabaseAnonKey) {
-            console.warn('[rsvp-persistence] Supabase não configurado. Pulando persistência.');
-            return { ok: false, error: { code: null, message: 'Supabase não configurado.', details: '', hint: '' } };
-        }
-
-        const response = await fetch(`${supabaseUrl}/rest/v1/${table}`, {
-            method:  'POST',
-            headers: {
-                'Content-Type':  'application/json',
-                'apikey':        supabaseAnonKey,
-                'Authorization': `Bearer ${supabaseAnonKey}`,
-                'Prefer':        'return=minimal',
-            },
-            body: JSON.stringify(payload),
-        });
-
-        if (!response.ok) {
-            const errorText = await response.text();
-            const parsedError = parseSupabaseError(errorText);
-
-            console.warn(
-                `[rsvp-persistence] Falha ao salvar em ${table}.`,
-                {
-                    status: response.status,
-                    code: parsedError.code,
-                    message: parsedError.message,
-                    details: parsedError.details,
-                    hint: parsedError.hint,
-                    type: payload?.type,
-                    source: payload?.source,
-                }
-            );
-
-            return { ok: false, error: parsedError };
-        }
-
-        console.log(`[rsvp-persistence] Registro salvo em ${table}.`);
-        return { ok: true, error: null };
-
-    } catch (error) {
-        console.warn('[rsvp-persistence] Erro inesperado:', error.message);
-        return {
-            ok: false,
-            error: {
-                code: null,
-                message: error.message,
-                details: '',
-                hint: '',
-            }
-        };
-    }
+    return serverAttempt;
 }
