@@ -3155,16 +3155,22 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
             <!-- Tipo de traje -->
             <div class="field" style="margin-bottom:16px">
               <label class="field-label" for="edDresscode">Tipo de traje</label>
-              <select class="field-input sm" id="edDresscode" onchange="markEditorDirty()">
-                <option value="">Selecione...</option>
-                <option value="Black tie">Black tie</option>
-                <option value="Black tie opcional">Black tie opcional</option>
-                <option value="Passeio completo">Passeio completo</option>
-                <option value="Esporte fino elegante">Esporte fino elegante</option>
-                <option value="Esporte fino">Esporte fino</option>
-                <option value="Casual elegante">Casual elegante</option>
-                <option value="Casual">Casual</option>
-              </select>
+              <input type="text"
+                     class="field-input sm"
+                     id="edDresscode"
+                     list="dresscodeOptions"
+                     placeholder="Ex: Esporte fino elegante"
+                     autocomplete="off"
+                     oninput="markEditorDirty()">
+              <datalist id="dresscodeOptions">
+                <option value="Black tie">
+                <option value="Black tie opcional">
+                <option value="Passeio completo">
+                <option value="Esporte fino elegante">
+                <option value="Esporte fino">
+                <option value="Casual elegante">
+                <option value="Casual">
+              </datalist>
             </div>
 
             <!-- Paleta das madrinhas -->
@@ -3201,7 +3207,8 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
                        oninput="syncColorFromPicker('edBrideColorHex', this.value); markEditorDirty()">
                 <input type="text" class="field-input sm" id="edBrideColorHex"
                        placeholder="#ffffff" maxlength="7" style="width:90px"
-                       oninput="syncColorToPicker('edBrideColorPicker', this.value); markEditorDirty()">
+                       oninput="syncColorToPicker('edBrideColorPicker', this.value); markEditorDirty()"
+                       onkeydown="if(event.key==='Enter'){syncColorToPicker('edBrideColorPicker',this.value);markEditorDirty()}">
                 <input type="text" class="field-input sm" id="edBrideColorName"
                        placeholder="Nome da cor (opcional)"
                        oninput="markEditorDirty()">
@@ -3216,7 +3223,8 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
                        oninput="syncColorFromPicker('edGroomColorHex', this.value); markEditorDirty()">
                 <input type="text" class="field-input sm" id="edGroomColorHex"
                        placeholder="#ffffff" maxlength="7" style="width:90px"
-                       oninput="syncColorToPicker('edGroomColorPicker', this.value); markEditorDirty()">
+                       oninput="syncColorToPicker('edGroomColorPicker', this.value); markEditorDirty()"
+                       onkeydown="if(event.key==='Enter'){syncColorToPicker('edGroomColorPicker',this.value);markEditorDirty()}">
                 <input type="text" class="field-input sm" id="edGroomColorName"
                        placeholder="Nome da cor (opcional)"
                        oninput="markEditorDirty()">

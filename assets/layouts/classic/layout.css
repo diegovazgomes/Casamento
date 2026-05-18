@@ -1248,8 +1248,9 @@
 .traje-palette {
     display: flex;
     flex-wrap: wrap;
-    gap: 20px;
+    gap: 24px 28px;
     justify-content: center;
+    width: 100%;
 }
 
 .traje-swatch {
@@ -1257,6 +1258,7 @@
     flex-direction: column;
     align-items: center;
     gap: 10px;
+    min-width: 64px;
 }
 
 .traje-swatch-circle {
@@ -1303,14 +1305,56 @@
     font-family: var(--font-primary);
 }
 
-.traje-note-text {
-    color: var(--color-text-soft);
-    font-size: var(--section-body-size, 13px);
-    line-height: 1.85;
+.traje-note-eyebrow {
+    display: block;
     text-align: center;
-    max-width: 520px;
-    margin-inline: auto;
+    font-size: 9px;
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    color: var(--gold);
     font-family: var(--font-primary);
+    margin-bottom: 24px;
+}
+
+.traje-note-card {
+    position: relative;
+    max-width: 560px;
+    margin-inline: auto;
+    padding: 40px 48px;
+    border-top: 1px solid var(--color-border);
+    border-bottom: 1px solid var(--color-border);
+    text-align: center;
+}
+
+.traje-note-quote-mark {
+    position: absolute;
+    font-family: var(--font-serif);
+    font-size: 80px;
+    line-height: 1;
+    color: var(--gold);
+    opacity: 0.2;
+    pointer-events: none;
+    user-select: none;
+}
+
+.traje-note-quote-mark:not(.traje-note-quote-mark--close) {
+    top: -16px;
+    left: 8px;
+}
+
+.traje-note-quote-mark--close {
+    bottom: -48px;
+    right: 8px;
+}
+
+.traje-note-body {
+    font-family: var(--font-serif);
+    font-size: clamp(15px, 2.8vw, 20px);
+    font-weight: 300;
+    font-style: italic;
+    line-height: 1.9;
+    color: var(--cream);
+    margin: 0;
 }
 
 /* ─── Galeria de Fotos ───────────────────────────────────────────────────── */
@@ -1490,6 +1534,14 @@
     .traje-solo-circle {
         width: 72px;
         height: 72px;
+    }
+
+    .traje-note-card {
+        padding: 32px 28px;
+    }
+
+    .traje-note-quote-mark {
+        font-size: 60px;
     }
 
     .gift-main {

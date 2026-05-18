@@ -2236,6 +2236,7 @@ function setChk(id, checked) {
 const SECTION_FOOTER_IDS = [
   'edSectionEvento', 'edSectionTema', 'edSectionWhatsApp', 'edSectionPresentes',
   'edSectionMidia', 'edSectionHistoria', 'edSectionFaq', 'edSectionPages',
+  'edSectionTraje',
 ];
 
 const EDITOR_SECTION_IDS = [
@@ -3898,10 +3899,12 @@ function renderColorPaletteList(containerId, items, updateFn, removeFn, addBtnId
       <input type="color"
              value="${(c.hex && /^#[0-9a-fA-F]{3,6}$/.test(c.hex)) ? c.hex : '#c9a84c'}"
              style="width:40px;height:36px;border:1px solid var(--border);border-radius:4px;padding:2px;cursor:pointer;background:none;flex-shrink:0"
-             oninput="${updateFn}(${i},'hex',this.value)">
+             oninput="${updateFn}(${i},'hex',this.value); syncDynColorPicker(this.nextElementSibling, this.value)">
       <input type="text" class="field-input sm" value="${c.hex || ''}"
              placeholder="#c9a84c" maxlength="7" style="width:90px;flex-shrink:0"
-             oninput="${updateFn}(${i},'hex',this.value)">
+             oninput="${updateFn}(${i},'hex',this.value); syncDynColorPicker(this.previousElementSibling, this.value)"
+             onkeydown="if(event.key==='Enter'){syncDynColorPicker(this.previousElementSibling,this.value);${updateFn}(${i},'hex',this.value)}"
+      >
       <input type="text" class="field-input sm" value="${c.name || ''}"
              placeholder="Nome (opcional)"
              oninput="${updateFn}(${i},'name',this.value)">
@@ -3911,6 +3914,16 @@ function renderColorPaletteList(containerId, items, updateFn, removeFn, addBtnId
   `).join('');
   const addBtn = document.getElementById(addBtnId);
   if (addBtn) addBtn.disabled = items.length >= max;
+}
+
+function syncDynColorPicker(pickerOrHexInput, value) {
+  const el = pickerOrHexInput instanceof Element ? pickerOrHexInput : null;
+  if (!el) return;
+  if (el.type === 'color' && /^#[0-9a-fA-F]{6}$/.test(value)) {
+    el.value = value;
+  } else if (el.type === 'text') {
+    el.value = value;
+  }
 }
 
 function renderBridesmaidsPalette() {
