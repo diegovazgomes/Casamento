@@ -583,6 +583,7 @@ img {
     flex: 1;
     height: 1px;
     background: linear-gradient(to right, transparent, var(--gold), transparent);
+    transform: translateZ(0);
 }
 
 .divider-diamond {
