@@ -959,11 +959,11 @@ class InvitationExperience {
 
     getAudioTracks() {
         const mainTrack = this.config.media?.tracks?.main ?? DEFAULT_SITE_CONTENT.media?.tracks?.main ?? {};
-        const unifiedTrack = { ...mainTrack };
+        const giftTrack = this.config.media?.tracks?.gift ?? DEFAULT_SITE_CONTENT.media?.tracks?.gift ?? mainTrack;
 
         return {
-            main: unifiedTrack,
-            gift: { ...unifiedTrack }
+            main: { ...mainTrack },
+            gift: { ...giftTrack }
         };
     }
 

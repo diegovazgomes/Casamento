@@ -1,7 +1,7 @@
 # Checklist de Segurança — Convite de Casamento
 
 > Auditoria realizada em 2026-05-18. Cobre frontend estático, Vercel Functions, Supabase e gestão de secrets.
-> Verificações C1 e RLS executadas em 2026-05-18 — resultados inline em cada item.
+> Verificações C1, RLS e Storage executadas em 2026-05-18 — resultados inline em cada item.
 
 > **Isolamento de ambientes confirmado em 2026-05-18:** dev (`zunizibunrsjizgsfdlr.supabase.co`) e produção (`lrlmjalkbgbzzsbgdfax.supabase.co`) são projetos completamente separados — Supabase, Vercel, GitHub e emails distintos, todas as chaves independentes. O ambiente dev não representa risco para dados de produção.
 
@@ -11,8 +11,8 @@
 
 | Severidade | Qtd | Status geral |
 |------------|-----|--------------|
-| 🔴 Crítico | 0   | ✅ Todos resolvidos |
-| 🟠 Alto    | 0   | ✅ Todos corrigidos — A1 aguarda env var no Vercel |
+| 🔴 Crítico | 1   | ✅ C3 (Storage) corrigido em 2026-05-18 |
+| 🟠 Alto    | 0   | ✅ Todos corrigidos — A1 env var adicionada no Vercel |
 | 🟡 Médio   | 0   | ✅ Todos tratados — M1 é limitação do plano gratuito, risco residual aceito |
 | 🔵 Baixo   | 1   | B1/B2/B4/B5 corrigidos — B3 aguarda ação no Supabase (LGPD) |
 
@@ -74,19 +74,52 @@ O fallback que chamava a REST API do Supabase diretamente do browser foi removid
 
 ---
 
+### C3 — ~~Bucket `event-media` no Storage sem restrição de dono~~ ✅ CORRIGIDO
+
+**Local:** Supabase Storage → Bucket `event-media` → Storage Policies (produção) — **corrigido em 2026-05-18**
+
+As 4 policies do bucket em produção usavam apenas `(bucket_id = 'event-media'::text)` como condição — sem qualquer verificação de autenticação ou de dono do arquivo. Qualquer pessoa (inclusive usuários anônimos) podia:
+
+| Operação | Risco |
+|---|---|
+| SELECT (leitura/listagem) | Listar **todos** os arquivos de **todos** os eventos do bucket |
+| INSERT (upload) | Fazer upload de arquivos para qualquer caminho no bucket |
+| UPDATE | Sobrescrever arquivos de outros usuários |
+| DELETE | Deletar arquivos de outros usuários |
+
+**Por que o ambiente dev estava correto:** o projeto dev usava a policy com verificação de dono via `split_part(objects.name, '/'::text, 1)` comparando com o `user_id` do evento autenticado — o padrão correto.
+
+**Correção aplicada em 2026-05-18:** todas as 4 policies de produção foram atualizadas para o mesmo padrão do dev, que valida ownership via:
+
+```sql
+EXISTS (
+  SELECT 1 FROM events
+  WHERE events.user_id = auth.uid()
+    AND split_part(objects.name, '/'::text, 1) = events.user_id::text
+)
+```
+
+Isso garante que apenas o dono autenticado do evento pode ler, fazer upload, atualizar ou deletar seus próprios arquivos.
+
+**Verificação pós-correção:**
+- [x] Policy SELECT — restrita ao dono autenticado
+- [x] Policy INSERT — restrita ao dono autenticado
+- [x] Policy UPDATE — restrita ao dono autenticado
+- [x] Policy DELETE — restrita ao dono autenticado
+
+---
+
 ## 🟠 ALTO — Corrigir esta semana
 
-### A1 — ~~CORS `*` em endpoints autenticados do dashboard~~ ✅ CORRIGIDO (código) — ⏳ aguarda env var no Vercel
+### A1 — ~~CORS `*` em endpoints autenticados do dashboard~~ ✅ CORRIGIDO
 
 **Arquivos corrigidos em 2026-05-18:** `api/dashboard/confirmations.js`, `api/dashboard/reminders.js`, `api/dashboard/guest-groups.js`, `api/dashboard/media.js`, `api/dashboard/event.js`, `api/dashboard/submissions.js`
 
 Todos os endpoints do dashboard trocaram `'*'` por `process.env.ALLOWED_ORIGIN || 'https://devazi.app'`. O endpoint público `api/submissions.js` manteve `'*'` intencionalmente.
 
-**Ação pendente — adicionar `ALLOWED_ORIGIN` nos dois projetos Vercel:**
-- [ ] Projeto **prod** (`devazi`): `ALLOWED_ORIGIN` = `https://devazi.app`
-- [ ] Projeto **dev** (`casamento`): `ALLOWED_ORIGIN` = `https://casamento-siannah-diego.vercel.app`
-
-Sem a variável, o fallback hardcoded `https://devazi.app` já protege a produção. O dev ficará bloqueado até a variável ser adicionada.
+**Variável `ALLOWED_ORIGIN` adicionada no Vercel em 2026-05-18:**
+- [x] Projeto **prod** (`devazi`): `ALLOWED_ORIGIN` = `https://devazi.app`
+- [x] Projeto **dev** (`casamento`): `ALLOWED_ORIGIN` = `https://casamento-siannah-diego.vercel.app`
 
 ---
 
@@ -189,9 +222,12 @@ CSP adicionado ao `vercel.json` em 2026-05-18 cobrindo todas as páginas:
 - `default-src 'self'` — bloqueia origens desconhecidas por padrão
 - `script-src` — permite `'self'`, `cdn.jsdelivr.net` (Supabase SDK) e `unpkg.com` (Leaflet)
 - `style-src` / `font-src` — permite Google Fonts
-- `connect-src` — restringe fetch/XHR para `'self'` e `*.supabase.co`
+- `media-src 'self' https://*.supabase.co` — permite áudio servido pelo Supabase Storage
+- `connect-src 'self' https://*.supabase.co https://cdn.jsdelivr.net` — permite fetch/XHR para Supabase e source maps do CDN
 - `frame-ancestors 'none'` — anti-clickjacking (reforça X-Frame-Options)
 - `base-uri 'self'` e `form-action 'self'` — previne injeção de base e hijack de formulários
+
+**Correção aplicada em 2026-05-18:** CSP inicial estava bloqueando o áudio (faltava `media-src`) e source maps do Supabase JS SDK (faltava `cdn.jsdelivr.net` em `connect-src`). Ambos corrigidos.
 
 **Ressalva:** `unsafe-inline` em `script-src` é necessário pelos scripts inline de bootstrap no `index.html`. Eles lêem `sessionStorage` antes do carregamento do JS modular e não podem ser movidos para arquivos externos sem refatoração. O CSP atual ainda bloqueia scripts de origens externas não listadas, que é o vetor mais comum de XSS.
 
