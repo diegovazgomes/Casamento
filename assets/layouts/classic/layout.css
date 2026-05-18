@@ -1223,7 +1223,13 @@
 
 .traje-section {
     padding-inline: var(--section-padding-inline);
-    padding-block: var(--space-3xl, 56px);
+    padding-block: 40px;
+}
+
+/* Remove a margem-top nativa do .divider entre seções traje,
+   pois as seções já têm padding-block simétrico de 40px. */
+.traje-section + .divider {
+    margin-block: 0;
 }
 
 .traje-group-title {
@@ -1317,34 +1323,12 @@
 }
 
 .traje-note-card {
-    position: relative;
     max-width: 560px;
     margin-inline: auto;
     padding: 40px 48px;
     border-top: 1px solid var(--color-border);
     border-bottom: 1px solid var(--color-border);
     text-align: center;
-}
-
-.traje-note-quote-mark {
-    position: absolute;
-    font-family: var(--font-serif);
-    font-size: 80px;
-    line-height: 1;
-    color: var(--gold);
-    opacity: 0.2;
-    pointer-events: none;
-    user-select: none;
-}
-
-.traje-note-quote-mark:not(.traje-note-quote-mark--close) {
-    top: -16px;
-    left: 8px;
-}
-
-.traje-note-quote-mark--close {
-    bottom: -48px;
-    right: 8px;
 }
 
 .traje-note-body {
@@ -1355,6 +1339,27 @@
     line-height: 1.9;
     color: var(--cream);
     margin: 0;
+}
+
+.traje-note-body::before,
+.traje-note-body::after {
+    display: block;
+    font-family: var(--font-serif);
+    font-size: 52px;
+    line-height: 0.85;
+    color: var(--gold);
+    opacity: 0.35;
+    font-style: normal;
+}
+
+.traje-note-body::before {
+    content: '\201C';
+    margin-bottom: 16px;
+}
+
+.traje-note-body::after {
+    content: '\201D';
+    margin-top: 16px;
 }
 
 /* ─── Galeria de Fotos ───────────────────────────────────────────────────── */
@@ -1537,11 +1542,11 @@
     }
 
     .traje-note-card {
-        padding: 32px 28px;
+        padding: 32px 24px;
     }
 
-    .traje-note-quote-mark {
-        font-size: 60px;
+    .traje-palette {
+        gap: 20px 12px;
     }
 
     .gift-main {
