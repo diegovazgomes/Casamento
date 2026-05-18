@@ -22,7 +22,7 @@
 
 ### C1 — Token GitHub exposto no `.env`
 
-**Arquivo:** `.env` (raiz do projeto)
+**Arquivo:** `.env` (raiz do projeto).
 
 O arquivo `.env` contém um GitHub Personal Access Token real (`github_pat_...`). Embora o `.gitignore` exclua o `.env`, o arquivo existe em disco.
 
