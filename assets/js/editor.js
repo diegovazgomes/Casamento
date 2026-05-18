@@ -1723,7 +1723,7 @@ function themeCardHtml(theme) {
 
 function layoutSelectorHtml() {
   const activeLayout = config?.activeLayout || 'classic';
-  const cards = LAYOUT_DEFINITIONS.map(layout => {
+  const cards = LAYOUT_DEFINITIONS.filter(l => l.key !== 'modern').map(layout => {
     const isActive = layout.key === activeLayout;
     return `
       <button

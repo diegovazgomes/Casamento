@@ -1720,7 +1720,7 @@
     .hero.hero--full-photo .hero-photo {
         object-fit: contain;
         object-position: center center;
-        background: #0e0d0b;
+        background: var(--color-bg, #0e0d0b);
     }
 
     .hero.hero--full-photo .hero-overlay {

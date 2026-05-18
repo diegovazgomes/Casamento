@@ -769,6 +769,11 @@ class InvitationExperience {
         this.applyStartedState({ skipIntro });
 
         this.initializeMainSite();
+
+        if (shouldNavigate) {
+            this.navigateWithinInvitation({ targetSection, forceTop });
+        }
+
         if (audioPromise) {
             await audioPromise;
         } else if (this.isAudioEnabled() && !this.audio.userPaused) {
@@ -789,10 +794,6 @@ class InvitationExperience {
         }
 
         this.syncAudioButton();
-
-        if (shouldNavigate) {
-            this.navigateWithinInvitation({ targetSection, forceTop });
-        }
     }
 
     navigateWithinInvitation({ targetSection = null, forceTop = false } = {}) {

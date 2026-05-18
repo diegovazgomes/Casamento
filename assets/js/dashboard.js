@@ -4618,7 +4618,7 @@ function renderWizardThemes() {
       card.className = 'wizard-theme-card' + (isSelected ? ' is-selected' : '');
       card.dataset.themeKey = key;
       card.innerHTML = `
-        <div class="wizard-theme-swatch" style="background:${cols.bg};border-color:${isSelected ? cols.primary : 'transparent'}">
+        <div class="wizard-theme-swatch" style="background:${cols.bg};border-color:${isSelected ? cols.primary : cols.primary + '55'}">
           <div class="wizard-theme-accent" style="background:${cols.primary}"></div>
           <div class="wizard-theme-lines">
             <div style="background:${cols.text}40;width:60%;height:4px;border-radius:2px;margin-bottom:5px"></div>
