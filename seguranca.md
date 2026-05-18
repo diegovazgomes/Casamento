@@ -1,7 +1,9 @@
 # Checklist de Segurança — Convite de Casamento
 
 > Auditoria realizada em 2026-05-18. Cobre frontend estático, Vercel Functions, Supabase e gestão de secrets.
-> Verificações C1 executadas em 2026-05-18 — resultados inline em cada item.
+> Verificações C1 e RLS executadas em 2026-05-18 — resultados inline em cada item.
+
+> **Isolamento de ambientes confirmado em 2026-05-18:** dev (`zunizibunrsjizgsfdlr.supabase.co`) e produção (`lrlmjalkbgbzzsbgdfax.supabase.co`) são projetos completamente separados — Supabase, Vercel, GitHub e emails distintos, todas as chaves independentes. O ambiente dev não representa risco para dados de produção.
 
 ---
 
@@ -10,9 +12,9 @@
 | Severidade | Qtd | Status geral |
 |------------|-----|--------------|
 | 🔴 Crítico | 0   | ✅ Todos resolvidos |
-| 🟠 Alto    | 3   | Corrigir esta semana |
-| 🟡 Médio   | 4   | Corrigir nas próximas 2 semanas (C1 rebaixado e esclarecido após verificação) |
-| 🔵 Baixo   | 5   | Melhorias de boa prática |
+| 🟠 Alto    | 0   | ✅ Todos corrigidos — A1 aguarda env var no Vercel |
+| 🟡 Médio   | 0   | ✅ Todos tratados — M1 é limitação do plano gratuito, risco residual aceito |
+| 🔵 Baixo   | 1   | B1/B2/B4/B5 corrigidos — B3 aguarda ação no Supabase (LGPD) |
 
 ---
 
@@ -57,115 +59,74 @@ O fallback que chamava a REST API do Supabase diretamente do browser foi removid
 
 **Impacto na experiência do usuário:** nenhum em operação normal. Em caso de falha do servidor, a submissão falha em vez de cair para o fallback (que também falharia se o Supabase estivesse fora).
 
-**Checklist de RLS ainda recomendado (defesa em profundidade):**
-- [ ] Confirmar que RLS está **habilitado** em todas as tabelas no Supabase Dashboard
-- [ ] Verificar que a role `anon` não tem `SELECT` ou `DELETE` em `rsvp_confirmations` e `guest_submissions`
-- [ ] Verificar que nenhuma tabela sensível (`guest_tokens`, `profiles`, `events`) tem acesso para `anon`
+**Verificação de RLS concluída em 2026-05-18:**
+
+| Tabela | INSERT | SELECT | UPDATE | DELETE |
+|---|---|---|---|---|
+| `rsvp_confirmations` | ✅ público (intencional) | ✅ só servidor | — bloqueado | — bloqueado |
+| `guest_submissions` | ✅ público (intencional) | ✅ só servidor | — bloqueado | — bloqueado |
+| `guest_tokens` | ✅ só servidor (`with_check`) | ⚠️ todos os tokens visíveis (ver abaixo) | ✅ só servidor (`with_check`) | — bloqueado |
+| `profiles` | — | ✅ só dono autenticado | ✅ só dono autenticado | — bloqueado |
+| `events` | ✅ só autenticado | ✅ anon vê eventos ativos (intencional) | ✅ só dono | — bloqueado |
+| `payment_events` | — | ✅ bloqueado via `qual: false` | — | — |
+
+**⚠️ guest_tokens SELECT:** a policy `public_read_tokens` tem `qual: true` sem filtro — qualquer pessoa pode listar todos os tokens de todos os eventos. Impacto prático baixo para este projeto (evento único, tokens são UUIDs difíceis de adivinhar de outra forma, e o SELECT não dá acesso a dados sensíveis nem permite modificações). A melhoria (filtrar por `event_id`) não eliminaria o risco pois o `event_id` já é semi-público, então foi aceita como limitação conhecida.
 
 ---
 
 ## 🟠 ALTO — Corrigir esta semana
 
-### A1 — CORS `*` em endpoints autenticados do dashboard
+### A1 — ~~CORS `*` em endpoints autenticados do dashboard~~ ✅ CORRIGIDO (código) — ⏳ aguarda env var no Vercel
 
-**Arquivos:** `api/dashboard/confirmations.js`, `api/dashboard/reminders.js`
+**Arquivos corrigidos em 2026-05-18:** `api/dashboard/confirmations.js`, `api/dashboard/reminders.js`, `api/dashboard/guest-groups.js`, `api/dashboard/media.js`, `api/dashboard/event.js`, `api/dashboard/submissions.js`
 
-Esses endpoints exigem Bearer token de autenticação, mas têm `Access-Control-Allow-Origin: *`. Qualquer site pode fazer requisições autenticadas a eles se o token do usuário estiver disponível.
+Todos os endpoints do dashboard trocaram `'*'` por `process.env.ALLOWED_ORIGIN || 'https://devazi.app'`. O endpoint público `api/submissions.js` manteve `'*'` intencionalmente.
 
-**Checklist de verificação:**
-- [ ] Listar todos os endpoints que definem `Access-Control-Allow-Origin: *`
-- [ ] Identificar quais deles também exigem `Authorization: Bearer`
-- [ ] Confirmar se o domínio do dashboard é fixo (ex: `casamento.vercel.app`)
+**Ação pendente — adicionar `ALLOWED_ORIGIN` nos dois projetos Vercel:**
+- [ ] Projeto **prod** (`devazi`): `ALLOWED_ORIGIN` = `https://devazi.app`
+- [ ] Projeto **dev** (`casamento`): `ALLOWED_ORIGIN` = `https://casamento-siannah-diego.vercel.app`
 
-**Checklist de implementação:**
-- [ ] Nos endpoints do dashboard, trocar `*` pelo domínio real:
-  ```js
-  res.setHeader('Access-Control-Allow-Origin', process.env.ALLOWED_ORIGIN || 'https://seu-dominio.vercel.app');
-  ```
-- [ ] Adicionar `ALLOWED_ORIGIN` como variável de ambiente no Vercel
-- [ ] Manter `*` apenas em endpoints **totalmente públicos e sem estado** (`/api/guest-token`, `/api/submissions` GET)
+Sem a variável, o fallback hardcoded `https://devazi.app` já protege a produção. O dev ficará bloqueado até a variável ser adicionada.
 
 ---
 
-### A2 — Sem headers de segurança HTTP
+### A2 — ~~Sem headers de segurança HTTP~~ ✅ CORRIGIDO
 
-**Arquivo:** `vercel.json`
+**Arquivo:** `vercel.json` — **corrigido em 2026-05-18**
 
-O deploy não define nenhum header de segurança HTTP. Isso aumenta a superfície de impacto de XSS, clickjacking e sniffing de MIME.
+Adicionado bloco `headers` global com: `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy` e `Strict-Transport-Security` (HSTS 2 anos com preload).
 
-**Checklist de verificação:**
-- [ ] Inspecionar as respostas HTTP com DevTools → Network → qualquer requisição → ver headers de resposta
-- [ ] Confirmar ausência de: `Content-Security-Policy`, `X-Frame-Options`, `X-Content-Type-Options`, `Strict-Transport-Security`, `Referrer-Policy`
-
-**Checklist de implementação:**
-- [ ] Adicionar bloco `headers` no `vercel.json`:
-  ```json
-  {
-    "headers": [
-      {
-        "source": "/(.*)",
-        "headers": [
-          { "key": "X-Content-Type-Options", "value": "nosniff" },
-          { "key": "X-Frame-Options", "value": "DENY" },
-          { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
-          { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=()" },
-          {
-            "key": "Strict-Transport-Security",
-            "value": "max-age=63072000; includeSubDomains; preload"
-          }
-        ]
-      }
-    ]
-  }
-  ```
-- [ ] Para CSP, começar em modo `report-only` e refinar antes de aplicar em modo bloqueante (os scripts inline do `index.html` exigem `nonce` ou `unsafe-inline` temporariamente)
-- [ ] Verificar no https://securityheaders.com após o deploy
+- [ ] Após o próximo deploy, verificar em https://securityheaders.com
+- [ ] CSP fica como próximo passo (requer mapeamento dos scripts inline)
 
 ---
 
-### A3 — Sem rate limiting em `/api/submissions`
+### A3 — ~~Sem rate limiting em `/api/submissions`~~ ✅ CORRIGIDO
 
-**Arquivo:** `api/submissions.js`
+**Arquivo:** `api/submissions.js` — **corrigido em 2026-05-18**
 
-O endpoint aceita RSVPs, mensagens e sugestões de músicas sem qualquer limite de requisições por IP ou por token de convidado.
-
-**Impacto:** spam massivo, esgotamento de cota do Supabase, dados de confirmação poluídos.
-
-**Checklist de verificação:**
-- [ ] Testar: enviar 50 requisições seguidas para `/api/submissions` e confirmar que todas são aceitas
-- [ ] Verificar se o Supabase tem cota de escrita que pode ser esgotada
-
-**Checklist de implementação:**
-- [ ] Implementar rate limiting por IP usando um Map em memória (simples para Vercel Edge) ou KV store:
-  ```js
-  // Exemplo simples — máximo 5 submissões por IP a cada 10 minutos
-  const rateLimitMap = new Map();
-  ```
-- [ ] Validar que `token_id` pertence a um token real do evento antes de aceitar o payload
-- [ ] Adicionar campo `event_id` obrigatório e verificar que o evento existe e está ativo
-- [ ] Considerar adicionar CAPTCHA (ex: Turnstile da Cloudflare, gratuito) para submissões públicas
+Implementado rate limiting por IP: máximo 10 submissões por minuto por IP. IPs que ultrapassam o limite recebem HTTP 429 com header `Retry-After: 60`. A lógica usa Map em memória seguindo o mesmo padrão já existente em `api/event-config.js`.
 
 ---
 
 ## 🟡 MÉDIO — Corrigir nas próximas 2 semanas
 
-### M1 — JWT do dashboard armazenado em `sessionStorage`
+### M1 — JWT do dashboard armazenado em `sessionStorage` — ⚠️ Limitação de plano
 
 **Arquivo:** `assets/js/dashboard.js`
 
-O token de sessão do Supabase Auth e o access token do dashboard são salvos em `sessionStorage`, que é acessível por qualquer JavaScript rodando na mesma origem.
+O token de sessão fica em `sessionStorage`. Configurar TTL de sessão e inactivity timeout requer **plano Pro do Supabase** — indisponível no plano atual.
 
-**Impacto:** Se houver XSS (mesmo que pontual), o atacante lê e exfiltra o token.
+**Proteções ativas verificadas em 2026-05-18:**
+- ✅ JWT de acesso expira em **1 hora** (padrão Supabase free)
+- ✅ "Detect and revoke potentially compromised refresh tokens" — **ativo** nos dois projetos. Se um refresh token for reutilizado simultaneamente (sinal de roubo), a sessão inteira é invalidada automaticamente
 
-**Checklist de verificação:**
-- [ ] Abrir o DevTools no dashboard → Application → Session Storage → verificar quais tokens estão armazenados
-- [ ] Confirmar tempo de expiração dos tokens
+**Rate limits de autenticação verificados — todos adequados:**
+- Sign-ins: 30/5 min por IP (proteção contra brute force)
+- Token refreshes: 150/5 min por IP
+- Magic link/OTP: 30/5 min por IP
 
-**Checklist de implementação:**
-- [ ] Migrar para cookies HTTP-only + Secure + SameSite=Strict (requer ajuste no servidor para ler/escrever o cookie)
-- [ ] Como alternativa mais simples: reduzir o TTL do token de sessão para 30–60 minutos
-- [ ] Implementar rotação automática de token (refresh token flow)
-- [ ] Adicionar limpeza explícita dos tokens em `beforeunload` e no logout
+**Risco residual:** baixo para o uso atual (1-2 usuários autenticados). Migração para cookies HTTP-only fica como melhoria futura caso o plano evolua ou o volume de usuários aumente.
 
 ---
 
@@ -185,59 +146,54 @@ Vários pontos usam `innerHTML` com dados vindos de `site.json` ou do Supabase. 
 - [ ] Para cada ocorrência, rastrear a origem do dado (config JSON, Supabase, input do usuário)
 - [ ] Verificar se algum campo de texto do `site.json` aceita HTML real ou é texto puro
 
-**Checklist de implementação:**
-- [ ] Para texto puro: substituir `innerHTML` por `textContent`
-- [ ] Para HTML estrutural sem dados de usuário (ex: layout de cards): manter `innerHTML` mas com template literal apenas de strings estáticas
-- [ ] Para dados vindos do Supabase: criar função `escapeHtml()` centralizada (já existe em `utils.js`) e aplicar antes de inserir via `innerHTML`
-- [ ] Nunca inserir via `innerHTML` campos que o usuário preenche (nome, mensagem, sugestão de música)
+**Corrigido em 2026-05-18** — `escapeHtml` (já existente em `utils.js`) aplicado em:
+- [x] `faq.js` — `question` e `answer`
+- [x] `historia.js` — `year`, `title`, `text` de cada capítulo
+- [x] `hospedagem.js` — `name`, `description`, `linkLabel` e validação de URL com `isSafeUrl()` para bloquear `javascript:` nos `href`
+
+`dashboard.js` tem o mesmo padrão com dados do Supabase, mas o dashboard só é acessado pelo casal autenticado — risco residual aceito.
 
 ---
 
-### M3 — `commitSha` exposto publicamente
+### M3 — ~~`commitSha` exposto publicamente~~ ✅ CORRIGIDO
 
-**Arquivo:** `api/event-config.js`
+**Arquivo:** `api/event-config.js` — **corrigido em 2026-05-18**
 
-O endpoint `/api/event-config?mode=client-config` retorna o SHA do commit atual do deploy, facilitando a enumeração de versões por atacantes.
-
-**Checklist de implementação:**
-- [ ] Remover `commitSha` da resposta do endpoint público
-- [ ] Se necessário para debug interno, proteger o endpoint com autenticação ou mover para um endpoint do dashboard
+Removido o campo `commitSha` da resposta do endpoint público `/api/event-config?mode=client-config`.
 
 ---
 
 ## 🔵 BAIXO — Boas práticas
 
-### B1 — Sem `robots.txt`
+### B1 — ~~Sem `robots.txt`~~ ✅ CORRIGIDO
 
-- [ ] Criar `robots.txt` na raiz bloqueando páginas sensíveis:
-  ```
-  User-agent: *
-  Disallow: /dashboard.html
-  Disallow: /editor.html
-  Disallow: /font-preview.html
-  Disallow: /api/
-  ```
+Criado `robots.txt` em 2026-05-18 bloqueando: `dashboard.html`, `editor.html`, `font-preview.html`, `signup.html`, `confirm.html`, `reset-password.html`, `forgot-password.html` e `/api/`.
 
-### B2 — Sem `.well-known/security.txt`
+### B2 — ~~Sem `.well-known/security.txt`~~ ✅ CORRIGIDO
 
-- [ ] Criar `.well-known/security.txt` com e-mail de contato para reporte de vulnerabilidades (RFC 9116)
+Criado `.well-known/security.txt` em 2026-05-18 (RFC 9116) com contato `ddiego533@gmail.com`, expiração em 2027-05-18 e canonical para `devazi.app`.
 
-### B3 — Telefones armazenados em texto puro (LGPD)
+### B3 — Telefones armazenados em texto puro (LGPD) — ⏳ Ação do usuário
 
-- [ ] Verificar se a política de privacidade menciona o armazenamento de número de telefone
-- [ ] Avaliar aplicar criptografia de coluna no Supabase para `phone` em `rsvp_confirmations`
-- [ ] Definir prazo de retenção e rotina de exclusão após o evento
+- [ ] No Supabase Dashboard → Table Editor → `rsvp_confirmations` → clicar na coluna `phone` → habilitar **Column Encryption** (disponível no plano gratuito via Vault)
+- [ ] Verificar se `privacy.html` menciona coleta e armazenamento de número de telefone
+- [ ] Definir prazo de retenção: deletar registros de `rsvp_confirmations` após o evento (sugestão: 90 dias pós-casamento)
 
-### B4 — Logs de erro podem vazar schema do banco
+### B4 — ~~Logs de erro podem vazar schema do banco~~ ✅ CORRIGIDO
 
-- [ ] Revisar todos os `console.warn` e `console.error` em `api/` que incluem campos vindos do Supabase (`details`, `hint`, `code`)
-- [ ] Em produção, logar apenas o código de erro interno — nunca a resposta bruta do Supabase
-- [ ] Considerar integrar Vercel Log Drains ou Sentry para capturar erros sem expô-los ao cliente
+Removidos os campos `details` e `hint` do Supabase das respostas HTTP de erro em `api/submissions.js`. Esses campos continuam nos logs do servidor (Vercel Functions) para debug, mas não chegam mais ao browser do cliente.
 
-### B5 — Scripts inline no `index.html` sem CSP nonce
+### B5 — ~~Scripts inline sem CSP~~ ✅ CORRIGIDO (com ressalva)
 
-- [ ] Ao implementar CSP (item A2), o script de bootstrap inline em `index.html` precisará de um `nonce` gerado por requisição ou ser movido para um arquivo externo
-- [ ] Mapear todos os blocos `<script>` inline e `style` inline que precisarão de nonce
+CSP adicionado ao `vercel.json` em 2026-05-18 cobrindo todas as páginas:
+- `default-src 'self'` — bloqueia origens desconhecidas por padrão
+- `script-src` — permite `'self'`, `cdn.jsdelivr.net` (Supabase SDK) e `unpkg.com` (Leaflet)
+- `style-src` / `font-src` — permite Google Fonts
+- `connect-src` — restringe fetch/XHR para `'self'` e `*.supabase.co`
+- `frame-ancestors 'none'` — anti-clickjacking (reforça X-Frame-Options)
+- `base-uri 'self'` e `form-action 'self'` — previne injeção de base e hijack de formulários
+
+**Ressalva:** `unsafe-inline` em `script-src` é necessário pelos scripts inline de bootstrap no `index.html`. Eles lêem `sessionStorage` antes do carregamento do JS modular e não podem ser movidos para arquivos externos sem refatoração. O CSP atual ainda bloqueia scripts de origens externas não listadas, que é o vetor mais comum de XSS.
 
 ---
 

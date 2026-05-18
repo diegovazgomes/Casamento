@@ -1,5 +1,27 @@
 import { createSupabaseServerClient } from './_lib/supabase-server.js';
 
+const RATE_LIMIT_MAX = 10;
+const RATE_LIMIT_WINDOW_MS = 60_000;
+const requestsByIp = new Map();
+
+function getClientIp(req) {
+  const forwarded = req.headers['x-forwarded-for'];
+  if (typeof forwarded === 'string') return forwarded.split(',')[0].trim();
+  return req.headers['x-real-ip'] || 'unknown';
+}
+
+function isRateLimited(ip) {
+  const now = Date.now();
+  const history = (requestsByIp.get(ip) || []).filter(t => now - t < RATE_LIMIT_WINDOW_MS);
+  if (history.length >= RATE_LIMIT_MAX) {
+    requestsByIp.set(ip, history);
+    return true;
+  }
+  history.push(now);
+  requestsByIp.set(ip, history);
+  return false;
+}
+
 const FREE_RSVP_LIMIT = 50;
 const RSVP_TABLE = 'rsvp_confirmations';
 const GUEST_TABLE = 'guest_submissions';
@@ -243,6 +265,12 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
+  const ip = getClientIp(req);
+  if (isRateLimited(ip)) {
+    res.setHeader('Retry-After', '60');
+    return res.status(429).json({ error: 'Too many requests. Try again in a minute.' });
+  }
+
   const supabase = createSupabaseServerClient();
   if (!supabase) {
     return res.status(503).json({ error: 'Supabase server configuration missing' });
@@ -299,8 +327,6 @@ export default async function handler(req, res) {
       return res.status(400).json({
         code: error.code || null,
         message: error.message || 'Insert failed',
-        details: error.details || '',
-        hint: error.hint || '',
       });
     }
 

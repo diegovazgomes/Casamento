@@ -403,11 +403,9 @@ export default async function handler(req, res) {
 
     if (mode === 'client-config') {
       res.setHeader('Cache-Control', 's-maxage=3600');
-      const commitSha = process.env.VERCEL_GIT_COMMIT_SHA || process.env.GIT_COMMIT_SHA || '';
       return res.status(200).json({
         supabaseUrl:     process.env.SUPABASE_URL      || '',
         supabaseAnonKey: process.env.SUPABASE_ANON_KEY || '',
-        commitSha,
       });
     }
 
