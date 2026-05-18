@@ -669,8 +669,18 @@ function renderPlanBadge(profile) {
 }
 
 async function handleUpgrade() {
-  const btn = document.getElementById('btnUpgrade');
-  if (btn) { btn.disabled = true; btn.textContent = 'Aguarde...'; }
+  const desktopBtn = document.getElementById('btnUpgrade');
+  const drawerBtn = document.getElementById('drawerBtnUpgrade');
+
+  if (desktopBtn) {
+    desktopBtn.disabled = true;
+    desktopBtn.textContent = 'Aguarde...';
+  }
+
+  if (drawerBtn) {
+    drawerBtn.disabled = true;
+    drawerBtn.textContent = 'Aguarde...';
+  }
 
   try {
     const token = state.authToken;
@@ -684,6 +694,14 @@ async function handleUpgrade() {
     const data = await res.json().catch(() => ({}));
 
     if (!res.ok) {
+      if (res.status === 503 && data?.code === 'STRIPE_PRICE_ID_MISSING') {
+        throw new Error('Pagamento indisponível: o plano Stripe ainda não está configurado no ambiente atual.');
+      }
+
+      if (res.status === 503 && data?.code === 'STRIPE_SECRET_KEY_MISSING') {
+        throw new Error('Pagamento indisponível: chave secreta do Stripe ausente no ambiente atual.');
+      }
+
       throw new Error(data.error || 'Não foi possível iniciar o pagamento.');
     }
 
@@ -692,7 +710,16 @@ async function handleUpgrade() {
     }
   } catch (err) {
     alert(err.message || 'Erro ao iniciar pagamento. Tente novamente.');
-    if (btn) { btn.disabled = false; btn.textContent = 'Upgrade para Premium'; }
+  } finally {
+    if (desktopBtn) {
+      desktopBtn.disabled = false;
+      desktopBtn.textContent = 'Upgrade para Premium';
+    }
+
+    if (drawerBtn) {
+      drawerBtn.disabled = false;
+      drawerBtn.textContent = 'Upgrade para Premium';
+    }
   }
 }
 
@@ -718,6 +745,19 @@ function maybeShowPaymentBanner() {
     // Recarrega o perfil para refletir o novo plano
     state.userProfile = null;
     fetchUserProfile().then(renderPlanBadge).catch(() => {});
+    return;
+  }
+
+  if (payment === 'cancelled' || payment === 'error') {
+    const banner = document.createElement('div');
+    banner.className = 'payment-banner';
+    banner.style.background = 'var(--warning,#e0b674)';
+    banner.innerHTML = payment === 'cancelled'
+      ? 'Pagamento cancelado. Você pode tentar novamente quando quiser.'
+      : 'Não foi possível concluir o pagamento. Tente novamente em instantes.';
+    const main = document.querySelector('.main') || document.body;
+    main.prepend(banner);
+    setTimeout(() => banner.remove(), 8000);
   }
 }
 

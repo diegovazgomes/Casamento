@@ -28,6 +28,19 @@ function getAppUrl(req) {
   return `${protocol}://${host}`;
 }
 
+function getCheckoutDiagnostics(req) {
+  return {
+    checkoutEnabled: Boolean(process.env.STRIPE_SECRET_KEY && process.env.STRIPE_PRICE_ID),
+    stripeConfigured: Boolean(process.env.STRIPE_SECRET_KEY),
+    priceConfigured: Boolean(process.env.STRIPE_PRICE_ID),
+    appUrl: getAppUrl(req),
+    usage: {
+      checkout: 'POST /api/payments?action=checkout (Authorization: Bearer <token>)',
+      webhook: 'POST /api/payments?action=webhook',
+    },
+  };
+}
+
 async function readRawBody(req) {
   const chunks = [];
   for await (const chunk of req) {
@@ -46,12 +59,18 @@ async function handleCheckout(req, res, rawBody) {
 
   const stripe = getStripe();
   if (!stripe) {
-    return res.status(503).json({ error: 'Pagamento indisponível. Tente novamente mais tarde.' });
+    return res.status(503).json({
+      error: 'Pagamento indisponível: STRIPE_SECRET_KEY não configurada.',
+      code: 'STRIPE_SECRET_KEY_MISSING',
+    });
   }
 
   const priceId = process.env.STRIPE_PRICE_ID;
   if (!priceId) {
-    return res.status(503).json({ error: 'Plano de pagamento não configurado.' });
+    return res.status(503).json({
+      error: 'Plano de pagamento não configurado: STRIPE_PRICE_ID ausente.',
+      code: 'STRIPE_PRICE_ID_MISSING',
+    });
   }
 
   const supabase = createSupabaseServerClient();
@@ -215,12 +234,25 @@ function isPremiumPlan(plan) {
 // ─── HANDLER PRINCIPAL ───────────────────────────────────────────────────────
 
 export default async function handler(req, res) {
+  const action = String(req.query?.action || '').trim();
+
+  if (req.method === 'GET') {
+    if (action === 'checkout') {
+      return res.status(200).json(getCheckoutDiagnostics(req));
+    }
+
+    res.setHeader('Allow', 'GET, POST');
+    return res.status(405).json({
+      error: 'Method not allowed',
+      hint: 'Use GET apenas para diagnóstico de checkout e POST para checkout/webhook.',
+    });
+  }
+
   if (req.method !== 'POST') {
-    res.setHeader('Allow', 'POST');
+    res.setHeader('Allow', 'GET, POST');
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const action = String(req.query?.action || '').trim();
   const rawBody = await readRawBody(req);
 
   try {
