@@ -114,10 +114,10 @@ Bloqueio em **duas camadas**:
 ## Checklist de implementação
 
 ### 0. Landing e oferta comercial
-- [ ] Tornar card Premium visível em `landing.html` (sem bloco "oculto até Stripe").
-- [ ] Padronizar preço Premium para R$ 187 em toda landing.
-- [ ] Atualizar copy de "plano pago em breve" para oferta ativa.
-- [ ] Garantir CTA Premium para `signup.html` (ou dashboard quando autenticado).
+- [x] Tornar card Premium visível em `landing.html` (sem bloco "oculto até Stripe").
+- [x] Padronizar preço Premium para R$ 187 em toda landing.
+- [x] Atualizar copy de "plano pago em breve" para oferta ativa.
+- [x] Garantir CTA Premium para `signup.html` (ou dashboard quando autenticado).
 
 ### 1. Campo `plan` na resposta do event-config
 - [x] `api/event-config.js` inclui `plan` do `profiles` na resposta JSON

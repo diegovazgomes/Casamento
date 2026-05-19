@@ -2018,7 +2018,7 @@ footer {
     <div class="section-num">05 — Encomendas</div>
     <h2 class="section-title">Comece com uma <em>cortesia.</em></h2>
     <p class="section-sub">
-      Comece gratuitamente. O plano pago com recursos completos estará disponível em breve.
+      Comece gratuitamente. Desbloqueie recursos completos com planos pagos a partir de R$&nbsp;187, pagamento único.
     </p>
     <div class="encomendas-meta">
       <span class="encomendas-hint">Arraste para explorar</span>
@@ -2050,7 +2050,6 @@ footer {
     <!-- CLASSIC — DESTAQUE -->
     <article class="plan is-featured">
       <div class="plan-badge">Mais escolhido</div>
-      <div class="plan-lock-badge">🔒 Pagamento em breve</div>
       <div class="plan-num">— Encomenda essencial</div>
       <h3 class="plan-name">Classic</h3>
       <p class="plan-pitch">Tudo o que seu dia merece, com a discrição de um ateliê.</p>
@@ -2068,17 +2067,17 @@ footer {
         <li>Exportação de dados</li>
         <li>Suporte prioritário</li>
       </ul>
-      <span class="plan-cta plan-cta--locked" aria-disabled="true"><span>🔒 Em breve</span></span>
+      <a href="signup.html" class="plan-cta" id="planClassicCta"><span>Encomendar agora</span></a>
     </article>
 
-    <!-- PREMIUM — oculto até Stripe estar em produção -->
-    <article class="plan" hidden>
+    <!-- PREMIUM -->
+    <article class="plan">
       <div class="plan-num">— Encomenda completa</div>
       <h3 class="plan-name">Premium</h3>
       <p class="plan-pitch">Para casais que querem cada detalhe pensado à mão.</p>
       <div class="plan-price-row">
         <span class="plan-currency">R$</span>
-        <span class="plan-price">297</span>
+        <span class="plan-price">187</span>
         <span class="plan-price-detail">Pagamento único</span>
       </div>
       <ul class="plan-features">
@@ -2342,6 +2341,16 @@ const countObserver = new IntersectionObserver(entries => {
 }, { threshold: 0.3 });
 const numerosSection = document.getElementById('numeros');
 if (numerosSection) countObserver.observe(numerosSection);
+
+// ── Detecção de sessão ativa — redireciona CTAs para o dashboard se autenticado
+(function () {
+  const token = sessionStorage.getItem('dashboard-access-token');
+  if (!token) return;
+  // Usuário já está logado — todos os links para signup.html vão para o dashboard
+  document.querySelectorAll('a[href="signup.html"]').forEach(function (link) {
+    link.href = 'dashboard.html';
+  });
+})();
 </script>
 
 </body>

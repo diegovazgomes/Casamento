@@ -186,6 +186,7 @@ async function initializeDashboard() {
             if (sidebarCouple) sidebarCouple.textContent = profile.couple_name;
           }
           renderPlanBadge(profile);
+          applyPlanRestrictions(profile);
 
           if (sessionStorage.getItem(DASHBOARD_PAYMENT_SYNC_PENDING_KEY)) {
             syncPlanStatusAfterPayment().catch(() => {});
@@ -406,6 +407,7 @@ async function handleAuth(event) {
         if (sidebarCouple) sidebarCouple.textContent = profile.couple_name;
       }
       renderPlanBadge(profile);
+      applyPlanRestrictions(profile);
 
       if (sessionStorage.getItem(DASHBOARD_PAYMENT_SYNC_PENDING_KEY)) {
         syncPlanStatusAfterPayment().catch(() => {});
@@ -685,6 +687,54 @@ function renderPlanBadge(profile) {
   const drawerBtnUp = document.getElementById('drawerBtnUpgrade');
   if (drawerName) drawerName.textContent = planLabel;
   if (drawerBtnUp) drawerBtnUp.hidden = isPremium;
+}
+
+function applyPlanRestrictions(profile) {
+  if (isPremiumPlan(profile?.plan)) return;
+
+  // ── Seção 4: Tema & Visual — bloquear selects de tema/layout
+  const temaBody = document.querySelector('#edSectionTema .editor-section-body');
+  if (temaBody && !temaBody.querySelector('.premium-lock-banner')) {
+    const banner = document.createElement('div');
+    banner.className = 'premium-lock-banner';
+    banner.innerHTML = '<span>🔒 Seleção de tema disponível no plano Premium</span>'
+      + '<button type="button" class="btn btn-subtle" onclick="handleUpgrade()">Fazer upgrade</button>';
+    temaBody.insertBefore(banner, temaBody.firstChild);
+    const layout = document.getElementById('edActiveLayout');
+    const theme  = document.getElementById('edActiveTheme');
+    if (layout) layout.disabled = true;
+    if (theme)  theme.disabled  = true;
+  }
+
+  // ── Seção 5: Botão "Novo grupo" — bloquear para free
+  const btnGrupo = document.getElementById('btnNewGroup');
+  if (btnGrupo && !btnGrupo.dataset.planLocked) {
+    btnGrupo.dataset.planLocked = 'true';
+    btnGrupo.title = 'Disponível no plano Premium';
+    btnGrupo.removeEventListener('click', btnGrupo._groupHandler);
+    btnGrupo.addEventListener('click', function (e) {
+      e.stopImmediatePropagation();
+      handleUpgrade();
+    }, true);
+  }
+
+  // ── Seção 8: Áudio — bloquear sub-seção de música
+  const midiaBody = document.querySelector('#edSectionMidia .editor-section-body');
+  if (midiaBody && !midiaBody.querySelector('.premium-lock-audio')) {
+    const audioBanner = document.createElement('div');
+    audioBanner.className = 'premium-lock-banner premium-lock-audio';
+    audioBanner.innerHTML = '<span>🔒 Música no convite disponível no plano Premium</span>'
+      + '<button type="button" class="btn btn-subtle" onclick="handleUpgrade()">Fazer upgrade</button>';
+    const rule = midiaBody.querySelector('.editor-rule');
+    if (rule) rule.parentNode.insertBefore(audioBanner, rule);
+    ['edTrackEnabled','edTrackSrc','edTrackVolume','edTrackStart'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.disabled = true;
+    });
+    midiaBody.querySelectorAll('[onclick^="audioPreview"]').forEach(btn => {
+      btn.disabled = true;
+    });
+  }
 }
 
 function delay(ms) {

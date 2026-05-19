@@ -1467,6 +1467,19 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
   border:1px solid var(--border);background:rgba(0,0,0,0.1);
   padding:14px 16px;margin-bottom:10px;
 }
+/* Bloqueio de feature premium */
+.premium-lock-banner{
+  display:flex;align-items:center;justify-content:space-between;
+  flex-wrap:wrap;gap:10px;
+  padding:12px 16px;margin-bottom:16px;
+  border:1px solid var(--border-strong);
+  background:var(--surface-2);
+  font-size:11px;letter-spacing:0.04em;color:var(--text-dim);
+}
+.premium-lock-banner span{flex:1;min-width:160px}
+.premium-lock-banner .btn{padding:5px 14px;font-size:10px}
+#btnNewGroup[data-plan-locked]{opacity:0.45;cursor:not-allowed}
+#btnNewGroup[data-plan-locked]:hover::before{transform:scaleX(0)}
 .faq-item-header{
   display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;
 }
