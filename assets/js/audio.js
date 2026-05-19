@@ -1,3 +1,6 @@
+const AUDIO_START_VOLUME_FACTOR = 0.05;
+const AUDIO_FADE_IN_DURATION_MS = 5000;
+
 export class AudioController extends EventTarget {
     constructor(trackConfig = {}) {
         super();
@@ -63,6 +66,24 @@ export class AudioController extends EventTarget {
         }
 
         return startTime;
+    }
+
+    getTrackVolume(trackKey) {
+        const trackVolume = Number(this.tracks[trackKey]?.volume ?? 0.12);
+
+        if (!Number.isFinite(trackVolume)) {
+            return 0.12;
+        }
+
+        return Math.max(0, Math.min(trackVolume, 1));
+    }
+
+    getStartFadeVolume(targetVolume) {
+        if (targetVolume <= 0) {
+            return 0;
+        }
+
+        return Math.max(0, Math.min(targetVolume * AUDIO_START_VOLUME_FACTOR, targetVolume));
     }
 
     hasMetadata(audio) {
@@ -154,6 +175,8 @@ export class AudioController extends EventTarget {
 
         const audio = track.element;
         const targetTime = this.getTrackStartTime(trackKey);
+        const targetVolume = this.getTrackVolume(trackKey);
+        const startVolume = this.getStartFadeVolume(targetVolume);
         const seekToStart = () => {
             try {
                 audio.currentTime = this.clampTime(audio, targetTime);
@@ -161,7 +184,7 @@ export class AudioController extends EventTarget {
             }
         };
 
-        audio.volume = 0;
+        audio.volume = startVolume;
         audio.load();
 
         if (this.hasMetadata(audio)) {
@@ -180,7 +203,7 @@ export class AudioController extends EventTarget {
                 await playPromise;
             }
 
-            await this.fadeVolume(audio, track.volume ?? 0.12, 420);
+            await this.fadeVolume(audio, targetVolume, AUDIO_FADE_IN_DURATION_MS);
             this.lastError = null;
             this.emitState();
             return true;
@@ -219,7 +242,9 @@ export class AudioController extends EventTarget {
         await this.fadeOutCurrent();
 
         const nextElement = track.element;
-        nextElement.volume = 0;
+        const targetVolume = this.getTrackVolume(trackKey);
+        const startVolume = this.getStartFadeVolume(targetVolume);
+        nextElement.volume = startVolume;
         await this.ensureMetadataAndSeek(nextElement, this.getTrackStartTime(trackKey));
 
         const played = await this.safePlay(nextElement);
@@ -230,7 +255,7 @@ export class AudioController extends EventTarget {
         }
 
         this.currentTrackKey = trackKey;
-        await this.fadeVolume(nextElement, track.volume ?? 0.12, 420);
+        await this.fadeVolume(nextElement, targetVolume, AUDIO_FADE_IN_DURATION_MS);
         this.emitState();
         return true;
     }
@@ -319,7 +344,8 @@ export class AudioController extends EventTarget {
             return false;
         }
 
-        currentElement.volume = 0;
+        const targetVolume = this.getTrackVolume(this.currentTrackKey);
+        currentElement.volume = this.getStartFadeVolume(targetVolume);
         const played = await this.safePlay(currentElement);
 
         if (!played) {
@@ -327,7 +353,7 @@ export class AudioController extends EventTarget {
             return false;
         }
 
-        await this.fadeVolume(currentElement, this.tracks[this.currentTrackKey].volume ?? 0.12, 320);
+        await this.fadeVolume(currentElement, targetVolume, AUDIO_FADE_IN_DURATION_MS);
         this.emitState();
         return true;
     }

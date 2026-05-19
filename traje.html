@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="description" content="Detalhes sobre o traje e as paletas de cores do nosso grande dia.">
+    <meta name="theme-color" content="#1a1714">
+    <title>Traje &amp; Paletas</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/animations.css">
+    <script>
+        /* Loading Screen — leitura síncrona para zero flash de iniciais/tema */
+        (function () {
+            try {
+                var c = JSON.parse(sessionStorage.getItem('ls-theme-colors') || 'null');
+                if (c && c.bg && c.text && c.primary) {
+                    var r = document.documentElement;
+                    r.style.setProperty('--ls-bg-color',      c.bg);
+                    r.style.setProperty('--ls-text-color',    c.text);
+                    r.style.setProperty('--ls-primary-color', c.primary);
+                }
+                window.__LS_COUPLE_DATA__ = null;
+                if (sessionStorage.getItem('ls_data_ready') === '1') {
+                    var d = JSON.parse(sessionStorage.getItem('ls_couple') || 'null');
+                    if (d && d.first && d.second) { window.__LS_COUPLE_DATA__ = d; }
+                    document.documentElement.classList.add('ls-pending');
+                }
+            } catch (e) { window.__LS_COUPLE_DATA__ = null; }
+        })();
+    </script>
+    <script type="module">
+        import { initLoadingScreen } from './assets/js/loading-screen.js';
+        initLoadingScreen();
+    </script>
+</head>
+<body class="extra-page traje-page">
+
+    <main class="extra-main">
+        <section class="content-section traje-section" id="trajeDresscodeSection">
+            <h2 class="traje-group-title reveal">TRAJE</h2>
+            <p class="traje-dresscode-value reveal" id="trajeDresscodeValue"></p>
+        </section>
+
+        <div class="divider reveal" aria-hidden="true">
+            <div class="divider-line"></div>
+            <div class="divider-diamond"></div>
+            <div class="divider-line"></div>
+        </div>
+
+        <section class="content-section traje-section" id="trajeBridesmaidsPaletteSection" hidden>
+            <h2 class="traje-group-title reveal">PALETA DAS MADRINHAS</h2>
+            <div class="traje-palette reveal" id="trajeBridesmaidsPalette"></div>
+        </section>
+
+        <section class="content-section traje-section" id="trajeGroomsmenPaletteSection" hidden>
+            <h2 class="traje-group-title reveal">PALETA DOS PADRINHOS</h2>
+            <div class="traje-palette reveal" id="trajeGroomsmenPalette"></div>
+        </section>
+
+        <section class="content-section traje-section" id="trajeBrideColorSection" hidden>
+            <h2 class="traje-group-title reveal">COR DA NOIVA</h2>
+            <div class="traje-solo-wrap reveal" id="trajeBrideColor"></div>
+        </section>
+
+        <section class="content-section traje-section" id="trajeGroomColorSection" hidden>
+            <h2 class="traje-group-title reveal">COR DO NOIVO</h2>
+            <div class="traje-solo-wrap reveal" id="trajeGroomColor"></div>
+        </section>
+
+        <section class="content-section traje-section" id="trajeNoteSection" hidden>
+            <span class="traje-note-eyebrow reveal">Observação dos noivos</span>
+            <div class="traje-note-card reveal">
+                <p class="traje-note-body" id="trajeNote"></p>
+            </div>
+        </section>
+
+        <div class="gift-back-wrap">
+            <a class="gift-back-link" id="backToExtrasButton" href="index.html?section=extras" aria-label="Voltar para opções extras"></a>
+        </div>
+    </main>
+
+    <footer>
+        <div class="footer-names" id="mainFooterNames"></div>
+        <p class="footer-note" id="mainFooterNote"></p>
+    </footer>
+
+    <script type="module" src="assets/js/script.js"></script>
+    <script type="module" src="assets/js/traje.js"></script>
+</body>
+</html>

@@ -1,4 +1,6 @@
-import { saveRsvpConfirmation } from './rsvp-persistence.js';
+import { getLastSubmissionError, saveRsvpConfirmation } from './rsvp-persistence.js';
+
+const DEMO_SUBMISSIONS_BLOCKED_CODE = 'DEMO_PUBLIC_SUBMISSIONS_BLOCKED';
 
 export function interpolateTemplate(template, values) {
     return String(template ?? '').replace(/\{(\w+)\}/g, (match, key) => values[key] ?? match);
@@ -227,6 +229,16 @@ export class RSVP {
             }).catch(() => false);
 
             if (!saved) {
+                const lastSubmissionError = getLastSubmissionError();
+                if (lastSubmissionError?.code === DEMO_SUBMISSIONS_BLOCKED_CODE) {
+                    this.renderError({
+                        title: 'Convite demonstrativo.',
+                        subtitle: lastSubmissionError.message || 'Este convite e demonstrativo. RSVP, mensagens e musicas estao desativados no exemplo.',
+                        note: ''
+                    });
+                    return;
+                }
+
                 console.warn('[rsvp] Persistência falhou. Mantendo formulário liberado para nova tentativa.');
                 this.renderError({
                     title: 'Não foi possível registrar sua confirmação agora.',

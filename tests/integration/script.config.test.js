@@ -27,6 +27,22 @@ describe('script config/theme loaders', () => {
     });
   });
 
+  it('resolves an API config URL when slug comes from query param on static page', async () => {
+    const { resolveSiteConfigSource } = await import('../../assets/js/config-source.js');
+
+    expect(resolveSiteConfigSource('/faq.html', 'https://example.com/faq.html?slug=ana-leo-2026')).toEqual({
+      slug: 'ana-leo-2026',
+      url: '/api/event-config?slug=ana-leo-2026',
+      usesApi: true,
+    });
+
+    expect(resolveSiteConfigSource('/faq.html', 'https://example.com/faq.html?event=ana-leo-2026')).toEqual({
+      slug: 'ana-leo-2026',
+      url: '/api/event-config?slug=ana-leo-2026',
+      usesApi: true,
+    });
+  });
+
   it('reads token and section directly from URL when bootstrap state is absent', async () => {
     const { readNavigationStateFromUrl } = await import('../../assets/js/script.js');
 
@@ -39,12 +55,40 @@ describe('script config/theme loaders', () => {
     });
   });
 
-  it('builds internal URLs preserving only g when token exists', async () => {
+  it('builds internal URLs preserving g when token exists', async () => {
     const { buildInternalUrl } = await import('../../assets/js/script.js');
 
     expect(buildInternalUrl('faq.html', 'family-token', 'https://example.com/index.html')).toBe('https://example.com/faq.html?g=family-token');
     expect(buildInternalUrl('index.html?section=extras', 'family-token', 'https://example.com/musica.html?g=old-token')).toBe('https://example.com/index.html?section=extras&g=family-token');
     expect(buildInternalUrl('index.html?section=extras', null, 'https://example.com/musica.html?g=old-token')).toBe('https://example.com/index.html?section=extras');
+  });
+
+  it('builds internal URLs preserving slug from pretty slug pathname', async () => {
+    const { buildInternalUrl } = await import('../../assets/js/script.js');
+
+    expect(buildInternalUrl('faq.html', 'family-token', 'https://example.com/ana-leo-2026')).toBe(
+      'https://example.com/faq.html?g=family-token&slug=ana-leo-2026'
+    );
+  });
+
+  it('builds internal URLs preserving slug from query param on static pages', async () => {
+    const { buildInternalUrl } = await import('../../assets/js/script.js');
+
+    expect(buildInternalUrl('presente.html', null, 'https://example.com/faq.html?slug=ana-leo-2026')).toBe(
+      'https://example.com/presente.html?slug=ana-leo-2026'
+    );
+
+    expect(buildInternalUrl('presente.html', null, 'https://example.com/faq.html?event=ana-leo-2026')).toBe(
+      'https://example.com/presente.html?slug=ana-leo-2026'
+    );
+  });
+
+  it('builds internal URLs removing stale slug and event when context is absent', async () => {
+    const { buildInternalUrl } = await import('../../assets/js/script.js');
+
+    expect(buildInternalUrl('index.html?section=extras&slug=old&event=legacy', null, 'https://example.com/index.html')).toBe(
+      'https://example.com/index.html?section=extras'
+    );
   });
 
   it('loadConfig merges site config with defaults', async () => {
@@ -68,6 +112,37 @@ describe('script config/theme loaders', () => {
     expect(config.whatsapp.destinationPhone).toBe('5511999999999');
   });
 
+  it('derives event textual date fields from event.date when inherited defaults are stale', async () => {
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        event: {
+          date: '2026-05-07T17:00:00-03:00'
+        }
+      })
+    });
+
+    const { loadConfig } = await import('../../assets/js/script.js');
+
+    const defaults = {
+      event: {
+        date: '2026-09-06T17:00:00-03:00',
+        heroDate: '06 . 09 . 2026',
+        detailDate: '06 Set 2026',
+        displayDate: '06 de setembro de 2026',
+        weekday: 'Domingo'
+      }
+    };
+
+    const config = await loadConfig('/fake/site.json', defaults);
+
+    expect(config.event.date).toBe('2026-05-07T17:00:00-03:00');
+    expect(config.event.heroDate).toBe('07 . 05 . 2026');
+    expect(config.event.detailDate).toBe('07 Mai 2026');
+    expect(config.event.displayDate).toBe('07 de maio de 2026');
+    expect(config.event.weekday).toBe('Quinta-feira');
+  });
+
   it('loadConfig falls back to defaults when fetch fails', async () => {
     global.fetch = vi.fn().mockRejectedValue(new Error('network'));
 
@@ -80,7 +155,16 @@ describe('script config/theme loaders', () => {
 
     const config = await loadConfig('/fake/site.json', defaults);
 
-    expect(config).toEqual(defaults);
+    expect(config).toMatchObject({
+      couple: { names: 'Fallback Couple' },
+      event: {
+        date: '2026-09-06',
+        heroDate: '06 . 09 . 2026',
+        detailDate: '06 Set 2026',
+        displayDate: '06 de setembro de 2026',
+        weekday: 'Domingo'
+      }
+    });
     expect(config).not.toBe(defaults);
   });
 

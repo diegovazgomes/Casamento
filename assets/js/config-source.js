@@ -29,8 +29,20 @@ export function getEventSlugFromPath(pathname = window.location.pathname) {
   return firstSegment;
 }
 
-export function resolveSiteConfigSource(pathname = window.location.pathname) {
-  const slug = getEventSlugFromPath(pathname);
+function getEventSlugFromQuery(currentUrl = window.location.href) {
+  try {
+    const searchParams = new URL(currentUrl).searchParams;
+    return searchParams.get('slug') || searchParams.get('event') || '';
+  } catch {
+    return '';
+  }
+}
+
+export function resolveSiteConfigSource(
+  pathname = window.location.pathname,
+  currentUrl = window.location.href,
+) {
+  const slug = getEventSlugFromQuery(currentUrl) || getEventSlugFromPath(pathname);
 
   if (!slug) {
     return {

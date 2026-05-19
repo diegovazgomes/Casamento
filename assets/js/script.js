@@ -4,12 +4,13 @@ import { RSVP } from './rsvp.js';
 import { PresentPage } from './presente.js';
 import { AudioController } from './audio.js';
 import { cloneDeep, mergeDeep, setInputPlaceholder, setText } from './utils.js';
-import { resolveSiteConfigSource, resolveThemePath } from './config-source.js';
-import { markBootstrapComplete, hideLoadingScreen, applyThemeToLoadingScreen } from './loading-screen.js';
+import { getEventSlugFromPath, resolveSiteConfigSource, resolveThemePath } from './config-source.js';
+import { markBootstrapComplete, hideLoadingScreen, applyThemeToLoadingScreen, applyEventDataToLoadingScreen, showFreeInviteButton, showPremiumInviteCard } from './loading-screen.js';
 import { onConfigLoaded } from './debug-badge.js';
 
 const TYPOGRAPHY_CONFIG_URL = 'assets/config/typography.json';
 const INVITATION_STARTED_STORAGE_KEY = 'wedding-invitation-started';
+const AUDIO_PAUSED_STORAGE_KEY = 'wedding-audio-paused';
 const NAVIGATION_SECTION_PARAM = 'section';
 const GUEST_TOKEN_API_URL = '/api/guest-token';
 
@@ -77,11 +78,24 @@ export function buildInternalUrl(path, guestToken = null, currentUrl = window.lo
 
     try {
         const url = new URL(path, currentUrl);
+        const current = new URL(currentUrl);
+        const slug =
+            current.searchParams.get('slug') ||
+            current.searchParams.get('event') ||
+            getEventSlugFromPath(current.pathname);
 
         if (guestToken) {
             url.searchParams.set('g', guestToken);
         } else {
             url.searchParams.delete('g');
+        }
+
+        if (slug) {
+            url.searchParams.set('slug', slug);
+            url.searchParams.delete('event');
+        } else {
+            url.searchParams.delete('slug');
+            url.searchParams.delete('event');
         }
 
         return url.toString();
@@ -197,6 +211,7 @@ function applyTheme(theme) {
         '--cream': colors.text ?? dt.colors.text,
         '--gold': colors.primary ?? dt.colors.primary,
         '--gold-light': colors.primarySoft ?? dt.colors.primarySoft,
+        '--hero-label-color': colors.heroLabel ?? colors.primarySoft ?? dt.colors.primarySoft,
         '--dark': colors.background ?? dt.colors.background,
         '--border-soft': colors.border ?? dt.colors.border,
         '--surface-soft': colors.surfaceSoft ?? dt.colors.surfaceSoft,
@@ -336,7 +351,8 @@ function warnConfigIssues(config) {
     const critical = [
         ['couple.names', config?.couple?.names],
         ['event.date', config?.event?.date],
-        ['event.mapsLink', config?.event?.mapsLink],
+        ['event.ceremonyMapsLink', config?.event?.ceremonyMapsLink],
+        ['event.partyMapsLink', config?.event?.partyMapsLink || config?.event?.mapsLink],
         ['whatsapp.destinationPhone', config?.whatsapp?.destinationPhone],
     ];
     critical.forEach(([path, val]) => {
@@ -361,6 +377,83 @@ function createConfigLoadError(configUrl, status = 0) {
     error.configUrl = configUrl;
     error.status = Number(status) || 0;
     return error;
+}
+
+const MONTHS_SHORT = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+const MONTHS_FULL = ['janeiro', 'fevereiro', 'marco', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+const WEEKDAYS = ['Domingo', 'Segunda-feira', 'Terca-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sabado'];
+
+function buildEventDateDisplayParts(eventDate) {
+    const source = String(eventDate || '').trim();
+    if (!source) {
+        return null;
+    }
+
+    const dateOnly = source.includes('T') ? source.split('T')[0] : source;
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(dateOnly)) {
+        return null;
+    }
+
+    // Midday avoids timezone day-shift for date-only parsing.
+    const parsed = new Date(`${dateOnly}T12:00:00`);
+    if (Number.isNaN(parsed.getTime())) {
+        return null;
+    }
+
+    const day = String(parsed.getDate()).padStart(2, '0');
+    const monthIndex = parsed.getMonth();
+    const monthNumber = String(monthIndex + 1).padStart(2, '0');
+    const year = parsed.getFullYear();
+
+    return {
+        heroDate: `${day} . ${monthNumber} . ${year}`,
+        detailDate: `${day} ${MONTHS_SHORT[monthIndex]} ${year}`,
+        displayDate: `${day} de ${MONTHS_FULL[monthIndex]} de ${year}`,
+        weekday: WEEKDAYS[parsed.getDay()]
+    };
+}
+
+function normalizeEventDateFields(config, defaults = null) {
+    const safeConfig = cloneDeep(config || {});
+    const event = safeConfig.event || {};
+    const defaultEvent = defaults?.event || {};
+    const fromEventDate = buildEventDateDisplayParts(event.date);
+
+    if (!fromEventDate) {
+        return safeConfig;
+    }
+
+    const nextEvent = { ...event };
+    const keys = ['heroDate', 'detailDate', 'displayDate', 'weekday'];
+
+    keys.forEach((key) => {
+        const current = String(nextEvent[key] || '').trim();
+        const inheritedDefault = String(defaultEvent[key] || '').trim();
+        const shouldDerive = !current || current === inheritedDefault;
+
+        if (shouldDerive) {
+            nextEvent[key] = fromEventDate[key];
+        }
+    });
+
+    safeConfig.event = nextEvent;
+    return safeConfig;
+}
+
+function buildFooterNote(event = {}) {
+    const dateParts = buildEventDateDisplayParts(event.date);
+    const dateText = dateParts?.heroDate || String(event.heroDate || event.displayDate || '').trim();
+    const locationText = String(event.partyLocationCity || event.locationCity || '').trim();
+
+    if (!dateText && !locationText) {
+        return '';
+    }
+
+    if (dateText && locationText) {
+        return `${dateText} | ${locationText}`;
+    }
+
+    return dateText || locationText;
 }
 
 async function loadDefaults() {
@@ -396,15 +489,16 @@ export async function loadConfig(configUrl, defaults = DEFAULT_SITE_CONTENT, opt
 
         const siteConfig = await response.json();
         const merged = mergeDeep(defaults, siteConfig);
-        warnConfigIssues(merged);
-        return merged;
+        const normalized = normalizeEventDateFields(merged, defaults);
+        warnConfigIssues(normalized);
+        return normalized;
     } catch (error) {
         if (!fallbackToDefaults) {
             throw error;
         }
 
         console.warn(`Falha ao carregar ${configUrl}. Usando fallback local.`, error);
-        return cloneDeep(defaults);
+        return normalizeEventDateFields(cloneDeep(defaults), defaults);
     }
 }
 
@@ -512,14 +606,37 @@ class InvitationExperience {
         this.rsvp = null;
         this.presentPage = new PresentPage();
         this.audio = new AudioController(this.getAudioTracks());
+        if (this.wasAudioPaused()) {
+            this.audio.userPaused = true;
+        }
         this.hasStarted = false;
         this.mainInitialized = false;
+        this.heroResponsiveModeBound = false;
+        this.heroPhotoElement = null;
 
         this.introScreen = document.getElementById('introScreen');
         this.openInviteButton = document.getElementById('openInviteButton');
         this.siteShell = document.getElementById('siteShell');
-        this.audioToggle = document.getElementById('audioToggle');
+        this.audioToggle = document.getElementById('audioToggle') ?? this.ensureAudioToggle();
         this.audioToggleLabel = this.audioToggle?.querySelector('.audio-toggle__label') ?? null;
+    }
+
+    ensureAudioToggle() {
+        const body = document.body;
+        if (!body) {
+            return null;
+        }
+
+        const button = document.createElement('button');
+        button.className = 'audio-toggle';
+        button.id = 'audioToggle';
+        button.type = 'button';
+        button.hidden = true;
+        button.setAttribute('aria-label', 'Pausar som');
+        button.setAttribute('aria-pressed', 'false');
+        button.innerHTML = '<span class="audio-toggle__pulse" aria-hidden="true"></span><span class="audio-toggle__label">Som</span>';
+        body.appendChild(button);
+        return button;
     }
 
     async init() {
@@ -532,10 +649,12 @@ class InvitationExperience {
         this.setEventDetails();
         this.setTexts();
         this.setGift();
+        this.setFooters();
         this.setPages();
         this.applyNavigationLinks();
         this.presentPage.init();
         this.bindIntro();
+        this._animateIntroScreen();
         this.bindAudioToggle();
         this.audio.addEventListener('statechange', () => this.syncAudioButton());
         this.syncAudioButton();
@@ -560,9 +679,27 @@ class InvitationExperience {
         }
 
         this.openInviteButton.addEventListener('click', () => {
-            const initialContext = this.getInitialAudioContext();
-            const audioPromise = this.audio.startFromGesture(initialContext);
+            const audioPromise = this.isAudioEnabled()
+                ? this.audio.startFromGesture(this.getInitialAudioContext())
+                : null;
             this.enterInvitation({ audioPromise });
+        });
+    }
+
+    _animateIntroScreen() {
+        if (!this.introScreen) return;
+
+        const backdrop = this.introScreen.querySelector('.intro-screen__backdrop');
+        const names    = document.getElementById('introScreenTitle');
+        const subtitle = document.getElementById('introNote');
+        const btn      = this.openInviteButton;
+
+        // rAF garante que o browser pintou o estado inicial antes de acionar as animações
+        requestAnimationFrame(() => {
+            if (backdrop) backdrop.classList.add('anim-hero-photo');
+            if (names)    names.classList.add('anim-hero-name');
+            if (subtitle) subtitle.classList.add('anim-hero-subtitle');
+            if (btn)      btn.classList.add('anim-hero-btn');
         });
     }
 
@@ -615,8 +752,7 @@ class InvitationExperience {
     }
 
     getInitialAudioContext() {
-        const isGiftOrExtraPage = document.body.classList.contains('gift-page') || document.body.classList.contains('extra-page');
-        return isGiftOrExtraPage ? 'gift' : 'main';
+        return 'main';
     }
 
     async enterInvitation({ skipIntro = false, targetSection = null, forceTop = false, audioPromise = null, shouldNavigate = true } = {}) {
@@ -633,18 +769,31 @@ class InvitationExperience {
         this.applyStartedState({ skipIntro });
 
         this.initializeMainSite();
-        if (audioPromise) {
-            await audioPromise;
-        } else {
-            await this.audio.unlock();
-            await this.audio.setContext(this.getInitialAudioContext());
-        }
-
-        this.syncAudioButton();
 
         if (shouldNavigate) {
             this.navigateWithinInvitation({ targetSection, forceTop });
         }
+
+        if (audioPromise) {
+            await audioPromise;
+        } else if (this.isAudioEnabled() && !this.audio.userPaused) {
+            await this.audio.unlock();
+            const _ctx = this.getInitialAudioContext();
+            const _played = await this.audio.setContext(_ctx);
+            if (!_played) {
+                // Autoplay bloqueado pelo navegador — tenta no primeiro gesto do usuário
+                const _tryResume = async () => {
+                    if (!this.audio.userPaused) {
+                        await this.audio.setContext(_ctx);
+                        this.syncAudioButton();
+                    }
+                };
+                document.addEventListener('click', _tryResume, { once: true, passive: true });
+                document.addEventListener('touchstart', _tryResume, { once: true, passive: true });
+            }
+        }
+
+        this.syncAudioButton();
     }
 
     navigateWithinInvitation({ targetSection = null, forceTop = false } = {}) {
@@ -698,6 +847,25 @@ class InvitationExperience {
 
             window.requestAnimationFrame(() => {
                 this.siteShell.classList.add('is-visible');
+
+                // Anima os elementos da hero principal após a shell ficar visível
+                window.requestAnimationFrame(() => {
+                    const heroPhoto = document.getElementById('couplePhoto');
+                    const heroNames = document.getElementById('heroNames');
+                    const heroLabel = document.getElementById('heroLabel');
+
+                    if (heroPhoto) heroPhoto.classList.add('anim-main-photo');
+                    if (heroNames) heroNames.classList.add('anim-main-name');
+                    if (heroLabel) heroLabel.classList.add('anim-main-subtitle');
+
+                    // Recalcula o modo responsivo da hero depois que a shell ficou visível.
+                    // Evita estado intermitente quando dimensões ainda eram 0 no primeiro cálculo.
+                    this.refreshDesktopHeroImageMode();
+                });
+
+                window.setTimeout(() => {
+                    this.refreshDesktopHeroImageMode();
+                }, 120);
             });
         }
 
@@ -734,6 +902,21 @@ class InvitationExperience {
         }
     }
 
+    wasAudioPaused() {
+        try {
+            return window.sessionStorage.getItem(AUDIO_PAUSED_STORAGE_KEY) === 'true';
+        } catch {
+            return false;
+        }
+    }
+
+    markAudioPaused(paused) {
+        try {
+            window.sessionStorage.setItem(AUDIO_PAUSED_STORAGE_KEY, String(Boolean(paused)));
+        } catch {
+        }
+    }
+
     syncAudioButton() {
         if (!this.audioToggle) {
             return;
@@ -748,7 +931,8 @@ class InvitationExperience {
             hasError: Boolean(this.audio.lastError)
         };
 
-        this.audioToggle.hidden = !this.hasStarted;
+        this.markAudioPaused(detail.userPaused);
+        this.audioToggle.hidden = !this.hasStarted || !this.isAudioEnabled();
         this.audioToggle.classList.toggle('is-paused', detail.userPaused || !detail.isPlaying);
         this.audioToggle.classList.toggle('is-disabled', detail.hasError && !detail.isPlaying);
         this.audioToggle.setAttribute('aria-pressed', String(!detail.userPaused && detail.isPlaying));
@@ -769,13 +953,17 @@ class InvitationExperience {
         }
     }
 
+    isAudioEnabled() {
+        return this.config.media?.tracks?.main?.enabled !== false;
+    }
+
     getAudioTracks() {
-        const mainTrack = this.config.media?.tracks?.main ?? {};
-        const giftTrack = this.config.media?.tracks?.gift ?? {};
+        const mainTrack = this.config.media?.tracks?.main ?? DEFAULT_SITE_CONTENT.media?.tracks?.main ?? {};
+        const giftTrack = this.config.media?.tracks?.gift ?? DEFAULT_SITE_CONTENT.media?.tracks?.gift ?? mainTrack;
 
         return {
-            main: mainTrack,
-            gift: giftTrack
+            main: { ...mainTrack },
+            gift: { ...giftTrack }
         };
     }
 
@@ -833,9 +1021,10 @@ class InvitationExperience {
             heroPhoto.setAttribute('src', heroImage);
             heroPhoto.setAttribute('alt', this.config.texts?.heroPhotoAlt || `${names.names} em retrato do casal`);
         }
+        this.heroPhotoElement = heroPhoto;
+        this.setupDesktopHeroImageMode(heroPhoto);
 
         setText('mainFooterNames', names.names);
-        setText('mainFooterNote', this.config.texts?.footerNote);
 
         if (this.guestTokenData?.group_name) {
             const greeting = document.getElementById('guestGreeting');
@@ -846,28 +1035,125 @@ class InvitationExperience {
         }
     }
 
+    setupDesktopHeroImageMode(heroPhoto) {
+        if (!heroPhoto || this.heroResponsiveModeBound) {
+            this.applyDesktopHeroImageMode(heroPhoto);
+            return;
+        }
+
+        const updateHeroMode = () => this.applyDesktopHeroImageMode(heroPhoto);
+
+        heroPhoto.addEventListener('load', updateHeroMode);
+        heroPhoto.addEventListener('loadedmetadata', updateHeroMode);
+        window.addEventListener('resize', () => {
+            window.requestAnimationFrame(updateHeroMode);
+        }, { passive: true });
+
+        this.heroResponsiveModeBound = true;
+        updateHeroMode();
+
+        if (heroPhoto.complete) {
+            window.requestAnimationFrame(updateHeroMode);
+        }
+    }
+
+    refreshDesktopHeroImageMode() {
+        const heroPhoto = this.heroPhotoElement || document.getElementById('couplePhoto');
+        if (!heroPhoto) {
+            return;
+        }
+
+        this.applyDesktopHeroImageMode(heroPhoto);
+    }
+
+    applyDesktopHeroImageMode(heroPhoto) {
+        const hero = document.getElementById('hero');
+        if (!hero) {
+            return;
+        }
+
+        hero.classList.remove('hero--full-photo', 'hero--cover-photo');
+        hero.style.removeProperty('--hero-photo-render-width');
+        hero.style.removeProperty('--hero-photo-text-scale');
+
+        if (!heroPhoto || !window.matchMedia('(min-width: 768px)').matches) {
+            return;
+        }
+
+        const naturalWidth = Number(heroPhoto.naturalWidth || 0);
+        const naturalHeight = Number(heroPhoto.naturalHeight || 0);
+
+        if (!naturalWidth || !naturalHeight) {
+            return;
+        }
+
+        const aspectRatio = naturalWidth / naturalHeight;
+        const shouldShowFullImage = aspectRatio < 1.35;
+
+        hero.classList.add(shouldShowFullImage ? 'hero--full-photo' : 'hero--cover-photo');
+
+        if (!shouldShowFullImage) {
+            return;
+        }
+
+        const heroWidth = Number(hero.clientWidth || 0);
+        const heroHeight = Number(hero.clientHeight || 0);
+
+        if (!heroWidth || !heroHeight) {
+            window.requestAnimationFrame(() => this.refreshDesktopHeroImageMode());
+            return;
+        }
+
+        const renderedImageWidth = Math.min(heroWidth, heroHeight * aspectRatio);
+        const textScale = Math.max(0.64, Math.min(renderedImageWidth / 760, 1));
+
+        hero.style.setProperty('--hero-photo-render-width', `${Math.round(renderedImageWidth)}px`);
+        hero.style.setProperty('--hero-photo-text-scale', textScale.toFixed(3));
+    }
+
     setEventDetails() {
         setText('detailDateTitle', this.config.texts?.detailsDateLabel);
         setText('detailTimeTitle', this.config.texts?.detailsTimeLabel);
-        setText('detailLocationTitle', this.config.texts?.detailsLocationLabel);
-        setText('detailOccasionTitle', this.config.texts?.detailsOccasionLabel);
+        setText('detailCeremonyTitle', this.config.texts?.detailsCeremonyLabel || this.config.texts?.detailsLocationLabel || 'Cerimônia');
+        setText('detailPartyTitle', this.config.texts?.detailsPartyLabel || 'Festa');
         setText('detailGiftTitle', this.config.texts?.detailsGiftTitle);
         setText('detailDateValue', this.config.event?.detailDate || this.config.event?.displayDate);
         setText('detailDateSub', this.config.event?.weekday);
         setText('detailTimeValue', this.config.event?.time);
         setText('detailTimeSub', this.config.event?.timezone);
-        setText('detailLocationName', this.config.event?.locationName);
-        setText('detailLocationCity', this.config.event?.locationCity);
-        setText('detailLocationHint', this.config.texts?.detailsLocationHint);
-        setText('detailOccasionValue', this.config.texts?.detailsOccasionValue);
-        setText('detailOccasionSub', this.config.texts?.detailsOccasionSub);
 
-        const locationLink = document.getElementById('detailLocationLink');
-        if (locationLink && this.config.event?.mapsLink) {
-            locationLink.setAttribute('href', this.config.event.mapsLink);
-            const locationName = this.config.event.locationName || 'local do evento';
-            locationLink.setAttribute('aria-label', `Abrir localização de ${locationName} no mapa`);
-        }
+        const ceremonyName = this.config.event?.ceremonyLocationName || this.config.event?.locationName;
+        const ceremonyCity = this.config.event?.ceremonyLocationCity || this.config.event?.locationCity;
+        const ceremonyMapsLink = this.config.event?.ceremonyMapsLink || this.config.event?.mapsLink;
+
+        const partyName = this.config.event?.partyLocationName || this.config.event?.locationName;
+        const partyCity = this.config.event?.partyLocationCity || this.config.event?.locationCity;
+        const partyMapsLink = this.config.event?.partyMapsLink || this.config.event?.mapsLink;
+
+        setText('detailCeremonyName', ceremonyName);
+        setText('detailCeremonyCity', ceremonyCity);
+        setText('detailCeremonyHint', this.config.texts?.detailsLocationHint);
+        setText('detailPartyName', partyName);
+        setText('detailPartyCity', partyCity);
+        setText('detailPartyHint', this.config.texts?.detailsLocationHint);
+
+        setText('detailDresscodeValue',
+            this.config.pages?.traje?.content?.dresscode ??
+            this.config.texts?.detailsOccasionValue
+        );
+
+        const setLocationLink = (elementId, mapLink, locationName, fallbackLabel) => {
+            const locationLink = document.getElementById(elementId);
+            if (!locationLink || !mapLink) {
+                return;
+            }
+
+            locationLink.setAttribute('href', mapLink);
+            locationLink.setAttribute('aria-label', `Abrir localização de ${locationName || fallbackLabel} no mapa`);
+        };
+
+        setLocationLink('detailCeremonyLink', ceremonyMapsLink, ceremonyName, 'cerimônia');
+        setLocationLink('detailPartyLink', partyMapsLink, partyName, 'festa');
     }
 
     setTexts() {
@@ -896,6 +1182,15 @@ class InvitationExperience {
         setText('detailGiftSub', this.config.texts?.detailsGiftSub);
     }
 
+    setFooters() {
+        const footerNote = buildFooterNote(this.config.event);
+        if (footerNote) {
+            document.querySelectorAll('#mainFooterNote').forEach((element) => {
+                element.textContent = footerNote;
+            });
+        }
+    }
+
     setGift() {
         setText('giftTag', this.config.texts?.giftTag);
         setText('giftOverlayTitle', this.config.texts?.giftTitle);
@@ -910,11 +1205,8 @@ class InvitationExperience {
 
         const pixCode = this.config.gift?.pixKey;
         const pixImage = this.config.gift?.pixQrImage;
-        const footerNote = this.config.texts?.footerNote;
         const cardEnabled = this.config.gift?.cardPaymentEnabled === true;
         const cardLink = String(this.config.gift?.cardPaymentLink ?? '').trim();
-
-        setText('mainFooterNote', footerNote);
 
         if (pixCode) {
             document.querySelectorAll('#pixCode').forEach((element) => {
@@ -997,6 +1289,11 @@ class InvitationExperience {
         const detailGiftLink = document.querySelector('.detail-card-gift');
         if (detailGiftLink) {
             detailGiftLink.setAttribute('href', buildInternalUrl('presente.html', this.guestToken));
+        }
+
+        const detailDresscodeLink = document.querySelector('.detail-card-traje');
+        if (detailDresscodeLink) {
+            detailDresscodeLink.setAttribute('href', buildInternalUrl('traje.html', this.guestToken));
         }
     }
 
@@ -1091,15 +1388,15 @@ function renderBootstrapError(error, configSource) {
     const isNotFound = configSource?.usesApi && Number(error?.status) === 404;
 
     setText('configErrorTitle', isNotFound
-        ? 'Convite nao encontrado.'
-        : 'Nao foi possivel carregar este convite.');
+        ? 'Convite não encontrado.'
+        : 'Não foi possivel carregar este convite.');
     setText('configErrorBody', isNotFound
         ? 'Confira se o link esta completo ou solicite um novo acesso aos noivos.'
         : 'Tente novamente em instantes. Se o problema continuar, fale com quem enviou o convite.');
 
     document.title = isNotFound
-        ? 'Convite nao encontrado.'
-        : 'Nao foi possivel carregar este convite.';
+        ? 'Convite não encontrado.'
+        : 'Não foi possivel carregar este convite.';
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -1151,13 +1448,53 @@ async function bootstrap() {
         // Feito aqui (após applyTheme) garante timing: tema já carregado,
         // loading screen ainda visível, zero race condition.
         applyThemeToLoadingScreen(effectiveTheme);
+        applyEventDataToLoadingScreen({
+            names: config.couple?.names || '',
+            date:  config.event?.date   || '',
+        });
         // Atualiza badge de debug com tema e status de cache (no-op se não estiver em modo debug)
         onConfigLoaded({ configUrl: finalConfigUrl, theme: config.activeTheme || 'classic-gold' });
         const experience = new InvitationExperience(config, effectiveTheme, navigationState);
         await experience.init();
         window.dispatchEvent(new CustomEvent('app:ready', { detail: { config, theme: effectiveTheme } }));
-        markBootstrapComplete();
-        await hideLoadingScreen();
+
+        const plan = String(config.plan || 'free').toLowerCase();
+
+        // Persistir plano no localStorage para que a loading screen
+        // esconda a brand Devazi nas próximas visitas de usuários premium
+        try { localStorage.setItem('devazi_plan', plan); } catch { /* silencioso */ }
+
+        // Mostrar marca d'água Devazi para plano free
+        if (plan !== 'premium') {
+            const watermark = document.getElementById('devaziWatermark');
+            if (watermark) watermark.hidden = false;
+        }
+
+        if (!experience.hasStarted) {
+            // Primeira visita → loading screen é o ponto de entrada para ambos os planos
+            markBootstrapComplete();
+            const onOpen = async () => {
+                const audioPromise = experience.isAudioEnabled()
+                    ? experience.audio.startFromGesture(experience.getInitialAudioContext())
+                    : null;
+                experience.enterInvitation({ skipIntro: true, audioPromise });
+                await hideLoadingScreen();
+            };
+            if (plan === 'premium') {
+                showPremiumInviteCard({
+                    coupleNames: config.couple?.names || '',
+                    label: config.texts?.introLabel || '',
+                    subtitle: config.couple?.subtitle || config.texts?.intro || '',
+                    onOpen,
+                });
+            } else {
+                showFreeInviteButton(onOpen);
+            }
+        } else {
+            // Retornando → esconde loading, convite já aberto
+            markBootstrapComplete();
+            await hideLoadingScreen();
+        }
     } catch (error) {
         console.error('Falha ao carregar a configuracao da pagina.', error);
         renderBootstrapError(error, configSource);

@@ -43,6 +43,26 @@
             }
         })();
     </script>
+    <script>
+        /* Loading Screen — leitura síncrona para zero flash de iniciais/tema */
+        (function () {
+            try {
+                var c = JSON.parse(sessionStorage.getItem('ls-theme-colors') || 'null');
+                if (c && c.bg && c.text && c.primary) {
+                    var r = document.documentElement;
+                    r.style.setProperty('--ls-bg-color',      c.bg);
+                    r.style.setProperty('--ls-text-color',    c.text);
+                    r.style.setProperty('--ls-primary-color', c.primary);
+                }
+                window.__LS_COUPLE_DATA__ = null;
+                if (sessionStorage.getItem('ls_data_ready') === '1') {
+                    var d = JSON.parse(sessionStorage.getItem('ls_couple') || 'null');
+                    if (d && d.first && d.second) { window.__LS_COUPLE_DATA__ = d; }
+                    document.documentElement.classList.add('ls-pending');
+                }
+            } catch (e) { window.__LS_COUPLE_DATA__ = null; }
+        })();
+    </script>
     <script type="module">
         // Inicializa loading screen e badge de debug (apenas com ?debug ou ?dev)
         import { initLoadingScreen } from './assets/js/loading-screen.js';
@@ -141,25 +161,49 @@
                     <span class="detail-sub" id="detailTimeSub"></span>
                 </article>
                 <a
-                    id="detailLocationLink"
+                    id="detailCeremonyLink"
                     class="detail-card detail-card-link"
                     href=""
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-label=""
                 >
-                    <span class="detail-icon" aria-hidden="true" id="detailLocationIcon">🏛️</span>
-                    <span class="detail-title" id="detailLocationTitle"></span>
-                    <div class="detail-value" id="detailLocationName"></div>
-                    <span class="detail-sub" id="detailLocationCity"></span>
-                    <span class="detail-link-hint" id="detailLocationHint"></span>
+                    <span class="detail-icon" aria-hidden="true" id="detailCeremonyIcon">⛪</span>
+                    <span class="detail-title" id="detailCeremonyTitle"></span>
+                    <div class="detail-value" id="detailCeremonyName"></div>
+                    <span class="detail-sub" id="detailCeremonyCity"></span>
+                    <span class="detail-link-hint" id="detailCeremonyHint"></span>
                 </a>
-                <article class="detail-card">
-                    <span class="detail-icon" aria-hidden="true" id="detailOccasionIcon">💍</span>
-                    <span class="detail-title" id="detailOccasionTitle"></span>
-                    <div class="detail-value" id="detailOccasionValue"></div>
-                    <span class="detail-sub" id="detailOccasionSub"></span>
-                </article>
+                <a
+                    id="detailPartyLink"
+                    class="detail-card detail-card-link"
+                    href=""
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label=""
+                >
+                    <span class="detail-icon" aria-hidden="true" id="detailPartyIcon">🎉</span>
+                    <span class="detail-title" id="detailPartyTitle"></span>
+                    <div class="detail-value" id="detailPartyName"></div>
+                    <span class="detail-sub" id="detailPartyCity"></span>
+                    <span class="detail-link-hint" id="detailPartyHint"></span>
+                </a>
+                <a
+                    class="detail-card detail-card-link detail-card-traje"
+                    href="traje.html"
+                    aria-label="Ver detalhes do traje e paletas"
+                >
+                    <span class="detail-icon" aria-hidden="true">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+                             stroke="currentColor" stroke-width="1.5"
+                             stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.57a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.57a2 2 0 0 0-1.34-2.23z"/>
+                        </svg>
+                    </span>
+                    <span class="detail-title">TRAJE &amp; PALETAS</span>
+                    <div class="detail-value" id="detailDresscodeValue"></div>
+                    <span class="detail-link-hint">Ver detalhes</span>
+                </a>
                 <a class="detail-card detail-card-link detail-card-gift" href="presente.html" aria-label="Abrir área de presentes">
                     <span class="detail-icon" aria-hidden="true" id="detailGiftIcon">🎁</span>
                     <span class="detail-title" id="detailGiftTitle">Presente</span>
@@ -245,6 +289,7 @@
     <footer>
         <div class="footer-names" id="mainFooterNames"></div>
         <p class="footer-note" id="mainFooterNote"></p>
+        <a class="devazi-watermark" id="devaziWatermark" href="https://www.devazi.app" target="_blank" rel="noopener noreferrer" hidden>Criado com devazi.app</a>
     </footer>
     </div>
 

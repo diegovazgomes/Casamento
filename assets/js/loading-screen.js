@@ -1,68 +1,191 @@
 /**
  * Loading Screen Module
- * 
- * Gerencia a tela de carregamento de forma centralizada:
- * - Injeta HTML da loading screen no body
- * - Carrega cores do tema dinamicamente
- * - Preenche nomes dos noivos
- * - Coordena com o bootstrap principal
+ *
+ * Gerencia a tela de carregamento em duas fases:
+ * - Fase 1: identidade Devasi antes de carregar config
+ * - Fase 2: visual do convite com iniciais/data dinamicas
  */
 
-import { resolveSiteConfigSource, resolveThemePath } from './config-source.js';
+import { resolveSiteConfigSource } from './config-source.js';
 
-const LOADING_SCREEN_HTML = `
-<div class="loading-screen" id="loadingScreen" aria-hidden="true">
+// Chave sessionStorage: apenas o FLAG de que já foi carregado antes.
+// Nunca persiste os valores em si para evitar dados stale.
+const LOADING_DATA_READY_KEY = 'ls_data_ready';
+
+// Timestamp do início da loading screen — usado para garantir mínimo de 4s
+let loadingStartTime = 0;
+
+/**
+ * Gera o HTML da loading screen.
+ *
+ * @param {{ first: string, second: string, date: string }|null} prefill
+ * @param {{ showCouplePhase?: boolean }} options
+ *   Dados do casal lidos sincronamente do sessionStorage no <head>.
+ *   Quando fornecidos, pré-preenche o texto das iniciais e data antes do
+ *   módulo ES executar — o CSS cuida de revelar com fade (animation-delay:1.5s).
+ *   Quando null (primeira visita), usa placeholders "-" e "--. --. ----".
+ */
+function buildLoadingHTML(prefill = null, options = {}) {
+    const showCouplePhase = options.showCouplePhase === true;
+    const hideBrand = options.hideBrand === true;
+    const initialA = prefill?.first  || '';
+    const initialB = prefill?.second || '';
+    const dateText = normalizeLoadingDateText(prefill?.date || '');
+
+    return `
+<div class="loading-screen${showCouplePhase ? ' loading-screen--phase-couple' : ''}" id="loadingScreen" aria-hidden="true">
     <div class="loading-backdrop"></div>
-    <div class="loading-content">
-        <div class="loading-hearts">
-            <!-- Heart 1: Text Color (cinza/branco) -->
-            <svg class="heart heart-text" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                <path d="M50,95 C20,75 5,60 5,45 C5,30 15,20 27,20 C35,20 42,25 50,35 C58,25 65,20 73,20 C85,20 95,30 95,45 C95,60 80,75 50,95 Z" fill="currentColor"/>
-            </svg>
-            <!-- Heart 2: Primary Color (prata/ouro) -->
-            <svg class="heart heart-primary" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                <path d="M50,95 C20,75 5,60 5,45 C5,30 15,20 27,20 C35,20 42,25 50,35 C58,25 65,20 73,20 C85,20 95,30 95,45 C95,60 80,75 50,95 Z" fill="currentColor"/>
-            </svg>
+    <div class="loading-phase loading-phase--brand" id="loadingPhaseBrand" role="status" aria-live="polite" aria-label="Carregando"${(showCouplePhase || hideBrand) ? ' hidden' : ''}>
+        <div class="brand-phase-center">
+            <p class="brand-studio-tag">Stúdio</p>
+            <div class="brand-name-frame">
+                <svg class="brand-frame-svg" viewBox="0 0 340 108" preserveAspectRatio="none" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <rect class="brand-frame-track" x="2" y="2" width="336" height="104" rx="14" ry="14"/>
+                    <rect class="brand-frame-beam"  x="2" y="2" width="336" height="104" rx="14" ry="14"/>
+                </svg>
+                <span class="brand-name-word">Devazi</span>
+            </div>
+            <p class="brand-tagline">Experiências digitais</p>
+            <button class="ls-brand-btn" id="loadingBrandBtn" type="button" hidden>Abrir convite</button>
         </div>
-        <p class="loading-names" id="loadingNames">Carregando experiências…</p>
+    </div>
+
+    <div class="loading-phase loading-phase--card" id="loadingPhaseCard" hidden>
+        <div class="ls-card">
+            <p class="ls-card__label" id="loadingCardLabel"></p>
+            <p class="ls-card__names" id="loadingCardNames"></p>
+            <p class="ls-card__subtitle" id="loadingCardSubtitle"></p>
+            <button class="ls-card__btn" id="loadingCardBtn" type="button">Abrir convite</button>
+        </div>
+    </div>
+
+    <div class="loading-phase loading-phase--couple" id="loadingPhaseCouple"${showCouplePhase ? '' : ' hidden'}>
+        <div class="loader-center" aria-hidden="true">
+            <div class="loader-progress-ring">
+                <svg viewBox="0 0 220 220">
+                    <circle class="loader-progress-track" cx="110" cy="110" r="105"></circle>
+                    <circle class="loader-progress-arc" cx="110" cy="110" r="105"></circle>
+                </svg>
+            </div>
+
+            <div class="bubble-wrap">
+                <div class="bubble-shadow"></div>
+                <div class="bubble">
+                    <div class="bubble-iridescence"></div>
+                    <div class="bubble-highlight"></div>
+                    <div class="bubble-highlight-small"></div>
+                </div>
+                <div class="bubble-content">
+                    <div class="bubble-monogram">
+                        <span class="bubble-letter" id="loadingInitialA">${initialA}</span>
+                        <span class="bubble-amp">&amp;</span>
+                        <span class="bubble-letter" id="loadingInitialB">${initialB}</span>
+                    </div>
+                    <p class="loader-date loader-date--inside-bubble" id="loadingEventDate">${dateText}</p>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 `;
+}
 
 /**
- * Inicializa a loading screen:
- * 1. Injeta HTML no body (afterbegin para estar antes de tudo)
- * 2. Carrega site.json para descobrir tema e nomes
- * 3. Carrega arquivo de tema para extrair cores
- * 4. Aplica cores via CSS variables
- * 5. Preenche nomes dos noivos
+ * Inicializa a loading screen.
+ *
+ * Fase brand → fase couple é decidida pelo flag sessionStorage 'ls_data_ready':
+ * - Ausente (primeira visita nesta sessão): mostra brand (Devazi).
+ * - Presente (já carregou antes): mostra couple direto, dados em opacity:0.
+ *
+ * Os valores (iniciais e data) são sempre preenchidos por applyEventDataToLoadingScreen(),
+ * que recebe dados frescos do Supabase e os revela com fade de 150ms.
  */
-export async function initLoadingScreen() {
+export function initLoadingScreen() {
+    loadingStartTime = Date.now();
+
     try {
-        // 1. Injetar HTML e aplicar cores imediatamente (sem esperar fetch)
-        //    Prefere cores persistidas da visita anterior (evita flash neutro).
-        document.body.insertAdjacentHTML('afterbegin', LOADING_SCREEN_HTML);
         if (!loadPersistedThemeColors()) {
             applyNeutralLoadingColors();
         }
 
-        // 2. Buscar apenas os nomes do casal — em paralelo com o bootstrap principal
-        //    As cores do tema são aplicadas por bootstrap() via applyThemeToLoadingScreen()
-        //    assim que o tema real for carregado, garantindo timing correto.
-        const configSource = resolveSiteConfigSource();
-        const siteRes = await fetch(configSource.url, {
-            method: 'GET',
-            headers: { Accept: 'application/json' },
-            cache: 'no-store'
-        });
-        if (!siteRes.ok) return;
+        // Guard: o script síncrono no <head> pode ter injetado o HTML antes
+        // deste módulo executar. Nesse caso, não duplicar.
+        if (document.getElementById('loadingScreen')) {
+            return;
+        }
 
-        const siteConfig = await siteRes.json();
-        preencherNomes(siteConfig?.couple?.names || '');
+        // Ler dados pré-carregados pelo script síncrono no <head>.
+        // Quando presentes, buildLoadingHTML injeta os valores já visíveis (opacity:1).
+        const prefill = (window.__LS_COUPLE_DATA__ && window.__LS_COUPLE_DATA__.first)
+            ? window.__LS_COUPLE_DATA__
+            : null;
 
+        const dataReady = ssGet(LOADING_DATA_READY_KEY) === '1';
+        const isPremium = lsGet('devazi_plan') === 'premium';
+        document.body.insertAdjacentHTML('afterbegin', buildLoadingHTML(prefill, {
+            showCouplePhase: dataReady && !isPremium,
+            hideBrand: isPremium,
+        }));
     } catch (error) {
-        console.warn('[LoadingScreen] Erro ao buscar nomes, usando fallback.', error);
+        console.warn('[LoadingScreen] Erro ao inicializar.', error);
     }
+}
+
+/**
+ * Preenche os dados do casal na fase couple e os revela com fade suave.
+ * Deve ser chamada por script.js logo após o config do Supabase ser resolvido.
+ * Salva apenas o FLAG 'ls_data_ready' — nunca os valores (evita stale data).
+ *
+ * @param {{ names: string, date: string }} param
+ *   names — couple.names do config (ex: "Siannah & Diego")
+ *   date  — event.date ISO (ex: "2026-09-07") — usado para formatar a data
+ */
+export function applyEventDataToLoadingScreen({ names = '', date = '' } = {}) {
+    // Verificar se é primeira visita ANTES de qualquer alteração visual.
+    // Na primeira visita o Devazi deve permanecer visível até hideLoadingScreen().
+    const isFirstVisit = ssGet(LOADING_DATA_READY_KEY) !== '1';
+
+    const initials = extractCoupleInitials(names);
+    const formattedDate = formatEventDate(date, '', '');
+
+    // Preencher iniciais se válidas (necessário para o prefill na próxima visita)
+    if (initials.isValid) {
+        const elA = document.getElementById('loadingInitialA');
+        const elB = document.getElementById('loadingInitialB');
+        if (elA) elA.textContent = initials.first;
+        if (elB) elB.textContent = initials.second;
+    }
+
+    // Preencher data (necessário para o prefill na próxima visita)
+    const elDate = document.getElementById('loadingEventDate');
+    if (elDate && formattedDate && formattedDate !== '--.--.----') {
+        elDate.textContent = formattedDate;
+    }
+
+    // Na primeira visita: NÃO trocar de fase. Devazi permanece ativo e some
+    // diretamente para o conteúdo via hideLoadingScreen(). A fase couple só
+    // aparece em visitas subsequentes (quando ls_data_ready já estava '1').
+    if (!isFirstVisit) {
+        const couplePhase = document.getElementById('loadingPhaseCouple');
+        if (couplePhase?.hidden) {
+            switchToCouplePhase();
+        }
+    }
+
+    // Opacity é gerenciada pelo CSS (animation-delay: 2s em animations.css).
+    // Não manipular opacity aqui — evita conflito com a animação CSS.
+
+    // Persistir dados do casal para leitura síncrona no <head> na próxima visita.
+    // sessionStorage é descartado ao fechar o browser — sem risco de stale data entre eventos.
+    try {
+        sessionStorage.setItem('ls_couple', JSON.stringify({
+            first:  initials.isValid ? initials.first  : '',
+            second: initials.isValid ? initials.second : '',
+            date:   (formattedDate && formattedDate !== '--.--.----') ? formattedDate : '',
+        }));
+    } catch { /* silencioso */ }
+
+    ssSet(LOADING_DATA_READY_KEY, '1');
 }
 
 /**
@@ -87,11 +210,128 @@ export function applyThemeToLoadingScreen(theme) {
     persistThemeColors(bg, text, primary);
 }
 
-/**
- * Salva as cores do tema no sessionStorage.
- * sessionStorage dura apenas enquanto a aba estiver aberta, então
- * cada nova aba começa limpa — sem vazar cores de um casal para outro.
- */
+function switchToCouplePhase() {
+    const loadingScreen = document.getElementById('loadingScreen');
+    const brandPhase = document.getElementById('loadingPhaseBrand');
+    const couplePhase = document.getElementById('loadingPhaseCouple');
+
+    if (!loadingScreen || !brandPhase || !couplePhase) {
+        return;
+    }
+
+    loadingScreen.classList.add('loading-screen--phase-couple');
+    brandPhase.hidden = true;
+    couplePhase.hidden = false;
+}
+
+function extractCoupleInitials(coupleNames) {
+    const name = String(coupleNames || '').trim();
+    if (!name) {
+        return { first: '-', second: '-', isValid: false };
+    }
+
+    if (isGenericCoupleName(name)) {
+        return { first: '-', second: '-', isValid: false };
+    }
+
+    const parts = splitCoupleName(name);
+    const first = extractInitial(parts[0] || name);
+    const second = extractInitial(parts[1] || parts[0] || name);
+
+    return {
+        first,
+        second,
+        isValid: true
+    };
+}
+
+function splitCoupleName(name) {
+    const byConnector = name
+        .split(/\s*(?:&|\be\b|\band\b|\/)\s*/iu)
+        .map((part) => part.trim())
+        .filter(Boolean);
+
+    if (byConnector.length >= 2) {
+        return [byConnector[0], byConnector[1]];
+    }
+
+    const words = name.split(/\s+/).map((part) => part.trim()).filter(Boolean);
+    if (words.length >= 2) {
+        return [words[0], words[words.length - 1]];
+    }
+
+    return [name, name];
+}
+
+function extractInitial(value) {
+    const normalized = String(value || '').trim();
+    const match = normalized.match(/[A-Za-zÀ-ÿ]/u);
+
+    if (!match) {
+        return '-';
+    }
+
+    return match[0].toUpperCase();
+}
+
+const GENERIC_COUPLE_NAMES = new Set([
+    'noiva & noivo',
+    'noivo & noiva',
+    'noiva e noivo',
+    'noivo e noiva',
+    'nome & nome',
+    'nome e nome',
+    'casal'
+]);
+
+function normalizeComparableText(value) {
+    return String(value || '')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/\s+/g, ' ')
+        .trim()
+        .toLowerCase();
+}
+
+function isGenericCoupleName(value) {
+    const normalized = normalizeComparableText(value);
+    return GENERIC_COUPLE_NAMES.has(normalized);
+}
+
+function formatEventDate(eventDate, displayDate, heroDate) {
+    const sourceDate = String(eventDate || '').trim();
+    const dateMatch = sourceDate.match(/^(\d{4})-(\d{2})-(\d{2})/);
+
+    if (dateMatch) {
+        const [, year, month, day] = dateMatch;
+        return `${day}.${month}.${year}`;
+    }
+
+    return normalizeLoadingDateText(String(displayDate || heroDate || '--.--.----').trim());
+}
+
+function normalizeLoadingDateText(value) {
+    return String(value || '')
+        .replace(/\s*\.\s*/g, '.')
+        .trim();
+}
+
+/** Helpers silenciosos para sessionStorage */
+function ssGet(key) {
+    try { return sessionStorage.getItem(key) || ''; } catch { return ''; }
+}
+function ssSet(key, value) {
+    try { sessionStorage.setItem(key, value); } catch { /* silencioso */ }
+}
+
+/** Helpers silenciosos para localStorage */
+function lsGet(key) {
+    try { return localStorage.getItem(key) || ''; } catch { return ''; }
+}
+function lsSet(key, value) {
+    try { localStorage.setItem(key, value); } catch { /* silencioso */ }
+}
+
 function persistThemeColors(bg, text, primary) {
     try {
         sessionStorage.setItem('ls-theme-colors', JSON.stringify({ bg, text, primary }));
@@ -123,29 +363,13 @@ function loadPersistedThemeColors() {
 }
 
 /**
- * Preenche o elemento de nomes com os nomes dos noivos
- * Só atualiza se o nome for real (não genérico e não vazio)
- */
-// Valores genéricos que NÃO devem substituir o placeholder de loading
-const GENERIC_NAME_FALLBACKS = ['Noiva & Noivo', 'Casal', 'Nome & Nome', ''];
-
-function preencherNomes(coupleNames) {
-    const loadingNames = document.getElementById('loadingNames');
-    const nome = (coupleNames || '').trim();
-    if (loadingNames && nome && !GENERIC_NAME_FALLBACKS.includes(nome)) {
-        loadingNames.textContent = nome;
-    }
-    // Caso contrário, mantém "Carregando experiências…"
-}
-
-/**
  * Cores neutras escuras — estado inicial e fallback de erro.
  * Evitam o flash de branco antes do tema ser carregado.
  */
 const NEUTRAL_LOADING_COLORS = {
-    bg:      '#1a1714',   // escuro neutro (compatível com qualquer tema)
-    text:    '#f0ede8',   // off-white quente
-    primary: '#c9a84c',   // dourado sutil
+    bg:      '#1a1714',
+    text:    '#f0ede8',
+    primary: '#c9a84c',
 };
 
 function applyNeutralLoadingColors() {
@@ -153,14 +377,6 @@ function applyNeutralLoadingColors() {
     root.style.setProperty('--ls-bg-color',      NEUTRAL_LOADING_COLORS.bg);
     root.style.setProperty('--ls-text-color',    NEUTRAL_LOADING_COLORS.text);
     root.style.setProperty('--ls-primary-color', NEUTRAL_LOADING_COLORS.primary);
-}
-
-/**
- * Aplica cores neutras se o carregamento do tema falhar.
- * Garante que a loading screen sempre apareça com cores legíveis.
- */
-function applyFallbackLoadingColors() {
-    applyNeutralLoadingColors();
 }
 
 /**
@@ -196,6 +412,80 @@ export function markContentReady() {
     contentReady = true;
 }
 
+/**
+ * Ativa o botão "Abrir convite" na fase brand (plano free).
+ * @param {() => void} onOpen — callback disparado ao clicar
+ */
+export function showFreeInviteButton(onOpen) {
+    const btn = document.getElementById('loadingBrandBtn');
+    if (!btn) return;
+    btn.hidden = false;
+    btn.addEventListener('click', () => onOpen(), { once: true });
+}
+
+/**
+ * Ativa a experiência de entrada premium:
+ * 1. Detecta se o tema é claro e anima o backdrop para a cor de fundo.
+ * 2. Troca para o card com nomes e botão "Abrir convite".
+ *
+ * @param {{ coupleNames: string, eventDate: string, onOpen: () => void }} options
+ */
+export function showPremiumInviteCard({ coupleNames = '', label = '', subtitle = '', onOpen }) {
+    const backdrop = document.querySelector('.loading-backdrop');
+    const brandPhase = document.getElementById('loadingPhaseBrand');
+    const couplePhase = document.getElementById('loadingPhaseCouple');
+    const cardPhase = document.getElementById('loadingPhaseCard');
+    const cardLabel = document.getElementById('loadingCardLabel');
+    const cardNames = document.getElementById('loadingCardNames');
+    const cardSubtitle = document.getElementById('loadingCardSubtitle');
+    const cardBtn = document.getElementById('loadingCardBtn');
+
+    if (!cardPhase) return;
+
+    // Salvar plano no localStorage para esconder Devazi nas próximas visitas
+    lsSet('devazi_plan', 'premium');
+
+    // Preencher label, nomes e subtítulo
+    if (cardLabel) cardLabel.textContent = label || 'Convite';
+    if (cardNames) cardNames.textContent = coupleNames || '';
+    if (cardSubtitle) cardSubtitle.textContent = subtitle || '';
+
+    // Detectar luminância do tema para decidir transição de cor
+    const bgColor = getComputedStyle(document.documentElement)
+        .getPropertyValue('--color-background').trim()
+        || getComputedStyle(document.documentElement)
+        .getPropertyValue('--ls-bg-color').trim();
+
+    const isLightTheme = bgColor ? isLightColor(bgColor) : false;
+
+    if (isLightTheme && backdrop) {
+        backdrop.style.backgroundColor = bgColor;
+    }
+
+    // Esconder fases anteriores e mostrar card
+    if (brandPhase) brandPhase.hidden = true;
+    if (couplePhase) couplePhase.hidden = true;
+    cardPhase.hidden = false;
+
+    // Conectar botão
+    if (cardBtn) {
+        cardBtn.addEventListener('click', () => onOpen(), { once: true });
+    }
+}
+
+function isLightColor(hex) {
+    try {
+        const clean = hex.replace('#', '');
+        if (clean.length < 6) return false;
+        const r = parseInt(clean.slice(0, 2), 16);
+        const g = parseInt(clean.slice(2, 4), 16);
+        const b = parseInt(clean.slice(4, 6), 16);
+        return (0.299 * r + 0.587 * g + 0.114 * b) / 255 > 0.55;
+    } catch {
+        return false;
+    }
+}
+
 export async function hideLoadingScreen() {
     const loadingScreen = document.getElementById('loadingScreen');
     if (!loadingScreen) return;
@@ -218,14 +508,19 @@ export async function hideLoadingScreen() {
     });
     await Promise.race([contentTimeout, contentCheck]);
 
-    // Espera MAIS 1000ms mesmo que tudo pronto (delay mínimo obrigatório)
-    await new Promise(r => setTimeout(r, 1500));
+    // Garantir mínimo de 4.6s desde o início da loading screen.
+    // 1.6s fade-in textos + 3s mínimo do retângulo animado.
+    const MIN_DURATION = 4600;
+    const elapsed = Date.now() - loadingStartTime;
+    const remaining = Math.max(0, MIN_DURATION - elapsed);
+    await new Promise(r => setTimeout(r, remaining));
 
-    // Aí sim desaparece com fade-out de 600ms
+    // Fade-out de 1.2s
     loadingScreen.classList.add('fade-out');
     setTimeout(() => {
         if (loadingScreen.parentNode) {
+            document.documentElement.classList.remove('ls-pending');
             loadingScreen.remove();
         }
-    }, 600);
+    }, 1200);
 }

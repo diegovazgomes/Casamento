@@ -123,8 +123,8 @@
 /* Card de presente */
 .gift-item {
   position: relative;
-  background: linear-gradient(165deg, var(--color-surface), var(--color-bg));
-  border: 1px solid var(--color-border-soft);
+  background: color-mix(in srgb, var(--color-text) 6%, var(--color-bg));
+  border: 1px solid color-mix(in srgb, var(--color-text) 12%, transparent);
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -153,7 +153,7 @@
   width: 100%;
   aspect-ratio: 4/3;
   overflow: hidden;
-  background: rgba(255,255,255,0.03);
+  background: color-mix(in srgb, var(--color-text) 6%, var(--color-bg));
   position: relative;
   flex-shrink: 0;
 }
@@ -170,19 +170,19 @@
   width: 100%; height: 100%;
   display: flex; align-items: center; justify-content: center;
   font-size: 40px; opacity: 0.3;
+  transform: translateY(8px);
 }
 
 /* Badge de categoria */
 .gift-item-badge {
   position: absolute; top: 12px; right: 12px;
-  background: rgba(10,8,6,0.75);
-  backdrop-filter: blur(8px);
-  border: 1px solid var(--color-border-soft);
+  background: var(--color-primary);
+  border: 1px solid color-mix(in srgb, var(--color-text) 12%, transparent);
   padding: 4px 10px;
   font-family: var(--font-sans);
   font-size: 8px; font-weight: 400;
   letter-spacing: 0.28em; text-transform: uppercase;
-  color: var(--color-text-dim);
+  color: var(--color-bg);
 }
 
 /* Corpo do card */
@@ -199,13 +199,13 @@
 }
 .gift-item-desc {
   font-size: 12px; font-weight: 300;
-  color: var(--color-text-dim);
+  color: color-mix(in srgb, var(--color-text) 60%, transparent);
   line-height: 1.65; letter-spacing: 0.02em;
 }
 .gift-item-price {
   font-family: var(--font-serif);
   font-size: 22px; font-weight: 400;
-  color: var(--color-primary-soft);
+  color: var(--color-primary);
   letter-spacing: 0.01em;
   margin-top: 4px;
 }
@@ -213,7 +213,7 @@
   font-family: var(--font-sans);
   font-size: 9px; font-weight: 300;
   letter-spacing: 0.18em; text-transform: uppercase;
-  color: var(--color-text-faint);
+  color: color-mix(in srgb, var(--color-text) 40%, transparent);
   margin-top: -4px;
 }
 
@@ -221,14 +221,14 @@
 .gift-item-btn {
   margin-top: auto;
   padding-top: 14px;
-  border-top: 1px solid var(--color-border-soft);
+  border-top: 1px solid color-mix(in srgb, var(--color-text) 12%, transparent);
   display: flex; align-items: center; justify-content: space-between;
   gap: 8px;
 }
 .gift-item-btn-label {
   font-size: 9px; font-weight: 400;
   letter-spacing: 0.24em; text-transform: uppercase;
-  color: var(--color-text-dim);
+  color: color-mix(in srgb, var(--color-text) 70%, transparent);
   transition: color 0.25s ease;
 }
 .gift-item:hover .gift-item-btn-label { color: var(--color-primary-soft); }
@@ -327,6 +327,7 @@
   cursor: pointer;
   transition: border-color 0.3s ease, background 0.3s ease;
   text-align: left; width: 100%;
+  text-decoration: none;
 }
 .gift-payment-opt:hover {
   border-color: var(--color-border);
@@ -372,7 +373,7 @@
   width: 120px; height: 120px;
   margin: 0 auto 12px;
   border: 1px solid var(--color-border-soft);
-  background: rgba(255,255,255,0.03);
+  background: color-mix(in srgb, var(--color-text) 6%, var(--color-bg));
   display: flex; align-items: center; justify-content: center;
   font-size: 10px; color: var(--color-text-dim);
   letter-spacing: 0.12em;
@@ -422,8 +423,8 @@
 /* ══ PANEL: PIX DIRETO ══════════════════════════════════════════════════ */
 .gift-pix-panel { padding: 36px 0 24px; }
 .gift-pix-card {
-  background: linear-gradient(165deg, var(--color-surface), var(--color-bg));
-  border: 1px solid var(--color-border-soft);
+  background: color-mix(in srgb, var(--color-text) 6%, var(--color-bg));
+  border: 1px solid color-mix(in srgb, var(--color-text) 12%, transparent);
   padding: 32px;
   text-align: center;
   position: relative; overflow: hidden;
@@ -454,8 +455,8 @@
 /* ══ PANEL: CARTÃO ═══════════════════════════════════════════════════════ */
 .gift-card-panel-wrap { padding: 36px 0 24px; }
 .gift-card-box {
-  background: linear-gradient(165deg, var(--color-surface), var(--color-bg));
-  border: 1px solid var(--color-border-soft);
+  background: color-mix(in srgb, var(--color-text) 6%, var(--color-bg));
+  border: 1px solid color-mix(in srgb, var(--color-text) 12%, transparent);
   padding: 32px; text-align: center;
   position: relative; overflow: hidden;
 }
@@ -539,8 +540,32 @@
   .gift-grid-list { grid-template-columns: 1fr; }
 }
 </style>
+<script>
+    /* Loading Screen — leitura síncrona para zero flash de iniciais/tema */
+    (function () {
+        try {
+            var c = JSON.parse(sessionStorage.getItem('ls-theme-colors') || 'null');
+            if (c && c.bg && c.text && c.primary) {
+                var r = document.documentElement;
+                r.style.setProperty('--ls-bg-color',      c.bg);
+                r.style.setProperty('--ls-text-color',    c.text);
+                r.style.setProperty('--ls-primary-color', c.primary);
+            }
+            window.__LS_COUPLE_DATA__ = null;
+            if (sessionStorage.getItem('ls_data_ready') === '1') {
+                var d = JSON.parse(sessionStorage.getItem('ls_couple') || 'null');
+                if (d && d.first && d.second) { window.__LS_COUPLE_DATA__ = d; }
+                document.documentElement.classList.add('ls-pending');
+            }
+        } catch (e) { window.__LS_COUPLE_DATA__ = null; }
+    })();
+</script>
+<script type="module">
+    import { initLoadingScreen } from './assets/js/loading-screen.js';
+    initLoadingScreen();
+</script>
 </head>
-<body class="gift-page">
+<body class="extra-page gift-page">
 
 <!-- Toast de feedback -->
 <div class="gift-toast" id="giftToast"></div>
@@ -603,8 +628,7 @@
     <span class="section-tag reveal" id="giftTag">Presente</span>
     <h1 class="section-title reveal" id="giftOverlayTitle">Para nos presentear</h1>
     <p class="section-body reveal" id="giftIntroText">
-      Sua presença já é o nosso maior presente. Mas, se desejar nos presentear de outra forma,
-      deixamos abaixo algumas opções com carinho.
+      Sua presença já é o nosso maior presente. Mas, se desejar nos presentear de outra forma, deixamos abaixo algumas opções com carinho.
     </p>
 
     <!-- Tabs -->
@@ -612,6 +636,7 @@
       <button class="gift-tab is-active" data-panel="lista" role="tab">Lista de presentes</button>
       <button class="gift-tab" data-panel="pix" role="tab">Pix direto</button>
       <button class="gift-tab" data-panel="cartao" role="tab">Cartão</button>
+      <button class="gift-tab" data-panel="externo" id="tabExternal" role="tab" hidden>Lista externa</button>
     </div>
   </section>
 
@@ -692,6 +717,28 @@
       </div>
     </div>
 
+    <!-- ── PANEL: LISTA EXTERNA ────────────────────────────────────────── -->
+    <div class="gift-tab-panel" id="panel-externo" role="tabpanel" hidden>
+      <div class="gift-card-panel-wrap">
+        <div class="gift-card-box reveal" id="giftExternalPanel">
+          <span class="gift-card-box-tag" id="giftExternalTag">Lista externa</span>
+          <h2 class="gift-card-box-title" id="giftExternalTitle">Lista de presentes</h2>
+          <p class="gift-card-box-desc" id="giftExternalBody">
+            Acesse nossa lista de presentes e escolha o que quiser nos presentear.
+          </p>
+          <a
+            class="gift-card-link-btn"
+            id="btnExternalList"
+            href="#"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <span id="giftExternalLabel">Ver lista completa →</span>
+          </a>
+        </div>
+      </div>
+    </div>
+
   </div><!-- /gift-panel-wrap -->
 
   <!-- Back -->
@@ -705,9 +752,7 @@
 
 <footer>
   <div class="footer-names" id="mainFooterNames"></div>
-  <p class="footer-note" id="mainFooterNote">06 . 09 . 2026 | São Bernardo do Campo</p>
-</footer>
-
+  <p class="footer-note" id="mainFooterNote"></p>
 <script type="module" src="assets/js/script.js"></script>
 <script type="module" src="assets/js/presente.js"></script>
 
@@ -745,13 +790,51 @@ const DEFAULT_HOUSEHOLD_ITEMS = [
 const DEFAULT_CATALOGS = {
   honeymoon: {
     title: 'Lista de Lua de Mel',
-    subtitle: 'Sugestoes para celebrar nossa primeira viagem como casados.',
+    subtitle: 'Sugestões para celebrar nossa primeira viagem como casados.',
     items: DEFAULT_HONEYMOON_ITEMS,
   },
   home: {
     title: 'Lista para Casa',
-    subtitle: 'Sugestoes para montar e deixar nosso novo lar ainda mais especial.',
+    subtitle: 'Sugestões para montar e deixar nosso novo lar ainda mais especial.',
     items: DEFAULT_HOUSEHOLD_ITEMS,
+  },
+  couple: {
+    key: 'couple',
+    title: 'Nosso Lar',
+    subtitle: 'Itens especiais para elevar o dia a dia de quem já divide o mesmo espaço.',
+    items: [
+      { id: 'c1',  name: 'Jogo de Panelas Premium',     description: 'Linha profissional antiaderente.',       amount: 890,  icon: '🍳', category: 'Nosso Lar', enabled: true },
+      { id: 'c2',  name: 'Máquina de Café Espresso',    description: 'Café de barista em casa.',               amount: 1200, icon: '☕', category: 'Nosso Lar', enabled: true },
+      { id: 'c3',  name: 'Robô Aspirador',              description: 'Limpeza automática e inteligente.',      amount: 1500, icon: '🤖', category: 'Nosso Lar', enabled: true },
+      { id: 'c4',  name: 'Adega Climatizada',           description: 'Para os momentos especiais a dois.',     amount: 1800, icon: '🍷', category: 'Nosso Lar', enabled: true },
+      { id: 'c5',  name: 'Smart TV 55"',                description: 'Experiência cinematográfica em casa.',   amount: 2500, icon: '📺', category: 'Nosso Lar', enabled: true },
+      { id: 'c6',  name: 'Jogo de Cama King Premium',   description: 'Algodão egípcio 400 fios.',             amount: 650,  icon: '🛏️', category: 'Nosso Lar', enabled: true },
+      { id: 'c7',  name: 'Fritadeira Airfryer XL',      description: 'Cozinhar saudável e prático.',          amount: 480,  icon: '🥘', category: 'Nosso Lar', enabled: true },
+      { id: 'c8',  name: 'Purificador de Água',         description: 'Água gelada e filtrada sempre.',        amount: 720,  icon: '💧', category: 'Nosso Lar', enabled: true },
+      { id: 'c9',  name: 'Conjunto de Toalhas Finas',   description: 'Coleção hoteleira de linho.',           amount: 380,  icon: '🛁', category: 'Nosso Lar', enabled: true },
+      { id: 'c10', name: 'Liquidificador de Alta Pot.', description: 'Vitaminas e smoothies perfeitos.',      amount: 560,  icon: '🥤', category: 'Nosso Lar', enabled: true },
+      { id: 'c11', name: 'Jogo de Facas Profissional',  description: 'Aço alemão com estojo.',                amount: 420,  icon: '🔪', category: 'Nosso Lar', enabled: true },
+      { id: 'c12', name: 'Caixa de Som Premium',        description: 'Som ambiente para todo o lar.',         amount: 900,  icon: '🔊', category: 'Nosso Lar', enabled: true }
+    ]
+  },
+  wedding: {
+    key: 'wedding',
+    title: 'Ajuda no Casamento',
+    subtitle: 'Contribua para tornar esse dia ainda mais especial e inesquecível.',
+    items: [
+      { id: 'w1',  name: 'Decoração Floral',            description: 'Flores e arranjos para o grande dia.',  amount: 1500, icon: '💐', category: 'Casamento', enabled: true },
+      { id: 'w2',  name: 'Bolo de Casamento',           description: 'Bolo personalizado para a festa.',      amount: 1200, icon: '🎂', category: 'Casamento', enabled: true },
+      { id: 'w3',  name: 'Fotografia',                  description: 'Registro profissional da cerimônia.',   amount: 3500, icon: '📷', category: 'Casamento', enabled: true },
+      { id: 'w4',  name: 'Filmagem',                    description: 'Vídeo cinematográfico do casamento.',   amount: 3000, icon: '🎥', category: 'Casamento', enabled: true },
+      { id: 'w5',  name: 'DJ e Sonorização',            description: 'Música para animar a festa toda.',      amount: 2500, icon: '🎧', category: 'Casamento', enabled: true },
+      { id: 'w6',  name: 'Bem-casados',                 description: 'Lembrancinhas para os convidados.',     amount: 800,  icon: '🍬', category: 'Casamento', enabled: true },
+      { id: 'w7',  name: 'Convites Impressos',          description: 'Arte e impressão dos convites.',        amount: 600,  icon: '✉️', category: 'Casamento', enabled: true },
+      { id: 'w8',  name: 'Maquiagem da Noiva',          description: 'Make profissional para a noiva.',       amount: 900,  icon: '💄', category: 'Casamento', enabled: true },
+      { id: 'w9',  name: 'Aluguel do Espaço',           description: 'Contribuição para o local da festa.',   amount: 5000, icon: '🏛️', category: 'Casamento', enabled: true },
+      { id: 'w10', name: 'Doces e Mesa de Guloseimas',  description: 'Candy bar para a festa.',               amount: 1000, icon: '🍭', category: 'Casamento', enabled: true },
+      { id: 'w11', name: 'Cerimonialista',              description: 'Coordenação profissional do evento.',   amount: 2000, icon: '📋', category: 'Casamento', enabled: true },
+      { id: 'w12', name: 'Contribuição Livre',          description: 'Qualquer valor é bem-vindo e amado.',   amount: 200,  icon: '💛', category: 'Casamento', enabled: true }
+    ]
   },
 };
 
@@ -796,7 +879,8 @@ function sanitizeCatalogItems(items = [], fallbackCategory = 'Lua de Mel') {
 function resolveActiveCatalog(giftConfig = {}) {
   const catalogsRoot = giftConfig?.catalogs;
   const lists = catalogsRoot?.lists;
-  const configuredActiveKey = giftConfig?.activeCatalogKey || catalogsRoot?.activeKey;
+  // gift.catalog.key é definido pelo mapGiftConfig e é a fonte mais confiável do catálogo ativo
+  const configuredActiveKey = giftConfig?.activeCatalogKey || catalogsRoot?.activeKey || giftConfig?.catalog?.key;
 
   if (lists && typeof lists === 'object' && !Array.isArray(lists)) {
     const entries = Object.entries(lists).filter(([, value]) => value && typeof value === 'object');
@@ -810,8 +894,9 @@ function resolveActiveCatalog(giftConfig = {}) {
     }
   }
 
+  // Fallback: usa gift.catalog diretamente — já contém os itens do catálogo ativo via mapGiftConfig
   if (giftConfig?.catalog && typeof giftConfig.catalog === 'object') {
-    return { catalog: giftConfig.catalog, catalogKey: configuredActiveKey || 'honeymoon' };
+    return { catalog: giftConfig.catalog, catalogKey: configuredActiveKey || giftConfig.catalog?.key || 'honeymoon' };
   }
 
   return { catalog: DEFAULT_CATALOGS.honeymoon, catalogKey: 'honeymoon' };
@@ -822,7 +907,13 @@ function buildMercadoPagoUrl(baseUrl, amount) {
   if (!baseUrl) return fallbackUrl;
 
   try {
-    const url = new URL(baseUrl, window.location.href);
+    // Se a URL não tem protocolo, adicionar https://
+    let urlToProcess = baseUrl;
+    if (!baseUrl.startsWith('http://') && !baseUrl.startsWith('https://')) {
+      urlToProcess = 'https://' + baseUrl;
+    }
+    
+    const url = new URL(urlToProcess);
     url.searchParams.set('amount', formatAmountForMercadoPagoParam(amount));
     return url.toString();
   } catch {
@@ -835,7 +926,8 @@ function renderGiftList(pixKey, qrSrc, paymentBaseUrl) {
   const grid = document.getElementById('giftGridList');
   if (!grid) return;
 
-  grid.innerHTML = GIFT_ITEMS.map(item => `
+  const sortedItems = [...GIFT_ITEMS].sort((a, b) => (a.amount || 0) - (b.amount || 0));
+  grid.innerHTML = sortedItems.map(item => `
     <article
       class="gift-item"
       role="button"
@@ -890,7 +982,7 @@ function openModal(itemId, pixKey, qrSrc, paymentBaseUrl) {
   if (paymentUrl !== '#') {
     linkBtn.style.display = '';
     linkBtn.href = paymentUrl;
-    document.getElementById('giftOptLinkLabel').textContent = 'Pagar no Mercado Pago';
+    document.getElementById('giftOptLinkLabel').textContent = 'Pagar com link de pagamento';
     document.getElementById('giftOptLinkHint').textContent  = `Valor sugerido: ${item.price || formatBRL(item.amount)}`;
   } else {
     linkBtn.style.display = 'none';
@@ -948,14 +1040,24 @@ function showToast(msg) {
   setTimeout(() => t.classList.remove('is-visible'), 2600);
 }
 
+function normalizeUrl(url) {
+  if (!url) return '#';
+  try {
+    return new URL(url.startsWith('http') ? url : 'https://' + url).toString();
+  } catch { return '#'; }
+}
+
 /* ── Integração com app:ready do script.js ──────────────────────────── */
 window.addEventListener('app:ready', ({ detail: { config } }) => {
+  // DEBUG — remover após confirmar que gift.external está chegando corretamente
+  console.log('[presente] app:ready gift config:', JSON.stringify(config?.gift));
+
   const pixKey = config?.gift?.pixKey || '';
   const qrSrc  = config?.gift?.pixQrImage || 'assets/images/icons/pix-placeholder.svg';
   const cardLink = config?.gift?.cardPaymentLink || '';
   const cardEnabled = config?.gift?.cardPaymentEnabled !== false;
   const { catalog: activeCatalog, catalogKey } = resolveActiveCatalog(config?.gift || {});
-  const categoryFallback = catalogKey === 'home' ? 'Casa' : 'Lua de Mel';
+  const categoryFallback = DEFAULT_CATALOGS[catalogKey]?.items?.[0]?.category || 'Presente';
   const normalizedCatalog = sanitizeCatalogItems(activeCatalog?.items, categoryFallback);
 
   ACTIVE_CATALOG_TITLE = activeCatalog?.title || DEFAULT_CATALOGS[catalogKey]?.title || DEFAULT_CATALOGS.honeymoon.title;
@@ -964,7 +1066,7 @@ window.addEventListener('app:ready', ({ detail: { config } }) => {
   if (normalizedCatalog.length) {
     GIFT_ITEMS = normalizedCatalog;
   } else {
-    GIFT_ITEMS = catalogKey === 'home' ? DEFAULT_HOUSEHOLD_ITEMS : DEFAULT_HONEYMOON_ITEMS;
+    GIFT_ITEMS = DEFAULT_CATALOGS[catalogKey]?.items || DEFAULT_HONEYMOON_ITEMS;
   }
 
   /* Preenche textos */
@@ -1022,6 +1124,40 @@ window.addEventListener('app:ready', ({ detail: { config } }) => {
     if (listaPanel) listaPanel.hidden = true;
   }
 
+  /* Lista externa — exibe aba e preenche dados quando habilitada */
+  const extGift = config?.gift?.external || {};
+  const extEnabled = extGift.enabled && extGift.url;
+
+  // Debug: logar o que chegou do config para diagnóstico
+  console.log('[presente] gift.external:', JSON.stringify(extGift));
+  console.log('[presente] extEnabled:', extEnabled);
+
+  if (extEnabled) {
+    const tabExternal = document.getElementById('tabExternal');
+    if (tabExternal) tabExternal.hidden = false;
+
+    // CRÍTICO: remover hidden do panel também — o atributo hidden
+    // aplica display:none !important que bloqueia a classe is-active
+    const panelExterno = document.getElementById('panel-externo');
+    if (panelExterno) panelExterno.hidden = false;
+
+    const normalizedExtUrl = normalizeUrl(extGift.url);
+    const extLabel = extGift.label || 'Ver lista completa';
+    const extStore = extGift.store || 'Lista externa';
+
+    const btnEl = document.getElementById('btnExternalList');
+    if (btnEl) btnEl.href = normalizedExtUrl;
+
+    const labelEl = document.getElementById('giftExternalLabel');
+    if (labelEl) labelEl.textContent = extLabel + ' →';
+
+    const titleEl = document.getElementById('giftExternalTitle');
+    if (titleEl) titleEl.textContent = extStore;
+
+    const tagEl = document.getElementById('giftExternalTag');
+    if (tagEl) tagEl.textContent = extStore;
+  }
+
   /* Ativa o primeiro tab visível caso o padrão tenha sido ocultado */
   const allTabs   = Array.from(document.querySelectorAll('.gift-tab:not([hidden])'));
   const allPanels = Array.from(document.querySelectorAll('.gift-tab-panel:not([hidden])'));
@@ -1039,6 +1175,10 @@ setTimeout(() => {
   const grid = document.getElementById('giftGridList');
   if (grid && !grid.children.length) renderGiftList('', '', '');
 }, 3000);
+</script>
+<script type="module">
+import { markContentReady } from './assets/js/loading-screen.js';
+window.addEventListener('app:ready', () => markContentReady());
 </script>
 </body>
 </html>

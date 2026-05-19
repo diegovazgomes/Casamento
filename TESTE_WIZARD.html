@@ -1,0 +1,1172 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Teste Wizard Dashboard</title>
+  <link rel="stylesheet" href="assets/css/fonts.css" />
+  <style>
+    :root {
+      --bg: #0f0d0b;
+      --surface: #171411;
+      --border: rgba(201, 168, 76, 0.22);
+      --border-strong: rgba(201, 168, 76, 0.45);
+      --primary: #c9a84c;
+      --primary-soft: #d4b480;
+      --text: #faf7f2;
+      --text-dim: rgba(250, 247, 242, 0.64);
+      --danger: #f27777;
+      --success: #7fd7b5;
+      --font-display: 'Cormorant Garamond', serif;
+      --font-sans: 'Jost', sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: radial-gradient(circle at 20% 5%, rgba(201, 168, 76, 0.09), transparent 38%), var(--bg);
+      color: var(--text);
+      font-family: var(--font-sans);
+    }
+
+    .test-info {
+      max-width: 980px;
+      margin: 20px auto 0;
+      padding: 0 20px;
+      color: var(--text-dim);
+      font-size: 13px;
+      letter-spacing: 0.04em;
+    }
+
+    .wizard-overlay {
+      display: flex;
+      position: relative;
+      min-height: calc(100vh - 50px);
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .wizard-card {
+      width: min(100%, 580px);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 40px 36px 36px;
+      position: relative;
+      max-height: 94vh;
+      overflow-y: auto;
+    }
+
+    .wizard-card::before,
+    .wizard-card::after {
+      content: '';
+      position: absolute;
+      left: 24px;
+      right: 24px;
+      height: 1px;
+      background: linear-gradient(to right, transparent, var(--primary), transparent);
+      opacity: 0.4;
+    }
+
+    .wizard-card::before { top: 0; }
+    .wizard-card::after { bottom: 0; }
+
+    .wizard-progress {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 32px;
+    }
+
+    .wizard-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--border-strong);
+      transition: background 0.35s, transform 0.35s;
+      flex-shrink: 0;
+    }
+
+    .wizard-dot.is-active {
+      background: var(--primary);
+      transform: scale(1.25);
+    }
+
+    .wizard-progress-line {
+      width: 52px;
+      height: 1px;
+      margin: 0 8px;
+      background: var(--border);
+    }
+
+    .wizard-step { display: none; }
+    .wizard-step.is-active { display: block; }
+
+    .wizard-title {
+      font-family: var(--font-display);
+      font-size: 1.6rem;
+      font-style: italic;
+      color: var(--primary-soft);
+      margin: 0 0 8px;
+    }
+
+    .wizard-sub {
+      font-size: 0.82rem;
+      color: var(--text-dim);
+      line-height: 1.65;
+      margin: 0 0 22px;
+    }
+
+    .field {
+      margin-bottom: 12px;
+    }
+
+    .field-label {
+      display: block;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      color: var(--text-dim);
+      margin-bottom: 6px;
+    }
+
+    .field-input {
+      width: 100%;
+      height: 44px;
+      border: 1px solid var(--border);
+      background: rgba(0, 0, 0, 0.15);
+      color: var(--text);
+      padding: 10px 12px;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s ease;
+      font-family: var(--font-sans);
+      border-radius: 0;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+
+    .field-input:focus {
+      border-color: var(--primary);
+    }
+
+    .field-input option {
+      background: var(--surface);
+      color: var(--text);
+    }
+
+    .field-hint {
+      margin-top: 6px;
+      font-size: 12px;
+      color: var(--text-dim);
+    }
+
+    .wizard-name-examples {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+      margin-top: 8px;
+    }
+
+    .wizard-name-examples > span {
+      font-size: 12px;
+      color: var(--text-dim);
+    }
+
+    .wizard-name-ex {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      font-size: 12px;
+      letter-spacing: 0.03em;
+      padding: 3px 10px;
+      cursor: pointer;
+      transition: border-color 0.2s, color 0.2s;
+      font-family: var(--font-sans);
+    }
+
+    .wizard-name-ex:hover {
+      border-color: var(--primary);
+      color: var(--primary-soft);
+    }
+
+    .wizard-date-time-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 4px;
+    }
+
+    .wizard-step2-grid .field { margin-bottom: 0; }
+    .wizard-step2-grid .field-input {
+      height: 44px;
+      min-height: 44px;
+      line-height: 1.2;
+    }
+
+    .wizard-step2-grid input[type="date"].field-input,
+    .wizard-step2-grid select.field-input {
+      border-radius: 0;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+
+    @media (max-width: 760px) {
+      .wizard-date-time-grid { grid-template-columns: 1fr; }
+    }
+
+    .wizard-theme-layout {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    .wizard-themes {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    @media (max-width: 440px) {
+      .wizard-themes { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    .wizard-theme-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 7px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 0;
+    }
+
+    .wizard-theme-swatch {
+      width: 100%;
+      aspect-ratio: 4 / 3;
+      border: 2px solid transparent;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      transition: border-color 0.25s, transform 0.25s, box-shadow 0.25s;
+    }
+
+    .wizard-theme-card.is-selected .wizard-theme-swatch {
+      transform: scale(1.04);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    }
+
+    .wizard-theme-accent {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+    }
+
+    .wizard-theme-lines {
+      padding: 8px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .wizard-theme-label {
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      text-align: center;
+    }
+
+    .wizard-theme-card.is-selected .wizard-theme-label {
+      color: var(--primary-soft);
+    }
+
+    .wizard-preview-wrap {
+      border-top: 1px solid var(--border);
+      padding-top: 20px;
+    }
+
+    .wizard-preview-label {
+      font-size: 10px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      margin-bottom: 12px;
+      text-align: center;
+    }
+
+    .wizard-preview-card {
+      position: relative;
+      overflow: hidden;
+      border: 1px solid;
+      height: 190px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.45s, border-color 0.45s;
+      --wz-primary: #c9a84c;
+      --wz-text: #faf7f2;
+      --wz-text-dim: rgba(250, 247, 242, 0.45);
+    }
+
+    .wizard-preview-inner {
+      position: relative;
+      text-align: center;
+      padding: 0 32px;
+      z-index: 1;
+    }
+
+    .wz-preview-tag {
+      font-size: 8px;
+      letter-spacing: 0.35em;
+      text-transform: uppercase;
+      color: var(--wz-primary);
+      margin-bottom: 14px;
+      display: block;
+    }
+
+    .wz-preview-names {
+      font-family: var(--font-display);
+      font-style: italic;
+      font-weight: 400;
+      font-size: clamp(1.5rem, 5vw, 2rem);
+      line-height: 1.1;
+      margin-bottom: 0;
+      color: var(--wz-text);
+      word-break: break-word;
+    }
+
+    .wz-preview-sep {
+      width: 40px;
+      height: 1px;
+      background: linear-gradient(to right, transparent, var(--wz-primary), transparent);
+      margin: 12px auto;
+    }
+
+    .wz-preview-date {
+      font-size: 0.62rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--wz-text-dim);
+    }
+
+    .wz-preview-cta {
+      margin-top: 14px;
+      display: inline-block;
+      border: 1px solid var(--wz-primary);
+      color: var(--wz-primary);
+      font-size: 0.5rem;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      padding: 5px 16px;
+      pointer-events: none;
+    }
+
+    .wizard-success-icon {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      border: 1px solid var(--border-strong);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      color: var(--primary-soft);
+      margin: 0 auto 20px;
+    }
+
+    .wizard-instructions {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      margin-bottom: 4px;
+    }
+
+    .wizard-instruction-item {
+      display: flex;
+      gap: 18px;
+      align-items: flex-start;
+    }
+
+    .wizard-instruction-num {
+      font-family: var(--font-display);
+      font-style: italic;
+      font-size: 1.35rem;
+      color: var(--primary-soft);
+      opacity: 0.45;
+      flex-shrink: 0;
+      line-height: 1.2;
+      min-width: 24px;
+      padding-top: 1px;
+    }
+
+    .wizard-instruction-item strong {
+      display: block;
+      font-size: 0.82rem;
+      font-weight: 400;
+      letter-spacing: 0.05em;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+
+    .wizard-instruction-item p {
+      font-size: 0.77rem;
+      color: var(--text-dim);
+      line-height: 1.65;
+      margin: 0;
+    }
+
+    .wizard-footer {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 12px;
+      margin-top: 28px;
+      border-top: 1px solid var(--border);
+      padding-top: 20px;
+    }
+
+    .wizard-footer-step4 {
+      display: flex;
+      justify-content: center;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+      margin-top: 24px;
+    }
+
+    .btn {
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text);
+      height: 42px;
+      padding: 0 16px;
+      cursor: pointer;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      font-size: 11px;
+      transition: border-color 0.2s, color 0.2s, opacity 0.2s;
+      font-family: var(--font-sans);
+    }
+
+    .btn:hover { border-color: var(--primary); }
+
+    .btn[disabled] {
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+
+    .btn-primary {
+      border-color: var(--primary);
+      color: var(--primary-soft);
+    }
+
+    .btn-subtle {
+      color: var(--text-dim);
+    }
+
+    .payload-preview {
+      margin-top: 18px;
+      border: 1px solid var(--border);
+      background: rgba(0, 0, 0, 0.15);
+      padding: 12px;
+      color: var(--text-dim);
+      font-size: 12px;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      word-break: break-word;
+      max-height: 200px;
+      overflow: auto;
+    }
+  </style>
+</head>
+<body>
+  <div class="test-info">
+    TESTE_WIZARD: página isolada do wizard. Salva mock local em localStorage (chave wizard-test-last-payload).
+  </div>
+
+  <div class="wizard-overlay" id="wizardOverlay">
+    <div class="wizard-card">
+      <div class="wizard-progress" id="wizardProgress">
+        <div class="wizard-dot is-active" data-step="1"></div>
+        <div class="wizard-progress-line"></div>
+        <div class="wizard-dot" data-step="2"></div>
+        <div class="wizard-progress-line"></div>
+        <div class="wizard-dot" data-step="3"></div>
+        <div class="wizard-progress-line"></div>
+        <div class="wizard-dot" data-step="4"></div>
+      </div>
+
+      <div class="wizard-step is-active" id="wizardStep1">
+        <h2 class="wizard-title">Bem-vindos!</h2>
+        <p class="wizard-sub">Teste isolado do onboarding. Defina como os nomes aparecem no convite.</p>
+        <div class="field">
+          <label class="field-label" for="wzDisplayName">Como aparecem no convite *</label>
+          <input type="text" class="field-input" id="wzDisplayName" placeholder="Ex: Siannah & Diego" maxlength="80" autocomplete="off" />
+          <div class="wizard-name-examples">
+            <span>Exemplos:</span>
+            <button type="button" class="wizard-name-ex">Siannah e Diego</button>
+            <button type="button" class="wizard-name-ex">Siannah & Diego</button>
+            <button type="button" class="wizard-name-ex">Siannah + Diego</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="wizard-step" id="wizardStep2">
+        <h2 class="wizard-title">Data e Local</h2>
+        <p class="wizard-sub">Quando e onde acontece o casamento?</p>
+        <div class="wizard-date-time-grid wizard-step2-grid">
+          <div class="field">
+            <label class="field-label" for="wzDate">Data do casamento</label>
+            <input type="date" class="field-input" id="wzDate" />
+          </div>
+          <div class="field">
+            <label class="field-label" for="wzTime">Horário</label>
+            <select class="field-input" id="wzTime" aria-label="Horário do evento (formato 24h)"></select>
+            <div class="field-hint">Formato 24h. Exemplo: 17:00.</div>
+          </div>
+          <div class="field">
+            <label class="field-label" for="wzVenueName">Nome do local</label>
+            <input type="text" class="field-input" id="wzVenueName" placeholder="Ex: Mansão das Flores" maxlength="120" autocomplete="off" />
+          </div>
+          <div class="field">
+            <label class="field-label" for="wzVenueAddress">Endereço</label>
+            <input type="text" class="field-input" id="wzVenueAddress" placeholder="Av. Rainha Simone, 1971" maxlength="200" autocomplete="off" />
+          </div>
+        </div>
+      </div>
+
+      <div class="wizard-step" id="wizardStep3">
+        <div class="field" style="margin-top:14px;">
+          <label class="field-label" for="wzSlug">Escolha como sua URL vai aparecer</label>
+          <input type="text" class="field-input" id="wzSlug" placeholder="Ex: siannah-diego-09-05-2026" maxlength="60" autocomplete="off" />
+          <div class="field-hint" id="wzSlugExample">Seu link vai ficar assim: www.devazi.app/sua-url</div>
+          <div class="field-hint" id="wzSlugStatus">Você pode pular esta etapa. Se deixar em branco, criaremos uma URL automaticamente.</div>
+        </div>
+      </div>
+
+      <div class="wizard-step" id="wizardStep4">
+        <h2 class="wizard-title">Escolha o tema</h2>
+        <p class="wizard-sub">Selecione o visual do convite para testar o preview.</p>
+        <div class="wizard-theme-layout">
+          <div class="wizard-themes" id="wizardThemes"></div>
+          <div class="wizard-preview-wrap">
+            <div class="wizard-preview-label">PRÉVIA DO CONVITE</div>
+            <div class="wizard-preview-card" id="wzPreviewCard">
+              <div class="wizard-preview-inner">
+                <span class="wz-preview-tag">Você está convidado</span>
+                <div class="wz-preview-names" id="wzPreviewNames">Nome & Nome</div>
+                <div class="wz-preview-sep"></div>
+                <div class="wz-preview-date" id="wzPreviewDate">. . .</div>
+                <span class="wz-preview-cta">Abrir Convite</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="wizard-step" id="wizardStep5">
+        <div class="wizard-success-icon">*</div>
+        <h2 class="wizard-title" style="text-align:center">Wizard finalizado</h2>
+        <p class="wizard-sub" style="text-align:center;margin-bottom:22px">Salvamento simulado com sucesso. Payload abaixo:</p>
+        <div class="wizard-instructions">
+          <div class="wizard-instruction-item">
+            <span class="wizard-instruction-num">01</span>
+            <div>
+              <strong>Teste de fluxo</strong>
+              <p>Você pode voltar e alterar qualquer campo para testar novamente.</p>
+            </div>
+          </div>
+          <div class="wizard-instruction-item">
+            <span class="wizard-instruction-num">02</span>
+            <div>
+              <strong>Validação de URL</strong>
+              <p>Esta tela usa o endpoint público /api/event-config?mode=check-slug para validar disponibilidade.</p>
+            </div>
+          </div>
+        </div>
+        <div class="payload-preview" id="wizardPayloadPreview">Sem payload ainda.</div>
+        <div class="wizard-footer-step4">
+          <button class="btn btn-primary" id="wzRestartBtn" type="button">Testar novamente</button>
+        </div>
+      </div>
+
+      <div class="wizard-footer" id="wizardFooter">
+        <button class="btn btn-subtle" id="wizardBtnBack" type="button" style="display:none">Voltar</button>
+        <button class="btn btn-primary" id="wizardBtnNext" type="button">Próximo</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const WIZARD_THEME_KEYS = [
+      'classic-gold',
+      'classic-silver',
+      'classic-gold-light',
+      'classic-silver-light'
+    ];
+    const WIZARD_SLUG_MIN_LENGTH = 3;
+    const WIZARD_SLUG_DEBOUNCE_MS = 2000;
+    const WIZARD_SLUG_CACHE_TTL_MS = 30000;
+
+    let wizardStep = 1;
+    let wizardSelectedTheme = 'classic-gold';
+    let wizardLoadedThemes = [];
+    let wizardSlugValidationTimer = null;
+    let wizardSlugValidationToken = 0;
+    let wizardSlugState = 'idle';
+    let wizardSlugBlockedUntil = 0;
+    const wizardSlugValidationCache = new Map();
+
+    function normalizeWizardSlug(value) {
+      return String(value || '')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '')
+        .replace(/-{2,}/g, '-');
+    }
+
+    function normalizeWizardSlugInput(value) {
+      return String(value || '')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase()
+        .replace(/[^a-z0-9-]+/g, '-')
+        .replace(/-{2,}/g, '-')
+        .replace(/^-+/, '');
+    }
+
+    function setWizardSlugStatus(stateName, message) {
+      const statusEl = document.getElementById('wzSlugStatus');
+      if (!statusEl) return;
+
+      const paletteByState = {
+        idle: 'var(--text-dim)',
+        loading: 'var(--text-dim)',
+        valid: 'var(--success)',
+        invalid: 'var(--danger)'
+      };
+
+      wizardSlugState = stateName;
+      statusEl.textContent = message || '';
+      statusEl.style.color = paletteByState[stateName] || 'var(--text-dim)';
+    }
+
+    function parseWizardNames(displayName) {
+      const source = String(displayName || '').trim();
+      const separators = [' & ', ' e ', ' + ', '&', '+'];
+      const found = separators.find((separator) => source.includes(separator));
+
+      if (!found) {
+        return { brideName: source || 'nome-noiva', groomName: 'nome-noivo' };
+      }
+
+      const parts = source.split(found).map((part) => part.trim()).filter(Boolean);
+      return {
+        brideName: parts[0] || 'nome-noiva',
+        groomName: parts[1] || 'nome-noivo'
+      };
+    }
+
+    function formatDateForSlug(dateValue) {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(String(dateValue || ''))) {
+        return 'dd-mm-aaaa';
+      }
+
+      const parts = dateValue.split('-');
+      return parts[2] + '-' + parts[1] + '-' + parts[0];
+    }
+
+    function updateWizardSlugExampleText() {
+      const el = document.getElementById('wzSlugExample');
+      if (!el) return;
+
+      const slugInput = document.getElementById('wzSlug');
+      const typedSlug = normalizeWizardSlugInput(slugInput?.value || '');
+      if (typedSlug) {
+        el.textContent = 'Seu link vai ficar assim: www.devazi.app/' + typedSlug;
+        return;
+      }
+
+      const names = parseWizardNames(wizardDisplayName());
+      const dateText = formatDateForSlug(document.getElementById('wzDate')?.value || '');
+      const exampleSlug = normalizeWizardSlug(names.brideName) + '-' + normalizeWizardSlug(names.groomName) + '-' + dateText;
+      el.textContent = 'Seu link vai ficar assim: www.devazi.app/' + exampleSlug;
+    }
+
+    function setWizardSlugFieldAvailability() {
+      const input = document.getElementById('wzSlug');
+      if (!input) return;
+
+      input.disabled = false;
+      input.classList.remove('field-auto');
+      setWizardSlugStatus('idle', 'Você pode personalizar a URL ou deixar em branco para gerar automaticamente.');
+    }
+
+    function populateWizardTimeOptions(defaultValue) {
+      const select = document.getElementById('wzTime');
+      if (!select || select.tagName !== 'SELECT') return;
+      if (select.options.length) {
+        select.value = defaultValue || select.value || '17:00';
+        return;
+      }
+
+      const fragment = document.createDocumentFragment();
+      for (let hour = 0; hour < 24; hour += 1) {
+        for (let minute = 0; minute < 60; minute += 15) {
+          const value = String(hour).padStart(2, '0') + ':' + String(minute).padStart(2, '0');
+          const option = document.createElement('option');
+          option.value = value;
+          option.textContent = value;
+          fragment.appendChild(option);
+        }
+      }
+
+      select.appendChild(fragment);
+      select.value = defaultValue || '17:00';
+    }
+
+    async function validateWizardSlugAvailability(options = {}) {
+      const immediate = options.immediate === true;
+
+      const input = document.getElementById('wzSlug');
+      if (!input) return false;
+
+      const normalizedInput = normalizeWizardSlugInput(input.value);
+      input.value = normalizedInput;
+      updateWizardSlugExampleText();
+
+      if (!immediate && normalizedInput.endsWith('-')) {
+        setWizardSlugStatus('idle', 'Continue digitando para validar a disponibilidade da URL.');
+        return false;
+      }
+
+      const normalizedSlug = normalizeWizardSlug(normalizedInput);
+
+      if (immediate && normalizedSlug !== normalizedInput) {
+        input.value = normalizedSlug;
+        updateWizardSlugExampleText();
+      }
+
+      if (!normalizedSlug) {
+        setWizardSlugStatus('idle', 'Sem problema: se deixar em branco, criamos a URL automaticamente.');
+        return true;
+      }
+
+      if (normalizedSlug.length < WIZARD_SLUG_MIN_LENGTH) {
+        setWizardSlugStatus('invalid', 'A URL precisa ter ao menos 3 caracteres.');
+        return false;
+      }
+
+      const now = Date.now();
+      if (wizardSlugBlockedUntil > now) {
+        const remainingSec = Math.max(1, Math.ceil((wizardSlugBlockedUntil - now) / 1000));
+        setWizardSlugStatus('invalid', 'Muitas tentativas. Aguarde ' + remainingSec + 's para tentar de novo.');
+        return false;
+      }
+
+      const cachedResult = wizardSlugValidationCache.get(normalizedSlug);
+      if (cachedResult && (now - cachedResult.timestamp) <= WIZARD_SLUG_CACHE_TTL_MS) {
+        setWizardSlugStatus(cachedResult.state, cachedResult.message);
+        return cachedResult.valid;
+      }
+
+      const requestToken = ++wizardSlugValidationToken;
+
+      const performCheck = async () => {
+        setWizardSlugStatus('loading', 'Validando disponibilidade...');
+
+        try {
+          const params = new URLSearchParams({ slug: normalizedSlug });
+          params.set('mode', 'check-slug');
+          const response = await fetch('/api/event-config?' + params.toString());
+          const payload = await response.json().catch(() => ({}));
+
+          if (requestToken !== wizardSlugValidationToken) {
+            return false;
+          }
+
+          if (!response.ok) {
+            if (response.status === 429) {
+              const retryAfterHeader = Number.parseInt(response.headers.get('Retry-After') || '15', 10);
+              const retryAfterSec = Number.isFinite(retryAfterHeader) && retryAfterHeader > 0 ? retryAfterHeader : 15;
+              wizardSlugBlockedUntil = Date.now() + (retryAfterSec * 1000);
+              setWizardSlugStatus('invalid', 'Muitas tentativas. Aguarde ' + retryAfterSec + 's para tentar de novo.');
+              return false;
+            }
+            setWizardSlugStatus('invalid', payload.error || 'Não foi possível validar a URL.');
+            return false;
+          }
+
+          if (payload.available === true) {
+            wizardSlugValidationCache.set(normalizedSlug, {
+              timestamp: Date.now(),
+              valid: true,
+              state: 'valid',
+              message: 'URL disponível para publicar.'
+            });
+            setWizardSlugStatus('valid', 'URL disponível para publicar.');
+            return true;
+          }
+
+          if (payload.reason === 'reserved') {
+            setWizardSlugStatus('invalid', 'Essa URL é reservada pelo sistema.');
+            return false;
+          }
+
+          wizardSlugValidationCache.set(normalizedSlug, {
+            timestamp: Date.now(),
+            valid: false,
+            state: 'invalid',
+            message: 'Essa URL já está em uso.'
+          });
+          setWizardSlugStatus('invalid', 'Essa URL já está em uso.');
+          return false;
+        } catch (error) {
+          if (requestToken !== wizardSlugValidationToken) {
+            return false;
+          }
+
+          setWizardSlugStatus('invalid', 'Erro ao validar URL. Verifique se o servidor está rodando.');
+          return false;
+        }
+      };
+
+      if (immediate) {
+        return performCheck();
+      }
+
+      if (wizardSlugValidationTimer) {
+        clearTimeout(wizardSlugValidationTimer);
+      }
+
+      setWizardSlugStatus('loading', 'Verificando disponibilidade...');
+
+      return new Promise((resolve) => {
+        wizardSlugValidationTimer = setTimeout(async () => {
+          wizardSlugValidationTimer = null;
+          const result = await performCheck();
+          resolve(result);
+        }, WIZARD_SLUG_DEBOUNCE_MS);
+      });
+    }
+
+    function wizardDisplayName() {
+      return document.getElementById('wzDisplayName')?.value.trim() || '';
+    }
+
+    function wizardDeriveDateLabels(dateOnly) {
+      const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+      const parsed = new Date(dateOnly + 'T12:00:00');
+      if (Number.isNaN(parsed.getTime())) return { previewDate: '. . .' };
+      const day = String(parsed.getDate()).padStart(2, '0');
+      const month = String(parsed.getMonth() + 1).padStart(2, '0');
+      return {
+        previewDate: day + ' . ' + month + ' . ' + parsed.getFullYear(),
+        detailDate: day + ' ' + months[parsed.getMonth()] + ' ' + parsed.getFullYear()
+      };
+    }
+
+    function themeColors(themeData) {
+      const c = themeData?.colors || {};
+      return {
+        bg: c.background || '#0f0d0b',
+        primary: c.primary || '#c9a84c',
+        primarySoft: c.primarySoft || c.primary || '#d4b480',
+        text: c.text || '#faf7f2',
+        textDim: c.textDim || 'rgba(250,247,242,.45)',
+        border: c.border || 'rgba(192,160,96,.25)'
+      };
+    }
+
+    function updateWizardPreview() {
+      const previewCard = document.getElementById('wzPreviewCard');
+      if (!previewCard) return;
+
+      const theme = wizardLoadedThemes.find((item) => item.key === wizardSelectedTheme);
+      const display = wizardDisplayName();
+      const dateRaw = document.getElementById('wzDate')?.value || '';
+
+      const previewNames = document.getElementById('wzPreviewNames');
+      if (previewNames) previewNames.textContent = display || 'Nome & Nome';
+
+      const previewDate = document.getElementById('wzPreviewDate');
+      if (previewDate) {
+        previewDate.textContent = dateRaw ? wizardDeriveDateLabels(dateRaw).previewDate : '. . .';
+      }
+
+      if (theme) {
+        const cols = themeColors(theme.data);
+        previewCard.style.background = cols.bg;
+        previewCard.style.borderColor = cols.border;
+        previewCard.style.setProperty('--wz-primary', cols.primarySoft);
+        previewCard.style.setProperty('--wz-text', cols.text);
+        previewCard.style.setProperty('--wz-text-dim', cols.textDim);
+      }
+    }
+
+    async function loadWizardThemes() {
+      if (wizardLoadedThemes.length) return wizardLoadedThemes;
+
+      const results = await Promise.allSettled(
+        WIZARD_THEME_KEYS.map((key) =>
+          fetch('/assets/layouts/classic/themes/' + key + '.json')
+            .then((res) => (res.ok ? res.json() : null))
+            .then((data) => (data ? { key, data } : null))
+            .catch(() => null)
+        )
+      );
+
+      wizardLoadedThemes = results
+        .map((entry) => (entry.status === 'fulfilled' ? entry.value : null))
+        .filter(Boolean);
+
+      return wizardLoadedThemes;
+    }
+
+    function renderWizardThemes() {
+      const container = document.getElementById('wizardThemes');
+      if (!container) return;
+
+      container.innerHTML = '<div class="field-hint">Carregando temas...</div>';
+
+      loadWizardThemes().then((themes) => {
+        if (!themes.length) {
+          container.innerHTML = '<div class="field-hint">Não foi possível carregar temas.</div>';
+          return;
+        }
+
+        container.innerHTML = '';
+
+        themes.forEach(({ key, data }) => {
+          const cols = themeColors(data);
+          const label = data?.meta?.name || data?.meta?.displayName || key;
+          const selected = key === wizardSelectedTheme;
+
+          const card = document.createElement('button');
+          card.type = 'button';
+          card.className = 'wizard-theme-card' + (selected ? ' is-selected' : '');
+          card.dataset.themeKey = key;
+          card.innerHTML =
+            '<div class="wizard-theme-swatch" style="background:' + cols.bg + ';border-color:' + (selected ? cols.primary : 'transparent') + '">' +
+              '<div class="wizard-theme-accent" style="background:' + cols.primary + '"></div>' +
+              '<div class="wizard-theme-lines">' +
+                '<div style="background:' + cols.text + '40;width:60%;height:4px;border-radius:2px"></div>' +
+                '<div style="background:' + cols.text + '25;width:80%;height:3px;border-radius:2px"></div>' +
+                '<div style="background:' + cols.primary + '80;width:40%;height:3px;border-radius:2px"></div>' +
+              '</div>' +
+            '</div>' +
+            '<span class="wizard-theme-label">' + label + '</span>';
+
+          card.addEventListener('click', () => {
+            wizardSelectedTheme = key;
+            container.querySelectorAll('.wizard-theme-card').forEach((button) => {
+              const isSelected = button.dataset.themeKey === key;
+              button.classList.toggle('is-selected', isSelected);
+              const swatch = button.querySelector('.wizard-theme-swatch');
+              if (swatch) {
+                const currentTheme = themes.find((t) => t.key === button.dataset.themeKey);
+                swatch.style.borderColor = isSelected ? (themeColors(currentTheme?.data).primary || 'transparent') : 'transparent';
+              }
+            });
+            updateWizardPreview();
+          });
+
+          container.appendChild(card);
+        });
+
+        updateWizardPreview();
+      });
+    }
+
+    function wizardGoToStep(step) {
+      wizardStep = step;
+
+      for (let index = 1; index <= 5; index += 1) {
+        const el = document.getElementById('wizardStep' + index);
+        if (el) el.classList.toggle('is-active', index === step);
+      }
+
+      const progressEl = document.getElementById('wizardProgress');
+      const footerEl = document.getElementById('wizardFooter');
+      if (progressEl) progressEl.style.display = step === 5 ? 'none' : '';
+      if (footerEl) footerEl.style.display = step === 5 ? 'none' : '';
+
+      document.querySelectorAll('.wizard-dot').forEach((dot) => {
+        dot.classList.toggle('is-active', Number(dot.dataset.step) <= Math.min(step, 4));
+      });
+
+      const backBtn = document.getElementById('wizardBtnBack');
+      const nextBtn = document.getElementById('wizardBtnNext');
+      if (backBtn) backBtn.style.display = step > 1 ? '' : 'none';
+      if (nextBtn) nextBtn.textContent = step === 4 ? 'Salvar e publicar (mock)' : 'Próximo';
+
+      if (step === 4) updateWizardPreview();
+    }
+
+    async function wizardNext() {
+      if (wizardStep === 1) {
+        const displayInput = document.getElementById('wzDisplayName');
+        if (!displayInput?.value.trim()) {
+          displayInput?.focus();
+          return;
+        }
+      }
+
+      if (wizardStep === 3) {
+        const slugInput = document.getElementById('wzSlug');
+        if (slugInput?.value.trim()) {
+          const isSlugValid = await validateWizardSlugAvailability({ immediate: true });
+          if (!isSlugValid) {
+            slugInput?.focus();
+            return;
+          }
+        }
+      }
+
+      if (wizardStep < 4) {
+        wizardGoToStep(wizardStep + 1);
+      } else {
+        await saveWizardMock();
+      }
+    }
+
+    function wizardBack() {
+      if (wizardStep > 1 && wizardStep < 5) {
+        wizardGoToStep(wizardStep - 1);
+      }
+    }
+
+    async function saveWizardMock() {
+      const nextBtn = document.getElementById('wizardBtnNext');
+      const backBtn = document.getElementById('wizardBtnBack');
+      if (nextBtn) { nextBtn.disabled = true; nextBtn.textContent = 'Salvando...'; }
+      if (backBtn) backBtn.disabled = true;
+
+      const slugValue = normalizeWizardSlug(document.getElementById('wzSlug')?.value || '');
+      const canCustomizeUrl = true;
+      const useAutoGeneratedUrl = !slugValue;
+
+      if (canCustomizeUrl && !useAutoGeneratedUrl && wizardSlugState !== 'valid') {
+        const isValid = await validateWizardSlugAvailability({ immediate: true });
+        if (!isValid) {
+          if (nextBtn) { nextBtn.disabled = false; nextBtn.textContent = 'Salvar e publicar (mock)'; }
+          if (backBtn) backBtn.disabled = false;
+          document.getElementById('wzSlug')?.focus();
+          return;
+        }
+      }
+
+      const payload = {
+        slug: canCustomizeUrl && !useAutoGeneratedUrl ? slugValue : null,
+        autoGenerateSlug: useAutoGeneratedUrl,
+        config: {
+          activeTheme: wizardSelectedTheme,
+          activeLayout: 'classic',
+          couple: {
+            names: document.getElementById('wzDisplayName')?.value.trim() || ''
+          },
+          event: {
+            date: document.getElementById('wzDate')?.value || '',
+            time: document.getElementById('wzTime')?.value || '17:00',
+            locationName: document.getElementById('wzVenueName')?.value.trim() || 'A definir',
+            venueAddress: document.getElementById('wzVenueAddress')?.value.trim() || 'A definir'
+          }
+        },
+        savedAt: new Date().toISOString()
+      };
+
+      if (canCustomizeUrl && !useAutoGeneratedUrl) {
+        payload.config.rsvp = { eventId: slugValue };
+      }
+
+      localStorage.setItem('wizard-test-last-payload', JSON.stringify(payload));
+      const preview = document.getElementById('wizardPayloadPreview');
+      if (preview) {
+        preview.textContent = JSON.stringify(payload, null, 2);
+      }
+
+      wizardGoToStep(5);
+
+      if (nextBtn) {
+        nextBtn.disabled = false;
+        nextBtn.textContent = 'Próximo';
+      }
+      if (backBtn) backBtn.disabled = false;
+    }
+
+    function initializeWizardTestPage() {
+      const today = new Date();
+      const yyyy = today.getFullYear();
+      const mm = String(today.getMonth() + 1).padStart(2, '0');
+      const dd = String(today.getDate()).padStart(2, '0');
+      const dateInput = document.getElementById('wzDate');
+      if (dateInput) dateInput.value = yyyy + '-' + mm + '-' + dd;
+      populateWizardTimeOptions('17:00');
+      setWizardSlugFieldAvailability();
+      updateWizardSlugExampleText();
+
+      document.querySelectorAll('.wizard-name-ex').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const input = document.getElementById('wzDisplayName');
+          if (input) {
+            input.value = btn.textContent.trim();
+            updateWizardPreview();
+          }
+        });
+      });
+
+      document.getElementById('wzDisplayName')?.addEventListener('input', updateWizardPreview);
+      document.getElementById('wzDisplayName')?.addEventListener('input', updateWizardSlugExampleText);
+      document.getElementById('wzDate')?.addEventListener('change', () => {
+        updateWizardPreview();
+        updateWizardSlugExampleText();
+      });
+      document.getElementById('wzSlug')?.addEventListener('input', () => {
+        setWizardSlugStatus('loading', 'Verificando disponibilidade...');
+        validateWizardSlugAvailability();
+      });
+      document.getElementById('wzSlug')?.addEventListener('blur', () => {
+        validateWizardSlugAvailability({ immediate: true });
+      });
+
+      document.getElementById('wizardBtnNext')?.addEventListener('click', wizardNext);
+      document.getElementById('wizardBtnBack')?.addEventListener('click', wizardBack);
+      document.getElementById('wzRestartBtn')?.addEventListener('click', () => {
+        wizardGoToStep(1);
+      });
+
+      const urlParams = new URLSearchParams(window.location.search);
+      const initialSlug = normalizeWizardSlug(urlParams.get('slug') || '');
+      if (initialSlug) {
+        const slugInput = document.getElementById('wzSlug');
+        if (slugInput) slugInput.value = initialSlug;
+        setWizardSlugStatus('idle', 'Verificando disponibilidade da URL...');
+        validateWizardSlugAvailability({ immediate: true });
+      }
+
+      renderWizardThemes();
+      wizardGoToStep(1);
+      updateWizardPreview();
+
+      const lastPayload = localStorage.getItem('wizard-test-last-payload');
+      if (lastPayload) {
+        const preview = document.getElementById('wizardPayloadPreview');
+        if (preview) preview.textContent = lastPayload;
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', initializeWizardTestPage);
+  </script>
+</body>
+</html>

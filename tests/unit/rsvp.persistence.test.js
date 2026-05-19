@@ -111,7 +111,7 @@ describe('rsvp persistence', () => {
 
     expect(saved).toBe(true);
     expect(global.fetch).toHaveBeenCalledTimes(3);
-    expect(global.fetch).toHaveBeenNthCalledWith(2, '/api/config');
+    expect(global.fetch).toHaveBeenNthCalledWith(2, '/api/event-config?mode=client-config');
     expect(global.fetch).toHaveBeenNthCalledWith(3, 'https://demo.supabase.co/rest/v1/guest_submissions', expect.objectContaining({
       method: 'POST',
     }));

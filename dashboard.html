@@ -123,9 +123,24 @@ body::before{
   font-size:13px;font-weight:300;
   outline:none;transition:border-color 0.3s ease,background 0.3s ease;
 }
+.field-input option{background:var(--surface);color:var(--text);}
 .field-input::placeholder{color:var(--text-dim);font-style:italic}
 .field-input:focus{border-color:var(--primary);background:rgba(192,192,192,0.04)}
 input[type="date"].field-input{width:100%;min-width:0;box-sizing:border-box;-webkit-appearance:none;appearance:none;font-size:13px;padding:10px 12px;height:36px;line-height:1;display:block;text-align:left}
+/* ── Volume range slider ── */
+#edTrackVolume{-webkit-appearance:none;appearance:none;width:100%;height:3px;border-radius:2px;background:linear-gradient(to right,var(--primary) var(--vol-pct,14%),rgba(255,255,255,0.12) var(--vol-pct,14%));outline:none;cursor:pointer;border:none;padding:0;margin:8px 0 2px;display:block}
+#edTrackVolume::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--primary);cursor:pointer;box-shadow:0 0 0 3px rgba(255,255,255,0.08);transition:box-shadow .15s,transform .15s}
+#edTrackVolume::-webkit-slider-thumb:hover{box-shadow:0 0 0 5px rgba(255,255,255,0.14);transform:scale(1.15)}
+#edTrackVolume::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:var(--primary);cursor:pointer;border:none;box-shadow:0 0 0 3px rgba(255,255,255,0.08)}
+#edTrackVolume::-moz-range-track{height:3px;border-radius:2px;background:rgba(255,255,255,0.12)}
+#edTrackVolume:focus::-webkit-slider-thumb{box-shadow:0 0 0 5px rgba(255,255,255,0.18)}
+@media (min-width:761px){
+  input[type="date"].field-input{
+    -webkit-appearance:auto;appearance:auto;
+    padding:14px 16px;height:42px;line-height:normal;
+  }
+  input[type="date"].field-input::-webkit-calendar-picker-indicator{opacity:1;cursor:pointer}
+}
 /* iOS Safari: font-size < 16px dispara zoom automático ao focar — sem reversão após submit.
    Os inputs do formulário de login recebem 16px explícito para prevenir o zoom. */
 .auth-form .field-input{font-size:16px}
@@ -162,10 +177,12 @@ input[type="date"].field-input{width:100%;min-width:0;box-sizing:border-box;-web
   padding:8px 16px;font-size:10px;letter-spacing:0.2em;
   border-color:var(--border);
 }
-.btn-full{width:100%;margin-top:8px}
+.btn-full{width:100%;margin-top:6px}
 .btn-danger{border-color:var(--danger);color:var(--danger)}
+.btn-label-mobile{display:none}
 .btn-danger::before{background:var(--danger)}
 .btn-danger:hover{color:var(--bg);border-color:var(--danger)}
+.btn:disabled{pointer-events:none}
  
 .alert{
   padding:12px 16px;
@@ -336,12 +353,12 @@ input[type="date"].field-input{width:100%;min-width:0;box-sizing:border-box;-web
 .nav-icon svg{width:100%;height:100%}
  
 .sidebar-footer{
-  padding:20px 24px;
+  padding:10px 16px;
   border-top:1px solid var(--border);
 }
 .sidebar-status{
   display:flex;align-items:center;gap:8px;
-  margin-bottom:14px;
+  margin-bottom:8px;
   font-size:10px;letter-spacing:0.18em;text-transform:uppercase;
   color:var(--text-dim);
 }
@@ -354,7 +371,94 @@ input[type="date"].field-input{width:100%;min-width:0;box-sizing:border-box;-web
   0%,100%{opacity:1;transform:scale(1)}
   50%{opacity:0.5;transform:scale(0.9)}
 }
- 
+.sidebar-plan{
+  margin-bottom:8px;
+  display:flex;flex-direction:column;gap:6px;
+}
+.btn-sm{padding:8px 16px}
+.sidebar-hamburger{
+  display:none;
+  background:none;border:none;cursor:pointer;
+  padding:6px;flex-direction:column;gap:5px;
+  align-self:center;
+}
+.sidebar-hamburger span{
+  display:block;width:20px;height:2px;
+  background:var(--text);border-radius:2px;
+}
+.mobile-drawer-backdrop{
+  position:fixed;inset:0;
+  background:rgba(0,0,0,0.55);
+  z-index:200;
+}
+.mobile-drawer{
+  position:fixed;top:0;left:0;bottom:0;
+  width:260px;
+  background:var(--surface);
+  border-right:1px solid var(--border);
+  z-index:201;
+  display:flex;flex-direction:column;
+  transform:translateX(-100%);
+  transition:transform 0.24s ease;
+}
+.mobile-drawer.is-open{transform:translateX(0)}
+.mobile-drawer-header{
+  display:flex;justify-content:flex-end;
+  padding:14px 16px;
+  border-bottom:1px solid var(--border);
+}
+.mobile-drawer-close{
+  background:none;border:none;cursor:pointer;
+  color:var(--text-dim);font-size:16px;padding:4px 8px;
+}
+.mobile-drawer-body{
+  flex:1;padding:20px 16px;
+  display:flex;flex-direction:column;gap:12px;
+}
+.drawer-plan{
+  display:flex;flex-direction:column;gap:8px;
+  padding-bottom:16px;
+  border-bottom:1px solid var(--border);
+}
+.drawer-plan-label{
+  font-size:10px;letter-spacing:0.12em;
+  text-transform:uppercase;color:var(--text-dim);
+}
+.drawer-plan-label strong{
+  color:var(--text);font-weight:600;text-transform:capitalize;
+}
+.drawer-item{
+  display:flex;align-items:center;gap:10px;
+  background:none;border:none;cursor:pointer;
+  color:var(--text);font-size:12px;
+  letter-spacing:0.1em;text-transform:uppercase;
+  padding:10px 0;text-align:left;width:100%;
+}
+.drawer-item:disabled{opacity:0.4;cursor:default}
+.drawer-item-icon{font-size:14px;width:20px;text-align:center}
+.drawer-item-badge{
+  margin-left:auto;font-size:9px;letter-spacing:0.1em;
+  background:var(--border);padding:2px 6px;border-radius:4px;
+  color:var(--text-dim);
+}
+.drawer-item--logout{color:var(--text-dim);margin-top:auto}
+@media(min-width:961px){
+  .mobile-drawer,.mobile-drawer-backdrop{display:none!important}
+}
+.sidebar-plan-label{
+  font-size:10px;letter-spacing:0.12em;text-transform:uppercase;
+  color:var(--text-dim);
+}
+.sidebar-plan-label strong{
+  color:var(--text);font-weight:600;text-transform:capitalize;
+}
+.payment-banner{
+  margin:16px 0;padding:12px 16px;
+  background:var(--success,#22c55e);color:#fff;
+  border-radius:8px;font-size:13px;font-weight:500;
+  display:flex;align-items:center;gap:8px;
+}
+
 /* Main Content */
 .main{
   flex:1;min-width:0;
@@ -379,6 +483,12 @@ input[type="date"].field-input{width:100%;min-width:0;box-sizing:border-box;-web
   color:var(--text);line-height:1.15;
 }
 .topbar-actions{display:flex;align-items:center;gap:10px;flex-shrink:0}
+.topbar-actions .top-action-btn{
+  min-height:42px;
+  padding:0 22px;
+  min-width:230px;
+  justify-content:center;
+}
  
 /* Content container */
 .content{
@@ -782,6 +892,7 @@ input[type="date"].field-input{width:100%;min-width:0;box-sizing:border-box;-web
 
 /* ══ RESPONSIVE ══════════════════════════════════════════════════════════ */
 @media (max-width:960px){
+  body{font-size:15px}
   .dashboard.is-active{flex-direction:column}
   .sidebar{
     position:static;width:100%;height:auto;flex-direction:row;
@@ -789,10 +900,11 @@ input[type="date"].field-input{width:100%;min-width:0;box-sizing:border-box;-web
   }
   .sidebar-brand{
     border-bottom:none;border-right:1px solid var(--border);
-    padding:16px;flex-shrink:0;min-width:180px;
+    padding:12px 16px;flex-shrink:0;min-width:auto;
+    display:flex;align-items:center;justify-content:center;
   }
-  .sidebar-brand-names{font-size:18px}
-  .sidebar-brand-date{display:none}
+  .sidebar-brand-label,.sidebar-brand-names,.sidebar-brand-date{display:none}
+  .sidebar-hamburger{display:flex}
   .sidebar-nav{
     flex-direction:row;overflow-x:auto;padding:0;flex:1;
   }
@@ -810,25 +922,36 @@ input[type="date"].field-input{width:100%;min-width:0;box-sizing:border-box;-web
   .form-row{grid-template-columns:1fr}
   .messages-grid{grid-template-columns:1fr}
   .messages-mural{padding:0}
+  .topbar-sub{font-size:13px}
+  .nav-item{font-size:12px}
+  .field-label{font-size:10px}
+  .field-hint{font-size:11px;line-height:1.65}
+  .btn{font-size:11px}
+  .msg-text{font-size:15px;line-height:1.7}
+  .msg-author{font-size:14px}
+  .msg-date{font-size:11px}
 }
 @media (max-width:560px){
   .stats{grid-template-columns:1fr}
   .filters{grid-template-columns:1fr}
+  .topbar{flex-wrap:wrap;row-gap:8px}
+  .topbar-actions{width:100%;flex-shrink:1;min-width:0;justify-content:flex-end}
   .topbar-actions .btn-label{display:none}
   .topbar-actions .btn{padding:10px 14px}
+  #btnNewGroup .btn-label-mobile,#btnNewSingleInvite .btn-label-mobile{display:inline}
+  #btnNewGroup svg,#btnNewSingleInvite svg{display:none}
+  #btnNewGroup,#btnNewSingleInvite{flex:1 1 0;max-width:160px;padding:8px 6px;font-size:12px;min-width:0;justify-content:center}
+  #btnNewSingleInvite .btn-label-mobile{font-size:10px;letter-spacing:0.15em}
   .topbar-left{overflow:hidden}
-  .topbar-title{font-size:18px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .topbar-title{font-size:19px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   #gruposTable th:nth-child(3),#gruposTable td:nth-child(3){display:none}
   .icon-btn-label{display:none}
   .icon-btn{min-width:30px;padding:7px}
-  .sidebar-brand{min-width:0;padding:16px 10px;display:flex;flex-direction:column;align-items:center;justify-content:center}
-  .sidebar-brand-label{display:none}
-  .sidebar-brand-names{font-size:13px;letter-spacing:0.01em;text-align:center}
-  .sidebar-brand-date{display:none}
+  .sidebar-brand{min-width:0;padding:12px 10px}
   .messages-grid{grid-template-columns:1fr}
   .messages-mural{padding:0}
   .msg-card{padding:20px 20px 18px;gap:14px}
-  .msg-text{font-size:14px}
+  .msg-text{font-size:15px}
 }
  
 /* Focus accessibility */
@@ -846,18 +969,34 @@ input[type="date"].field-input{width:100%;min-width:0;box-sizing:border-box;-web
 }
 .editor-save-status{
   display:flex;align-items:center;gap:8px;
-  font-size:11px;letter-spacing:0.08em;color:var(--text-dim);
+  font-size:12px;letter-spacing:0.08em;color:var(--text-dim);
 }
 .editor-save-dot{
   width:6px;height:6px;border-radius:50%;
   background:var(--text-faint);flex-shrink:0;
   transition:background 0.3s ease;
 }
-.editor-save-status.is-dirty .editor-save-dot{background:var(--warning)}
+.editor-save-status.is-dirty .editor-save-dot{background:var(--warning);animation:pulse 1.6s ease infinite}
 .editor-save-status.is-dirty{color:var(--warning)}
-.editor-save-status.is-saved .editor-save-dot{background:var(--success)}
+.editor-save-status.is-saved .editor-save-dot{background:var(--success);animation:none}
 .editor-save-status.is-saved{color:var(--success)}
 .editor-save-actions{display:flex;gap:10px;align-items:center}
+/* ── Rodapé de alterações não salvas por seção ── */
+.editor-section-footer{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 20px;border-top:1px solid var(--border-faint);margin-top:8px;background:rgba(255,255,255,0.01)}
+.editor-section-footer.is-dirty{animation:footerFadeIn 0.2s ease;background:rgba(196,145,66,0.08)}
+.footer-warning-msg,.footer-saved-msg{display:none;align-items:center;gap:6px;font-size:11px;letter-spacing:0.06em;font-weight:500;line-height:1.4}
+.footer-warning-msg{color:var(--warning)}
+.footer-saved-msg{color:var(--success)}
+.editor-section-footer.is-dirty .footer-warning-msg{display:flex}
+.editor-section-footer.is-saved .footer-warning-msg{display:none}
+.editor-section-footer.is-saved .footer-saved-msg{display:flex}
+.editor-section-footer.is-saved{background:rgba(88,186,129,0.08)}
+.footer-save-btn{flex-shrink:0;font-size:9px;letter-spacing:0.18em;padding:8px 18px}
+@keyframes footerFadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:768px){
+  .editor-section-footer{flex-direction:column;align-items:stretch;gap:10px}
+  .editor-section-footer .footer-save-btn{width:100%;box-sizing:border-box;justify-content:center}
+}
 @media(max-width:768px){
   .editor-savebar{padding:10px 16px;gap:8px;flex-wrap:wrap}
   .editor-save-status{width:100%;text-align:center;justify-content:center}
@@ -867,12 +1006,74 @@ input[type="date"].field-input{width:100%;min-width:0;box-sizing:border-box;-web
 .media-upload-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px;align-items:end;margin-bottom:14px}
 .media-upload-action{display:flex;justify-content:flex-end;align-items:flex-end}
 .media-upload-action .btn{min-height:42px;padding:0 22px;font-size:9px;letter-spacing:0.24em;min-width:230px}
+@media (min-width:761px){
+  .media-upload-row{align-items:start}
+  .media-upload-action{align-items:flex-start;padding-top:22px}
+}
 .media-preview-wrap{margin-bottom:16px}
 .media-preview-box{max-width:100%;max-height:320px;object-fit:cover;border:1px solid var(--border);display:block}
 .media-preview-empty{display:none;padding:24px;border:1px dashed var(--border);text-align:center;color:var(--text-dim);font-size:12px;margin-bottom:16px}
+.media-gallery-toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.media-gallery-toolbar-info{font-size:11px;color:var(--text-dim);letter-spacing:0.03em}
+.media-gallery-toolbar-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .media-gallery-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;margin-bottom:20px}
-.media-gallery-card{position:relative;aspect-ratio:1;overflow:hidden;border:1px solid var(--border)}
-.media-gallery-card img{width:100%;height:100%;object-fit:cover;display:block}
+.media-gallery-card{position:relative;aspect-ratio:1;overflow:hidden;border:1px solid var(--border);background:#0d0d0d;cursor:grab}
+.media-gallery-card:active{cursor:grabbing}
+.media-gallery-card.is-selected{border-color:var(--primary)}
+.media-gallery-card img{width:100%;height:100%;object-fit:cover;display:block;transition:opacity 0.3s ease}
+.media-gallery-card-overlay{
+  position:absolute;inset:0;
+  display:flex;flex-direction:column;justify-content:space-between;
+  padding:8px;
+  pointer-events:none;
+  background:linear-gradient(to bottom,rgba(0,0,0,0.58) 0%,transparent 45%,transparent 55%,rgba(0,0,0,0.58) 100%);
+  opacity:1;transition:opacity 0.22s ease;
+}
+.media-gallery-card-top{display:flex;align-items:center;justify-content:space-between;gap:6px;pointer-events:auto}
+.media-gallery-card-bottom{display:flex;align-items:center;justify-content:flex-end;gap:3px;pointer-events:auto}
+.media-gallery-order{font-size:9px;letter-spacing:0.18em;color:rgba(255,255,255,0.5);line-height:1;user-select:none}
+.media-gallery-check{width:15px;height:15px;accent-color:var(--primary);cursor:pointer;flex-shrink:0}
+.media-gallery-actions{display:flex;align-items:center;gap:3px}
+.media-gallery-action-btn{
+  width:22px;height:22px;
+  display:flex;align-items:center;justify-content:center;
+  border:1px solid var(--primary);
+  background:rgba(0,0,0,0.55);
+  color:var(--primary);
+  font-size:11px;line-height:1;cursor:pointer;
+  transition:border-color 0.25s ease,color 0.25s ease,background 0.25s ease;
+}
+.media-gallery-action-btn:hover{border-color:var(--primary-soft);color:var(--primary-soft);background:rgba(0,0,0,0.75)}
+.media-gallery-action-btn:disabled{opacity:0.2;cursor:not-allowed;pointer-events:none}
+.media-gallery-check:focus-visible,
+.media-gallery-action-btn:focus-visible{outline:2px solid var(--primary);outline-offset:1px}
+.media-gallery-card.is-dragging{opacity:0.5}
+.media-gallery-card.is-drop-target{outline:1px solid var(--primary);outline-offset:-3px}
+@media(max-width:760px){
+  .media-gallery-toolbar{align-items:stretch}
+  .media-gallery-toolbar-actions{width:100%}
+  .media-gallery-toolbar-actions .btn{flex:1 1 0;min-width:0;padding:8px 10px;letter-spacing:0.12em}
+}
+.upload-guidance{padding:12px 14px;border:1px solid var(--border);background:rgba(201,168,76,0.06);margin-bottom:12px}
+.upload-guidance-title{font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--primary-soft);margin-bottom:6px}
+.upload-guidance-text{font-size:11px;line-height:1.65;color:var(--text-dim)}
+.upload-file-meta{min-height:16px;margin-top:6px;font-size:10px;color:var(--text-dim);letter-spacing:0.02em;line-height:1.5}
+.upload-status{margin-top:8px;min-height:26px;padding:8px 10px;border:1px solid var(--border);background:rgba(255,255,255,0.01)}
+.upload-status[hidden]{display:none}
+.upload-status-main{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.upload-status-text{font-size:11px;line-height:1.5;color:var(--text-dim)}
+.upload-status-percent{font-size:10px;letter-spacing:0.08em;color:var(--text-faint);flex-shrink:0}
+.upload-status-help{margin-top:4px;font-size:10px;line-height:1.5;color:var(--text-faint)}
+.upload-progress{height:4px;background:rgba(255,255,255,0.06);margin-top:8px;overflow:hidden}
+.upload-progress-bar{height:100%;width:0%;background:var(--primary);transition:width 0.15s linear}
+.upload-status.is-loading{border-color:rgba(201,168,76,0.5);background:rgba(201,168,76,0.08)}
+.upload-status.is-loading .upload-status-text,.upload-status.is-loading .upload-status-percent{color:var(--primary-soft)}
+.upload-status.is-success{border-color:rgba(88,186,129,0.5);background:rgba(88,186,129,0.08)}
+.upload-status.is-success .upload-status-text,.upload-status.is-success .upload-status-percent{color:var(--success)}
+.upload-status.is-warning{border-color:rgba(201,168,76,0.6);background:rgba(201,168,76,0.1)}
+.upload-status.is-warning .upload-status-text,.upload-status.is-warning .upload-status-percent{color:var(--warning)}
+.upload-status.is-error{border-color:rgba(216,95,95,0.55);background:rgba(216,95,95,0.1)}
+.upload-status.is-error .upload-status-text,.upload-status.is-error .upload-status-percent{color:var(--danger)}
 
 .editor-section{
   border:1px solid var(--border);
@@ -910,7 +1111,212 @@ input[type="date"].field-input{width:100%;min-width:0;box-sizing:border-box;-web
 .form-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
 .form-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:14px}
 .form-group{margin-bottom:14px}
-@media(max-width:760px){.form-grid-2,.form-grid-3,.media-upload-row{grid-template-columns:1fr}.media-upload-action{justify-content:stretch}.media-upload-action .btn{width:100%;min-width:0;min-height:44px}}
+@media(max-width:760px){
+  .form-grid-2,.form-grid-3,.media-upload-row{grid-template-columns:1fr}
+  .media-upload-action{justify-content:stretch}
+  .media-upload-action .btn{width:100%;min-width:0;min-height:44px}
+}
+@media(max-width:760px){.upload-status-main{flex-direction:column;gap:4px}.upload-status-percent{align-self:flex-end}}
+
+/* Login Loading Screen */
+.login-loading-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background:
+    radial-gradient(circle at 15% 15%, rgba(255,255,255,0.06) 0%, transparent 42%),
+    radial-gradient(circle at 82% 22%, rgba(192,192,192,0.10) 0%, transparent 45%),
+    linear-gradient(150deg, #0a0908 0%, #13110f 54%, #1c1916 100%);
+  opacity: 1;
+  transform: scale(1);
+  transition: opacity 0.35s ease, transform 0.35s ease;
+}
+
+.login-loading-screen.is-hiding {
+  opacity: 0;
+  transform: scale(1.02);
+}
+
+.login-loading-screen::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.012) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.012) 1px, transparent 1px);
+  background-size: 44px 44px;
+  opacity: 0.42;
+}
+
+.login-loading-shell {
+  position: relative;
+  width: min(100%, 460px);
+  padding: 34px 30px 28px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+  border: 1px solid var(--border);
+  box-shadow: 0 24px 56px rgba(0,0,0,0.45);
+  overflow: hidden;
+}
+
+.login-loading-shell::before,
+.login-loading-shell::after {
+  content: '';
+  position: absolute;
+  left: 20px;
+  right: 20px;
+  height: 1px;
+  background: linear-gradient(to right, transparent, var(--primary), transparent);
+  opacity: 0.48;
+}
+
+.login-loading-shell::before { top: 0; }
+.login-loading-shell::after { bottom: 0; }
+
+.login-loading-head {
+  margin-bottom: 22px;
+  text-align: center;
+}
+
+.login-loading-label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 9px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--primary-soft);
+}
+
+.login-loading-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(27px, 5vw, 34px);
+  font-weight: 400;
+  font-style: italic;
+  line-height: 1.08;
+  color: var(--text);
+}
+
+.login-loading-sub {
+  margin-top: 6px;
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+.login-loading-track-wrap {
+  position: relative;
+}
+
+.login-loading-track {
+  position: relative;
+  width: 100%;
+  height: 8px;
+  background: linear-gradient(90deg, rgba(255,255,255,0.07), rgba(255,255,255,0.04));
+  border: 1px solid rgba(192,192,192,0.25);
+  overflow: hidden;
+}
+
+.login-loading-progress {
+  position: relative;
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, rgba(192,192,192,0.75), var(--primary), rgba(255,255,255,0.85));
+  transition: width 0.32s var(--ease);
+}
+
+.login-loading-progress::after {
+  content: '';
+  position: absolute;
+  top: -3px;
+  right: -4px;
+  width: 10px;
+  height: 14px;
+  background: radial-gradient(circle, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0) 72%);
+  opacity: 0.7;
+}
+
+.login-loading-meta {
+  margin-top: 12px;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.login-loading-stage {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: var(--text-soft);
+}
+
+.login-loading-percent {
+  font-family: var(--font-display);
+  font-size: 21px;
+  font-weight: 500;
+  color: var(--primary-soft);
+  line-height: 1;
+  letter-spacing: 0.03em;
+}
+
+.login-loading-pulse {
+  margin-top: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 9px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+.login-loading-pulse-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--primary);
+  box-shadow: 0 0 0 0 rgba(192,192,192,0.35);
+  animation: loginPulseDot 1.8s ease infinite;
+}
+
+@keyframes loginPulseDot {
+  0% {
+    box-shadow: 0 0 0 0 rgba(192,192,192,0.38);
+    transform: scale(1);
+  }
+  70% {
+    box-shadow: 0 0 0 8px rgba(192,192,192,0);
+    transform: scale(0.92);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(192,192,192,0);
+    transform: scale(1);
+  }
+}
+
+@media (max-width: 560px) {
+  .login-loading-screen {
+    padding: 16px;
+  }
+
+  .login-loading-shell {
+    padding: 26px 20px 22px;
+  }
+
+  .login-loading-sub,
+  .login-loading-pulse {
+    letter-spacing: 0.14em;
+  }
+
+  .login-loading-percent {
+    font-size: 19px;
+  }
+}
+
 .field-input.sm{padding:10px 12px;font-size:12px}
 /* Mobile: todos os inputs sobem para 16px — previne auto-zoom do iOS Safari.
    Posicionado após .field-input.sm para ganhar na cascade (mesma especificidade, ordem vence). */
@@ -922,10 +1328,37 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
   font-size:10px;color:var(--text-faint);
   margin-top:5px;letter-spacing:0.03em;line-height:1.6;
 }
+
+#tab-editar .field-hint{
+  font-size:11px;
+}
+
+@media(max-width:768px){
+  #tab-editar .field-hint{font-size:12px;line-height:1.65}
+}
+
 .editor-rule{height:1px;background:var(--border);margin:18px 0}
 .editor-sub-label{
   font-size:9px;font-weight:400;letter-spacing:0.28em;text-transform:uppercase;
   color:var(--text-dim);margin-bottom:12px;display:block;
+}
+
+.location-group-label{
+  display:block;
+  margin:10px 0 10px;
+  font-size:10px;
+  font-weight:600;
+  letter-spacing:0.2em;
+  text-transform:uppercase;
+  color:var(--text-soft);
+}
+
+@media(max-width:768px){
+  .location-group-label{
+    font-size:12px;
+    letter-spacing:0.14em;
+    color:var(--text);
+  }
 }
 
 /* Toggle switch */
@@ -961,8 +1394,11 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
 
 /* Catalog item rows */
 .catalog-item{
-  display:grid;grid-template-columns:1fr 110px 34px;
+  display:grid;grid-template-columns:48px 1fr 110px 34px;
   gap:8px;margin-bottom:8px;align-items:center;
+}
+.field-input.emoji-input{
+  text-align:center;font-size:1.25rem;padding:4px 2px;
 }
 .btn-icon-sm{
   width:34px;height:34px;flex-shrink:0;
@@ -972,6 +1408,34 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
 }
 .btn-icon-sm:hover{border-color:var(--danger);color:var(--danger)}
 .btn-icon-sm svg{width:11px;height:11px}
+
+@media(max-width:760px){
+  #catalogItemsList .catalog-item{
+    grid-template-columns:48px minmax(0,1fr) 66px 34px;
+    gap:6px;
+  }
+  #catalogItemsList .catalog-item > *{min-width:0}
+  #catalogItemsList .catalog-item > input[type="text"].field-input.sm{font-size:11px}
+}
+
+/* Catalog type selector */
+.catalog-type-selector{
+  display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px;
+}
+.catalog-type-opt{
+  display:flex;align-items:center;gap:8px;
+  padding:10px 12px;border:1px solid var(--border);
+  background:rgba(0,0,0,0.12);cursor:pointer;
+  transition:border-color 0.2s ease,background 0.2s ease;
+  font-size:13px;color:var(--text-soft);
+}
+.catalog-type-opt:hover{border-color:var(--text-dim)}
+.catalog-type-opt input[type=radio]{accent-color:var(--accent);cursor:pointer}
+.catalog-type-opt:has(input:checked){
+  border-color:var(--accent);
+  background:rgba(var(--accent-rgb,180,140,80),0.08);
+  color:var(--text);
+}
 
 /* Pages grid */
 .pages-grid{
@@ -999,9 +1463,369 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
   font-size:9px;letter-spacing:0.2em;text-transform:uppercase;
   color:var(--primary,#c9a84c);font-weight:600;
 }
+.faq-item-block{
+  border:1px solid var(--border);background:rgba(0,0,0,0.1);
+  padding:14px 16px;margin-bottom:10px;
+}
+/* Bloqueio de feature premium */
+.premium-lock-banner{
+  display:flex;align-items:center;justify-content:space-between;
+  flex-wrap:wrap;gap:10px;
+  padding:12px 16px;margin-bottom:16px;
+  border:1px solid var(--border-strong);
+  background:var(--surface-2);
+  font-size:11px;letter-spacing:0.04em;color:var(--text-dim);
+}
+.premium-lock-banner span{flex:1;min-width:160px}
+.premium-lock-banner .btn{padding:5px 14px;font-size:10px}
+#btnNewGroup[data-plan-locked]{opacity:0.45;cursor:not-allowed}
+#btnNewGroup[data-plan-locked]:hover::before{transform:scaleX(0)}
+.faq-item-header{
+  display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;
+}
+.faq-item-num{
+  font-size:9px;letter-spacing:0.2em;text-transform:uppercase;
+  color:var(--primary,#c9a84c);font-weight:600;
+}
+
+/* ══ WIZARD ONBOARDING ═══════════════════════════════════════════════════ */
+.wizard-overlay{
+  display:none;position:fixed;inset:0;z-index:300;
+  background:rgba(0,0,0,.92);
+  align-items:center;justify-content:center;
+  padding:20px;
+  backdrop-filter:blur(6px);
+}
+.wizard-overlay.is-active{display:flex;}
+
+.wizard-card{
+  width:min(100%,560px);
+  background:var(--surface);
+  border:1px solid var(--border);
+  padding:40px 36px 36px;
+  position:relative;
+  max-height:92vh;
+  overflow-y:auto;
+  scrollbar-width:thin;
+}
+.wizard-card::before,.wizard-card::after{
+  content:'';position:absolute;
+  left:24px;right:24px;height:1px;
+  background:linear-gradient(to right,transparent,var(--primary),transparent);
+  opacity:.4;
+}
+.wizard-card::before{top:0}
+.wizard-card::after{bottom:0}
+
+.wizard-progress{
+  display:flex;align-items:center;justify-content:center;
+  margin-bottom:32px;
+}
+.wizard-dot{
+  width:7px;height:7px;border-radius:50%;
+  background:var(--border-strong);
+  transition:background .35s,transform .35s;
+  flex-shrink:0;
+}
+.wizard-dot.is-active{background:var(--primary);transform:scale(1.25);}
+.wizard-progress-line{
+  width:52px;height:1px;margin:0 8px;
+  background:var(--border);
+}
+
+.wizard-step{display:none;}
+.wizard-step.is-active{display:block;}
+
+.wizard-date-time-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+  margin-bottom:1rem;
+}
+.wizard-step2-grid .field{margin-bottom:0}
+.wizard-step2-grid .field-input{
+  width:100%;
+  min-width:0;
+  box-sizing:border-box;
+  height:44px;
+  min-height:44px;
+  padding:10px 12px;
+  line-height:1.2;
+  border-radius:0;
+}
+.wizard-step2-grid input[type="date"].field-input,
+.wizard-step2-grid input[type="time"].field-input,
+.wizard-step2-grid select.field-input{
+  appearance:none;
+  -webkit-appearance:none;
+  border-radius:0;
+}
+.wizard-step2-grid .field-input option{
+  background:var(--surface);
+  color:var(--text);
+}
+@media(max-width:760px){
+  .wizard-date-time-grid{grid-template-columns:1fr;}
+}
+
+.wizard-title{
+  font-family:var(--font-display);
+  font-size:1.6rem;font-weight:400;font-style:italic;
+  color:var(--primary-soft);
+  margin-bottom:6px;
+}
+.wizard-sub{
+  font-size:.82rem;color:var(--text-dim);
+  line-height:1.65;margin-bottom:22px;
+}
+.wizard-error{
+  font-size:.75rem;color:var(--danger);
+  margin-top:-8px;margin-bottom:12px;
+  display:none;
+}
+.wizard-error.is-visible{display:block;}
+
+.wizard-footer{
+  display:flex;align-items:center;justify-content:flex-end;
+  gap:12px;margin-top:28px;
+  border-top:1px solid var(--border);
+  padding-top:20px;
+}
+
+/* ── Seletor de tema ─────────────────────────────────────────── */
+.wizard-theme-layout{display:flex;flex-direction:column;gap:0;}
+
+.wizard-themes{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  gap:8px;margin-bottom:20px;
+}
+@media(max-width:440px){.wizard-themes{grid-template-columns:repeat(2,1fr);}}
+
+.wizard-themes-loading{
+  grid-column:1/-1;text-align:center;
+  font-size:.8rem;color:var(--text-dim);padding:20px 0;
+}
+
+.wizard-theme-card{
+  display:flex;flex-direction:column;align-items:center;
+  gap:7px;background:none;border:none;
+  cursor:pointer;padding:0;
+}
+.wizard-theme-swatch{
+  width:100%;aspect-ratio:4/3;
+  border:2px solid transparent;
+  position:relative;overflow:hidden;
+  display:flex;flex-direction:column;justify-content:flex-end;
+  transition:border-color .25s,transform .25s,box-shadow .25s;
+}
+.wizard-theme-card.is-selected .wizard-theme-swatch{
+  transform:scale(1.04);
+  box-shadow:0 4px 20px rgba(0,0,0,.4);
+}
+.wizard-theme-accent{
+  position:absolute;top:0;left:0;right:0;height:3px;
+}
+.wizard-theme-lines{
+  padding:8px 10px;display:flex;flex-direction:column;gap:4px;
+}
+.wizard-theme-bar{
+  border-radius:2px;
+}
+.wizard-theme-label{
+  font-size:.65rem;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--text-dim);
+  text-align:center;transition:color .2s;
+  line-height:1.3;
+}
+.wizard-theme-card.is-selected .wizard-theme-label{color:var(--primary-soft);}
+
+/* ── Preview do convite ──────────────────────────────────────── */
+.wizard-preview-wrap{
+  border-top:1px solid var(--border);
+  padding-top:20px;
+}
+.wizard-preview-label{
+  font-size:9px;letter-spacing:.22em;text-transform:uppercase;
+  color:var(--text-dim);margin-bottom:12px;text-align:center;
+}
+.wizard-preview-card{
+  position:relative;overflow:hidden;
+  border:1px solid;
+  height:190px;
+  display:flex;align-items:center;justify-content:center;
+  transition:background .45s,border-color .45s;
+  /* CSS variables atualizadas via JS */
+  --wz-primary:#c9a84c;
+  --wz-text:#faf7f2;
+  --wz-text-dim:rgba(250,247,242,.45);
+  --wz-grid:rgba(255,255,255,.015);
+}
+
+.wizard-preview-bg-grid{
+  display:none;
+}
+.wizard-preview-inner{
+  position:relative;text-align:center;padding:0 32px;z-index:1;
+}
+.wz-preview-ornament{
+  font-size:9px;letter-spacing:.35em;margin-bottom:12px;
+  color:var(--wz-primary);transition:color .45s;display:block;
+}
+.wz-preview-names{
+  font-family:'Cormorant Garamond',serif;
+  font-style:italic;font-weight:400;
+  font-size:clamp(1.5rem,5vw,2rem);
+  line-height:1.1;margin-bottom:0;
+  color:var(--wz-text);
+  transition:color .45s;
+  word-break:break-word;
+}
+.wz-preview-sep{
+  width:40px;height:1px;
+  background:linear-gradient(to right,transparent,var(--wz-primary),transparent);
+  margin:12px auto;
+  transition:background .45s;
+}
+.wz-preview-date{
+  font-family:'Jost',sans-serif;
+  font-size:.62rem;letter-spacing:.3em;
+  text-transform:uppercase;
+  color:var(--wz-text-dim);
+  transition:color .45s;
+}
+
+/* ── Etapa 4 — Próximos passos ──────────────────────────────── */
+.wizard-success-icon{
+  width:52px;height:52px;border-radius:50%;
+  border:1px solid var(--border-strong);
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;color:var(--primary-soft);
+  margin:0 auto 20px;
+}
+.wizard-next-cards{
+  display:flex;flex-direction:column;gap:8px;
+  margin-top:4px;
+}
+.wizard-next-card{
+  display:flex;align-items:center;gap:16px;
+  padding:15px 18px;
+  background:transparent;border:1px solid var(--border);
+  color:var(--text);cursor:pointer;text-align:left;width:100%;
+  transition:border-color .2s,background .2s;
+  position:relative;overflow:hidden;
+}
+.wizard-next-card::before{
+  content:'';position:absolute;inset:0;
+  background:var(--primary);
+  transform:scaleX(0);transform-origin:left;
+  transition:transform .4s cubic-bezier(.76,0,.24,1);
+}
+.wizard-next-card:hover::before{transform:scaleX(1);}
+.wizard-next-card:hover{border-color:var(--primary);color:var(--bg);}
+.wizard-next-card>*{position:relative;z-index:1;}
+.wizard-next-card-icon{
+  font-size:16px;color:var(--primary-soft);
+  flex-shrink:0;width:22px;text-align:center;
+  transition:color .2s;
+}
+.wizard-next-card:hover .wizard-next-card-icon{color:var(--bg);}
+.wizard-next-card-content{display:flex;flex-direction:column;gap:2px;}
+.wizard-next-card-title{
+  font-size:.8rem;font-weight:400;letter-spacing:.06em;display:block;
+}
+.wizard-next-card-sub{
+  font-size:.71rem;color:var(--text-dim);display:block;
+  transition:color .2s;
+}
+.wizard-next-card:hover .wizard-next-card-sub{color:rgba(0,0,0,.6);}
+.wizard-footer-step4{
+  display:flex;justify-content:center;
+  padding-top:20px;border-top:1px solid var(--border);margin-top:24px;
+}
+
+/* ── Exemplos de nome ─────────────────────────────────────── */
+.wizard-name-examples{
+  display:flex;flex-wrap:wrap;gap:6px;align-items:center;
+  margin-top:8px;
+}
+.wizard-name-examples>span{
+  font-size:.7rem;color:var(--text-dim);letter-spacing:.05em;flex-shrink:0;
+}
+.wizard-name-ex{
+  background:none;border:1px solid var(--border);
+  color:rgba(250,247,242,.35);
+  font-family:var(--font-sans);font-size:.72rem;letter-spacing:.04em;
+  padding:3px 10px;cursor:pointer;
+  transition:border-color .2s,color .2s;
+}
+.wizard-name-ex:hover{border-color:var(--primary);color:var(--primary-soft);}
+
+/* ── Preview — estilo tela de abertura ───────────────────── */
+.wz-preview-tag{
+  font-size:7px;letter-spacing:.35em;text-transform:uppercase;
+  color:var(--wz-primary);margin-bottom:14px;display:block;
+  transition:color .45s;
+}
+.wz-preview-cta{
+  margin-top:14px;display:inline-block;
+  border:1px solid var(--wz-primary);
+  color:var(--wz-primary);
+  font-size:.5rem;letter-spacing:.28em;text-transform:uppercase;
+  padding:5px 16px;
+  transition:border-color .45s,color .45s;
+  pointer-events:none;
+}
+
+/* ── Instruções etapa 4 ──────────────────────────────────── */
+.wizard-instructions{
+  display:flex;flex-direction:column;gap:18px;
+  margin-bottom:4px;
+}
+.wizard-instruction-item{
+  display:flex;gap:18px;align-items:flex-start;
+}
+.wizard-instruction-num{
+  font-family:var(--font-display);font-style:italic;
+  font-size:1.35rem;color:var(--primary-soft);opacity:.45;
+  flex-shrink:0;line-height:1.2;min-width:24px;padding-top:1px;
+}
+.wizard-instruction-item strong{
+  display:block;font-size:.82rem;font-weight:400;letter-spacing:.05em;
+  color:var(--text);margin-bottom:4px;
+}
+.wizard-instruction-item p{
+  font-size:.77rem;color:var(--text-dim);line-height:1.65;margin:0;
+}
+.wizard-instruction-item em{
+  font-style:normal;color:var(--primary-soft);
+}
 </style>
 </head>
 <body>
+
+<!-- ══ LOGIN LOADING ═════════════════════════════════════════════════════ -->
+<div class="login-loading-screen" id="loginLoadingScreen" hidden>
+  <div class="login-loading-shell" role="status" aria-live="polite" aria-atomic="true">
+    <div class="login-loading-head">
+      <span class="login-loading-label">Painel Devazi</span>
+      <h2 class="login-loading-title">Preparando seu dashboard</h2>
+      <p class="login-loading-sub">Sincronizando dados do evento</p>
+    </div>
+    <div class="login-loading-track-wrap">
+      <div class="login-loading-track" role="progressbar" aria-label="Progresso de carregamento do painel" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+        <div class="login-loading-progress" id="loginLoadingProgress"></div>
+      </div>
+      <div class="login-loading-meta">
+        <span class="login-loading-stage" id="loginLoadingStage">Iniciando autenticação...</span>
+        <div class="login-loading-percent" id="loginLoadingPercent">0%</div>
+      </div>
+    </div>
+    <div class="login-loading-pulse" id="loginLoadingPulse">
+      <span class="login-loading-pulse-dot" aria-hidden="true"></span>
+      <span>Aguarde um instante</span>
+    </div>
+  </div>
+</div>
  
 <!-- ══ AUTH ═══════════════════════════════════════════════════════════════ -->
 <div class="auth-screen" id="authScreen">
@@ -1027,15 +1851,162 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
         <span>Entrar</span>
       </button>
     </form>
+    <p style="margin-top:1.25rem;font-size:.78rem;color:var(--text-dim);text-align:center;">
+      <a href="forgot-password.html" style="color:var(--primary-soft);text-decoration:none;border-bottom:1px solid transparent;transition:border-color .2s;" onmouseover="this.style.borderBottomColor='var(--primary-soft)'" onmouseout="this.style.borderBottomColor='transparent'">Esqueci minha senha</a>
+    </p>
   </div>
 </div>
  
+<!-- ══ WIZARD ONBOARDING ══════════════════════════════════════════════════ -->
+<div class="wizard-overlay" id="wizardOverlay">
+  <div class="wizard-card">
+
+    <!-- Progresso -->
+    <div class="wizard-progress" id="wizardProgress">
+      <div class="wizard-dot is-active" data-step="1"></div>
+      <div class="wizard-progress-line"></div>
+      <div class="wizard-dot" data-step="2"></div>
+      <div class="wizard-progress-line"></div>
+      <div class="wizard-dot" data-step="3"></div>
+      <div class="wizard-progress-line"></div>
+      <div class="wizard-dot" data-step="4"></div>
+    </div>
+
+    <!-- Etapa 1: Casal -->
+    <div class="wizard-step is-active" id="wizardStep1">
+      <h2 class="wizard-title">Bem-vindos!</h2>
+      <p class="wizard-sub">Vamos configurar o convite. Confirme como os nomes aparecerão no convite.</p>
+      <div class="field">
+        <label class="field-label">Como aparecem no convite *</label>
+        <input type="text" class="field-input" id="wzDisplayName"
+               placeholder="Ex: Siannah &amp; Diego" maxlength="80" autocomplete="off">
+        <div class="wizard-name-examples">
+          <span>Exemplos:</span>
+          <button type="button" class="wizard-name-ex" data-sep=" e ">Siannah e Diego</button>
+          <button type="button" class="wizard-name-ex" data-sep=" &amp; ">Siannah &amp; Diego</button>
+          <button type="button" class="wizard-name-ex" data-sep=" + ">Siannah + Diego</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Etapa 2: Data & Local -->
+    <div class="wizard-step" id="wizardStep2">
+      <h2 class="wizard-title">Data e Local</h2>
+      <p class="wizard-sub">Quando e onde acontece o casamento? Pode ser alterado depois.</p>
+      <div class="wizard-date-time-grid wizard-step2-grid">
+        <div class="field">
+          <label class="field-label">Data do casamento</label>
+          <input type="date" class="field-input" id="wzDate">
+        </div>
+        <div class="field">
+          <label class="field-label">Horário</label>
+          <select class="field-input" id="wzTime" aria-label="Horário do evento (formato 24h)"></select>
+          <div class="field-hint">Formato 24h. Exemplo: 17:00.</div>
+        </div>
+        <div class="field">
+          <label class="field-label">Nome do local</label>
+          <input type="text" class="field-input" id="wzVenueName"
+                 placeholder="Ex: Mansão das Flores" maxlength="120" autocomplete="off">
+        </div>
+        <div class="field">
+          <label class="field-label">Endereço</label>
+          <input type="text" class="field-input" id="wzVenueAddress"
+                 placeholder="Av. Rainha Simone, 1971" maxlength="200" autocomplete="off">
+        </div>
+      </div>
+    </div>
+
+    <!-- Etapa 3: URL -->
+    <div class="wizard-step" id="wizardStep3">
+      <h2 class="wizard-title">URL do convite</h2>
+      <p class="wizard-sub">Escolha como sua URL vai aparecer para os convidados. Você pode pular esta etapa.</p>
+      <div class="field" style="margin-top:14px;">
+        <label class="field-label" for="wzSlug">Escolha como sua URL vai aparecer</label>
+        <input type="text" class="field-input" id="wzSlug"
+               placeholder="Ex: siannah-diego-09-05-2026" maxlength="60" autocomplete="off">
+        <div class="field-hint" id="wzSlugExample">Seu link vai ficar assim: www.devazi.app/sua-url</div>
+        <div class="field-hint" id="wzSlugStatus">Você pode pular esta etapa. Se deixar em branco, criaremos uma URL automaticamente.</div>
+      </div>
+    </div>
+
+    <!-- Etapa 4: Tema -->
+    <div class="wizard-step" id="wizardStep4">
+      <h2 class="wizard-title">Escolha o tema</h2>
+      <p class="wizard-sub">Selecione o visual do convite. Pode mudar a qualquer momento no painel.</p>
+      <p class="wizard-sub" style="margin-top:-12px;margin-bottom:16px;color:var(--primary-soft);">
+        Esses são os temas do plano free. Upgrade para acessar mais temas na próxima tela.
+      </p>
+      <div class="wizard-theme-layout">
+        <div class="wizard-themes" id="wizardThemes"></div>
+        <div class="wizard-preview-wrap">
+          <div class="wizard-preview-label">PRÉVIA DO CONVITE</div>
+          <div class="wizard-preview-card" id="wzPreviewCard">
+            <div class="wizard-preview-bg-grid"></div>
+            <div class="wizard-preview-inner">
+              <span class="wz-preview-tag">Você está convidado</span>
+              <div class="wz-preview-names" id="wzPreviewNames">Nome &amp; Nome</div>
+              <div class="wz-preview-sep"></div>
+              <div class="wz-preview-date" id="wzPreviewDate">· · ·</div>
+              <span class="wz-preview-cta">Abrir Convite</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Etapa 5: Próximos passos -->
+    <div class="wizard-step" id="wizardStep5">
+      <div class="wizard-success-icon">✦</div>
+      <h2 class="wizard-title" style="text-align:center">Convite criado!</h2>
+      <p class="wizard-sub" style="text-align:center;margin-bottom:28px">
+        As informações foram salvas. Veja o que fazer para deixar o convite pronto.
+      </p>
+      <div class="wizard-instructions">
+        <div class="wizard-instruction-item">
+          <span class="wizard-instruction-num">01</span>
+          <div>
+            <strong>Personalize o convite</strong>
+            <p>Vá até a aba <em>Editar Evento</em> dentro do painel para adicionar fotos, textos, configurar o RSVP e os presentes.</p>
+          </div>
+        </div>
+        <div class="wizard-instruction-item">
+          <span class="wizard-instruction-num">02</span>
+          <div>
+            <strong>Veja como ficou</strong>
+            <p>O link do seu convite está na aba <em>Editar Evento</em>. Clique para visualizá-lo exatamente como os convidados irão ver.</p>
+          </div>
+        </div>
+        <div class="wizard-instruction-item">
+          <span class="wizard-instruction-num">03</span>
+          <div>
+            <strong>Envie os convites</strong>
+            <p>Vá até a aba <em>Convites</em> para criar convites em grupo ou convite individual personalizado com link exclusivo.</p>
+          </div>
+        </div>
+      </div>
+      <div class="wizard-footer-step4">
+        <button class="btn btn-primary" id="wzCloseBtn" type="button">Ir para o painel</button>
+      </div>
+    </div>
+
+    <!-- Rodapé (oculto na etapa 5) -->
+    <div class="wizard-footer" id="wizardFooter">
+      <button class="btn btn-subtle" id="wizardBtnBack" style="display:none">Voltar</button>
+      <button class="btn btn-primary" id="wizardBtnNext">Próximo</button>
+    </div>
+
+  </div>
+</div>
+
 <!-- ══ DASHBOARD ══════════════════════════════════════════════════════════ -->
 <div class="dashboard" id="dashboardScreen">
  
   <!-- SIDEBAR -->
   <aside class="sidebar">
     <div class="sidebar-brand">
+      <button class="sidebar-hamburger" id="sidebarHamburger" aria-label="Abrir menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
       <span class="sidebar-brand-label">Dashboard</span>
       <div class="sidebar-brand-names" id="sidebarCouple"></div>
       <div class="sidebar-brand-date" id="sidebarDate"></div>
@@ -1048,11 +2019,17 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
         </span>
         <span>Visão Geral</span>
       </button>
+      <button class="nav-item" data-tab="editar" role="tab">
+        <span class="nav-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 1 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
+        </span>
+        <span>Editar Evento</span>
+      </button>
       <button class="nav-item" data-tab="grupos" role="tab">
         <span class="nav-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
         </span>
-        <span>Grupos</span>
+        <span>Convites</span>
       </button>
       <button class="nav-item" data-tab="confirmacoes" role="tab">
         <span class="nav-icon">
@@ -1078,17 +2055,11 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
         </span>
         <span>Relatórios</span>
       </button>
-      <button class="nav-item" data-tab="export" role="tab">
+      <button class="nav-item" data-tab="export" role="tab" hidden>
         <span class="nav-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         </span>
         <span>Exportar</span>
-      </button>
-      <button class="nav-item" data-tab="editar" role="tab">
-        <span class="nav-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 1 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
-        </span>
-        <span>Editar Evento</span>
       </button>
     </nav>
  
@@ -1096,6 +2067,12 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
       <div class="sidebar-status">
         <span class="sidebar-status-dot"></span>
         <span>Sincronizado</span>
+      </div>
+      <div class="sidebar-plan" id="sidebarPlan" hidden>
+        <span class="sidebar-plan-label">Plano: <strong id="sidebarPlanName">Free</strong></span>
+        <button class="btn btn-primary btn-full btn-sm" id="btnUpgrade" hidden>
+          Upgrade para Premium
+        </button>
       </div>
       <button class="btn btn-subtle btn-full" id="logoutButton">
         <span>Sair do painel</span>
@@ -1115,9 +2092,15 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
           <span class="btn-label">Atualizar</span>
         </button>
-        <button class="btn btn-primary" id="btnNewGroup">
+        <button class="btn btn-primary top-action-btn" id="btnNewGroup">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           <span class="btn-label">Novo grupo</span>
+          <span class="btn-label-mobile">+ Criar grupo</span>
+        </button>
+        <button class="btn btn-subtle top-action-btn" id="btnNewSingleInvite" hidden>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+          <span class="btn-label">Criar convite individual</span>
+          <span class="btn-label-mobile">+ Convite individual</span>
         </button>
       </div>
     </header>
@@ -1175,22 +2158,22 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
         </section>
       </div>
  
-      <!-- TAB: GRUPOS -->
+      <!-- TAB: CONVITES -->
       <div class="tab-content" id="tab-grupos" role="tabpanel">
         <section class="section">
           <div class="section-head">
             <div>
-              <h2 class="section-title">Grupos de convidados</h2>
-              <p class="section-sub">Cada grupo recebe um link único compartilhado entre seus membros</p>
+              <h2 class="section-title">Convites</h2>
+              <p class="section-sub">Crie convites em grupo ou individuais com link único de acesso</p>
             </div>
           </div>
  
           <div class="table-wrap">
-            <div class="loading" id="gruposLoading"><div class="spinner"></div>Carregando grupos...</div>
+            <div class="loading" id="gruposLoading"><div class="spinner"></div>Carregando convites...</div>
             <table class="table" id="gruposTable" hidden>
               <thead>
                 <tr>
-                  <th>Grupo</th>
+                  <th>Convite</th>
                   <th>Vagas</th>
                   <th>Observações</th>
                   <th style="text-align:right">Ações</th>
@@ -1200,8 +2183,8 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
             </table>
             <div class="empty" id="gruposEmpty" hidden>
               <div class="empty-icon">✧</div>
-              <div class="empty-title">Nenhum grupo cadastrado</div>
-              <p class="empty-text">Comece cadastrando os primeiros grupos. Cada grupo terá um link único para compartilhar com os convidados.</p>
+              <div class="empty-title">Nenhum convite cadastrado</div>
+              <p class="empty-text">Crie um convite em grupo ou um convite individual. Cada convite terá um link único para compartilhar.</p>
             </div>
           </div>
         </section>
@@ -1425,6 +2408,10 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
             <span id="editorSaveStatusText">Carregando configurações…</span>
           </div>
           <div class="editor-save-actions">
+            <a id="btnPreviewInvite" href="#" target="_blank" rel="noopener noreferrer" class="btn btn-subtle" title="Abrir convite em nova aba">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              <span>Ver convite</span>
+            </a>
             <button type="button" class="btn btn-subtle" onclick="reloadEditorTab()">
               <span>Descartar</span>
             </button>
@@ -1452,8 +2439,19 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
                 <input type="text" class="field-input sm" id="edCoupleNames" placeholder="Noiva &amp; Noivo" oninput="markEditorDirty()">
               </div>
               <div class="field">
-                <label class="field-label" for="edCoupleSubtitle">Subtítulo</label>
-                <input type="text" class="field-input sm" id="edCoupleSubtitle" placeholder="ex: Um momento especial com vocês" oninput="markEditorDirty()">
+                <label class="field-label" for="edBrideName">Nome do cônjuge 1</label>
+                <input type="text" class="field-input sm" id="edBrideName" placeholder="Ex: Siannah" oninput="markEditorDirty()">
+              </div>
+            </div>
+
+            <div class="form-grid-2">
+              <div class="field">
+                <label class="field-label" for="edGroomName">Nome do cônjuge 2</label>
+                <input type="text" class="field-input sm" id="edGroomName" placeholder="Ex: Diego" oninput="markEditorDirty()">
+              </div>
+              <div class="field">
+                <label class="field-label" for="edCoupleSubtitle">Subtítulo (mensagem da primeira tela de abertura do convite)</label>
+                <input type="text" class="field-input sm" id="edCoupleSubtitle" value="Um momento pensado para viver ao lado de quem faz parte da nossa vida" oninput="markEditorDirty()">
               </div>
             </div>
 
@@ -1465,7 +2463,6 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
                 <label class="field-label" for="edEventDate">Data do evento *</label>
                 <input type="date" class="field-input sm" id="edEventDate"
                        onchange="onEventDateChange(); markEditorDirty();">
-                <div class="field-hint">Os formatos abaixo são gerados automaticamente.</div>
               </div>
               <div class="field">
                 <label class="field-label" for="edEventTime">Horário de exibição</label>
@@ -1473,7 +2470,7 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
               </div>
             </div>
             <!-- Campos derivados — gerados automaticamente ao mudar a data -->
-            <div class="form-grid-3">
+            <div class="form-grid-3" hidden>
               <div class="field">
                 <label class="field-label">Data no hero <span class="field-badge-auto">auto</span></label>
                 <input type="text" class="field-input sm field-auto" id="edEventHeroDate"
@@ -1492,39 +2489,71 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
             </div>
 
             <div class="editor-rule"></div>
-            <span class="editor-sub-label">Local do evento</span>
+            <span class="editor-sub-label">Locais do evento</span>
 
+            <span class="location-group-label">Dados da cerimônia</span>
             <div class="form-grid-2">
               <div class="field">
-                <label class="field-label" for="edEventLocation">Nome do local</label>
-                <input type="text" class="field-input sm" id="edEventLocation" placeholder="Mansão, Sítio, Salão de Festas..." oninput="markEditorDirty()">
+                <label class="field-label" for="edCeremonyLocation">NOME DO LOCAL (CERIMÔNIA)</label>
+                <input type="text" class="field-input sm" id="edCeremonyLocation" placeholder="Igreja, Cartório, Espaço..." oninput="markEditorDirty()">
               </div>
               <div class="field">
-                <label class="field-label" for="edEventCity">Cidade</label>
-                <input type="text" class="field-input sm" id="edEventCity" placeholder="São Bernardo do Campo, SP" oninput="markEditorDirty()">
+                <label class="field-label" for="edCeremonyCity">CIDADE (CERIMÔNIA)</label>
+                <input type="text" class="field-input sm" id="edCeremonyCity" placeholder="São Paulo, SP" oninput="markEditorDirty()">
               </div>
             </div>
             <div class="form-group">
               <div class="field">
-                <label class="field-label" for="edEventMapsLink">Link do Google Maps</label>
-                <input type="url" class="field-input sm" id="edEventMapsLink"
-                       placeholder="Cole aqui o link do Google Maps do local"
+                <label class="field-label" for="edCeremonyMapsLink">LINK DO GOOGLE MAPS (CERIMÔNIA)</label>
+                <input type="url" class="field-input sm" id="edCeremonyMapsLink"
+                       placeholder="Cole aqui o link do Google Maps da cerimônia"
                        oninput="markEditorDirty()"
-                       onblur="onMapsLinkExtract()"
-                       onpaste="setTimeout(onMapsLinkExtract, 0)">
-                <div id="edEventCoordsStatus" class="field-hint" style="display:none"></div>
+                       onblur="onMapsLinkExtract('ceremony')"
+                       onpaste="setTimeout(() => onMapsLinkExtract('ceremony'), 0)">
+                <div id="edCeremonyCoordsStatus" class="field-hint" style="display:none"></div>
               </div>
             </div>
             <div class="form-group">
               <div class="field">
-                <label class="field-label" for="edEventVenueAddress">Endereço completo</label>
-                <input type="text" class="field-input sm" id="edEventVenueAddress"
-                       placeholder="Rua dos Noivos, 100 — São Paulo, SP" oninput="markEditorDirty()">
+                <label class="field-label" for="edCeremonyAddress">ENDEREÇO COMPLETO (CERIMÔNIA)</label>
+                <input type="text" class="field-input sm" id="edCeremonyAddress"
+                       placeholder="Rua da Cerimônia, 100 — São Paulo, SP" oninput="markEditorDirty()">
               </div>
             </div>
-            <!-- Coordenadas — preenchidas automaticamente pelo link do Maps (campos ocultos) -->
-            <input type="hidden" id="edEventLat">
-            <input type="hidden" id="edEventLng">
+            <input type="hidden" id="edCeremonyLat">
+            <input type="hidden" id="edCeremonyLng">
+
+            <span class="location-group-label">Dados da festa</span>
+            <div class="form-grid-2">
+              <div class="field">
+                <label class="field-label" for="edPartyLocation">NOME DO LOCAL (FESTA)</label>
+                <input type="text" class="field-input sm" id="edPartyLocation" placeholder="Mansão, Sítio, Salão de Festas..." oninput="markEditorDirty()">
+              </div>
+              <div class="field">
+                <label class="field-label" for="edPartyCity">CIDADE (FESTA)</label>
+                <input type="text" class="field-input sm" id="edPartyCity" placeholder="São Bernardo do Campo, SP" oninput="markEditorDirty()">
+              </div>
+            </div>
+            <div class="form-group">
+              <div class="field">
+                <label class="field-label" for="edPartyMapsLink">LINK DO GOOGLE MAPS (FESTA)</label>
+                <input type="url" class="field-input sm" id="edPartyMapsLink"
+                       placeholder="Cole aqui o link do Google Maps da festa"
+                       oninput="markEditorDirty()"
+                       onblur="onMapsLinkExtract('party')"
+                       onpaste="setTimeout(() => onMapsLinkExtract('party'), 0)">
+                <div id="edPartyCoordsStatus" class="field-hint" style="display:none"></div>
+              </div>
+            </div>
+            <div class="form-group">
+              <div class="field">
+                <label class="field-label" for="edPartyAddress">ENDEREÇO COMPLETO (FESTA)</label>
+                <input type="text" class="field-input sm" id="edPartyAddress"
+                       placeholder="Rua da Festa, 200 — São Paulo, SP" oninput="markEditorDirty()">
+              </div>
+            </div>
+            <input type="hidden" id="edPartyLat">
+            <input type="hidden" id="edPartyLng">
             <div class="form-group">
               <label class="toggle">
                 <input type="checkbox" class="toggle-input" id="edEventMapEnabled" onchange="markEditorDirty()">
@@ -1533,11 +2562,23 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
               </label>
             </div>
 
+            <div class="editor-section-footer" id="footer-edSectionEvento">
+              <span class="footer-warning-msg">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                Alterações não salvas
+              </span>
+              <span class="footer-saved-msg">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                Configurações salvas ✓
+              </span>
+              <button type="button" class="btn btn-primary footer-save-btn" onclick="saveEditorConfig()">Salvar alterações</button>
+            </div>
+
           </div>
         </div>
 
         <!-- ── SEÇÃO 2: TEMA & VISUAL ─────────────────── -->
-        <div class="editor-section is-open" id="edSectionTema">
+        <div class="editor-section" id="edSectionTema">
           <button class="editor-section-header" type="button" onclick="toggleEditorSection('edSectionTema')">
             <div>
               <div class="editor-section-tag">Aparência</div>
@@ -1551,7 +2592,6 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
                 <label class="field-label" for="edActiveLayout">Layout</label>
                 <select class="field-input sm" id="edActiveLayout" onchange="onLayoutChange();markEditorDirty()">
                   <option value="classic">Classic</option>
-                  <option value="modern">Modern</option>
                 </select>
               </div>
               <div class="field">
@@ -1560,11 +2600,23 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
               </div>
             </div>
             <div class="field-hint" style="margin-top:-6px">Após salvar e aplicar o arquivo, recarregue o convite para ver a mudança de tema.</div>
+
+            <div class="editor-section-footer" id="footer-edSectionTema">
+              <span class="footer-warning-msg">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                Alterações não salvas
+              </span>
+              <span class="footer-saved-msg">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                Configurações salvas ✓
+              </span>
+              <button type="button" class="btn btn-primary footer-save-btn" onclick="saveEditorConfig()">Salvar alterações</button>
+            </div>
           </div>
         </div>
 
         <!-- ── SEÇÃO 3: WHATSAPP ──────────────────────── -->
-        <div class="editor-section is-open" id="edSectionWhatsApp">
+        <div class="editor-section" id="edSectionWhatsApp">
           <button class="editor-section-header" type="button" onclick="toggleEditorSection('edSectionWhatsApp')">
             <div>
               <div class="editor-section-tag">Confirmação de presença</div>
@@ -1586,35 +2638,23 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
               </div>
             </div>
 
-            <div class="editor-rule"></div>
-            <span class="editor-sub-label">Mensagens automáticas</span>
-            <div class="form-group">
-              <div class="field">
-                <label class="field-label" for="edWaMsgAttending">Convidado vai comparecer</label>
-                <textarea class="field-input sm" id="edWaMsgAttending" rows="3" placeholder="Olá {name}…" oninput="markEditorDirty()"></textarea>
-                <div class="field-hint">Use {name}, {recipientName}, {date} como variáveis.</div>
-              </div>
-            </div>
-            <div class="form-group">
-              <div class="field">
-                <label class="field-label" for="edWaMsgNotAttending">Convidado não vai comparecer</label>
-                <textarea class="field-input sm" id="edWaMsgNotAttending" rows="3" placeholder="Entendemos, {name}…" oninput="markEditorDirty()"></textarea>
-              </div>
+            <div class="editor-section-footer" id="footer-edSectionWhatsApp">
+              <span class="footer-warning-msg">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                Alterações não salvas
+              </span>
+              <span class="footer-saved-msg">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                Configurações salvas ✓
+              </span>
+              <button type="button" class="btn btn-primary footer-save-btn" onclick="saveEditorConfig()">Salvar alterações</button>
             </div>
 
-            <div class="editor-rule"></div>
-            <div class="form-group">
-              <label class="toggle">
-                <input type="checkbox" class="toggle-input" id="edRsvpSupabase" onchange="markEditorDirty()">
-                <span class="toggle-track"><span class="toggle-thumb"></span></span>
-                <span class="toggle-label">Salvar confirmações no Supabase</span>
-              </label>
-            </div>
           </div>
         </div>
 
         <!-- ── SEÇÃO 4: PRESENTES ─────────────────────── -->
-        <div class="editor-section is-open" id="edSectionPresentes">
+        <div class="editor-section" id="edSectionPresentes">
           <button class="editor-section-header" type="button" onclick="toggleEditorSection('edSectionPresentes')">
             <div>
               <div class="editor-section-tag">Página de presentes</div>
@@ -1645,18 +2685,13 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
                     <input type="text" class="field-input sm" id="edGiftPixKey"
                            placeholder="CPF, e-mail, telefone ou chave aleatória" oninput="markEditorDirty()">
                   </div>
-                  <div class="field">
-                    <label class="field-label" for="edGiftPixQr">Imagem QR Code</label>
-                    <input type="text" class="field-input sm" id="edGiftPixQr"
-                           placeholder="assets/images/icons/pix-qr.png" oninput="markEditorDirty();renderPixQrPreview(this.value)">
-                    <div class="field-hint">Caminho relativo ao projeto ou URL.</div>
-                  </div>
                 </div>
+                <input type="hidden" id="edGiftPixQr">
 
                 <div class="media-preview-wrap" id="edGiftPixQrPreviewWrap" style="display:none;margin-top:14px">
                   <div class="field-label" style="margin-bottom:8px">QR Pix atual</div>
                   <img id="edGiftPixQrPreview" class="media-preview-box" src="" alt="QR Code Pix atual">
-                  <div class="field-hint" id="edGiftPixQrPreviewUrl" style="word-break:break-all"></div>
+                  <div class="field-hint" id="edGiftPixQrPreviewUrl" style="display:none"></div>
                 </div>
 
                 <div class="media-preview-empty" id="edGiftPixQrEmpty" style="margin-top:14px">
@@ -1667,7 +2702,8 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
                   <div class="field">
                     <label class="field-label" for="edGiftPixQrFile">Upload do QR Pix</label>
                     <input type="file" class="field-input sm" id="edGiftPixQrFile" accept="image/png,image/jpeg,image/webp">
-                    <div class="field-hint">Formatos aceitos: JPG, PNG e WEBP. O upload substitui o QR atual.</div>
+                    <div class="field-hint">Formatos aceitos: JPG, PNG e WEBP até 10 MB. O upload substitui o QR atual.</div>
+                    <div class="upload-file-meta" id="edGiftPixQrFileMeta"></div>
                   </div>
                   <div class="media-upload-action">
                     <button type="button" class="btn btn-subtle" id="btnEdGiftPixQrUpload" onclick="uploadPixQrMedia()">
@@ -1676,7 +2712,14 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
                   </div>
                 </div>
 
-                <p class="field-hint" id="edGiftPixQrUploadStatus" style="margin-top:8px;min-height:18px"></p>
+                <div class="upload-status" id="edGiftPixQrUploadStatus" aria-live="polite">
+                  <div class="upload-status-main">
+                    <span class="upload-status-text"></span>
+                    <span class="upload-status-percent"></span>
+                  </div>
+                  <div class="upload-progress" hidden><div class="upload-progress-bar"></div></div>
+                  <div class="upload-status-help"></div>
+                </div>
               </div>
             </div>
 
@@ -1721,12 +2764,34 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
                   <div class="field">
                     <label class="field-label" for="edGiftCatalogTitle">Título da lista</label>
                     <input type="text" class="field-input sm" id="edGiftCatalogTitle"
-                           placeholder="Lista de Presentes" oninput="markEditorDirty()">
+                           placeholder="Definido automaticamente" readonly>
                   </div>
                   <div class="field">
                     <label class="field-label" for="edGiftCatalogSubtitle">Subtítulo</label>
                     <input type="text" class="field-input sm" id="edGiftCatalogSubtitle"
-                           placeholder="Sugestões para a lua de mel" oninput="markEditorDirty()">
+                           placeholder="Definido automaticamente" readonly>
+                  </div>
+                </div>
+                <div class="editor-rule"></div>
+                <div class="field" style="margin-bottom:14px">
+                  <label class="field-label">Lista de presentes</label>
+                  <div class="catalog-type-selector">
+                    <label class="catalog-type-opt">
+                      <input type="radio" name="catalogType" value="honeymoon" onchange="onCatalogTypeChange(this.value)">
+                      <span>🌙 Lua de Mel</span>
+                    </label>
+                    <label class="catalog-type-opt">
+                      <input type="radio" name="catalogType" value="home" onchange="onCatalogTypeChange(this.value)">
+                      <span>🏠 Casa</span>
+                    </label>
+                    <label class="catalog-type-opt">
+                      <input type="radio" name="catalogType" value="couple" onchange="onCatalogTypeChange(this.value)">
+                      <span>✨ Nosso Lar</span>
+                    </label>
+                    <label class="catalog-type-opt">
+                      <input type="radio" name="catalogType" value="wedding" onchange="onCatalogTypeChange(this.value)">
+                      <span>💍 Ajuda no Casamento</span>
+                    </label>
                   </div>
                 </div>
                 <div class="editor-rule"></div>
@@ -1740,43 +2805,87 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
               </div>
             </div>
 
+            <!-- ── Opção 4: Lista Externa ─────────────────────────────── -->
+            <div class="gift-block" id="giftBlockExternal">
+              <div class="gift-block-head">
+                <div>
+                  <div class="gift-block-type">Opção 4</div>
+                  <div class="gift-block-name">Lista externa de presentes</div>
+                </div>
+                <label class="toggle" onclick="event.stopPropagation()">
+                  <input type="checkbox" class="toggle-input" id="edExternalEnabled"
+                         onchange="toggleGiftBlock('giftBlockExternal',this.checked);markEditorDirty()">
+                  <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                </label>
+              </div>
+              <div class="gift-block-body">
+                <div class="field" style="margin-bottom:10px">
+                  <label class="field-label" for="edExternalStore">Loja / Plataforma</label>
+                  <input class="field-input sm" id="edExternalStore" type="text"
+                         placeholder="Ex: Amazon, Casas Bahia…" oninput="markEditorDirty()">
+                  <div class="field-hint">Nome exibido no botão e na aba da página de presentes.</div>
+                </div>
+                <div class="field" style="margin-bottom:10px">
+                  <label class="field-label" for="edExternalUrl">URL da lista</label>
+                  <input class="field-input sm" id="edExternalUrl" type="url"
+                         placeholder="https://…" oninput="markEditorDirty()">
+                  <div class="field-hint">Link direto para a lista. Tags de afiliado são adicionadas automaticamente para Amazon e Magalu.</div>
+                </div>
+                <div class="field">
+                  <label class="field-label" for="edExternalLabel">Texto do botão</label>
+                  <input class="field-input sm" id="edExternalLabel" type="text"
+                         placeholder="Ver lista completa" oninput="markEditorDirty()">
+                </div>
+              </div>
+            </div>
+
+            <div class="editor-section-footer" id="footer-edSectionPresentes">
+              <span class="footer-warning-msg">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                Alterações não salvas
+              </span>
+              <span class="footer-saved-msg">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                Configurações salvas ✓
+              </span>
+              <button type="button" class="btn btn-primary footer-save-btn" onclick="saveEditorConfig()">Salvar alterações</button>
+            </div>
+
           </div>
         </div>
 
         <!-- ── SEÇÃO 5: FOTOS & MÍDIA ─────────────────── -->
-        <div class="editor-section is-open" id="edSectionMidia">
+        <div class="editor-section" id="edSectionMidia">
           <button class="editor-section-header" type="button" onclick="toggleEditorSection('edSectionMidia')">
             <div>
-              <div class="editor-section-tag">Assets</div>
+              <div class="editor-section-tag">Fotos &amp; Mídia</div>
               <div class="editor-section-title">Fotos &amp; Mídia</div>
             </div>
             <svg class="editor-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
           </button>
           <div class="editor-section-body">
+            <div class="upload-guidance">
+              <div class="upload-guidance-title">Antes de enviar</div>
+              <div class="upload-guidance-text">Use imagens JPG, PNG ou WEBP de até 10 MB por arquivo. O sistema salva automaticamente ao final de cada envio.</div>
+            </div>
             <div class="media-preview-wrap" id="edMediaHeroPreviewWrap" style="display:none">
               <div class="field-label" style="margin-bottom:8px">Foto atual do hero</div>
               <img id="edMediaHeroPreview" class="media-preview-box" src="" alt="Foto principal do casal">
-              <div class="field-hint" id="edMediaHeroPreviewUrl" style="word-break:break-all"></div>
+              <div class="field-hint" id="edMediaHeroPreviewUrl" style="display:none"></div>
             </div>
 
             <div class="media-preview-empty" id="edMediaHeroEmpty">
               Nenhuma foto principal definida.
             </div>
 
-            <div class="form-group">
-              <div class="field">
-                <label class="field-label" for="edMediaHero">Foto do casal (hero)</label>
-                <input type="text" class="field-input sm" id="edMediaHero"
-                    placeholder="assets/images/couple/hero.jpg" oninput="markEditorDirty();renderMediaHeroPreview(this.value)">
-                <div class="field-hint">Caminho relativo ou URL da imagem principal exibida no convite.</div>
-              </div>
-            </div>
+            <input type="hidden" id="edMediaHero">
 
             <div class="media-upload-row">
               <div class="field">
                 <label class="field-label" for="edMediaHeroFile">Upload da foto principal</label>
                 <input type="file" class="field-input sm" id="edMediaHeroFile" accept="image/png,image/jpeg,image/webp">
-                <div class="field-hint">Formatos aceitos: JPG, PNG e WEBP.</div>
+                <div class="field-hint">Formatos aceitos: JPG, PNG e WEBP até 10 MB.</div>
+                <div class="upload-file-meta" id="edMediaHeroFileMeta"></div>
               </div>
               <div class="media-upload-action">
                 <button type="button" class="btn btn-subtle" id="btnEdMediaHeroUpload" onclick="uploadHeroMedia()">
@@ -1785,8 +2894,29 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
               </div>
             </div>
 
+            <div class="upload-status" id="edMediaHeroUploadStatus" aria-live="polite">
+              <div class="upload-status-main">
+                <span class="upload-status-text"></span>
+                <span class="upload-status-percent"></span>
+              </div>
+              <div class="upload-progress" hidden><div class="upload-progress-bar"></div></div>
+              <div class="upload-status-help"></div>
+            </div>
+
             <div class="editor-rule"></div>
             <span class="editor-sub-label">Galeria da página Nossa História</span>
+
+            <div class="media-gallery-toolbar" id="edMediaGalleryToolbar" hidden>
+              <div class="media-gallery-toolbar-info" id="edMediaGallerySelectionInfo">0 foto selecionada</div>
+              <div class="media-gallery-toolbar-actions">
+                <button type="button" class="btn btn-subtle" id="btnGallerySelectAll" onclick="toggleSelectAllGalleryImages()">
+                  <span>Selecionar todas</span>
+                </button>
+                <button type="button" class="btn btn-danger" id="btnGalleryDeleteSelected" onclick="deleteSelectedGalleryImages()" disabled>
+                  <span>Excluir selecionadas</span>
+                </button>
+              </div>
+            </div>
 
             <div class="media-gallery-grid" id="edMediaGalleryGrid"></div>
             <div class="media-preview-empty" id="edMediaGalleryEmpty">
@@ -1797,7 +2927,7 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
               <div class="field">
                 <label class="field-label" for="edMediaGalleryFiles">Upload para galeria</label>
                 <input type="file" class="field-input sm" id="edMediaGalleryFiles" accept="image/png,image/jpeg,image/webp" multiple>
-                <div class="field-hint">As imagens enviadas serão adicionadas em História → Galeria.</div>
+                <div class="upload-file-meta" id="edMediaGalleryFileMeta"></div>
               </div>
               <div class="media-upload-action">
                 <button type="button" class="btn btn-subtle" id="btnEdMediaGalleryUpload" onclick="uploadGalleryMedia()">
@@ -1806,52 +2936,87 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
               </div>
             </div>
 
-            <p class="field-hint" id="edMediaUploadStatus" style="margin-top:8px;min-height:18px"></p>
+            <div class="upload-status" id="edMediaUploadStatus" aria-live="polite">
+              <div class="upload-status-main">
+                <span class="upload-status-text"></span>
+                <span class="upload-status-percent"></span>
+              </div>
+              <div class="upload-progress" hidden><div class="upload-progress-bar"></div></div>
+              <div class="upload-status-help"></div>
+            </div>
 
             <div class="editor-rule"></div>
-            <span class="editor-sub-label">Trilha sonora principal</span>
+            <span class="editor-sub-label">Música do convite</span>
+            <div class="form-group">
+              <label class="toggle">
+                <input type="checkbox" class="toggle-input" id="edTrackEnabled" onchange="markEditorDirty()">
+                <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                <span class="toggle-label">Habilitar música no convite</span>
+              </label>
+            </div>
+
+            <div class="field" style="margin-bottom:12px">
+              <label class="field-label" for="edTrackSrc">Música</label>
+              <select class="field-input sm" id="edTrackSrc" onchange="markEditorDirty()">
+                <option value="">— Carregando músicas… —</option>
+              </select>
+              <div class="field-hint" id="edTrackSrcHint" style="margin-top:4px">As músicas são carregadas da pasta <code>songs/</code> no Storage.</div>
+            </div>
+
             <div class="form-grid-3">
               <div class="field">
-                <label class="field-label" for="edTrackMainSrc">Arquivo</label>
-                <input type="text" class="field-input sm" id="edTrackMainSrc"
-                       placeholder="assets/audio/main-theme.mp3" oninput="markEditorDirty()">
+                <label class="field-label" for="edTrackVolume" style="display:flex;justify-content:space-between;align-items:center">
+                  Volume
+                  <span id="edTrackVolumeDisplay" style="font-weight:600;font-size:12px;letter-spacing:.02em;color:var(--primary);opacity:.9">14%</span>
+                </label>
+                <input type="range" id="edTrackVolume" min="0" max="100" step="1"
+                       oninput="markEditorDirty();_syncVolumeSlider(this)">
               </div>
-              <div class="field">
-                <label class="field-label" for="edTrackMainVolume">Volume (0–1)</label>
-                <input type="number" class="field-input sm" id="edTrackMainVolume"
-                       min="0" max="1" step="0.01" placeholder="0.14" oninput="markEditorDirty()">
-              </div>
-              <div class="field">
-                <label class="field-label" for="edTrackMainStart">Início (seg)</label>
-                <input type="number" class="field-input sm" id="edTrackMainStart"
-                       min="0" step="1" placeholder="8" oninput="markEditorDirty()">
+              <div class="field" style="grid-column: span 2">
+                <label class="field-label" for="edTrackStart">Início em (seg)</label>
+                <input type="number" class="field-input sm" id="edTrackStart"
+                       min="0" step="1" placeholder="0" oninput="markEditorDirty()">
+                <div class="field-hint" style="margin-top:4px">A música reinicia neste ponto ao navegar entre páginas do convite.</div>
               </div>
             </div>
 
-            <span class="editor-sub-label" style="margin-top:8px">Trilha da página de presentes</span>
-            <div class="form-grid-3">
-              <div class="field">
-                <label class="field-label" for="edTrackGiftSrc">Arquivo</label>
-                <input type="text" class="field-input sm" id="edTrackGiftSrc"
-                       placeholder="assets/audio/gift-theme.mp3" oninput="markEditorDirty()">
-              </div>
-              <div class="field">
-                <label class="field-label" for="edTrackGiftVolume">Volume (0–1)</label>
-                <input type="number" class="field-input sm" id="edTrackGiftVolume"
-                       min="0" max="1" step="0.01" placeholder="0.12" oninput="markEditorDirty()">
-              </div>
-              <div class="field">
-                <label class="field-label" for="edTrackGiftStart">Início (seg)</label>
-                <input type="number" class="field-input sm" id="edTrackGiftStart"
-                       min="0" step="1" placeholder="78" oninput="markEditorDirty()">
-              </div>
+            <div style="margin-top:14px;display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);box-shadow:inset 0 1px 0 rgba(255,255,255,0.04)">
+              <button type="button" onclick="audioPreviewPlay()" title="Play"
+                      style="width:32px;height:32px;padding:0;border-radius:50%;border:none;background:var(--primary);color:#fff;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,0.28);transition:opacity .15s"
+                      onmouseover="this.style.opacity='.82'" onmouseout="this.style.opacity='1'">
+                <svg width="10" height="12" viewBox="0 0 10 12" fill="currentColor"><path d="M0 0l10 6-10 6V0z"/></svg>
+              </button>
+              <button type="button" onclick="audioPreviewPause()" title="Pausar"
+                      style="width:28px;height:28px;padding:0;border-radius:50%;border:1px solid rgba(255,255,255,0.14);background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.72);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;transition:border-color .15s,background .15s"
+                      onmouseover="this.style.borderColor='rgba(255,255,255,.28)';this.style.background='rgba(255,255,255,.1)'" onmouseout="this.style.borderColor='rgba(255,255,255,.14)';this.style.background='rgba(255,255,255,.05)'">
+                <svg width="9" height="11" viewBox="0 0 9 11" fill="currentColor"><rect x="0" y="0" width="3" height="11"/><rect x="6" y="0" width="3" height="11"/></svg>
+              </button>
+              <button type="button" onclick="audioPreviewStop()" title="Parar"
+                      style="width:28px;height:28px;padding:0;border-radius:50%;border:1px solid rgba(255,255,255,0.14);background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.72);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;transition:border-color .15s,background .15s"
+                      onmouseover="this.style.borderColor='rgba(255,255,255,.28)';this.style.background='rgba(255,255,255,.1)'" onmouseout="this.style.borderColor='rgba(255,255,255,.14)';this.style.background='rgba(255,255,255,.05)'">
+                <svg width="9" height="9" viewBox="0 0 9 9" fill="currentColor"><rect x="0" y="0" width="9" height="9" rx="1"/></svg>
+              </button>
+              <div style="width:1px;height:18px;background:rgba(255,255,255,0.09);flex-shrink:0;margin:0 2px"></div>
+              <span id="edPreviewStatus" style="font-size:11.5px;letter-spacing:.01em;opacity:.55;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></span>
+            </div>
+
+            <div class="editor-section-footer" id="footer-edSectionMidia">
+              <span class="footer-warning-msg">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                Alterações não salvas
+              </span>
+              <span class="footer-saved-msg">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                Configurações salvas ✓
+              </span>
+              <button type="button" class="btn btn-primary footer-save-btn" onclick="saveEditorConfig()">Salvar alterações</button>
             </div>
           </div>
         </div>
 
 
         <!-- ── SEÇÃO 6: NOSSA HISTÓRIA ───────────────── -->
-        <div class="editor-section is-open" id="edSectionHistoria">
+        <div class="editor-section" id="edSectionHistoria">
           <button class="editor-section-header" type="button" onclick="toggleEditorSection('edSectionHistoria')">
             <div>
               <div class="editor-section-tag">Conteúdo</div>
@@ -1936,11 +3101,251 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
               </div>
             </div>
 
+            <div class="editor-section-footer" id="footer-edSectionHistoria">
+              <span class="footer-warning-msg">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                Alterações não salvas
+              </span>
+              <span class="footer-saved-msg">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                Configurações salvas ✓
+              </span>
+              <button type="button" class="btn btn-primary footer-save-btn" onclick="saveEditorConfig()">Salvar alterações</button>
+            </div>
+
           </div>
         </div>
 
-        <!-- ── SEÇÃO 7: PÁGINAS EXTRAS ────────────────── -->
-        <div class="editor-section is-open" id="edSectionPages">
+        <!-- ── SEÇÃO 7: FAQ ───────────────────────────── -->
+        <div class="editor-section" id="edSectionFaq">
+          <button class="editor-section-header" type="button" onclick="toggleEditorSection('edSectionFaq')">
+            <div>
+              <div class="editor-section-tag">Conteúdo</div>
+              <div class="editor-section-title">Perguntas Frequentes</div>
+            </div>
+            <svg class="editor-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="editor-section-body">
+            <p style="font-size:11px;color:var(--text-dim);margin-bottom:16px;letter-spacing:0.03em;line-height:1.7">
+              Adicione ou edite as perguntas frequentes que aparecem na página de FAQ do convite.
+            </p>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+              <span class="editor-sub-label" style="margin-bottom:0">Perguntas</span>
+              <button type="button" class="btn btn-subtle" style="padding:6px 14px;font-size:10px" onclick="addFaqItem()">
+                + Adicionar pergunta
+              </button>
+            </div>
+            <div id="faqItemsList"></div>
+
+            <div class="editor-section-footer" id="footer-edSectionFaq">
+              <span class="footer-warning-msg">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                Alterações não salvas
+              </span>
+              <span class="footer-saved-msg">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                Configurações salvas ✓
+              </span>
+              <button type="button" class="btn btn-primary footer-save-btn" onclick="saveEditorConfig()">Salvar alterações</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── SEÇÃO 8: HOSPEDAGEM ───────────────────────── -->
+        <div class="editor-section" id="edSectionHospedagem">
+          <button class="editor-section-header" type="button" onclick="toggleEditorSection('edSectionHospedagem')">
+            <div>
+              <div class="editor-section-tag">Conteúdo</div>
+              <div class="editor-section-title">Para quem vem de fora</div>
+            </div>
+            <svg class="editor-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="editor-section-body">
+            <p style="font-size:11px;color:var(--text-dim);margin-bottom:16px;letter-spacing:0.03em;line-height:1.7">
+              Configure os textos da página de hospedagem e adicione opções de hotéis e restaurantes para os convidados.
+            </p>
+
+            <div class="form-grid-2">
+              <div class="field">
+                <label class="field-label" for="edHospTag">Tag da seção</label>
+                <input type="text" class="field-input sm" id="edHospTag" placeholder="Para quem vem de fora" oninput="markEditorDirty()">
+              </div>
+              <div class="field">
+                <label class="field-label" for="edHospTitle">Título principal</label>
+                <input type="text" class="field-input sm" id="edHospTitle" placeholder="Para quem vem de fora" oninput="markEditorDirty()">
+              </div>
+            </div>
+
+            <div class="field" style="margin-bottom:16px">
+              <label class="field-label" for="edHospIntro">Introdução</label>
+              <textarea class="field-input sm" id="edHospIntro" rows="3" placeholder="Texto de introdução da página de hospedagem..." oninput="markEditorDirty()"></textarea>
+            </div>
+
+            <div class="form-grid-2" style="margin-bottom:16px">
+              <div class="field">
+                <label class="field-label" for="edHospHotelsTitle">Título da seção de hotéis</label>
+                <input type="text" class="field-input sm" id="edHospHotelsTitle" placeholder="Hotéis" oninput="markEditorDirty()">
+              </div>
+              <div class="field">
+                <label class="field-label" for="edHospRestaurantsTitle">Título da seção de restaurantes</label>
+                <input type="text" class="field-input sm" id="edHospRestaurantsTitle" placeholder="Restaurantes" oninput="markEditorDirty()">
+              </div>
+            </div>
+
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+              <span class="editor-sub-label" style="margin-bottom:0">Hotéis</span>
+              <button type="button" class="btn btn-subtle" style="padding:6px 14px;font-size:10px" onclick="addHotelItem()">
+                + Adicionar hotel
+              </button>
+            </div>
+            <div id="edHospHotelsList"></div>
+
+            <div class="editor-rule"></div>
+
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+              <span class="editor-sub-label" style="margin-bottom:0">Restaurantes</span>
+              <button type="button" class="btn btn-subtle" style="padding:6px 14px;font-size:10px" onclick="addRestaurantItem()">
+                + Adicionar restaurante
+              </button>
+            </div>
+            <div id="edHospRestaurantsList"></div>
+
+            <div class="editor-section-footer" id="footer-edSectionHospedagem">
+              <span class="footer-warning-msg">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                Alterações não salvas
+              </span>
+              <span class="footer-saved-msg">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                Configurações salvas ✓
+              </span>
+              <button type="button" class="btn btn-primary footer-save-btn" onclick="saveEditorConfig()">Salvar alterações</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── SEÇÃO 9: TRAJE & PALETAS ─────────────────── -->
+        <div class="editor-section" id="edSectionTraje">
+          <button class="editor-section-header" type="button" onclick="toggleEditorSection('edSectionTraje')">
+            <div>
+              <div class="editor-section-tag">Conteúdo</div>
+              <div class="editor-section-title">Traje &amp; Paletas</div>
+            </div>
+            <svg class="editor-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="editor-section-body">
+            <p style="font-size:11px;color:var(--text-dim);margin-bottom:16px;letter-spacing:0.03em;line-height:1.7">
+              Aparece como card de detalhes na página principal. Ao clicar, abre a página com dress code e paletas de cores.
+            </p>
+
+            <!-- Tipo de traje -->
+            <div class="field" style="margin-bottom:16px">
+              <label class="field-label" for="edDresscode">Tipo de traje</label>
+              <input type="text"
+                     class="field-input sm"
+                     id="edDresscode"
+                     list="dresscodeOptions"
+                     placeholder="Ex: Esporte fino elegante"
+                     autocomplete="off"
+                     oninput="markEditorDirty()">
+              <datalist id="dresscodeOptions">
+                <option value="Black tie">
+                <option value="Black tie opcional">
+                <option value="Passeio completo">
+                <option value="Esporte fino elegante">
+                <option value="Esporte fino">
+                <option value="Casual elegante">
+                <option value="Casual">
+              </datalist>
+            </div>
+
+            <!-- Paleta das madrinhas -->
+            <div style="margin-bottom:20px">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+                <span class="editor-sub-label" style="margin-bottom:0">Paleta das Madrinhas</span>
+                <button type="button" class="btn btn-subtle" style="padding:6px 14px;font-size:10px"
+                        id="edAddBridesmaid" onclick="addBridesmaidColor()">
+                  + Adicionar cor
+                </button>
+              </div>
+              <p style="font-size:10px;color:var(--text-dim);margin-bottom:8px">Máximo 5 cores</p>
+              <div id="bridesmaidsPaletteList"></div>
+            </div>
+
+            <!-- Paleta dos padrinhos -->
+            <div style="margin-bottom:20px">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+                <span class="editor-sub-label" style="margin-bottom:0">Paleta dos Padrinhos</span>
+                <button type="button" class="btn btn-subtle" style="padding:6px 14px;font-size:10px"
+                        id="edAddGroomsman" onclick="addGroomsmanColor()">
+                  + Adicionar cor
+                </button>
+              </div>
+              <p style="font-size:10px;color:var(--text-dim);margin-bottom:8px">Máximo 5 cores</p>
+              <div id="groomsMenPaletteList"></div>
+            </div>
+
+            <!-- Cor da noiva -->
+            <div style="margin-bottom:20px">
+              <span class="editor-sub-label">Cor da Noiva</span>
+              <div style="display:flex;gap:8px;align-items:center;margin-top:8px">
+                <input type="color" id="edBrideColorPicker" style="width:40px;height:36px;border:1px solid var(--border);border-radius:4px;padding:2px;cursor:pointer;background:none"
+                       oninput="syncColorFromPicker('edBrideColorHex', this.value); markEditorDirty()">
+                <input type="text" class="field-input sm" id="edBrideColorHex"
+                       placeholder="#ffffff" maxlength="7" style="width:90px"
+                       oninput="syncColorToPicker('edBrideColorPicker', this.value); markEditorDirty()"
+                       onkeydown="if(event.key==='Enter'){syncColorToPicker('edBrideColorPicker',this.value);markEditorDirty()}">
+                <input type="text" class="field-input sm" id="edBrideColorName"
+                       placeholder="Nome da cor (opcional)"
+                       oninput="markEditorDirty()">
+              </div>
+            </div>
+
+            <!-- Cor do noivo -->
+            <div style="margin-bottom:20px">
+              <span class="editor-sub-label">Cor do Noivo</span>
+              <div style="display:flex;gap:8px;align-items:center;margin-top:8px">
+                <input type="color" id="edGroomColorPicker" style="width:40px;height:36px;border:1px solid var(--border);border-radius:4px;padding:2px;cursor:pointer;background:none"
+                       oninput="syncColorFromPicker('edGroomColorHex', this.value); markEditorDirty()">
+                <input type="text" class="field-input sm" id="edGroomColorHex"
+                       placeholder="#ffffff" maxlength="7" style="width:90px"
+                       oninput="syncColorToPicker('edGroomColorPicker', this.value); markEditorDirty()"
+                       onkeydown="if(event.key==='Enter'){syncColorToPicker('edGroomColorPicker',this.value);markEditorDirty()}">
+                <input type="text" class="field-input sm" id="edGroomColorName"
+                       placeholder="Nome da cor (opcional)"
+                       oninput="markEditorDirty()">
+              </div>
+            </div>
+
+            <!-- Observação dos noivos -->
+            <div class="field" style="margin-bottom:8px">
+              <label class="field-label" for="edTrajeNote">
+                Observação dos noivos
+                <span style="font-size:10px;color:var(--text-dim);font-weight:400;letter-spacing:0;text-transform:none"> — máximo 200 caracteres</span>
+              </label>
+              <textarea class="field-input sm" id="edTrajeNote" rows="3"
+                        maxlength="200"
+                        placeholder="Ex: Sugerimos evitar tons verdes, reservados aos padrinhos."
+                        oninput="updateTrajeNoteCounter(); markEditorDirty()"></textarea>
+              <span style="font-size:10px;color:var(--text-dim);display:block;margin-top:4px;text-align:right" id="edTrajeNoteCounter">0/200</span>
+            </div>
+
+            <div class="editor-section-footer" id="footer-edSectionTraje">
+              <span class="footer-warning-msg">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                Alterações não salvas
+              </span>
+              <span class="footer-saved-msg">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                Configurações salvas ✓
+              </span>
+              <button type="button" class="btn btn-primary footer-save-btn" onclick="saveEditorConfig()">Salvar alterações</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── SEÇÃO 10: PÁGINAS EXTRAS ───────────────── -->
+        <div class="editor-section" id="edSectionPages">
           <button class="editor-section-header" type="button" onclick="toggleEditorSection('edSectionPages')">
             <div>
               <div class="editor-section-tag">Navegação</div>
@@ -1953,6 +3358,18 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
               Páginas desabilitadas não aparecem nos cards de navegação do convite.
             </p>
             <div class="pages-grid" id="edPagesGrid"></div>
+
+            <div class="editor-section-footer" id="footer-edSectionPages">
+              <span class="footer-warning-msg">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                Alterações não salvas
+              </span>
+              <span class="footer-saved-msg">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                Configurações salvas ✓
+              </span>
+              <button type="button" class="btn btn-primary footer-save-btn" onclick="saveEditorConfig()">Salvar alterações</button>
+            </div>
           </div>
         </div>
 
@@ -1967,7 +3384,7 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
   <div class="modal-dialog">
     <div class="modal-head">
       <div>
-        <div class="modal-tag">Grupo de convidados</div>
+        <div class="modal-tag" id="modalGrupoTag">Convite em grupo</div>
         <h3 class="modal-title" id="modalGrupoTitle">Novo grupo</h3>
       </div>
       <button class="modal-close" onclick="closeModal('modalGrupo')" aria-label="Fechar">
@@ -1977,12 +3394,12 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
     <form id="formGrupo" onsubmit="handleSaveGrupo(event)">
       <div class="modal-body">
         <div class="field">
-          <label class="field-label" for="grupoName">Nome do grupo *</label>
+          <label class="field-label" for="grupoName" id="grupoNameLabel">Nome do grupo *</label>
           <input class="field-input" type="text" id="grupoName" required placeholder="Ex: Família Silva">
         </div>
         <div class="form-row">
           <div class="field">
-            <label class="field-label" for="grupoMaxConfirmations">Vagas *</label>
+            <label class="field-label" for="grupoMaxConfirmations" id="grupoMaxConfirmationsLabel">Vagas *</label>
             <input class="field-input" type="number" id="grupoMaxConfirmations" required min="1" placeholder="Ex: 3">
           </div>
           <div class="field">
@@ -1997,7 +3414,7 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
       </div>
       <div class="modal-foot">
         <button type="button" class="btn btn-subtle" onclick="closeModal('modalGrupo')"><span>Cancelar</span></button>
-        <button type="submit" class="btn btn-primary"><span>Salvar grupo</span></button>
+        <button type="submit" class="btn btn-primary"><span id="modalGrupoSubmitText">Salvar grupo</span></button>
       </div>
     </form>
   </div>
@@ -2141,6 +3558,31 @@ window.__DASHBOARD_BOOTSTRAP_PROMISE__ = (async function loadTheme() {
  
 <!-- Dashboard JS original -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="assets/js/invite-copy.js"></script>
 <script src="assets/js/dashboard.js"></script>
+
+<div class="mobile-drawer-backdrop" id="drawerBackdrop" hidden></div>
+<aside class="mobile-drawer" id="mobileDrawer" aria-hidden="true">
+  <div class="mobile-drawer-header">
+    <button class="mobile-drawer-close" id="drawerClose" aria-label="Fechar menu">✕</button>
+  </div>
+  <div class="mobile-drawer-body">
+    <div class="drawer-plan" id="drawerPlan">
+      <span class="drawer-plan-label">Plano: <strong id="drawerPlanName">Free</strong></span>
+      <button class="btn btn-primary btn-full btn-sm" id="drawerBtnUpgrade" hidden>
+        Upgrade para Premium
+      </button>
+    </div>
+    <button class="drawer-item drawer-item--theme" id="drawerThemeToggle" disabled>
+      <span class="drawer-item-icon">☀</span>
+      <span>Tema claro / escuro</span>
+      <span class="drawer-item-badge">Em breve</span>
+    </button>
+    <button class="drawer-item drawer-item--logout" id="drawerLogout">
+      <span class="drawer-item-icon">→</span>
+      <span>Sair do painel</span>
+    </button>
+  </div>
+</aside>
 </body>
 </html>

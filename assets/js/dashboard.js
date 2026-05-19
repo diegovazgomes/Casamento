@@ -7,7 +7,8 @@
 const state = {
   authToken: null,
   eventId: '',
-  eventSlug: window.location.pathname.replace(/^\//, '').split('/')[0] || null,
+  eventSlug: new URLSearchParams(window.location.search).get('slug') || null,
+  userProfile: null,
   grupos: [],
   confirmacoes: [],
   allConfirmacoes: [],
@@ -15,17 +16,71 @@ const state = {
   musicas: [],
   currentPage: 1,
   editingGrupoId: null,
+  grupoModalMode: 'group',
 };
 
 const LEGACY_DASHBOARD_TOKEN_STORAGE_KEY = 'dashboardToken';
 const DASHBOARD_SUPABASE_STORAGE_KEY = 'dashboard-supabase-auth';
 const DASHBOARD_ACCESS_TOKEN_STORAGE_KEY = 'dashboard-access-token';
+const DASHBOARD_PAYMENT_SYNC_PENDING_KEY = 'dashboard-payment-sync-pending';
 
 let dashboardSupabaseClientPromise = null;
+let loginLoadingHideTimer = null;
+let galleryOrderSaveTimer = null;
+
+function redirectRecoveryCallbackToResetPage() {
+  const currentUrl = new URL(window.location.href);
+  const hashParams = new URLSearchParams(currentUrl.hash.startsWith('#') ? currentUrl.hash.slice(1) : currentUrl.hash);
+  const queryParams = new URLSearchParams(currentUrl.search);
+
+  const hasCode = queryParams.has('code');
+  const hasRecoveryType = hashParams.get('type') === 'recovery' || queryParams.get('type') === 'recovery';
+  const hasRecoveryTokens = hashParams.has('access_token') || hashParams.has('refresh_token');
+  const shouldRedirectToReset = hasRecoveryType && (hasCode || hasRecoveryTokens);
+
+  if (!shouldRedirectToReset) {
+    return false;
+  }
+
+  const nextSearch = queryParams.toString();
+  const nextHash = hashParams.toString();
+  const resetUrl = `reset-password.html${nextSearch ? `?${nextSearch}` : ''}${nextHash ? `#${nextHash}` : ''}`;
+  window.location.replace(resetUrl);
+  return true;
+}
+
+function sanitizeDashboardAuthUrlParams() {
+  const currentUrl = new URL(window.location.href);
+  const hashParams = new URLSearchParams(currentUrl.hash.startsWith('#') ? currentUrl.hash.slice(1) : currentUrl.hash);
+  const queryParams = new URLSearchParams(currentUrl.search);
+  const authKeys = ['access_token', 'refresh_token', 'type', 'code', 'error_code', 'error_description'];
+
+  let changed = false;
+
+  authKeys.forEach((key) => {
+    if (hashParams.has(key)) {
+      hashParams.delete(key);
+      changed = true;
+    }
+    if (queryParams.has(key)) {
+      queryParams.delete(key);
+      changed = true;
+    }
+  });
+
+  if (!changed) {
+    return;
+  }
+
+  const nextSearch = queryParams.toString();
+  const nextHash = hashParams.toString();
+  const sanitizedUrl = `${currentUrl.pathname}${nextSearch ? `?${nextSearch}` : ''}${nextHash ? `#${nextHash}` : ''}`;
+  history.replaceState(null, '', sanitizedUrl);
+}
 
 const TAB_LABELS = {
   overview: { tag: 'Visão Geral', title: 'Painel de controle' },
-  grupos: { tag: 'Grupos', title: 'Gestão de convidados' },
+  grupos: { tag: 'Convites', title: 'Gestão de convites' },
   confirmacoes: { tag: 'Confirmações', title: 'Respostas recebidas' },
   mensagens: { tag: 'Mensagens', title: 'Recados dos convidados' },
   musicas: { tag: 'Músicas', title: 'Sugestões recebidas' },
@@ -56,8 +111,32 @@ document.addEventListener('DOMContentLoaded', () => {
 
   bindUiEvents();
   setupModalListeners();
+  setupDesktopDatePicker();
   syncActiveTab();
+  maybeShowPaymentBanner();
 });
+
+function setupDesktopDatePicker() {
+  const dateInput = document.getElementById('edEventDate');
+  if (!dateInput) return;
+
+  // Mantem o comportamento mobile intacto; melhora somente desktop.
+  const isDesktop = window.matchMedia('(min-width: 761px)').matches;
+  if (!isDesktop) return;
+
+  const openPicker = () => {
+    if (typeof dateInput.showPicker === 'function') {
+      try {
+        dateInput.showPicker();
+      } catch (error) {
+        // Alguns navegadores bloqueiam showPicker fora de gesto do usuario.
+      }
+    }
+  };
+
+  dateInput.addEventListener('click', openPicker);
+  dateInput.addEventListener('focus', openPicker);
+}
 
 function notifyDashboardReady() {
   window.__DASHBOARD_READY__ = true;
@@ -75,6 +154,12 @@ function notifyDashboardReady() {
 
 async function initializeDashboard() {
   try {
+    if (redirectRecoveryCallbackToResetPage()) {
+      return;
+    }
+
+    sanitizeDashboardAuthUrlParams();
+
     const bootstrapPromise = window.__DASHBOARD_BOOTSTRAP_PROMISE__;
     if (bootstrapPromise && typeof bootstrapPromise.then === 'function') {
       try {
@@ -90,14 +175,28 @@ async function initializeDashboard() {
     const savedToken = await ensureDashboardAccessToken();
     if (savedToken) {
       try {
-        showDashboard();
         await hydrateDashboardEventContext();
         await loadAllData();
+        showDashboard();
+
+        // Mantem o badge de plano sincronizado ao retornar do checkout.
+        fetchUserProfile({ forceRefresh: true }).then((profile) => {
+          if (profile?.couple_name) {
+            const sidebarCouple = document.getElementById('sidebarCouple');
+            if (sidebarCouple) sidebarCouple.textContent = profile.couple_name;
+          }
+          renderPlanBadge(profile);
+          applyPlanRestrictions(profile);
+
+          if (sessionStorage.getItem(DASHBOARD_PAYMENT_SYNC_PENDING_KEY)) {
+            syncPlanStatusAfterPayment().catch(() => {});
+          }
+        }).catch(() => {});
       } catch (error) {
         console.error('[dashboard] Falha ao hidratar evento com token salvo.', error);
         await clearDashboardSession();
         showAuthScreen();
-        showAuthError(error?.message || 'Não foi possível conectar ao evento no Supabase.');
+        showAuthError(normalizeDashboardAuthMessage(error?.message || 'Não foi possível conectar ao evento no Supabase.'));
       }
       notifyDashboardReady();
       return;
@@ -109,7 +208,7 @@ async function initializeDashboard() {
     console.error('[dashboard] Falha ao inicializar autenticação do dashboard.', error);
     await clearDashboardSession();
     showAuthScreen();
-    showAuthError(error?.message || 'Não foi possível inicializar a autenticação do dashboard.');
+    showAuthError(normalizeDashboardAuthMessage(error?.message || 'Não foi possível inicializar a autenticação do dashboard.'));
     notifyDashboardReady();
   }
 }
@@ -122,9 +221,37 @@ function debounce(fn, delay) {
   };
 }
 
+function openDrawer() {
+  const drawer = document.getElementById('mobileDrawer');
+  const backdrop = document.getElementById('drawerBackdrop');
+  const hamburger = document.getElementById('sidebarHamburger');
+  drawer?.classList.add('is-open');
+  drawer?.setAttribute('aria-hidden', 'false');
+  if (backdrop) backdrop.hidden = false;
+  hamburger?.setAttribute('aria-expanded', 'true');
+}
+
+function closeDrawer() {
+  const drawer = document.getElementById('mobileDrawer');
+  const backdrop = document.getElementById('drawerBackdrop');
+  const hamburger = document.getElementById('sidebarHamburger');
+  drawer?.classList.remove('is-open');
+  drawer?.setAttribute('aria-hidden', 'true');
+  if (backdrop) backdrop.hidden = true;
+  hamburger?.setAttribute('aria-expanded', 'false');
+}
+
 function bindUiEvents() {
   authForm.addEventListener('submit', handleAuth);
   logoutButton.addEventListener('click', handleLogout);
+  document.getElementById('btnUpgrade')?.addEventListener('click', handleUpgrade);
+
+  // Drawer mobile
+  document.getElementById('sidebarHamburger')?.addEventListener('click', openDrawer);
+  document.getElementById('drawerClose')?.addEventListener('click', closeDrawer);
+  document.getElementById('drawerBackdrop')?.addEventListener('click', closeDrawer);
+  document.getElementById('drawerLogout')?.addEventListener('click', () => { closeDrawer(); handleLogout(); });
+  document.getElementById('drawerBtnUpgrade')?.addEventListener('click', handleUpgrade);
   
   // Tab switching
   document.querySelectorAll('.nav-item[data-tab]').forEach(button => {
@@ -132,7 +259,8 @@ function bindUiEvents() {
   });
 
   // Modais
-  document.getElementById('btnNewGroup').addEventListener('click', () => openModal('modalGrupo', 'Novo Grupo'));
+  document.getElementById('btnNewGroup').addEventListener('click', () => openGroupModal('group'));
+  document.getElementById('btnNewSingleInvite')?.addEventListener('click', () => openGroupModal('individual'));
   document.getElementById('btnDownloadCsv').addEventListener('click', handleDownloadCsv);
   document.getElementById('btnRefresh')?.addEventListener('click', () => {
     refreshActiveTab();
@@ -159,11 +287,6 @@ function applySiteConfig(siteConfig) {
     return;
   }
 
-  const eventSlug = siteConfig?.rsvp?.eventId;
-  if (eventSlug) {
-    state.eventSlug = eventSlug;
-  }
-
   const coupleNames = siteConfig?.couple?.names;
   const heroDate = siteConfig?.event?.heroDate || siteConfig?.event?.displayDate || '';
 
@@ -174,13 +297,8 @@ function applySiteConfig(siteConfig) {
 }
 
 async function hydrateDashboardEventContext() {
-  const lookupSlug = state.eventSlug || window.__SITE_CONFIG__?.rsvp?.eventId;
-
-  if (!lookupSlug) {
-    throw new Error('Slug do evento não disponível para o dashboard');
-  }
-
-  const response = await fetchWithAuth(`/api/dashboard/event?slug=${encodeURIComponent(lookupSlug)}`);
+  const slugQuery = state.eventSlug ? `?slug=${encodeURIComponent(state.eventSlug)}` : '';
+  const response = await fetchWithAuth(`/api/dashboard/event${slugQuery}`);
   const data = await response.json();
 
   if (!response.ok) {
@@ -192,7 +310,7 @@ async function hydrateDashboardEventContext() {
   }
 
   if (data?.event?.slug) {
-    state.eventSlug = data.event.slug;
+    syncDashboardEventSlug(data.event.slug);
   }
 
   if (data?.config) {
@@ -215,8 +333,23 @@ async function handleAuth(event) {
   const password = document.getElementById('password').value.trim();
   if (!email || !password) return;
 
+  // Mostrar tela de loading
+  const loginLoadingScreen = document.getElementById('loginLoadingScreen');
+  if (loginLoadingScreen) {
+    if (loginLoadingHideTimer) {
+      clearTimeout(loginLoadingHideTimer);
+      loginLoadingHideTimer = null;
+    }
+    loginLoadingScreen.classList.remove('is-hiding');
+    loginLoadingScreen.removeAttribute('hidden');
+  }
+  setLoginLoadingProgress(0);
+
   try {
     authError.style.display = 'none';
+    
+    // Progresso 20% - autenticação iniciada
+    setLoginLoadingProgress(20);
     const supabase = await getDashboardSupabaseClient();
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
@@ -224,26 +357,171 @@ async function handleAuth(event) {
     });
 
     if (error || !data?.session?.access_token) {
-      showAuthError(error?.message || 'Erro na autenticação');
+      hideLoginLoadingScreen();
+      showAuthError(normalizeDashboardAuthMessage(error?.message || 'Erro na autenticação'));
       return;
     }
 
+    // Progresso 40% - autenticado
+    setLoginLoadingProgress(40);
     state.authToken = data.session.access_token;
     sessionStorage.setItem(DASHBOARD_ACCESS_TOKEN_STORAGE_KEY, state.authToken);
+    sessionStorage.setItem(DASHBOARD_SUPABASE_STORAGE_KEY, JSON.stringify(data.session));
 
     // Limpar form
     authForm.reset();
 
+    try {
+      // Progresso 60% - carregando contexto do evento
+      setLoginLoadingProgress(60);
+      await hydrateDashboardEventContext();
+      
+      // Progresso 80% - carregando dados
+      setLoginLoadingProgress(80);
+      await loadAllData();
+    } catch (hydrateError) {
+      hideLoginLoadingScreen();
+      console.error('[auth] Falha ao hidratar dashboard após login', hydrateError);
+      await clearDashboardSession();
+      showAuthScreen();
+      showAuthError(hydrateError?.message || 'Não foi possível carregar os dados do evento.');
+      notifyDashboardReady();
+      return;
+    }
+
+    // Progresso 100% - completo
+    setLoginLoadingProgress(100);
+    
     // Mostrar dashboard
     showDashboard();
-    await hydrateDashboardEventContext();
-    await loadAllData();
+
+    // Esconder tela de loading após transição
+    setTimeout(() => {
+      hideLoginLoadingScreen();
+    }, 300);
+
+    // Exibir nome do casal e plano vindos do profile (não-bloqueante)
+    fetchUserProfile({ forceRefresh: true }).then(profile => {
+      if (profile?.couple_name) {
+        const sidebarCouple = document.getElementById('sidebarCouple');
+        if (sidebarCouple) sidebarCouple.textContent = profile.couple_name;
+      }
+      renderPlanBadge(profile);
+      applyPlanRestrictions(profile);
+
+      if (sessionStorage.getItem(DASHBOARD_PAYMENT_SYNC_PENDING_KEY)) {
+        syncPlanStatusAfterPayment().catch(() => {});
+      }
+    }).catch(() => {});
+
     notifyDashboardReady();
   } catch (error) {
+    hideLoginLoadingScreen();
     console.error('[auth]', error);
-    showAuthError(error?.message || 'Erro ao conectar ao servidor');
+    showAuthError(normalizeDashboardAuthMessage(error?.message || 'Erro ao conectar ao servidor'));
     notifyDashboardReady();
   }
+}
+
+function setLoginLoadingProgress(percent) {
+  const progressBar = document.getElementById('loginLoadingProgress');
+  const progressPercent = document.getElementById('loginLoadingPercent');
+  const progressTrack = document.querySelector('.login-loading-track[role="progressbar"]');
+  const progressStage = document.getElementById('loginLoadingStage');
+  const clampedPercent = Math.max(0, Math.min(100, Number(percent) || 0));
+
+  let stageLabel = 'Iniciando autenticação...';
+  if (clampedPercent >= 100) {
+    stageLabel = 'Finalizando acesso...';
+  } else if (clampedPercent >= 80) {
+    stageLabel = 'Carregando painel e confirmações...';
+  } else if (clampedPercent >= 60) {
+    stageLabel = 'Sincronizando evento...';
+  } else if (clampedPercent >= 40) {
+    stageLabel = 'Validando sessão...';
+  } else if (clampedPercent >= 20) {
+    stageLabel = 'Conectando com segurança...';
+  }
+
+  if (progressBar) {
+    progressBar.style.width = `${clampedPercent}%`;
+  }
+  if (progressPercent) {
+    progressPercent.textContent = `${clampedPercent}%`;
+  }
+  if (progressTrack) {
+    progressTrack.setAttribute('aria-valuenow', String(clampedPercent));
+  }
+  if (progressStage) {
+    progressStage.textContent = stageLabel;
+  }
+}
+
+function hideLoginLoadingScreen() {
+  const loginLoadingScreen = document.getElementById('loginLoadingScreen');
+  if (!loginLoadingScreen) {
+    return;
+  }
+
+  if (loginLoadingHideTimer) {
+    clearTimeout(loginLoadingHideTimer);
+    loginLoadingHideTimer = null;
+  }
+
+  loginLoadingScreen.classList.add('is-hiding');
+  loginLoadingHideTimer = setTimeout(() => {
+    loginLoadingScreen.setAttribute('hidden', '');
+    loginLoadingScreen.classList.remove('is-hiding');
+    loginLoadingHideTimer = null;
+  }, 360);
+}
+
+function normalizeDashboardAuthMessage(message) {
+  const rawMessage = String(message || '').trim();
+  const normalized = rawMessage.toLowerCase();
+
+  if (!normalized) {
+    return 'Não foi possível autenticar. Tente novamente.';
+  }
+
+  if (normalized.includes('invalid login credentials')) {
+    return 'E-mail ou senha inválidos. Confira os dados e tente novamente.';
+  }
+
+  if (normalized.includes('e-mail ou senha inválidos')) {
+    return 'E-mail ou senha inválidos. Confira os dados e tente novamente.';
+  }
+
+  if (normalized.includes('email not confirmed')) {
+    return 'Confirme seu e-mail antes de acessar o dashboard.';
+  }
+
+  if (normalized.includes('confirme seu e-mail')) {
+    return 'Confirme seu e-mail antes de acessar o dashboard.';
+  }
+
+  if (normalized.includes('falha de conexão com o supabase')) {
+    return 'Falha de conexão com o Supabase. Verifique a configuração do ambiente.';
+  }
+
+  if (normalized.includes('too many requests') || normalized.includes('rate limit')) {
+    return 'Muitas tentativas de login. Aguarde alguns minutos e tente novamente.';
+  }
+
+  if (
+    normalized.includes('network') ||
+    normalized.includes('fetch') ||
+    normalized.includes('failed to fetch') ||
+    normalized.includes('getaddrinfo')
+  ) {
+    return 'Falha de conexão. Verifique sua internet e tente novamente.';
+  }
+
+  if (normalized.includes('jwt') || normalized.includes('token') || normalized.includes('session')) {
+    return 'Sua sessão expirou. Faça login novamente.';
+  }
+
+  return 'Não foi possível autenticar no momento. Tente novamente.';
 }
 
 async function handleLogout() {
@@ -258,11 +536,17 @@ async function handleLogout() {
 async function getDashboardSupabaseClient() {
   if (!dashboardSupabaseClientPromise) {
     dashboardSupabaseClientPromise = (async () => {
+      // Aguarda carregamento assíncrono do SDK para evitar erro intermitente na primeira abertura.
+      const waitStart = Date.now();
+      while (!window.supabase?.createClient && Date.now() - waitStart < 5000) {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      }
+
       if (!window.supabase?.createClient) {
         throw new Error('SDK do Supabase não carregado no dashboard');
       }
 
-      const response = await fetch('/api/config');
+      const response = await fetch('/api/event-config?mode=client-config');
       const config = await response.json().catch(() => ({}));
 
       if (!response.ok) {
@@ -277,7 +561,7 @@ async function getDashboardSupabaseClient() {
         auth: {
           autoRefreshToken: true,
           persistSession: true,
-          detectSessionInUrl: true,
+          detectSessionInUrl: false,
           storage: window.sessionStorage,
           storageKey: DASHBOARD_SUPABASE_STORAGE_KEY,
         },
@@ -346,6 +630,7 @@ async function getDashboardAccessToken() {
 
 async function clearDashboardSession() {
   state.authToken = null;
+  state.userProfile = null;
   sessionStorage.removeItem(LEGACY_DASHBOARD_TOKEN_STORAGE_KEY);
   sessionStorage.removeItem(DASHBOARD_SUPABASE_STORAGE_KEY);
   sessionStorage.removeItem(DASHBOARD_ACCESS_TOKEN_STORAGE_KEY);
@@ -356,6 +641,232 @@ async function clearDashboardSession() {
   } catch (error) {
     console.warn('[dashboard] Não foi possível encerrar a sessão Supabase.', error);
   }
+}
+
+async function fetchUserProfile({ forceRefresh = false } = {}) {
+  if (!forceRefresh && state.userProfile) {
+    return state.userProfile;
+  }
+
+  const token = state.authToken;
+  if (!token) return null;
+
+  try {
+    const response = await fetch(`/api/dashboard/profile?ts=${Date.now()}`, {
+      headers: { 'Authorization': `Bearer ${token}` },
+      cache: 'no-store',
+    });
+    if (!response.ok) return null;
+    const profile = await response.json();
+    state.userProfile = profile;
+    return profile;
+  } catch {
+    return null;
+  }
+}
+
+function isPremiumPlan(planValue) {
+  return String(planValue || '').trim().toLowerCase() === 'premium';
+}
+
+function renderPlanBadge(profile) {
+  const plan = String(profile?.plan || 'free');
+  const isPremium = isPremiumPlan(plan);
+  const planLabel = isPremium ? 'Premium' : 'Free';
+
+  // Sidebar desktop
+  const container = document.getElementById('sidebarPlan');
+  const nameEl = document.getElementById('sidebarPlanName');
+  const btnUpgrade = document.getElementById('btnUpgrade');
+  if (container) container.hidden = false;
+  if (nameEl) nameEl.textContent = planLabel;
+  if (btnUpgrade) btnUpgrade.hidden = isPremium;
+
+  // Drawer mobile
+  const drawerName = document.getElementById('drawerPlanName');
+  const drawerBtnUp = document.getElementById('drawerBtnUpgrade');
+  if (drawerName) drawerName.textContent = planLabel;
+  if (drawerBtnUp) drawerBtnUp.hidden = isPremium;
+}
+
+function applyPlanRestrictions(profile) {
+  if (isPremiumPlan(profile?.plan)) return;
+
+  // ── Seção 4: Tema & Visual — bloquear selects de tema/layout
+  const temaBody = document.querySelector('#edSectionTema .editor-section-body');
+  if (temaBody && !temaBody.querySelector('.premium-lock-banner')) {
+    const banner = document.createElement('div');
+    banner.className = 'premium-lock-banner';
+    banner.innerHTML = '<span>🔒 Seleção de tema disponível no plano Premium</span>'
+      + '<button type="button" class="btn btn-subtle" onclick="handleUpgrade()">Fazer upgrade</button>';
+    temaBody.insertBefore(banner, temaBody.firstChild);
+    const layout = document.getElementById('edActiveLayout');
+    const theme  = document.getElementById('edActiveTheme');
+    if (layout) layout.disabled = true;
+    if (theme)  theme.disabled  = true;
+  }
+
+  // ── Seção 5: Botão "Novo grupo" — bloquear para free
+  const btnGrupo = document.getElementById('btnNewGroup');
+  if (btnGrupo && !btnGrupo.dataset.planLocked) {
+    btnGrupo.dataset.planLocked = 'true';
+    btnGrupo.title = 'Disponível no plano Premium';
+    btnGrupo.removeEventListener('click', btnGrupo._groupHandler);
+    btnGrupo.addEventListener('click', function (e) {
+      e.stopImmediatePropagation();
+      handleUpgrade();
+    }, true);
+  }
+
+  // ── Seção 8: Áudio — bloquear sub-seção de música
+  const midiaBody = document.querySelector('#edSectionMidia .editor-section-body');
+  if (midiaBody && !midiaBody.querySelector('.premium-lock-audio')) {
+    const audioBanner = document.createElement('div');
+    audioBanner.className = 'premium-lock-banner premium-lock-audio';
+    audioBanner.innerHTML = '<span>🔒 Música no convite disponível no plano Premium</span>'
+      + '<button type="button" class="btn btn-subtle" onclick="handleUpgrade()">Fazer upgrade</button>';
+    const rule = midiaBody.querySelector('.editor-rule');
+    if (rule) rule.parentNode.insertBefore(audioBanner, rule);
+    ['edTrackEnabled','edTrackSrc','edTrackVolume','edTrackStart'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.disabled = true;
+    });
+    midiaBody.querySelectorAll('[onclick^="audioPreview"]').forEach(btn => {
+      btn.disabled = true;
+    });
+  }
+}
+
+function delay(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function syncPlanStatusAfterPayment({ attempts = 12, intervalMs = 1500 } = {}) {
+  for (let index = 0; index < attempts; index += 1) {
+    if (!state.authToken) return false;
+
+    state.userProfile = null;
+    const profile = await fetchUserProfile({ forceRefresh: true });
+    renderPlanBadge(profile);
+
+    if (isPremiumPlan(profile?.plan)) {
+      sessionStorage.removeItem(DASHBOARD_PAYMENT_SYNC_PENDING_KEY);
+      return true;
+    }
+
+    await delay(intervalMs);
+  }
+
+  return false;
+}
+
+function queuePlanSyncAfterPayment() {
+  sessionStorage.setItem(DASHBOARD_PAYMENT_SYNC_PENDING_KEY, '1');
+
+  if (state.authToken) {
+    syncPlanStatusAfterPayment().catch(() => {});
+  }
+}
+
+async function handleUpgrade() {
+  const desktopBtn = document.getElementById('btnUpgrade');
+  const drawerBtn = document.getElementById('drawerBtnUpgrade');
+
+  if (desktopBtn) {
+    desktopBtn.disabled = true;
+    desktopBtn.textContent = 'Aguarde...';
+  }
+
+  if (drawerBtn) {
+    drawerBtn.disabled = true;
+    drawerBtn.textContent = 'Aguarde...';
+  }
+
+  try {
+    const token = state.authToken;
+    if (!token) throw new Error('Sessão expirada.');
+
+    const res = await fetch('/api/payments?action=checkout', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}` },
+    });
+
+    const data = await res.json().catch(() => ({}));
+
+    if (!res.ok) {
+      if (res.status === 503 && data?.code === 'STRIPE_PRICE_ID_MISSING') {
+        throw new Error('Pagamento indisponível: o plano Stripe ainda não está configurado no ambiente atual.');
+      }
+
+      if (res.status === 503 && data?.code === 'STRIPE_SECRET_KEY_MISSING') {
+        throw new Error('Pagamento indisponível: chave secreta do Stripe ausente no ambiente atual.');
+      }
+
+      throw new Error(data.error || 'Não foi possível iniciar o pagamento.');
+    }
+
+    if (data.url) {
+      window.location.href = data.url;
+    }
+  } catch (err) {
+    alert(err.message || 'Erro ao iniciar pagamento. Tente novamente.');
+  } finally {
+    if (desktopBtn) {
+      desktopBtn.disabled = false;
+      desktopBtn.textContent = 'Upgrade para Premium';
+    }
+
+    if (drawerBtn) {
+      drawerBtn.disabled = false;
+      drawerBtn.textContent = 'Upgrade para Premium';
+    }
+  }
+}
+
+function maybeShowPaymentBanner() {
+  const params = new URLSearchParams(window.location.search);
+  const payment = params.get('payment');
+  if (!payment) return;
+
+  // Remove o parâmetro da URL sem recarregar
+  params.delete('payment');
+  const newSearch = params.toString();
+  const newUrl = window.location.pathname + (newSearch ? `?${newSearch}` : '');
+  history.replaceState(null, '', newUrl);
+
+  if (payment === 'success') {
+    const banner = document.createElement('div');
+    banner.className = 'payment-banner';
+    banner.innerHTML = '✓ Pagamento confirmado! Seu plano Premium está ativo.';
+    const main = document.querySelector('.main') || document.body;
+    main.prepend(banner);
+    setTimeout(() => banner.remove(), 8000);
+
+    // O webhook pode demorar alguns segundos; agenda sincronização até premium.
+    queuePlanSyncAfterPayment();
+    return;
+  }
+
+  if (payment === 'cancelled' || payment === 'error') {
+    const banner = document.createElement('div');
+    banner.className = 'payment-banner';
+    banner.style.background = 'var(--warning,#e0b674)';
+    banner.innerHTML = payment === 'cancelled'
+      ? 'Pagamento cancelado. Você pode tentar novamente quando quiser.'
+      : 'Não foi possível concluir o pagamento. Tente novamente em instantes.';
+    const main = document.querySelector('.main') || document.body;
+    main.prepend(banner);
+    setTimeout(() => banner.remove(), 8000);
+  }
+}
+
+async function ensureUserProfileLoaded() {
+  if (state.userProfile) {
+    return state.userProfile;
+  }
+
+  const profile = await fetchUserProfile();
+  return profile || null;
 }
 
 function showAuthError(message) {
@@ -374,6 +885,7 @@ function showDashboard() {
   authScreen.style.display = 'none';
   dashboardScreen.style.display = '';
   dashboardScreen.classList.add('is-active');
+  maybeShowWizard(window.__SITE_CONFIG__);
 }
 
 // ============================================================
@@ -460,8 +972,58 @@ function syncTabActions(tabName) {
   const btnNewGroup = document.getElementById('btnNewGroup');
   if (btnNewGroup) btnNewGroup.hidden = tabName !== 'grupos';
 
+  const btnNewSingleInvite = document.getElementById('btnNewSingleInvite');
+  if (btnNewSingleInvite) btnNewSingleInvite.hidden = tabName !== 'grupos';
+
   const btnRefresh = document.getElementById('btnRefresh');
   if (btnRefresh) btnRefresh.hidden = tabName === 'editar';
+}
+
+function applyGrupoModalMode(mode = 'group') {
+  const normalizedMode = mode === 'individual' ? 'individual' : 'group';
+  state.grupoModalMode = normalizedMode;
+
+  const isIndividual = normalizedMode === 'individual';
+  const titleEl = document.getElementById('modalGrupoTitle');
+  const tagEl = document.getElementById('modalGrupoTag');
+  const submitTextEl = document.getElementById('modalGrupoSubmitText');
+  const nameLabelEl = document.getElementById('grupoNameLabel');
+  const vagasLabelEl = document.getElementById('grupoMaxConfirmationsLabel');
+  const nameInput = document.getElementById('grupoName');
+  const maxInput = document.getElementById('grupoMaxConfirmations');
+
+  if (isIndividual) {
+    if (titleEl) titleEl.textContent = 'Criar convite individual';
+    if (tagEl) tagEl.textContent = 'Convite individual';
+    if (submitTextEl) submitTextEl.textContent = 'Criar convite individual';
+    if (nameLabelEl) nameLabelEl.textContent = 'Nome do convidado *';
+    if (vagasLabelEl) vagasLabelEl.textContent = 'Vagas (fixo em 1)';
+    if (nameInput) nameInput.placeholder = 'Ex: Maria Silva';
+    if (maxInput) {
+      maxInput.value = '1';
+      maxInput.readOnly = true;
+      maxInput.setAttribute('aria-readonly', 'true');
+    }
+    return;
+  }
+
+  if (titleEl) titleEl.textContent = state.editingGrupoId ? 'Editar grupo' : 'Novo grupo';
+  if (tagEl) tagEl.textContent = 'Convite em grupo';
+  if (submitTextEl) submitTextEl.textContent = 'Salvar grupo';
+  if (nameLabelEl) nameLabelEl.textContent = 'Nome do grupo *';
+  if (vagasLabelEl) vagasLabelEl.textContent = 'Vagas *';
+  if (nameInput) nameInput.placeholder = 'Ex: Família Silva';
+  if (maxInput) {
+    maxInput.readOnly = false;
+    maxInput.removeAttribute('aria-readonly');
+  }
+}
+
+function openGroupModal(mode = 'group') {
+  state.editingGrupoId = null;
+  document.getElementById('formGrupo')?.reset();
+  applyGrupoModalMode(mode);
+  openModal('modalGrupo');
 }
 
 // ============================================================
@@ -516,9 +1078,9 @@ async function loadGrupos() {
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4 20-7z"/><path d="M22 2 11 13"/></svg>
               <span class="icon-btn-label">Convidar</span>
             </button>
-            <button class="icon-btn"${phoneDisabledAttr}${phoneDisabledClass} onclick="${hasPhone ? `openWhatsApp('${escapeHtmlAttribute(grupo.phone)}')` : ''}" aria-label="Abrir WhatsApp de ${escapeHtml(grupo.group_name)}" title="${hasPhone ? 'Abrir WhatsApp' : 'Telefone não cadastrado'}">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
-              <span class="icon-btn-label">WhatsApp</span>
+            <button class="icon-btn"${phoneDisabledAttr}${phoneDisabledClass} onclick="${hasPhone ? `copyInviteWhatsAppMessage('${escapeHtmlAttribute(grupo.id)}', this)` : ''}" aria-label="Copiar texto do convite de ${escapeHtml(grupo.group_name)}" title="${hasPhone ? 'Copiar texto do convite' : 'Telefone não cadastrado'}">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              <span class="icon-btn-label">Copiar texto</span>
             </button>
             <button class="icon-btn" onclick="editGrupo('${grupo.id}')" aria-label="Editar grupo ${escapeHtml(grupo.group_name)}" title="Editar">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 1 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
@@ -553,14 +1115,19 @@ function editGrupo(grupoId) {
   document.getElementById('grupoPhone').value = grupo.phone || '';
   document.getElementById('grupoNotes').value = grupo.notes || '';
 
+  applyGrupoModalMode('group');
+
   openModal('modalGrupo');
 }
 
 async function handleSaveGrupo(event) {
   event.preventDefault();
 
+  const isIndividualMode = state.grupoModalMode === 'individual';
   const grupoName = document.getElementById('grupoName').value.trim();
-  const grupoMaxConfirmations = parseInt(document.getElementById('grupoMaxConfirmations').value, 10);
+  const grupoMaxConfirmations = isIndividualMode
+    ? 1
+    : parseInt(document.getElementById('grupoMaxConfirmations').value, 10);
   const grupoPhone = document.getElementById('grupoPhone').value.trim();
   const grupoNotes = document.getElementById('grupoNotes').value.trim();
 
@@ -599,7 +1166,9 @@ async function handleSaveGrupo(event) {
 
       if (!response.ok) throw new Error(response.statusText);
       const data = await response.json();
-      alert(`Grupo criado! Link: ${data.data.inviteLink}`);
+      alert(isIndividualMode
+        ? `Convite individual criado! Link: ${data.data.inviteLink}`
+        : `Grupo criado! Link: ${data.data.inviteLink}`);
     }
 
     closeModal('modalGrupo');
@@ -1152,30 +1721,107 @@ function updateOverviewStats(total, confirmados, recusados, pendentes) {
 // WHATSAPP — CONVITE E CONTATO DIRETO
 // ============================================================
 
+function buildGuestInviteLink(token, explicitLink = '') {
+  const normalizedExplicitLink = String(explicitLink || '').trim();
+  if (normalizedExplicitLink) {
+    return normalizedExplicitLink;
+  }
+
+  const encodedToken = encodeURIComponent(String(token || '').trim());
+  if (state.eventSlug) {
+    return `${window.location.origin}/${encodeURIComponent(state.eventSlug)}?g=${encodedToken}`;
+  }
+
+  return `${window.location.origin}/index.html?g=${encodedToken}`;
+}
+
+function syncPreviewInviteLink(slug) {
+  syncDashboardEventSlug(slug);
+}
+
+function getInviteMessageBuilder() {
+  return window.buildInviteWhatsAppMessage || ((options) => {
+    const inviteLink = String(options?.link || '').trim();
+    const inviteCoupleNames = String(options?.coupleNames || 'os noivos').trim() || 'os noivos';
+
+    if (options?.isIndividual) {
+      return (
+        `Olá! Você foi convidado(a) para o casamento de ${inviteCoupleNames}! 🎊\n\n` +
+        `Seu convite é exclusivo. Acesse o link abaixo para confirmar sua presença:\n\n` +
+        `${inviteLink}\n\n` +
+        `Aguardamos você com muito carinho! 🤍`
+      );
+    }
+
+    return (
+      `Olá! Você está sendo convidado(a) para o casamento de ${inviteCoupleNames}! 🎊\n\n` +
+      `Seu convite é para ${options?.groupSizeLabel || 'vários convidados'}. Acesse o link abaixo para confirmar sua presença e compartilhe com os demais convidados do seu grupo:\n\n` +
+      `${inviteLink}\n\n` +
+      `Aguardamos você com muito carinho! 🤍`
+    );
+  });
+}
+
+function buildInviteMessageForGroup(grupo) {
+  if (!grupo) return '';
+
+  const coupleNames = window.__SITE_CONFIG__?.couple?.names || 'os noivos';
+  const link = buildGuestInviteLink(grupo.token, grupo.inviteLink);
+  const vagas = grupo.max_confirmations;
+  const vagasTexto = vagas === 1 ? '1 pessoa' : `${vagas} pessoas`;
+  const isIndividualInvite = Number(vagas) === 1;
+
+  return getInviteMessageBuilder()({
+    coupleNames,
+    link,
+    isIndividual: isIndividualInvite,
+    groupSizeLabel: vagasTexto,
+  });
+}
+
+async function copyTextToClipboard(text) {
+  const value = String(text || '');
+  if (!value) return;
+
+  if (navigator.clipboard?.writeText) {
+    await navigator.clipboard.writeText(value);
+    return;
+  }
+
+  const ta = document.createElement('textarea');
+  ta.value = value;
+  ta.style.cssText = 'position:fixed;opacity:0;top:0;left:0';
+  document.body.appendChild(ta);
+  ta.select();
+  document.execCommand('copy');
+  document.body.removeChild(ta);
+}
+
 function sendInviteWhatsApp(grupoId) {
   const grupo = state.grupos.find(g => g.id === grupoId);
   if (!grupo || !grupo.phone) return;
 
-  const coupleNames = window.__SITE_CONFIG__?.couple?.names || 'os noivos';
-  const link = `${window.location.origin}/index.html?g=${grupo.token}`;
-  const vagas = grupo.max_confirmations;
-  const vagasTexto = vagas === 1 ? '1 pessoa' : `${vagas} pessoas`;
-
-  const mensagem =
-    `Olá! Você está sendo convidado(a) para o casamento de ${coupleNames}! 🎊\n\n` +
-    `Seu convite é para ${vagasTexto}. Acesse o link abaixo para confirmar sua presença e compartilhe com os demais convidados do seu grupo:\n\n` +
-    `${link}\n\n` +
-    `Aguardamos você com muito carinho! 🤍`;
+  const mensagem = buildInviteMessageForGroup(grupo);
 
   const digits = grupo.phone.replace(/\D/g, '');
   const url = `https://wa.me/${digits}?text=${encodeURIComponent(mensagem)}`;
   window.open(url, '_blank', 'noopener,noreferrer');
 }
 
-function openWhatsApp(phone) {
-  if (!phone) return;
-  const digits = phone.replace(/\D/g, '');
-  window.open(`https://wa.me/${digits}`, '_blank', 'noopener,noreferrer');
+async function copyInviteWhatsAppMessage(grupoId, triggerButton) {
+  const grupo = state.grupos.find((g) => g.id === grupoId);
+  if (!grupo) return;
+
+  const mensagem = buildInviteMessageForGroup(grupo);
+  if (!mensagem) return;
+
+  try {
+    await copyTextToClipboard(mensagem);
+    showCopyFeedback('', triggerButton);
+  } catch (error) {
+    console.error('[copyInviteWhatsAppMessage]', error);
+    alert('Não foi possível copiar o texto do convite.');
+  }
 }
 
 // ============================================================
@@ -1183,7 +1829,8 @@ function openWhatsApp(phone) {
 // ============================================================
 
 async function copyInviteLink(token) {
-  const link = `${window.location.origin}/index.html?g=${token}`;
+  const grupo = state.grupos.find((item) => item.token === token);
+  const link = buildGuestInviteLink(token, grupo?.inviteLink);
   try {
     await navigator.clipboard.writeText(link);
     showCopyFeedback(token);
@@ -1200,8 +1847,10 @@ async function copyInviteLink(token) {
   }
 }
 
-function showCopyFeedback(token) {
-  const btn = document.querySelector(`[data-copy-token="${CSS.escape(token)}"]`);
+function showCopyFeedback(token, triggerButton = null) {
+  const btn = triggerButton || (token
+    ? document.querySelector(`[data-copy-token="${CSS.escape(token)}"]`)
+    : null);
   if (!btn) return;
   const original = btn.innerHTML;
   const originalBorder = btn.style.borderColor;
@@ -1227,6 +1876,7 @@ function closeModal(modalId) {
   document.getElementById(modalId).classList.remove('is-active');
   if (modalId === 'modalGrupo') {
     state.editingGrupoId = null;
+    applyGrupoModalMode('group');
     document.getElementById('formGrupo').reset();
   }
 }
@@ -1235,7 +1885,7 @@ function setupModalListeners() {
   document.querySelectorAll('.modal').forEach(modal => {
     modal.addEventListener('click', (e) => {
       if (e.target === modal) {
-        modal.classList.remove('is-active');
+        closeModal(modal.id);
       }
     });
   });
@@ -1332,13 +1982,36 @@ async function loadAllData() {
 const editorState = {
   isDirty: false,
   catalogItems: [],
+  faqItems: [],
+  hospedagemHotels: [],
+  hospedagemRestaurants: [],
   originalConfig: null,
+  galleryImages: [],
+  selectedGalleryNames: [],
+  draggingGalleryName: '',
+  bridesmaidsPalette: [],
+  groomsMenPalette: [],
 };
+
+const MEDIA_MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024;
+const MEDIA_BUCKET_ID = 'event-media';
+const SUPPORTED_IMAGE_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+
+const DEFAULT_FAQ_ITEMS = [
+  {
+    question: 'Tem estacionamento no local?',
+    answer: 'Sim, contamos com estacionamento gratuito no local para todos os convidados.',
+  },
+  {
+    question: 'Crianças até quantos anos contam como convidado?',
+    answer: 'Crianças a partir de 7 anos contam como convidado. Menores que isso são bem-vindas sem ocupar vaga.',
+  },
+];
 
 const PAGE_LABELS = {
   historia:   'Nossa História',
   faq:        'Perguntas Frequentes',
-  hospedagem: 'Hospedagem',
+  hospedagem: 'Para quem vem de fora',
   mensagem:   'Mensagem ao Casal',
   musica:     'Sugestão de Música',
   presente:   'Lista de Presentes',
@@ -1359,7 +2032,54 @@ const LAYOUT_THEMES = {
   ],
 };
 
+function resolveDashboardThemePath(activeTheme, layoutKey = 'classic') {
+  const themeValue = String(activeTheme || '').trim();
+  if (!themeValue) {
+    return '';
+  }
+
+  if (themeValue.startsWith('assets/')) {
+    return themeValue;
+  }
+
+  return `assets/layouts/${layoutKey}/themes/${themeValue}.json`;
+}
+
+function extractDashboardThemeKey(activeThemePath) {
+  const themePath = String(activeThemePath || '').trim();
+  if (!themePath) {
+    return '';
+  }
+
+  const match = themePath.match(/\/themes\/([^/]+)\.json$/i);
+  return match ? match[1] : themePath;
+}
+
+function syncDashboardEventSlug(slug) {
+  const normalizedSlug = String(slug || '').trim();
+  if (!normalizedSlug) {
+    return;
+  }
+
+  state.eventSlug = normalizedSlug;
+
+  const previewBtn = document.getElementById('btnPreviewInvite');
+  if (previewBtn) {
+    previewBtn.href = `${window.location.origin}/${encodeURIComponent(normalizedSlug)}`;
+  }
+
+  const currentUrl = new URL(window.location.href);
+  currentUrl.searchParams.set('slug', normalizedSlug);
+  const nextUrl = `${currentUrl.pathname}${currentUrl.search}${currentUrl.hash}`;
+  history.replaceState(null, '', nextUrl);
+}
+
 function loadEditorTab() {
+  if (!state.eventId) {
+    setEditorStatusText('Evento não carregado — faça login novamente.');
+    return;
+  }
+
   const config = window.__SITE_CONFIG__;
   if (!config) {
     setEditorStatusText('Configuração não disponível — recarregue a página');
@@ -1368,10 +2088,14 @@ function loadEditorTab() {
 
   editorState.originalConfig = JSON.parse(JSON.stringify(config));
   editorState.isDirty = false;
+  hideSectionFooters();
+  setDefaultEditorSectionsOpenState();
 
   // Casal & Evento
   setVal('edCoupleNames',       config.couple?.names      ?? '');
-  setVal('edCoupleSubtitle',    config.couple?.subtitle || window.__SITE_JSON__?.couple?.subtitle || '');
+  setVal('edCoupleSubtitle',    config.couple?.subtitle || window.__SITE_JSON__?.couple?.subtitle || 'Um momento pensado para viver ao lado de quem faz parte da nossa vida');
+  setVal('edBrideName',         config.couple?.bride_name ?? config.couple?.brideName ?? '');
+  setVal('edGroomName',         config.couple?.groom_name ?? config.couple?.groomName ?? '');
   // edEventDate é type="date" — precisa de YYYY-MM-DD (não ISO completo)
   const isoDate = config.event?.date ?? '';
   const datePart = isoDate.includes('T') ? isoDate.split('T')[0] : isoDate;
@@ -1388,12 +2112,31 @@ function loadEditorTab() {
   } else if (datePart) {
     onEventDateChange();
   }
-  setVal('edEventLocation',     config.event?.locationName  ?? '');
-  setVal('edEventCity',         config.event?.locationCity  ?? '');
-  setVal('edEventMapsLink',     config.event?.mapsLink      ?? '');
-  setVal('edEventVenueAddress', config.event?.venueAddress  ?? '');
-  setVal('edEventLat', config.event?.venueCoordinates?.lat ?? '');
-  setVal('edEventLng', config.event?.venueCoordinates?.lng ?? '');
+  const ceremonyName = config.event?.ceremonyLocationName ?? '';
+  const ceremonyCity = config.event?.ceremonyLocationCity ?? '';
+  const ceremonyMaps = config.event?.ceremonyMapsLink ?? '';
+  const ceremonyAddress = config.event?.ceremonyAddress ?? '';
+  const ceremonyCoordinates = config.event?.ceremonyCoordinates || {};
+
+  const partyName = config.event?.partyLocationName ?? config.event?.locationName ?? '';
+  const partyCity = config.event?.partyLocationCity ?? config.event?.locationCity ?? '';
+  const partyMaps = config.event?.partyMapsLink ?? config.event?.mapsLink ?? '';
+  const partyAddress = config.event?.partyAddress ?? config.event?.venueAddress ?? '';
+  const partyCoordinates = config.event?.partyCoordinates || config.event?.venueCoordinates || {};
+
+  setVal('edCeremonyLocation', ceremonyName);
+  setVal('edCeremonyCity', ceremonyCity);
+  setVal('edCeremonyMapsLink', ceremonyMaps);
+  setVal('edCeremonyAddress', ceremonyAddress);
+  setVal('edCeremonyLat', ceremonyCoordinates?.lat ?? '');
+  setVal('edCeremonyLng', ceremonyCoordinates?.lng ?? '');
+
+  setVal('edPartyLocation', partyName);
+  setVal('edPartyCity', partyCity);
+  setVal('edPartyMapsLink', partyMaps);
+  setVal('edPartyAddress', partyAddress);
+  setVal('edPartyLat', partyCoordinates?.lat ?? '');
+  setVal('edPartyLng', partyCoordinates?.lng ?? '');
   setChk('edEventMapEnabled', !!config.event?.mapEnabled);
 
   // Tema
@@ -1416,7 +2159,10 @@ function loadEditorTab() {
   setVal('edGiftPixKey', gift.pixKey    ?? '');
   setVal('edGiftPixQr',  gift.pixQrImage ?? '');
   renderPixQrPreview(gift.pixQrImage || '');
-  setPixQrUploadStatus('');
+  bindMediaFileSelectionMeta();
+  setPixQrUploadStatus('Selecione uma imagem para QR Pix (JPG, PNG ou WEBP até 10 MB).', false, {
+    help: 'O sistema salva automaticamente após o envio.',
+  });
 
   const cardOn = !!gift.cardPaymentEnabled;
   setChk('edGiftCardEnabled', cardOn);
@@ -1432,19 +2178,42 @@ function loadEditorTab() {
   editorState.catalogItems = Array.isArray(cat.items)
     ? cat.items.map(it => ({ ...it }))
     : [];
+  // Restaura o radio do tipo de catálogo
+  const activeCatalogKey = cat.key || gift.activeCatalogKey || 'honeymoon';
+  window.__catalogType = activeCatalogKey;
+  document.querySelectorAll('input[name="catalogType"]').forEach(r => {
+    r.checked = (r.value === activeCatalogKey);
+  });
+  syncCatalogMetaFields(activeCatalogKey);
   renderCatalogItems();
 
-  // Fotos & Mídia
+  // Presentes — lista externa
+  const ext = gift.external || {};
+  const extEnabled = !!ext.enabled;
+  setChk('edExternalEnabled', extEnabled);
+  toggleGiftBlock('giftBlockExternal', extEnabled);
+  setVal('edExternalStore', ext.store ?? '');
+  setVal('edExternalUrl',   ext.url   ?? '');
+  setVal('edExternalLabel', ext.label ?? '');
+
+  // Fotos & Mídia — Áudio
   setVal('edMediaHero',       config.media?.heroImage             ?? '');
-  setVal('edTrackMainSrc',    config.media?.tracks?.main?.src     ?? '');
-  setVal('edTrackMainVolume', config.media?.tracks?.main?.volume  ?? '');
-  setVal('edTrackMainStart',  config.media?.tracks?.main?.startTime ?? '');
-  setVal('edTrackGiftSrc',    config.media?.tracks?.gift?.src     ?? '');
-  setVal('edTrackGiftVolume', config.media?.tracks?.gift?.volume  ?? '');
-  setVal('edTrackGiftStart',  config.media?.tracks?.gift?.startTime ?? '');
+  const _mainTrack = config.media?.tracks?.main ?? {};
+  setChk('edTrackEnabled', _mainTrack.enabled !== false);
+  const _vol = Math.round((_mainTrack.volume ?? 0.14) * 100);
+  setVal('edTrackVolume', _vol);
+  _syncVolumeSlider(document.getElementById('edTrackVolume'));
+  setVal('edTrackStart',  _mainTrack.startTime ?? '');
+  fetchSongsList(_mainTrack.src ?? '');
   renderMediaHeroPreview(config.media?.heroImage || '');
-  renderMediaGalleryGrid(config.pages?.historia?.content?.gallery || []);
-  setMediaUploadStatus('');
+  setEditorGalleryImages(config.pages?.historia?.content?.gallery || []);
+  refreshGalleryFromApi(true);
+  setHeroUploadStatus('Selecione uma foto (JPG, PNG ou WEBP até 10 MB).', false, {
+    help: 'O sistema salva automaticamente após o envio.',
+  });
+  setMediaUploadStatus('Selecione imagens da galeria (JPG, PNG ou WEBP até 10 MB).', false, {
+    help: 'O sistema salva automaticamente após o envio.',
+  });
 
   // Páginas extras
   renderPagesGrid(config.pages || {});
@@ -1457,6 +2226,61 @@ function loadEditorTab() {
     setVal(`edChapter${_i}Title`, _ch.title ?? '');
     setVal(`edChapter${_i}Text`,  _ch.text  ?? '');
   }
+
+  // FAQ
+  const _savedFaq = config.pages?.faq?.content?.items;
+  editorState.faqItems = (Array.isArray(_savedFaq) && _savedFaq.length > 0)
+    ? _savedFaq.map(it => ({ question: it.question || '', answer: it.answer || '' }))
+    : DEFAULT_FAQ_ITEMS.map(it => ({ ...it }));
+  renderFaqItems();
+
+  // Hospedagem
+  const _hospedagemContent = config.pages?.hospedagem?.content ?? {};
+  setVal('edHospTag', _hospedagemContent.tag ?? 'Para quem vem de fora');
+  setVal('edHospTitle', _hospedagemContent.title ?? 'Para quem vem de fora');
+  setVal('edHospIntro', _hospedagemContent.intro ?? 'Selecionamos algumas opções de hospedagem e restaurantes próximos para facilitar sua experiência no grande dia.');
+  setVal('edHospHotelsTitle', _hospedagemContent.hotelsTitle ?? 'Hotéis');
+  setVal('edHospRestaurantsTitle', _hospedagemContent.restaurantsTitle ?? 'Restaurantes');
+
+  editorState.hospedagemHotels = Array.isArray(_hospedagemContent.hotels)
+    ? _hospedagemContent.hotels.map((item) => ({
+      name: item?.name || '',
+      description: item?.description || '',
+      link: item?.link || '',
+    }))
+    : [];
+
+  editorState.hospedagemRestaurants = Array.isArray(_hospedagemContent.restaurants)
+    ? _hospedagemContent.restaurants.map((item) => ({
+      name: item?.name || '',
+      description: item?.description || '',
+      link: item?.link || '',
+    }))
+    : [];
+
+  renderHospedagemHotels();
+  renderHospedagemRestaurants();
+
+  // Traje & Paletas
+  const _trajeContent = config.pages?.traje?.content ?? {};
+  const _dresscodeEl = document.getElementById('edDresscode');
+  if (_dresscodeEl) _dresscodeEl.value = _trajeContent.dresscode ?? '';
+
+  editorState.bridesmaidsPalette = (Array.isArray(_trajeContent.bridesmaidsPalette) ? _trajeContent.bridesmaidsPalette : []).map(c => ({ ...c }));
+  editorState.groomsMenPalette   = (Array.isArray(_trajeContent.groomsMenPalette)   ? _trajeContent.groomsMenPalette   : []).map(c => ({ ...c }));
+  renderBridesmaidsPalette();
+  renderGroomsmenPalette();
+
+  setColorField('edBrideColorPicker', 'edBrideColorHex', _trajeContent.brideColor?.hex ?? '');
+  const _brideNameEl = document.getElementById('edBrideColorName');
+  if (_brideNameEl) _brideNameEl.value = _trajeContent.brideColor?.name ?? '';
+
+  setColorField('edGroomColorPicker', 'edGroomColorHex', _trajeContent.groomColor?.hex ?? '');
+  const _groomNameEl = document.getElementById('edGroomColorName');
+  if (_groomNameEl) _groomNameEl.value = _trajeContent.groomColor?.name ?? '';
+
+  const _noteEl = document.getElementById('edTrajeNote');
+  if (_noteEl) { _noteEl.value = _trajeContent.note ?? ''; updateTrajeNoteCounter(); }
 
   updateEditorSaveStatus();
 }
@@ -1476,11 +2300,30 @@ function extractCoordsFromMapsLink(url) {
   return null;
 }
 
-function onMapsLinkExtract() {
-  const input   = document.getElementById('edEventMapsLink');
-  const statusEl = document.getElementById('edEventCoordsStatus');
-  const latEl   = document.getElementById('edEventLat');
-  const lngEl   = document.getElementById('edEventLng');
+function getLocationFieldIds(scope = 'party') {
+  if (scope === 'ceremony') {
+    return {
+      link: 'edCeremonyMapsLink',
+      status: 'edCeremonyCoordsStatus',
+      lat: 'edCeremonyLat',
+      lng: 'edCeremonyLng',
+    };
+  }
+
+  return {
+    link: 'edPartyMapsLink',
+    status: 'edPartyCoordsStatus',
+    lat: 'edPartyLat',
+    lng: 'edPartyLng',
+  };
+}
+
+function onMapsLinkExtract(scope = 'party') {
+  const ids = getLocationFieldIds(scope);
+  const input = document.getElementById(ids.link);
+  const statusEl = document.getElementById(ids.status);
+  const latEl = document.getElementById(ids.lat);
+  const lngEl = document.getElementById(ids.lng);
   if (!input || !statusEl) return;
 
   const url = input.value.trim();
@@ -1557,7 +2400,63 @@ function setChk(id, checked) {
   if (el) el.checked = checked;
 }
 
+// ── Section footer helpers ───────────────────────────────────
+const SECTION_FOOTER_IDS = [
+  'edSectionEvento', 'edSectionTema', 'edSectionWhatsApp', 'edSectionPresentes',
+  'edSectionMidia', 'edSectionHistoria', 'edSectionFaq', 'edSectionHospedagem', 'edSectionPages',
+  'edSectionTraje',
+];
+
+const EDITOR_SECTION_IDS = [
+  'edSectionEvento',
+  'edSectionTema',
+  'edSectionWhatsApp',
+  'edSectionPresentes',
+  'edSectionMidia',
+  'edSectionHistoria',
+  'edSectionFaq',
+  'edSectionHospedagem',
+  'edSectionPages',
+];
+
+function setDefaultEditorSectionsOpenState() {
+  EDITOR_SECTION_IDS.forEach((id) => {
+    const section = document.getElementById(id);
+    if (!section) return;
+    section.classList.toggle('is-open', id === 'edSectionEvento');
+  });
+}
+
+function showSectionFootersDirty() {
+  SECTION_FOOTER_IDS.forEach(id => {
+    const footer = document.getElementById('footer-' + id);
+    if (!footer) return;
+    footer.classList.remove('is-saved');
+    footer.classList.add('is-dirty');
+  });
+}
+
+function showSectionFootersSaved() {
+  SECTION_FOOTER_IDS.forEach(id => {
+    const footer = document.getElementById('footer-' + id);
+    if (!footer) return;
+    footer.classList.remove('is-dirty');
+    footer.classList.add('is-saved');
+  });
+  setTimeout(hideSectionFooters, 2500);
+}
+
+function hideSectionFooters() {
+  SECTION_FOOTER_IDS.forEach(id => {
+    const footer = document.getElementById('footer-' + id);
+    if (!footer) return;
+    footer.classList.remove('is-dirty', 'is-saved');
+  });
+}
+// ─────────────────────────────────────────────────────────────
+
 function markEditorDirty() {
+  showSectionFootersDirty();
   if (editorState.isDirty) return;
   editorState.isDirty = true;
   updateEditorSaveStatus();
@@ -1588,28 +2487,285 @@ function setEditorStatusText(msg) {
   if (el) el.textContent = msg;
 }
 
-function setMediaUploadStatus(message, isError = false) {
-  const statusEl = document.getElementById('edMediaUploadStatus');
-  if (!statusEl) return;
-
-  statusEl.textContent = message || '';
-  statusEl.style.color = isError ? 'var(--danger)' : 'var(--text-dim)';
+function formatFileSize(bytes) {
+  const value = Number(bytes) || 0;
+  if (value < 1024) return `${value} B`;
+  if (value < 1024 * 1024) return `${(value / 1024).toFixed(1)} KB`;
+  return `${(value / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-function setPixQrUploadStatus(message, isError = false) {
-  const statusEl = document.getElementById('edGiftPixQrUploadStatus');
-  if (!statusEl) return;
-
-  statusEl.textContent = message || '';
-  statusEl.style.color = isError ? 'var(--danger)' : 'var(--text-dim)';
+function getUploadStatusVariant(isError = false, forceVariant = '') {
+  if (forceVariant) return forceVariant;
+  return isError ? 'error' : 'idle';
 }
 
-async function uploadMediaFile(type, file) {
+function setUploadStatus(containerId, message, isError = false, options = {}) {
+  const statusEl = document.getElementById(containerId);
+  if (!statusEl) return;
+
+  const textEl = statusEl.querySelector('.upload-status-text');
+  const percentEl = statusEl.querySelector('.upload-status-percent');
+  const helpEl = statusEl.querySelector('.upload-status-help');
+  const progressWrapEl = statusEl.querySelector('.upload-progress');
+  const progressBarEl = statusEl.querySelector('.upload-progress-bar');
+
+  if (!textEl || !percentEl || !helpEl || !progressWrapEl || !progressBarEl) {
+    statusEl.textContent = message || '';
+    statusEl.style.color = isError ? 'var(--danger)' : 'var(--text-dim)';
+    return;
+  }
+
+  const {
+    progress = null,
+    help = '',
+    variant = '',
+  } = options;
+
+  const statusVariant = getUploadStatusVariant(isError, variant);
+
+  statusEl.hidden = !message && !help;
+  statusEl.classList.remove('is-loading', 'is-success', 'is-warning', 'is-error');
+  if (statusVariant && statusVariant !== 'idle') {
+    statusEl.classList.add(`is-${statusVariant}`);
+  }
+
+  textEl.textContent = message || '';
+  helpEl.textContent = help || '';
+
+  const hasProgress = Number.isFinite(progress);
+  if (hasProgress) {
+    const safeProgress = Math.min(100, Math.max(0, Math.round(progress)));
+    progressWrapEl.hidden = false;
+    progressBarEl.style.width = `${safeProgress}%`;
+    percentEl.textContent = `${safeProgress}%`;
+  } else {
+    progressWrapEl.hidden = true;
+    progressBarEl.style.width = '0%';
+    percentEl.textContent = '';
+  }
+}
+
+function setMediaUploadStatus(message, isError = false, options = {}) {
+  setUploadStatus('edMediaUploadStatus', message, isError, options);
+}
+
+function setHeroUploadStatus(message, isError = false, options = {}) {
+  setUploadStatus('edMediaHeroUploadStatus', message, isError, options);
+}
+
+function setPixQrUploadStatus(message, isError = false, options = {}) {
+  setUploadStatus('edGiftPixQrUploadStatus', message, isError, options);
+}
+
+function isValidMediaFile(file) {
+  if (!file) return false;
+  if (!SUPPORTED_IMAGE_MIME_TYPES.includes(file.type || '')) return false;
+  if (Number(file.size || 0) <= 0) return false;
+  return Number(file.size || 0) <= MEDIA_MAX_FILE_SIZE_BYTES;
+}
+
+function validateMediaFile(file) {
+  if (!file) {
+    return 'Arquivo não encontrado.';
+  }
+  if (!SUPPORTED_IMAGE_MIME_TYPES.includes(file.type || '')) {
+    return 'Formato inválido. Use JPG, PNG ou WEBP.';
+  }
+  if (Number(file.size || 0) > MEDIA_MAX_FILE_SIZE_BYTES) {
+    return 'Arquivo excede 10 MB. Escolha um arquivo menor.';
+  }
+  return '';
+}
+
+function appendCacheBustParam(url) {
+  const source = String(url || '').trim();
+  if (!source) return '';
+
+  try {
+    const parsed = new URL(source, window.location.origin);
+    parsed.searchParams.set('v', Date.now().toString());
+    return parsed.toString();
+  } catch {
+    const separator = source.includes('?') ? '&' : '?';
+    return `${source}${separator}v=${Date.now()}`;
+  }
+}
+
+function isHeroMediaUrl(url) {
+  const source = String(url || '').trim();
+  if (!source) return false;
+
+  try {
+    const parsed = new URL(source, window.location.origin);
+    return /\/hero\/hero\./i.test(parsed.pathname);
+  } catch {
+    return /\/hero\/hero\./i.test(source);
+  }
+}
+
+function normalizeUploadErrorMessage(error) {
+  const raw = String(error?.message || '').trim();
+  if (!raw) return 'Não foi possível concluir o upload. Tente novamente.';
+
+  if (/unsupported file type/i.test(raw)) {
+    return 'Formato inválido. Envie JPG, PNG ou WEBP.';
+  }
+  if (/limite de 10\s*mb|excede.*10\s*mb|maxfilesize|file size/i.test(raw)) {
+    return 'Arquivo muito grande. O limite é 10 MB por arquivo.';
+  }
+  if (/413|payload too large|request entity too large/i.test(raw) || Number(error?.status) === 413) {
+    return 'O servidor recusou o upload por limite de payload da infraestrutura. Tente novamente; se persistir, verifique as políticas de upload direto no bucket.';
+  }
+  if (/expired|sess[aã]o|unauthorized|401|forbidden|403/i.test(raw)) {
+    return 'Sua sessão expirou. Faça login novamente e tente o envio.';
+  }
+  if (/network|failed to fetch/i.test(raw)) {
+    return 'Falha de rede no envio. Verifique sua conexão e tente novamente.';
+  }
+  if (/internal server error|500/i.test(raw)) {
+    return 'Erro interno no servidor ao enviar mídia. Tente novamente.';
+  }
+  return raw;
+}
+
+function setFileMetaText(elementId, text = '') {
+  const el = document.getElementById(elementId);
+  if (!el) return;
+  el.textContent = text;
+}
+
+function bindInputChangeOnce(inputId, handler) {
+  const input = document.getElementById(inputId);
+  if (!input || input.dataset.boundChange === 'true') return;
+  input.addEventListener('change', handler);
+  input.dataset.boundChange = 'true';
+}
+
+function bindMediaFileSelectionMeta() {
+  bindInputChangeOnce('edGiftPixQrFile', (event) => {
+    const file = event.target?.files?.[0];
+    if (!file) {
+      setFileMetaText('edGiftPixQrFileMeta', '');
+      return;
+    }
+    setFileMetaText('edGiftPixQrFileMeta', `${file.name} (${formatFileSize(file.size)})`);
+  });
+
+  bindInputChangeOnce('edMediaHeroFile', (event) => {
+    const file = event.target?.files?.[0];
+    if (!file) {
+      setFileMetaText('edMediaHeroFileMeta', '');
+      return;
+    }
+    setFileMetaText('edMediaHeroFileMeta', `${file.name} (${formatFileSize(file.size)})`);
+  });
+
+  bindInputChangeOnce('edMediaGalleryFiles', (event) => {
+    const files = Array.from(event.target?.files || []);
+    if (!files.length) {
+      setFileMetaText('edMediaGalleryFileMeta', '');
+      return;
+    }
+    const totalBytes = files.reduce((sum, file) => sum + (Number(file.size) || 0), 0);
+    setFileMetaText('edMediaGalleryFileMeta', `${files.length} arquivo(s) selecionado(s) • ${formatFileSize(totalBytes)}`);
+  });
+}
+
+async function uploadMediaFile(type, file, options = {}) {
+  if (type === 'hero') {
+    return uploadMediaFileViaApi(type, file, options);
+  }
+
+  try {
+    return await uploadMediaFileDirect(type, file, options);
+  } catch (directUploadError) {
+    // Fallback de compatibilidade para projetos sem policy de upload direto no bucket.
+    return uploadMediaFileViaApi(type, file, options, directUploadError);
+  }
+}
+
+function sanitizeUploadFileBaseName(fileName) {
+  const source = String(fileName || 'upload')
+    .replace(/\.[^.]+$/, '')
+    .toLowerCase()
+    .replace(/\s+/g, '-')
+    .replace(/[^a-z0-9-_]/g, '');
+
+  return source || 'upload';
+}
+
+function resolveUploadFileExtension(file) {
+  const typeToExtension = {
+    'image/jpeg': 'jpg',
+    'image/png': 'png',
+    'image/webp': 'webp',
+  };
+
+  const mimeType = String(file?.type || '').toLowerCase();
+  if (typeToExtension[mimeType]) {
+    return typeToExtension[mimeType];
+  }
+
+  const originalName = String(file?.name || '');
+  if (originalName.includes('.')) {
+    return originalName.split('.').pop().toLowerCase();
+  }
+
+  return 'bin';
+}
+
+function getEventStorageRoot() {
+  // The API always prefers slug over ID as storage root.
+  // Direct uploads must use the same root to keep paths consistent.
+  return String(state.eventSlug || state.eventId || '').trim();
+}
+
+function buildMediaStoragePath(type, file) {
+  const storageRoot = getEventStorageRoot();
+  if (!storageRoot) {
+    throw new Error('Evento não carregado no dashboard. Recarregue a página.');
+  }
+
+  const extension = resolveUploadFileExtension(file);
+
+  if (type === 'hero') {
+    return `${storageRoot}/hero/hero.${extension}`;
+  }
+
+  if (type === 'pix-qr') {
+    return `${storageRoot}/pix/pix-qr.${extension}`;
+  }
+
+  const safeBaseName = sanitizeUploadFileBaseName(file?.name || 'upload');
+  return `${storageRoot}/gallery/${Date.now()}-${safeBaseName}.${extension}`;
+}
+
+async function removeOtherMediaFilesInFolder(storage, folderPrefix, keepName) {
+  try {
+    const { data, error } = await storage.list(folderPrefix, { limit: 100 });
+    if (error || !Array.isArray(data) || data.length === 0) {
+      return;
+    }
+
+    const pathsToRemove = data
+      .filter((entry) => Boolean(entry?.name) && entry.name !== keepName)
+      .map((entry) => `${folderPrefix}/${entry.name}`);
+
+    if (pathsToRemove.length > 0) {
+      await storage.remove(pathsToRemove);
+    }
+  } catch {
+    // Limpeza não é bloqueante.
+  }
+}
+
+async function uploadMediaFileDirect(type, file, options = {}) {
+  const { onProgress } = options;
+
   if (!state.eventId) {
     throw new Error('Evento não carregado no dashboard. Recarregue a página.');
   }
 
-  // Força token fresco diretamente do cliente Supabase para evitar token expirado
   const supabase = await getDashboardSupabaseClient();
   const { data: freshSession } = await supabase.auth.getSession();
   const freshToken = freshSession?.session?.access_token || null;
@@ -1622,26 +2778,95 @@ async function uploadMediaFile(type, file) {
     throw new Error('Sessão expirada. Faça login novamente no dashboard.');
   }
 
+  if (typeof onProgress === 'function') {
+    onProgress(5);
+  }
+
+  const storagePath = buildMediaStoragePath(type, file);
+  const storage = supabase.storage.from(MEDIA_BUCKET_ID);
+
+  const { error: uploadError } = await storage.upload(storagePath, file, {
+    contentType: file.type || 'application/octet-stream',
+    upsert: type === 'hero' || type === 'pix-qr',
+  });
+
+  if (uploadError) {
+    throw uploadError;
+  }
+
+  if (typeof onProgress === 'function') {
+    onProgress(95);
+  }
+
+  if (type === 'hero' || type === 'pix-qr') {
+    const storageRoot = getEventStorageRoot();
+    const folderPrefix = type === 'hero'
+      ? `${storageRoot}/hero`
+      : `${storageRoot}/pix`;
+    const newFileName = storagePath.replace(`${folderPrefix}/`, '');
+    await removeOtherMediaFilesInFolder(storage, folderPrefix, newFileName);
+  }
+
+  const { data } = storage.getPublicUrl(storagePath);
+
+  if (typeof onProgress === 'function') {
+    onProgress(100);
+  }
+
+  return {
+    eventId: state.eventId,
+    path: storagePath,
+    type,
+    url: data?.publicUrl || '',
+  };
+}
+
+function uploadMediaFileViaApi(type, file, options = {}, directUploadError = null) {
+  const { onProgress } = options;
+
   const formData = new FormData();
   formData.append('eventId', state.eventId);
   formData.append('type', type);
   formData.append('file', file);
 
-  const response = await fetch('/api/dashboard/media', {
-    method: 'POST',
-    body: formData,
-    headers: {
-      Authorization: `Bearer ${state.authToken}`,
-    },
+  return new Promise((resolve, reject) => {
+    const request = new XMLHttpRequest();
+    request.open('POST', '/api/dashboard/media');
+    request.setRequestHeader('Authorization', `Bearer ${state.authToken}`);
+
+    request.upload.addEventListener('progress', (event) => {
+      if (!event.lengthComputable || typeof onProgress !== 'function') return;
+      const progress = Math.round((event.loaded / event.total) * 100);
+      onProgress(progress);
+    });
+
+    request.addEventListener('error', () => {
+      reject(new Error('Falha de rede no envio de mídia.'));
+    });
+
+    request.addEventListener('load', () => {
+      let payload = {};
+      try {
+        payload = JSON.parse(request.responseText || '{}');
+      } catch {
+        payload = {};
+      }
+
+      if (request.status >= 200 && request.status < 300) {
+        resolve(payload);
+        return;
+      }
+
+      const fallbackError = new Error(payload.error || `Falha ao enviar mídia (${request.status})`);
+      fallbackError.status = request.status;
+      if (directUploadError) {
+        fallbackError.cause = directUploadError;
+      }
+      reject(fallbackError);
+    });
+
+    request.send(formData);
   });
-
-  const data = await response.json().catch(() => ({}));
-
-  if (!response.ok) {
-    throw new Error(data.error || 'Falha ao enviar mídia');
-  }
-
-  return data;
 }
 
 function renderMediaHeroPreview(url) {
@@ -1667,7 +2892,7 @@ function renderMediaHeroPreview(url) {
 
     previewImg.src = resolvedSource;
     if (previewUrl) {
-      previewUrl.textContent = source;
+      previewUrl.textContent = '';
     }
     previewWrap.style.display = '';
     emptyEl.style.display = 'none';
@@ -1705,7 +2930,7 @@ function renderPixQrPreview(url) {
 
     previewImg.src = resolvedSource;
     if (previewUrl) {
-      previewUrl.textContent = source;
+      previewUrl.textContent = '';
     }
     previewWrap.style.display = '';
     emptyEl.style.display = 'none';
@@ -1720,6 +2945,436 @@ function renderPixQrPreview(url) {
   emptyEl.style.display = '';
 }
 
+function extractGalleryNameFromSource(source) {
+  const input = String(source || '').trim();
+  if (!input) return '';
+
+  const match = input.match(/\/gallery\/([^/?#]+)$/i);
+  if (match?.[1]) {
+    try {
+      return decodeURIComponent(match[1]);
+    } catch {
+      return match[1];
+    }
+  }
+
+  return '';
+}
+
+function normalizeGalleryImageItem(image, index) {
+  // API response uses `url`; config JSON uses `src` — accept both
+  const src = String(image?.src || image?.url || '').trim();
+  const path = String(image?.path || '').trim();
+  const name = String(image?.name || extractGalleryNameFromSource(path || src)).trim();
+  const alt = String(image?.alt || `Foto ${index + 1}`).trim() || `Foto ${index + 1}`;
+
+  return {
+    src,
+    path,
+    name,
+    alt,
+    key: name || src || `gallery-${index + 1}`,
+  };
+}
+
+function syncGalleryToSiteConfig() {
+  if (!window.__SITE_CONFIG__) return;
+  const gallery = ensureHistoriaGalleryArray(window.__SITE_CONFIG__);
+  gallery.length = 0;
+  editorState.galleryImages.forEach((image) => {
+    gallery.push({ src: image.src || '', alt: image.alt || '' });
+  });
+}
+
+function updateMediaGalleryToolbar() {
+  const toolbar = document.getElementById('edMediaGalleryToolbar');
+  const info = document.getElementById('edMediaGallerySelectionInfo');
+  const deleteBtn = document.getElementById('btnGalleryDeleteSelected');
+  const selectAllBtn = document.getElementById('btnGallerySelectAll');
+  const total = editorState.galleryImages.length;
+  const selected = editorState.selectedGalleryNames.length;
+
+  if (toolbar) {
+    toolbar.hidden = total === 0;
+  }
+
+  if (info) {
+    const selectedLabel = selected === 1 ? '1 foto selecionada' : `${selected} fotos selecionadas`;
+    const totalLabel = total === 1 ? '1 foto' : `${total} fotos`;
+    info.textContent = `${selectedLabel} de ${totalLabel}`;
+  }
+
+  if (deleteBtn) {
+    deleteBtn.disabled = selected === 0;
+  }
+
+  if (selectAllBtn) {
+    const allSelected = total > 0 && selected === total;
+    const span = selectAllBtn.querySelector('span');
+    if (span) {
+      span.textContent = allSelected ? 'Desmarcar todas' : 'Selecionar todas';
+    }
+  }
+}
+
+function setEditorGalleryImages(images, options = {}) {
+  const { preserveSelection = false } = options;
+  const nextImages = (Array.isArray(images) ? images : [])
+    .map((image, index) => normalizeGalleryImageItem(image, index))
+    .filter((image) => Boolean(image.src));
+
+  const previousSelection = preserveSelection ? new Set(editorState.selectedGalleryNames) : new Set();
+
+  editorState.galleryImages = nextImages;
+  editorState.selectedGalleryNames = nextImages
+    .map((image) => image.name)
+    .filter((name) => name && previousSelection.has(name));
+
+  syncGalleryToSiteConfig();
+  renderMediaGalleryGrid(nextImages);
+}
+
+function toggleGalleryImageSelectionByIndex(index, checked) {
+  const item = editorState.galleryImages[index];
+  if (!item?.name) return;
+
+  if (checked) {
+    if (!editorState.selectedGalleryNames.includes(item.name)) {
+      editorState.selectedGalleryNames.push(item.name);
+    }
+  } else {
+    editorState.selectedGalleryNames = editorState.selectedGalleryNames.filter((name) => name !== item.name);
+  }
+
+  renderMediaGalleryGrid(editorState.galleryImages);
+}
+
+function toggleSelectAllGalleryImages() {
+  const total = editorState.galleryImages.length;
+  if (!total) return;
+
+  if (editorState.selectedGalleryNames.length === total) {
+    editorState.selectedGalleryNames = [];
+  } else {
+    editorState.selectedGalleryNames = editorState.galleryImages
+      .map((image) => image.name)
+      .filter(Boolean);
+  }
+
+  renderMediaGalleryGrid(editorState.galleryImages);
+}
+
+async function requestGalleryList() {
+  const response = await fetchWithAuth(`/api/dashboard/media?type=gallery&eventId=${encodeURIComponent(state.eventId)}`);
+  const payload = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    throw new Error(payload.error || 'Não foi possível carregar a galeria.');
+  }
+
+  return Array.isArray(payload.items) ? payload.items : [];
+}
+
+async function refreshGalleryFromApi(silent = false) {
+  if (!state.eventId) return;
+
+  try {
+    const items = await requestGalleryList();
+    setEditorGalleryImages(items, { preserveSelection: true });
+  } catch (error) {
+    if (!silent) {
+      setMediaUploadStatus(normalizeUploadErrorMessage(error), true, {
+        variant: 'error',
+        help: 'Não foi possível atualizar a galeria do Storage.',
+      });
+    }
+  }
+}
+
+async function fetchSongsList(currentSrc = '') {
+  const sel = document.getElementById('edTrackSrc');
+  const hint = document.getElementById('edTrackSrcHint');
+  if (!sel) return;
+
+  try {
+    const response = await fetchWithAuth(`/api/dashboard/media?type=songs&eventId=${encodeURIComponent(state.eventId)}`);
+    const payload = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      sel.innerHTML = '<option value="">— Erro ao carregar músicas —</option>';
+      if (hint) hint.textContent = payload.error || 'Não foi possível carregar as músicas do Storage.';
+      return;
+    }
+
+    const files = Array.isArray(payload.files) ? payload.files : [];
+
+    if (files.length === 0) {
+      sel.innerHTML = '<option value="">— Nenhuma música na pasta songs/ —</option>';
+      if (hint) hint.textContent = 'Carregue arquivos de áudio (.mp3) na pasta songs/ do bucket event-media no Supabase.';
+      return;
+    }
+
+    const selectedValue = currentSrc || sel.value;
+    const options = files.map((f) => {
+      const label = f.name.replace(/\.(mp3|m4a|ogg|wav|aac)$/i, '').replace(/[-_]+/g, ' ');
+      const selected = f.url === selectedValue ? ' selected' : '';
+      return `<option value="${f.url}"${selected}>${label}</option>`;
+    });
+
+    // Preserve a custom src that isn't in the list
+    if (selectedValue && !files.some((f) => f.url === selectedValue)) {
+      const label = selectedValue.split('/').pop() || selectedValue;
+      options.unshift(`<option value="${selectedValue}" selected>${label} (personalizado)</option>`);
+    }
+
+    sel.innerHTML = options.join('');
+    if (hint) hint.textContent = `${files.length} música${files.length !== 1 ? 's' : ''} disponível${files.length !== 1 ? 'eis' : ''}.`;
+  } catch (err) {
+    sel.innerHTML = '<option value="">— Erro ao carregar músicas —</option>';
+    if (hint) hint.textContent = 'Não foi possível carregar as músicas do Storage.';
+    console.error('[dashboard] fetchSongsList error', err);
+  }
+}
+
+// ── Preview de música no editor ──────────────────────────────────────────────
+
+let _previewAudio = null;
+
+function _syncVolumeSlider(el) {
+  if (!el) return;
+  const pct = el.value + '%';
+  el.style.setProperty('--vol-pct', pct);
+  const display = document.getElementById('edTrackVolumeDisplay');
+  if (display) display.textContent = pct;
+}
+
+function _updatePreviewStatus(text, isError = false) {
+  const el = document.getElementById('edPreviewStatus');
+  if (el) {
+    el.textContent = text;
+    el.style.color = isError ? '#e74c3c' : '';
+  }
+}
+
+function audioPreviewPlay() {
+  const src    = document.getElementById('edTrackSrc')?.value;
+  const volume = (parseFloat(document.getElementById('edTrackVolume')?.value) || 14) / 100;
+  const start  = parseInt(document.getElementById('edTrackStart')?.value)    || 0;
+
+  if (!src) {
+    _updatePreviewStatus('Selecione uma música primeiro.', true);
+    return;
+  }
+
+  const isNewSrc = !_previewAudio || _previewAudio.src !== src;
+  if (isNewSrc) {
+    if (_previewAudio) _previewAudio.pause();
+    _previewAudio = new Audio(src);
+    _previewAudio.loop = true;
+    _previewAudio.onerror = () => _updatePreviewStatus('Erro ao carregar áudio.', true);
+  }
+
+  _previewAudio.volume = volume;
+  _updatePreviewStatus('Carregando…');
+
+  const doPlay = () => {
+    try { _previewAudio.currentTime = start; } catch {}
+    _previewAudio.play()
+      .then(() => _updatePreviewStatus('▶ Tocando'))
+      .catch(() => _updatePreviewStatus('Erro ao reproduzir.', true));
+  };
+
+  if (_previewAudio.readyState >= 1) {
+    doPlay();
+  } else {
+    _previewAudio.addEventListener('loadedmetadata', doPlay, { once: true });
+    _previewAudio.load();
+  }
+}
+
+function audioPreviewPause() {
+  if (!_previewAudio || _previewAudio.paused) {
+    _updatePreviewStatus('Nada tocando.');
+    return;
+  }
+  _previewAudio.pause();
+  _updatePreviewStatus('⏸ Pausado');
+}
+
+function audioPreviewStop() {
+  if (!_previewAudio) return;
+  _previewAudio.pause();
+  const start = parseInt(document.getElementById('edTrackStart')?.value) || 0;
+  try { _previewAudio.currentTime = start; } catch {}
+  _updatePreviewStatus('⏹ Parado');
+}
+
+async function requestGalleryReorder(orderNames) {
+  const response = await fetchWithAuth('/api/dashboard/media', {
+    method: 'PATCH',
+    body: JSON.stringify({
+      eventId: state.eventId,
+      type: 'gallery',
+      order: orderNames,
+    }),
+  });
+  const payload = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    throw new Error(payload.error || 'Não foi possível salvar a ordem da galeria.');
+  }
+
+  return Array.isArray(payload.items) ? payload.items : [];
+}
+
+async function persistGalleryOrder() {
+  const orderNames = editorState.galleryImages.map((image) => image.name).filter(Boolean);
+  if (!orderNames.length) return;
+
+  setMediaUploadStatus('Salvando nova ordem da galeria...', false, {
+    variant: 'loading',
+    progress: 100,
+    help: 'Aguarde a confirmação.',
+  });
+
+  await requestGalleryReorder(orderNames);
+  setMediaUploadStatus('Ordem da galeria atualizada com sucesso.', false, {
+    variant: 'success',
+    progress: 100,
+    help: 'Pronto. A ordem já está salva.',
+  });
+}
+
+function schedulePersistGalleryOrder() {
+  clearTimeout(galleryOrderSaveTimer);
+  setMediaUploadStatus('Aguardando para salvar...', false, {
+    variant: 'loading',
+    progress: 50,
+    help: 'A ordem será salva automaticamente.',
+  });
+  galleryOrderSaveTimer = setTimeout(async () => {
+    try {
+      await persistGalleryOrder();
+    } catch (error) {
+      setMediaUploadStatus(normalizeUploadErrorMessage(error), true, {
+        variant: 'error',
+        help: 'Não foi possível salvar a nova ordem. Tente novamente.',
+      });
+      await refreshGalleryFromApi(true);
+    }
+  }, 2000);
+}
+
+function moveGalleryImageByOffset(index, delta) {
+  const targetIndex = index + delta;
+  if (index < 0 || targetIndex < 0 || targetIndex >= editorState.galleryImages.length) {
+    return;
+  }
+
+  const reordered = [...editorState.galleryImages];
+  const [moved] = reordered.splice(index, 1);
+  reordered.splice(targetIndex, 0, moved);
+  editorState.galleryImages = reordered;
+  syncGalleryToSiteConfig();
+  renderMediaGalleryGrid(reordered);
+  schedulePersistGalleryOrder();
+}
+
+function handleGalleryDragStart(event, index) {
+  const item = editorState.galleryImages[index];
+  if (!item?.name) return;
+
+  editorState.draggingGalleryName = item.name;
+  event.dataTransfer.effectAllowed = 'move';
+  event.dataTransfer.setData('text/plain', item.name);
+  event.currentTarget.classList.add('is-dragging');
+}
+
+function handleGalleryDragOver(event) {
+  event.preventDefault();
+  event.dataTransfer.dropEffect = 'move';
+  event.currentTarget.classList.add('is-drop-target');
+}
+
+function handleGalleryDragLeave(event) {
+  event.currentTarget.classList.remove('is-drop-target');
+}
+
+async function handleGalleryDrop(event, dropIndex) {
+  event.preventDefault();
+  event.currentTarget.classList.remove('is-drop-target');
+
+  const draggedName = editorState.draggingGalleryName || event.dataTransfer.getData('text/plain');
+  if (!draggedName) return;
+
+  const fromIndex = editorState.galleryImages.findIndex((image) => image.name === draggedName);
+  if (fromIndex < 0 || fromIndex === dropIndex) return;
+
+  const reordered = [...editorState.galleryImages];
+  const [moved] = reordered.splice(fromIndex, 1);
+  reordered.splice(dropIndex, 0, moved);
+
+  editorState.galleryImages = reordered;
+  syncGalleryToSiteConfig();
+  renderMediaGalleryGrid(reordered);
+  schedulePersistGalleryOrder();
+}
+
+function handleGalleryDragEnd(event) {
+  editorState.draggingGalleryName = '';
+  event.currentTarget.classList.remove('is-dragging');
+  document.querySelectorAll('#edMediaGalleryGrid .media-gallery-card').forEach((card) => {
+    card.classList.remove('is-drop-target');
+  });
+}
+
+async function deleteSelectedGalleryImages() {
+  const names = [...editorState.selectedGalleryNames].filter(Boolean);
+  if (!names.length) {
+    return;
+  }
+
+  const label = names.length === 1 ? '1 foto selecionada' : `${names.length} fotos selecionadas`;
+  if (!confirm(`Deseja excluir ${label} da galeria? Esta ação não pode ser desfeita.`)) {
+    return;
+  }
+
+  setMediaUploadStatus('Excluindo fotos selecionadas...', false, {
+    variant: 'loading',
+    progress: 100,
+    help: 'Aguarde a confirmação.',
+  });
+
+  try {
+    const response = await fetchWithAuth('/api/dashboard/media', {
+      method: 'DELETE',
+      body: JSON.stringify({
+        eventId: state.eventId,
+        type: 'gallery',
+        names,
+      }),
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      throw new Error(payload.error || 'Não foi possível excluir as fotos selecionadas.');
+    }
+
+    editorState.selectedGalleryNames = [];
+    await refreshGalleryFromApi(true);
+
+    setMediaUploadStatus('Fotos selecionadas excluídas com sucesso.', false, {
+      variant: 'success',
+      progress: 100,
+      help: 'A galeria foi atualizada.',
+    });
+  } catch (error) {
+    setMediaUploadStatus(normalizeUploadErrorMessage(error), true, {
+      variant: 'error',
+      help: 'Não foi possível excluir as fotos. Tente novamente.',
+    });
+  }
+}
+
 function renderMediaGalleryGrid(images) {
   const grid = document.getElementById('edMediaGalleryGrid');
   const emptyEl = document.getElementById('edMediaGalleryEmpty');
@@ -1731,15 +3386,48 @@ function renderMediaGalleryGrid(images) {
   if (!Array.isArray(images) || images.length === 0) {
     grid.innerHTML = '';
     emptyEl.style.display = '';
+    updateMediaGalleryToolbar();
     return;
   }
 
   emptyEl.style.display = 'none';
+  const isDesktop = typeof window.matchMedia === 'function'
+    ? window.matchMedia('(min-width: 761px)').matches
+    : true;
   grid.innerHTML = images.map((image, index) => {
     const src = escapeHtml(image?.src || '');
     const alt = escapeHtml(image?.alt || `Foto ${index + 1}`);
-    return `<div class="media-gallery-card"><img src="${src}" alt="${alt}" onerror="this.style.opacity=0.3"></div>`;
+    const name = escapeHtml(image?.name || '');
+    const checked = image?.name && editorState.selectedGalleryNames.includes(image.name) ? 'checked' : '';
+    const selectedClass = checked ? ' is-selected' : '';
+
+    return `<div class="media-gallery-card${selectedClass}"
+      draggable="${isDesktop ? 'true' : 'false'}"
+      ondragstart="handleGalleryDragStart(event, ${index})"
+      ondragover="handleGalleryDragOver(event)"
+      ondragleave="handleGalleryDragLeave(event)"
+      ondrop="handleGalleryDrop(event, ${index})"
+      ondragend="handleGalleryDragEnd(event)">
+      <img src="${src}" alt="${alt}" onerror="this.style.opacity=0.3">
+      <div class="media-gallery-card-overlay">
+        <div class="media-gallery-card-top">
+          <span class="media-gallery-order">${index + 1}</span>
+          <input type="checkbox" class="media-gallery-check" aria-label="Selecionar ${alt}" ${checked}
+            onchange="toggleGalleryImageSelectionByIndex(${index}, this.checked)">
+        </div>
+        <div class="media-gallery-card-bottom">
+          <div class="media-gallery-actions">
+            <button type="button" class="media-gallery-action-btn" title="Mover para cima" ${index === 0 ? 'disabled' : ''}
+              onclick="moveGalleryImageByOffset(${index}, -1)">↑</button>
+            <button type="button" class="media-gallery-action-btn" title="Mover para baixo" ${index === images.length - 1 ? 'disabled' : ''}
+              onclick="moveGalleryImageByOffset(${index}, 1)">↓</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
   }).join('');
+
+  updateMediaGalleryToolbar();
 }
 
 function ensureHistoriaGalleryArray(config) {
@@ -1759,17 +3447,41 @@ async function uploadPixQrMedia() {
   const button = document.getElementById('btnEdGiftPixQrUpload');
 
   if (!file) {
-    setPixQrUploadStatus('Selecione uma imagem para o QR Pix.', true);
+    setPixQrUploadStatus('Selecione uma imagem para o QR Pix.', true, {
+      variant: 'error',
+      help: 'Use JPG, PNG ou WEBP com até 10 MB.',
+    });
     return;
   }
 
-  setPixQrUploadStatus('Enviando QR Pix...');
+  const validationError = validateMediaFile(file);
+  if (validationError) {
+    setPixQrUploadStatus(validationError, true, {
+      variant: 'error',
+      help: 'Escolha outro arquivo e tente novamente.',
+    });
+    return;
+  }
+
+  setPixQrUploadStatus(`Enviando QR Pix: ${file.name}`, false, {
+    variant: 'loading',
+    progress: 0,
+    help: 'Fazendo upload e salvando automaticamente...',
+  });
   if (button) {
     button.disabled = true;
   }
 
   try {
-    const result = await uploadMediaFile('pix-qr', file);
+    const result = await uploadMediaFile('pix-qr', file, {
+      onProgress: (progress) => {
+        setPixQrUploadStatus(`Enviando QR Pix: ${file.name}`, false, {
+          variant: 'loading',
+          progress,
+          help: 'Fazendo upload e salvando automaticamente...',
+        });
+      },
+    });
     setVal('edGiftPixQr', result.url || '');
 
     if (window.__SITE_CONFIG__) {
@@ -1779,14 +3491,38 @@ async function uploadPixQrMedia() {
 
     renderPixQrPreview(result.url || '');
     markEditorDirty();
-    setPixQrUploadStatus('QR Pix enviado. Lembre-se de salvar as alterações.');
+
+    setPixQrUploadStatus('Upload concluído. Salvando alterações...', false, {
+      variant: 'loading',
+      progress: 100,
+      help: 'Aguarde a confirmação de salvamento.',
+    });
+
+    const saveOk = await saveEditorConfig(true);
+    if (saveOk) {
+      setPixQrUploadStatus('QR Pix enviado e salvo com sucesso.', false, {
+        variant: 'success',
+        progress: 100,
+        help: 'Pronto. O convite já está atualizado.',
+      });
+    } else {
+      setPixQrUploadStatus('QR Pix enviado, mas não foi possível salvar no evento.', true, {
+        variant: 'error',
+        progress: 100,
+        help: 'Tente novamente pelo botão Salvar alterações do editor.',
+      });
+    }
 
     if (input) {
       input.value = '';
     }
+    setFileMetaText('edGiftPixQrFileMeta', '');
   } catch (error) {
     console.error('[uploadPixQrMedia]', error);
-    setPixQrUploadStatus(error.message || 'Erro ao enviar QR Pix.', true);
+    setPixQrUploadStatus(normalizeUploadErrorMessage(error), true, {
+      variant: 'error',
+      help: 'Revise o arquivo e tente novamente.',
+    });
   } finally {
     if (button) {
       button.disabled = false;
@@ -1800,35 +3536,89 @@ async function uploadHeroMedia() {
   const button = document.getElementById('btnEdMediaHeroUpload');
 
   if (!file) {
-    setMediaUploadStatus('Selecione uma imagem para a foto principal.', true);
+    setHeroUploadStatus('Selecione uma imagem para a foto principal.', true, {
+      variant: 'error',
+      help: 'Use JPG, PNG ou WEBP com até 10 MB.',
+    });
     return;
   }
 
-  setMediaUploadStatus('Enviando foto principal...');
+  const validationError = validateMediaFile(file);
+  if (validationError) {
+    setHeroUploadStatus(validationError, true, {
+      variant: 'error',
+      help: 'Escolha outro arquivo e tente novamente.',
+    });
+    return;
+  }
+
+  setHeroUploadStatus(`Enviando foto principal: ${file.name}`, false, {
+    variant: 'loading',
+    progress: 0,
+    help: 'Fazendo upload e salvando automaticamente...',
+  });
   if (button) {
     button.disabled = true;
   }
 
   try {
-    const result = await uploadMediaFile('hero', file);
-    setVal('edMediaHero', result.url || '');
+    const result = await uploadMediaFile('hero', file, {
+      onProgress: (progress) => {
+        setHeroUploadStatus(`Enviando foto principal: ${file.name}`, false, {
+          variant: 'loading',
+          progress,
+          help: 'Fazendo upload e salvando automaticamente...',
+        });
+      },
+    });
+    const rawHeroUrl = String(result.url || '').trim();
+    if (!isHeroMediaUrl(rawHeroUrl)) {
+      throw new Error('Resposta de upload inválida para foto principal. Tente novamente.');
+    }
+
+    const heroImageUrl = appendCacheBustParam(rawHeroUrl);
+    setVal('edMediaHero', heroImageUrl);
 
     if (window.__SITE_CONFIG__) {
       if (!window.__SITE_CONFIG__.media) window.__SITE_CONFIG__.media = {};
-      window.__SITE_CONFIG__.media.heroImage = result.url || '';
+      window.__SITE_CONFIG__.media.heroImage = heroImageUrl;
     }
 
-    renderMediaHeroPreview(result.url || '');
+    renderMediaHeroPreview(heroImageUrl);
 
     markEditorDirty();
-    setMediaUploadStatus('Foto principal enviada. Lembre-se de salvar as alterações.');
+
+    setHeroUploadStatus('Upload concluído. Salvando alterações...', false, {
+      variant: 'loading',
+      progress: 100,
+      help: 'Aguarde a confirmação de salvamento.',
+    });
+
+    const saveOk = await saveEditorConfig(true);
+    if (saveOk) {
+      setHeroUploadStatus('Foto principal enviada e salva com sucesso.', false, {
+        variant: 'success',
+        progress: 100,
+        help: 'Pronto. O convite já está atualizado.',
+      });
+    } else {
+      setHeroUploadStatus('Foto principal enviada, mas não foi possível salvar no evento.', true, {
+        variant: 'error',
+        progress: 100,
+        help: 'Tente novamente pelo botão Salvar alterações do editor.',
+      });
+    }
 
     if (input) {
       input.value = '';
     }
+    setFileMetaText('edMediaHeroFileMeta', '');
   } catch (error) {
     console.error('[uploadHeroMedia]', error);
-    setMediaUploadStatus(error.message || 'Erro ao enviar foto principal.', true);
+    setHeroUploadStatus(normalizeUploadErrorMessage(error), true, {
+      variant: 'error',
+      help: 'Revise o arquivo e tente novamente.',
+    });
   } finally {
     if (button) {
       button.disabled = false;
@@ -1842,48 +3632,113 @@ async function uploadGalleryMedia() {
   const button = document.getElementById('btnEdMediaGalleryUpload');
 
   if (!files.length) {
-    setMediaUploadStatus('Selecione ao menos uma imagem para a galeria.', true);
+    setMediaUploadStatus('Selecione ao menos uma imagem para a galeria.', true, {
+      variant: 'error',
+      help: 'Use JPG, PNG ou WEBP com até 10 MB por arquivo.',
+    });
     return;
   }
 
-  setMediaUploadStatus(`Enviando ${files.length} imagem(ns) para a galeria...`);
+  const validFiles = [];
+  const invalidFiles = [];
+
+  files.forEach((file) => {
+    const validationError = validateMediaFile(file);
+    if (validationError) {
+      invalidFiles.push(`${file.name}: ${validationError}`);
+      return;
+    }
+    validFiles.push(file);
+  });
+
+  if (!validFiles.length) {
+    setMediaUploadStatus('Nenhum arquivo válido para envio.', true, {
+      variant: 'error',
+      help: invalidFiles.slice(0, 2).join(' | '),
+    });
+    return;
+  }
+
+  setMediaUploadStatus(`Preparando envio de ${validFiles.length} imagem(ns)...`, false, {
+    variant: 'loading',
+    progress: 0,
+    help: 'Fazendo upload e salvando automaticamente...',
+  });
   if (button) {
     button.disabled = true;
   }
 
+  const uploadedItems = [];
+  const failedItems = [];
+
   try {
-    const uploadedItems = [];
+    for (let index = 0; index < validFiles.length; index += 1) {
+      const file = validFiles[index];
+      try {
+        setMediaUploadStatus(`Enviando ${index + 1}/${validFiles.length}: ${file.name}`, false, {
+          variant: 'loading',
+          progress: 0,
+          help: 'Fazendo upload e salvando automaticamente...',
+        });
+        const result = await uploadMediaFile('gallery', file, {
+          onProgress: (progress) => {
+            setMediaUploadStatus(`Enviando ${index + 1}/${validFiles.length}: ${file.name}`, false, {
+              variant: 'loading',
+              progress,
+              help: 'Fazendo upload e salvando automaticamente...',
+            });
+          },
+        });
 
-    for (let index = 0; index < files.length; index += 1) {
-      const file = files[index];
-      setMediaUploadStatus(`Enviando ${index + 1}/${files.length}: ${file.name}...`);
-      const result = await uploadMediaFile('gallery', file);
-      uploadedItems.push({
-        src: result.url || '',
-        alt: file.name.replace(/\.[^.]+$/, ''),
-      });
+        uploadedItems.push({
+          src: result.url || '',
+          alt: file.name.replace(/\.[^.]+$/, ''),
+        });
+      } catch (error) {
+        failedItems.push(`${file.name}: ${normalizeUploadErrorMessage(error)}`);
+      }
     }
 
-    if (window.__SITE_CONFIG__) {
-      const gallery = ensureHistoriaGalleryArray(window.__SITE_CONFIG__);
-      uploadedItems.forEach((item) => {
-        if (item.src) {
-          gallery.push(item);
-        }
-      });
-
-      renderMediaGalleryGrid(gallery);
+    if (uploadedItems.length > 0) {
+      await refreshGalleryFromApi(true);
     }
 
-    markEditorDirty();
-    setMediaUploadStatus(`Galeria atualizada com ${uploadedItems.length} nova(s) imagem(ns). Salve para persistir.`);
+    const totalFailed = failedItems.length + invalidFiles.length;
+    if (uploadedItems.length <= 0) {
+      setMediaUploadStatus('Não foi possível enviar as imagens selecionadas.', true, {
+        variant: 'error',
+        help: [...invalidFiles, ...failedItems].slice(0, 2).join(' | '),
+      });
+    } else {
+      if (totalFailed === 0) {
+        setMediaUploadStatus(`Galeria enviada com sucesso (${uploadedItems.length} imagem(ns)).`, false, {
+          variant: 'success',
+          progress: 100,
+          help: 'Pronto. As fotos já estão organizadas na galeria.',
+        });
+      } else {
+        setMediaUploadStatus(
+          `Upload concluído com avisos: ${uploadedItems.length} enviada(s), ${totalFailed} falha(s).`,
+          false,
+          {
+            variant: 'warning',
+            progress: 100,
+            help: [...invalidFiles, ...failedItems].slice(0, 2).join(' | '),
+          }
+        );
+      }
+    }
 
     if (input) {
       input.value = '';
     }
+    setFileMetaText('edMediaGalleryFileMeta', '');
   } catch (error) {
     console.error('[uploadGalleryMedia]', error);
-    setMediaUploadStatus(error.message || 'Erro ao enviar imagens da galeria.', true);
+    setMediaUploadStatus(normalizeUploadErrorMessage(error), true, {
+      variant: 'error',
+      help: 'Revise os arquivos e tente novamente.',
+    });
   } finally {
     if (button) {
       button.disabled = false;
@@ -1914,19 +3769,162 @@ function populateThemeSelect(layout, currentPath) {
   if (!select) return;
 
   const themes = LAYOUT_THEMES[layout] || LAYOUT_THEMES.classic;
+  const normalizedCurrentPath = resolveDashboardThemePath(currentPath, layout);
+  const normalizedCurrentKey = extractDashboardThemeKey(currentPath);
   select.innerHTML = themes.map(t => {
     const path = `assets/layouts/${layout}/themes/${t.key}.json`;
-    const sel  = currentPath === path ? ' selected' : '';
+    const sel  = (normalizedCurrentPath === path || normalizedCurrentKey === t.key) ? ' selected' : '';
     return `<option value="${escapeHtml(path)}"${sel}>${escapeHtml(t.label)}</option>`;
   }).join('');
+
+  if (!select.value && themes.length > 0) {
+    select.value = `assets/layouts/${layout}/themes/${themes[0].key}.json`;
+  }
 }
 
 function onLayoutChange() {
   const layout = document.getElementById('edActiveLayout')?.value || 'classic';
-  populateThemeSelect(layout, '');
+  const currentTheme = document.getElementById('edActiveTheme')?.value || '';
+  const currentThemeKey = extractDashboardThemeKey(currentTheme);
+  populateThemeSelect(layout, currentThemeKey);
 }
 
 // ── Catálogo de presentes ─────────────────────────────────────
+
+const DASHBOARD_DEFAULT_CATALOGS = {
+  honeymoon: {
+    key: 'honeymoon',
+    title: 'Lista de Lua de Mel',
+    subtitle: 'Sugestões para celebrar nossa primeira viagem como casados.',
+    items: [
+      { id: 'taxas-embarque',        name: 'Taxas de Embarque',           description: 'Ajuda com taxas e bagagens da viagem.',          amount: 140,  icon: '🧳', category: 'Lua de Mel', enabled: true },
+      { id: 'traslado-aeroporto',    name: 'Traslado Aeroporto-Hotel',    description: 'Transporte seguro na chegada e saída.',           amount: 200,  icon: '🚕', category: 'Lua de Mel', enabled: true },
+      { id: 'jantar-romantico',      name: 'Jantar Romântico',            description: 'Um jantar especial a dois na viagem.',            amount: 299,  icon: '🍽️', category: 'Lua de Mel', enabled: true },
+      { id: 'passeio-barco',         name: 'Passeio de Barco',            description: 'Experiência inesquecível em alto-mar.',           amount: 317,  icon: '⛵', category: 'Lua de Mel', enabled: true },
+      { id: 'jantar-celebracao',     name: 'Jantar de Celebração',        description: 'Noite especial para celebrar esse momento.',      amount: 390,  icon: '🥂', category: 'Lua de Mel', enabled: true },
+      { id: 'spa-casal',             name: 'Spa para o Casal',            description: 'Momento de relaxamento durante a lua de mel.',    amount: 470,  icon: '🧖', category: 'Lua de Mel', enabled: true },
+      { id: 'hospedagem-1-noite',    name: 'Hospedagem de 1 Noite',       description: 'Contribuição para uma noite no hotel.',           amount: 560,  icon: '🏨', category: 'Lua de Mel', enabled: true },
+      { id: 'tour-privativo',        name: 'Tour Privativo',              description: 'Um dia de passeio com guia local.',               amount: 650,  icon: '🗺️', category: 'Lua de Mel', enabled: true },
+      { id: 'ensaio-fotografico',    name: 'Ensaio Fotográfico',          description: 'Registro do nosso começo em viagem.',             amount: 740,  icon: '📸', category: 'Lua de Mel', enabled: true },
+      { id: 'experiencia-premium',   name: 'Experiência Premium',         description: 'Uma experiência única na viagem.',                amount: 820,  icon: '✨', category: 'Lua de Mel', enabled: true },
+      { id: 'passagem-aerea-casal',  name: 'Passagem Aérea do Casal',     description: 'Contribuição para nossas passagens de ida.',      amount: 849,  icon: '✈️', category: 'Lua de Mel', enabled: true },
+      { id: 'cota-lua-de-mel',       name: 'Cota Lua de Mel Completa',    description: 'Contribuição para tornar essa viagem perfeita.',  amount: 999,  icon: '💛', category: 'Lua de Mel', enabled: true }
+    ]
+  },
+  home: {
+    key: 'home',
+    title: 'Lista para Casa',
+    subtitle: 'Sugestões para montar e deixar nosso novo lar ainda mais especial.',
+    items: [
+      { id: 'jogo-panelas',   name: 'Jogo de Panelas',      description: 'Para preparar muitas receitas no novo lar.',     amount: 220, icon: '🍳', category: 'Casa', enabled: true },
+      { id: 'airfryer',       name: 'Airfryer',             description: 'Praticidade para o dia a dia da casa.',          amount: 380, icon: '🍟', category: 'Casa', enabled: true },
+      { id: 'liquidificador', name: 'Liquidificador',       description: 'Essencial para sucos, vitaminas e receitas.',    amount: 190, icon: '🥤', category: 'Casa', enabled: true },
+      { id: 'cafeteira',      name: 'Cafeteira',            description: 'Para começar o dia com energia e carinho.',      amount: 260, icon: '☕', category: 'Casa', enabled: true },
+      { id: 'jogo-cama',      name: 'Jogo de Cama',         description: 'Conforto para noites ainda mais especiais.',     amount: 210, icon: '🛏️', category: 'Casa', enabled: true },
+      { id: 'jogo-toalhas',   name: 'Jogo de Toalhas',      description: 'Um mimo útil para o enxoval.',                  amount: 130, icon: '🧺', category: 'Casa', enabled: true },
+      { id: 'faqueiro',       name: 'Faqueiro',             description: 'Para receber visitas com elegância.',            amount: 170, icon: '🍴', category: 'Casa', enabled: true },
+      { id: 'aparelho-jantar',name: 'Aparelho de Jantar',   description: 'Para celebrar refeições em família.',            amount: 320, icon: '🍽️', category: 'Casa', enabled: true },
+      { id: 'aspirador',      name: 'Aspirador de Pó',      description: 'Mais praticidade na rotina da limpeza.',         amount: 450, icon: '🧹', category: 'Casa', enabled: true },
+      { id: 'microondas',     name: 'Micro-ondas',          description: 'Agilidade para refeições e aquecimentos.',       amount: 590, icon: '🔥', category: 'Casa', enabled: true },
+      { id: 'rack-sala',      name: 'Rack para Sala',       description: 'Um toque especial para o cantinho da sala.',     amount: 720, icon: '🛋️', category: 'Casa', enabled: true },
+      { id: 'geladeira',      name: 'Cota Geladeira',       description: 'Contribuição para um item essencial da casa.',   amount: 990, icon: '🧊', category: 'Casa', enabled: true }
+    ]
+  },
+  couple: {
+    key: 'couple',
+    title: 'Nosso Lar',
+    subtitle: 'Itens especiais para elevar o dia a dia de quem já divide o mesmo espaço.',
+    items: [
+      { id: 'c1',  name: 'Jogo de Panelas Premium',     description: 'Linha profissional antiaderente.',       amount: 890,  icon: '🍳', category: 'Nosso Lar', enabled: true },
+      { id: 'c2',  name: 'Máquina de Café Espresso',    description: 'Café de barista em casa.',               amount: 1200, icon: '☕', category: 'Nosso Lar', enabled: true },
+      { id: 'c3',  name: 'Robô Aspirador',              description: 'Limpeza automática e inteligente.',      amount: 1500, icon: '🤖', category: 'Nosso Lar', enabled: true },
+      { id: 'c4',  name: 'Adega Climatizada',           description: 'Para os momentos especiais a dois.',     amount: 1800, icon: '🍷', category: 'Nosso Lar', enabled: true },
+      { id: 'c5',  name: 'Smart TV 55"',                description: 'Experiência cinematográfica em casa.',   amount: 2500, icon: '📺', category: 'Nosso Lar', enabled: true },
+      { id: 'c6',  name: 'Jogo de Cama King Premium',   description: 'Algodão egípcio 400 fios.',             amount: 650,  icon: '🛏️', category: 'Nosso Lar', enabled: true },
+      { id: 'c7',  name: 'Fritadeira Airfryer XL',      description: 'Cozinhar saudável e prático.',          amount: 480,  icon: '🥘', category: 'Nosso Lar', enabled: true },
+      { id: 'c8',  name: 'Purificador de Água',         description: 'Água gelada e filtrada sempre.',        amount: 720,  icon: '💧', category: 'Nosso Lar', enabled: true },
+      { id: 'c9',  name: 'Conjunto de Toalhas Finas',   description: 'Coleção hoteleira de linho.',           amount: 380,  icon: '🛁', category: 'Nosso Lar', enabled: true },
+      { id: 'c10', name: 'Liquidificador de Alta Pot.', description: 'Vitaminas e smoothies perfeitos.',      amount: 560,  icon: '🥤', category: 'Nosso Lar', enabled: true },
+      { id: 'c11', name: 'Jogo de Facas Profissional',  description: 'Aço alemão com estojo.',                amount: 420,  icon: '🔪', category: 'Nosso Lar', enabled: true },
+      { id: 'c12', name: 'Caixa de Som Premium',        description: 'Som ambiente para todo o lar.',         amount: 900,  icon: '🔊', category: 'Nosso Lar', enabled: true }
+    ]
+  },
+  wedding: {
+    key: 'wedding',
+    title: 'Ajuda no Casamento',
+    subtitle: 'Contribua para tornar esse dia ainda mais especial e inesquecível.',
+    items: [
+      { id: 'w1',  name: 'Decoração Floral',            description: 'Flores e arranjos para o grande dia.',  amount: 1500, icon: '💐', category: 'Casamento', enabled: true },
+      { id: 'w2',  name: 'Bolo de Casamento',           description: 'Bolo personalizado para a festa.',      amount: 1200, icon: '🎂', category: 'Casamento', enabled: true },
+      { id: 'w3',  name: 'Fotografia',                  description: 'Registro profissional da cerimônia.',   amount: 3500, icon: '📷', category: 'Casamento', enabled: true },
+      { id: 'w4',  name: 'Filmagem',                    description: 'Vídeo cinematográfico do casamento.',   amount: 3000, icon: '🎥', category: 'Casamento', enabled: true },
+      { id: 'w5',  name: 'DJ e Sonorização',            description: 'Música para animar a festa toda.',      amount: 2500, icon: '🎧', category: 'Casamento', enabled: true },
+      { id: 'w6',  name: 'Bem-casados',                 description: 'Lembrancinhas para os convidados.',     amount: 800,  icon: '🍬', category: 'Casamento', enabled: true },
+      { id: 'w7',  name: 'Convites Impressos',          description: 'Arte e impressão dos convites.',        amount: 600,  icon: '✉️', category: 'Casamento', enabled: true },
+      { id: 'w8',  name: 'Maquiagem da Noiva',          description: 'Make profissional para a noiva.',       amount: 900,  icon: '💄', category: 'Casamento', enabled: true },
+      { id: 'w9',  name: 'Aluguel do Espaço',           description: 'Contribuição para o local da festa.',   amount: 5000, icon: '🏛️', category: 'Casamento', enabled: true },
+      { id: 'w10', name: 'Doces e Mesa de Guloseimas',  description: 'Candy bar para a festa.',               amount: 1000, icon: '🍭', category: 'Casamento', enabled: true },
+      { id: 'w11', name: 'Cerimonialista',              description: 'Coordenação profissional do evento.',   amount: 2000, icon: '📋', category: 'Casamento', enabled: true },
+      { id: 'w12', name: 'Contribuição Livre',          description: 'Qualquer valor é bem-vindo e amado.',   amount: 200,  icon: '💛', category: 'Casamento', enabled: true }
+    ]
+  }
+};
+
+function getCatalogMetaByKey(key) {
+  const catalog = DASHBOARD_DEFAULT_CATALOGS[key] || DASHBOARD_DEFAULT_CATALOGS.honeymoon;
+  return {
+    key: catalog.key || 'honeymoon',
+    title: catalog.title || 'Lista de Lua de Mel',
+    subtitle: catalog.subtitle || '',
+  };
+}
+
+function syncCatalogMetaFields(key) {
+  const meta = getCatalogMetaByKey(key);
+  setVal('edGiftCatalogTitle', meta.title);
+  setVal('edGiftCatalogSubtitle', meta.subtitle);
+}
+
+function onCatalogTypeChange(key) {
+  const prevKey = window.__catalogType || 'honeymoon'; // captura ANTES de mudar
+  window.__catalogType = key;
+  const currentItems = editorState.catalogItems || [];
+  if (currentItems.length === 0) {
+    loadDefaultCatalogItems(key);
+  } else {
+    const catalog = DASHBOARD_DEFAULT_CATALOGS[key];
+    const label = catalog ? catalog.title : key;
+    if (confirm('Trocar a lista vai substituir os itens atuais pelos itens padrão de "' + label + '". Deseja continuar?')) {
+      loadDefaultCatalogItems(key);
+    } else {
+      // reverte o radio para o valor anterior sem disparar onchange
+      window.__catalogType = prevKey;
+      const radios = document.querySelectorAll('input[name="catalogType"]');
+      radios.forEach(r => { r.checked = (r.value === prevKey); });
+      syncCatalogMetaFields(prevKey);
+    }
+  }
+}
+
+function loadDefaultCatalogItems(key) {
+  const catalog = DASHBOARD_DEFAULT_CATALOGS[key];
+  if (!catalog) return;
+  window.__catalogType = key;
+  // Sempre sincroniza título/subtítulo com o tipo de lista selecionado
+  syncCatalogMetaFields(key);
+  // Substitui os itens do editor
+  editorState.catalogItems = catalog.items.map(i => ({
+    name: i.name,
+    amount: i.amount,
+    description: i.description || '',
+    icon: i.icon || '💛',
+    category: i.category || '',
+    id: i.id,
+    enabled: true
+  }));
+  renderCatalogItems();
+  markEditorDirty();
+}
 
 function renderCatalogItems() {
   const container = document.getElementById('catalogItemsList');
@@ -1940,6 +3938,9 @@ function renderCatalogItems() {
 
   container.innerHTML = editorState.catalogItems.map((item, i) => `
     <div class="catalog-item">
+      <input type="text" class="field-input emoji-input" value="${escapeHtml(item.icon || '💛')}"
+             placeholder="😊" title="Emoji do presente"
+             oninput="updateCatalogItem(${i},'icon',this.value)">
       <input type="text" class="field-input sm" value="${escapeHtml(item.name || '')}"
              placeholder="Descrição do presente"
              oninput="updateCatalogItem(${i},'name',this.value)">
@@ -1955,7 +3956,7 @@ function renderCatalogItems() {
 }
 
 function addCatalogItem() {
-  editorState.catalogItems.push({ name: '', amount: 0 });
+  editorState.catalogItems.push({ name: '', amount: 0, icon: '💛' });
   renderCatalogItems();
   markEditorDirty();
   const rows = document.querySelectorAll('#catalogItemsList .catalog-item');
@@ -1975,6 +3976,257 @@ function updateCatalogItem(index, field, value) {
   }
 }
 
+// ── FAQ ───────────────────────────────────────────────────────
+
+function renderFaqItems() {
+  const container = document.getElementById('faqItemsList');
+  if (!container) return;
+
+  if (editorState.faqItems.length === 0) {
+    container.innerHTML = `<p class="field-hint" style="text-align:center;padding:12px 0">
+      Nenhuma pergunta. Clique em "+ Adicionar pergunta" para começar.</p>`;
+    return;
+  }
+
+  container.innerHTML = editorState.faqItems.map((item, i) => `
+    <div class="faq-item-block">
+      <div class="faq-item-header">
+        <span class="faq-item-num">Pergunta ${i + 1}</span>
+        <button type="button" class="btn-icon-sm" onclick="removeFaqItem(${i})" aria-label="Remover pergunta">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+      <div class="field" style="margin-bottom:8px">
+        <label class="field-label">Pergunta</label>
+        <input type="text" class="field-input sm" value="${escapeHtml(item.question || '')}"
+               placeholder="ex: Tem estacionamento no local?"
+               oninput="updateFaqItem(${i},'question',this.value)">
+      </div>
+      <div class="field">
+        <label class="field-label">Resposta</label>
+        <textarea class="field-input sm" rows="3"
+                  placeholder="Digite a resposta..."
+                  oninput="updateFaqItem(${i},'answer',this.value)">${escapeHtml(item.answer || '')}</textarea>
+      </div>
+    </div>`).join('');
+}
+
+function addFaqItem() {
+  editorState.faqItems.push({ question: '', answer: '' });
+  renderFaqItems();
+  markEditorDirty();
+  const blocks = document.querySelectorAll('#faqItemsList .faq-item-block');
+  if (blocks.length > 0) blocks[blocks.length - 1].querySelector('input')?.focus();
+}
+
+function removeFaqItem(index) {
+  editorState.faqItems.splice(index, 1);
+  renderFaqItems();
+  markEditorDirty();
+}
+
+function updateFaqItem(index, field, value) {
+  if (editorState.faqItems[index]) {
+    editorState.faqItems[index][field] = value;
+    markEditorDirty();
+  }
+}
+
+// ── Hospedagem ───────────────────────────────────────────────
+
+function renderHospedagemList(containerId, items, type) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+
+  const removeFn = type === 'hotel' ? 'removeHotelItem' : 'removeRestaurantItem';
+  const updateFn = type === 'hotel' ? 'updateHotelItem' : 'updateRestaurantItem';
+
+  if (!items.length) {
+    const emptyLabel = type === 'hotel' ? 'hotel' : 'restaurante';
+    container.innerHTML = `<p class="field-hint" style="text-align:center;padding:12px 0">Nenhum ${emptyLabel} cadastrado ainda.</p>`;
+    return;
+  }
+
+  container.innerHTML = items.map((item, i) => `
+    <div class="faq-item-block">
+      <div class="faq-item-header">
+        <span class="faq-item-num">${type === 'hotel' ? 'Hotel' : 'Restaurante'} ${i + 1}</span>
+        <button type="button" class="btn-icon-sm" onclick="${removeFn}(${i})" aria-label="Remover item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+      <div class="field" style="margin-bottom:8px">
+        <label class="field-label">Nome</label>
+        <input type="text" class="field-input sm" value="${escapeHtml(item.name || '')}" placeholder="Nome" oninput="${updateFn}(${i},'name',this.value)">
+      </div>
+      <div class="field" style="margin-bottom:8px">
+        <label class="field-label">Descrição</label>
+        <textarea class="field-input sm" rows="2" placeholder="Descrição" oninput="${updateFn}(${i},'description',this.value)">${escapeHtml(item.description || '')}</textarea>
+      </div>
+      <div class="form-grid-2">
+        <div class="field">
+          <label class="field-label">Link</label>
+          <input type="url" class="field-input sm" value="${escapeHtml(item.link || '')}" placeholder="https://..." oninput="${updateFn}(${i},'link',this.value)">
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function renderHospedagemHotels() {
+  renderHospedagemList('edHospHotelsList', editorState.hospedagemHotels, 'hotel');
+}
+
+function renderHospedagemRestaurants() {
+  renderHospedagemList('edHospRestaurantsList', editorState.hospedagemRestaurants, 'restaurant');
+}
+
+function addHotelItem() {
+  editorState.hospedagemHotels.push({ name: '', description: '', link: '' });
+  renderHospedagemHotels();
+  markEditorDirty();
+}
+
+function removeHotelItem(index) {
+  editorState.hospedagemHotels.splice(index, 1);
+  renderHospedagemHotels();
+  markEditorDirty();
+}
+
+function updateHotelItem(index, field, value) {
+  if (!editorState.hospedagemHotels[index]) return;
+  editorState.hospedagemHotels[index][field] = value;
+  markEditorDirty();
+}
+
+function addRestaurantItem() {
+  editorState.hospedagemRestaurants.push({ name: '', description: '', link: '' });
+  renderHospedagemRestaurants();
+  markEditorDirty();
+}
+
+function removeRestaurantItem(index) {
+  editorState.hospedagemRestaurants.splice(index, 1);
+  renderHospedagemRestaurants();
+  markEditorDirty();
+}
+
+function updateRestaurantItem(index, field, value) {
+  if (!editorState.hospedagemRestaurants[index]) return;
+  editorState.hospedagemRestaurants[index][field] = value;
+  markEditorDirty();
+}
+
+// ── Traje & Paletas ───────────────────────────────────────────
+
+function setColorField(pickerId, hexId, hex) {
+  const picker = document.getElementById(pickerId);
+  const hexEl  = document.getElementById(hexId);
+  const safe   = (hex && /^#[0-9a-fA-F]{3,6}$/.test(hex)) ? hex : '#c9a84c';
+  if (picker) picker.value = safe;
+  if (hexEl)  hexEl.value  = hex || '';
+}
+
+function syncColorFromPicker(hexId, value) {
+  const el = document.getElementById(hexId);
+  if (el) el.value = value;
+}
+
+function syncColorToPicker(pickerId, value) {
+  const picker = document.getElementById(pickerId);
+  if (picker && /^#[0-9a-fA-F]{6}$/.test(value)) picker.value = value;
+}
+
+function updateTrajeNoteCounter() {
+  const el      = document.getElementById('edTrajeNote');
+  const counter = document.getElementById('edTrajeNoteCounter');
+  if (el && counter) counter.textContent = `${el.value.length}/200`;
+}
+
+function renderColorPaletteList(containerId, items, updateFn, removeFn, addBtnId, max) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  container.innerHTML = items.map((c, i) => `
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
+      <input type="color"
+             value="${(c.hex && /^#[0-9a-fA-F]{3,6}$/.test(c.hex)) ? c.hex : '#c9a84c'}"
+             style="width:40px;height:36px;border:1px solid var(--border);border-radius:4px;padding:2px;cursor:pointer;background:none;flex-shrink:0"
+             oninput="${updateFn}(${i},'hex',this.value); syncDynColorPicker(this.nextElementSibling, this.value)">
+      <input type="text" class="field-input sm" value="${c.hex || ''}"
+             placeholder="#c9a84c" maxlength="7" style="width:90px;flex-shrink:0"
+             oninput="${updateFn}(${i},'hex',this.value); syncDynColorPicker(this.previousElementSibling, this.value)"
+             onkeydown="if(event.key==='Enter'){syncDynColorPicker(this.previousElementSibling,this.value);${updateFn}(${i},'hex',this.value)}"
+      >
+      <input type="text" class="field-input sm" value="${c.name || ''}"
+             placeholder="Nome (opcional)"
+             oninput="${updateFn}(${i},'name',this.value)">
+      <button type="button" class="btn btn-subtle" style="padding:4px 10px;font-size:12px;flex-shrink:0"
+              onclick="${removeFn}(${i})" aria-label="Remover cor">&times;</button>
+    </div>
+  `).join('');
+  const addBtn = document.getElementById(addBtnId);
+  if (addBtn) addBtn.disabled = items.length >= max;
+}
+
+function syncDynColorPicker(pickerOrHexInput, value) {
+  const el = pickerOrHexInput instanceof Element ? pickerOrHexInput : null;
+  if (!el) return;
+  if (el.type === 'color' && /^#[0-9a-fA-F]{6}$/.test(value)) {
+    el.value = value;
+  } else if (el.type === 'text') {
+    el.value = value;
+  }
+}
+
+function renderBridesmaidsPalette() {
+  renderColorPaletteList('bridesmaidsPaletteList', editorState.bridesmaidsPalette,
+    'updateBridesmaidColor', 'removeBridesmaidColor', 'edAddBridesmaid', 5);
+}
+
+function renderGroomsmenPalette() {
+  renderColorPaletteList('groomsMenPaletteList', editorState.groomsMenPalette,
+    'updateGroomsmanColor', 'removeGroomsmanColor', 'edAddGroomsman', 5);
+}
+
+function addBridesmaidColor() {
+  if (editorState.bridesmaidsPalette.length >= 5) return;
+  editorState.bridesmaidsPalette.push({ hex: '#c9a84c', name: '' });
+  renderBridesmaidsPalette(); markEditorDirty();
+}
+
+function removeBridesmaidColor(i) {
+  editorState.bridesmaidsPalette.splice(i, 1);
+  renderBridesmaidsPalette(); markEditorDirty();
+}
+
+function updateBridesmaidColor(i, field, value) {
+  if (editorState.bridesmaidsPalette[i]) {
+    editorState.bridesmaidsPalette[i][field] = value;
+    markEditorDirty();
+  }
+}
+
+function addGroomsmanColor() {
+  if (editorState.groomsMenPalette.length >= 5) return;
+  editorState.groomsMenPalette.push({ hex: '#c9a84c', name: '' });
+  renderGroomsmenPalette(); markEditorDirty();
+}
+
+function removeGroomsmanColor(i) {
+  editorState.groomsMenPalette.splice(i, 1);
+  renderGroomsmenPalette(); markEditorDirty();
+}
+
+function updateGroomsmanColor(i, field, value) {
+  if (editorState.groomsMenPalette[i]) {
+    editorState.groomsMenPalette[i][field] = value;
+    markEditorDirty();
+  }
+}
+
 // ── Grid de páginas extras ────────────────────────────────────
 
 function renderPagesGrid(pages) {
@@ -1988,27 +4240,13 @@ function renderPagesGrid(pages) {
     return `
     <div class="page-card">
       <div class="page-card-key">${escapeHtml(key)}</div>
-      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:14px">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">
         <span class="page-card-name">${escapeHtml(PAGE_LABELS[key] || key)}</span>
         <label class="toggle" style="flex-shrink:0" onclick="event.stopPropagation()">
           <input type="checkbox" class="toggle-input" id="edPage_${key}_enabled"
                  ${enabled ? 'checked' : ''} onchange="markEditorDirty()">
           <span class="toggle-track"><span class="toggle-thumb"></span></span>
         </label>
-      </div>
-      <div class="form-group" style="margin-bottom:10px">
-        <div class="field">
-          <label class="field-label" for="edPage_${key}_label">Label do card</label>
-          <input type="text" class="field-input sm" id="edPage_${key}_label"
-                 value="${escapeHtml(page.cardLabel || '')}"
-                 placeholder="ex: Nossa história" oninput="markEditorDirty()">
-        </div>
-      </div>
-      <div class="field">
-        <label class="field-label" for="edPage_${key}_hint">Descrição do card</label>
-        <input type="text" class="field-input sm" id="edPage_${key}_hint"
-               value="${escapeHtml(page.cardHint || '')}"
-               placeholder="Frase de convite" oninput="markEditorDirty()">
       </div>
     </div>`;
   }).join('');
@@ -2023,6 +4261,8 @@ function collectEditorValues() {
   if (!config.couple) config.couple = {};
   config.couple.names    = document.getElementById('edCoupleNames')?.value.trim()    || config.couple.names;
   config.couple.subtitle = document.getElementById('edCoupleSubtitle')?.value.trim() || config.couple.subtitle || '';
+  config.couple.bride_name = document.getElementById('edBrideName')?.value.trim() || '';
+  config.couple.groom_name = document.getElementById('edGroomName')?.value.trim() || '';
 
   if (!config.event) config.event = {};
   // Reconstrói ISO a partir de date (YYYY-MM-DD) + time (HH:MM)
@@ -2043,18 +4283,48 @@ function collectEditorValues() {
     config.event.detailDate = config.event.displayDate;
   }
   config.event.weekday     = document.getElementById('edEventWeekday')?.value.trim()     || '';
-  config.event.locationName = document.getElementById('edEventLocation')?.value.trim()    || '';
-  config.event.locationCity = document.getElementById('edEventCity')?.value.trim()        || '';
-  config.event.mapsLink     = document.getElementById('edEventMapsLink')?.value.trim()    || '';
-  config.event.venueAddress = document.getElementById('edEventVenueAddress')?.value.trim() || '';
-  const lat = parseFloat(document.getElementById('edEventLat')?.value);
-  const lng = parseFloat(document.getElementById('edEventLng')?.value);
-  if (!isNaN(lat) && !isNaN(lng)) config.event.venueCoordinates = { lat, lng };
+
+  config.event.ceremonyLocationName = document.getElementById('edCeremonyLocation')?.value.trim() || '';
+  config.event.ceremonyLocationCity = document.getElementById('edCeremonyCity')?.value.trim() || '';
+  config.event.ceremonyMapsLink = document.getElementById('edCeremonyMapsLink')?.value.trim() || '';
+  config.event.ceremonyAddress = document.getElementById('edCeremonyAddress')?.value.trim() || '';
+  const ceremonyLat = parseFloat(document.getElementById('edCeremonyLat')?.value);
+  const ceremonyLng = parseFloat(document.getElementById('edCeremonyLng')?.value);
+  if (!isNaN(ceremonyLat) && !isNaN(ceremonyLng)) {
+    config.event.ceremonyCoordinates = { lat: ceremonyLat, lng: ceremonyLng };
+  } else {
+    delete config.event.ceremonyCoordinates;
+  }
+
+  config.event.partyLocationName = document.getElementById('edPartyLocation')?.value.trim() || '';
+  config.event.partyLocationCity = document.getElementById('edPartyCity')?.value.trim() || '';
+  config.event.partyMapsLink = document.getElementById('edPartyMapsLink')?.value.trim() || '';
+  config.event.partyAddress = document.getElementById('edPartyAddress')?.value.trim() || '';
+  const partyLat = parseFloat(document.getElementById('edPartyLat')?.value);
+  const partyLng = parseFloat(document.getElementById('edPartyLng')?.value);
+  if (!isNaN(partyLat) && !isNaN(partyLng)) {
+    config.event.partyCoordinates = { lat: partyLat, lng: partyLng };
+  } else {
+    delete config.event.partyCoordinates;
+  }
+
+  // Compatibilidade: mantém aliases antigos apontando para a festa.
+  config.event.locationName = config.event.partyLocationName;
+  config.event.locationCity = config.event.partyLocationCity;
+  config.event.mapsLink = config.event.partyMapsLink;
+  config.event.venueAddress = config.event.partyAddress;
+  if (config.event.partyCoordinates) {
+    config.event.venueCoordinates = { ...config.event.partyCoordinates };
+  } else {
+    delete config.event.venueCoordinates;
+  }
+
   config.event.mapEnabled = document.getElementById('edEventMapEnabled')?.checked ?? false;
 
   // Tema
   config.activeLayout = document.getElementById('edActiveLayout')?.value || 'classic';
-  config.activeTheme  = document.getElementById('edActiveTheme')?.value  || config.activeTheme;
+  const rawThemeValue = document.getElementById('edActiveTheme')?.value || config.activeTheme;
+  config.activeTheme = resolveDashboardThemePath(rawThemeValue, config.activeLayout) || config.activeTheme;
 
   // WhatsApp & RSVP
   if (!config.whatsapp) config.whatsapp = {};
@@ -2074,12 +4344,23 @@ function collectEditorValues() {
   config.gift.cardPaymentEnabled = document.getElementById('edGiftCardEnabled')?.checked ?? false;
   config.gift.cardPaymentLink    = document.getElementById('edGiftCardLink')?.value.trim() || '';
   config.gift.catalogEnabled     = document.getElementById('edGiftCatalogEnabled')?.checked ?? false;
+  config.gift.external = {
+    enabled: document.getElementById('edExternalEnabled')?.checked  ?? false,
+    store:   document.getElementById('edExternalStore')?.value.trim()  || '',
+    url:     document.getElementById('edExternalUrl')?.value.trim()    || '',
+    label:   document.getElementById('edExternalLabel')?.value.trim()  || 'Ver lista completa',
+  };
   if (!config.gift.catalog) config.gift.catalog = {};
-  config.gift.catalog.title    = document.getElementById('edGiftCatalogTitle')?.value.trim()    || '';
-  config.gift.catalog.subtitle = document.getElementById('edGiftCatalogSubtitle')?.value.trim() || '';
+  config.gift.catalog.key      = window.__catalogType || 'honeymoon';
+  config.gift.activeCatalogKey = window.__catalogType || 'honeymoon';
+  if (!config.gift.catalogs) config.gift.catalogs = {};
+  config.gift.catalogs.activeKey = window.__catalogType || 'honeymoon';
+  const catalogMeta = getCatalogMetaByKey(window.__catalogType || 'honeymoon');
+  config.gift.catalog.title    = catalogMeta.title;
+  config.gift.catalog.subtitle = catalogMeta.subtitle;
   config.gift.catalog.items    = editorState.catalogItems
     .filter(it => (it.name || '').trim())
-    .map((it, i) => ({ id: i + 1, name: it.name.trim(), amount: Number(it.amount) || 0 }));
+    .map((it, i) => ({ id: i + 1, name: it.name.trim(), amount: Number(it.amount) || 0, icon: it.icon || '💛' }));
 
   // Fotos & Mídia
   if (!config.media) config.media = {};
@@ -2087,20 +4368,22 @@ function collectEditorValues() {
   if (!config.media.tracks)      config.media.tracks      = {};
   if (!config.media.tracks.main) config.media.tracks.main = {};
   if (!config.media.tracks.gift) config.media.tracks.gift = {};
-  config.media.tracks.main.src       = document.getElementById('edTrackMainSrc')?.value.trim()    || '';
-  config.media.tracks.main.volume    = parseFloat(document.getElementById('edTrackMainVolume')?.value)  || 0.14;
-  config.media.tracks.main.startTime = parseInt(document.getElementById('edTrackMainStart')?.value)     || 0;
-  config.media.tracks.gift.src       = document.getElementById('edTrackGiftSrc')?.value.trim()    || '';
-  config.media.tracks.gift.volume    = parseFloat(document.getElementById('edTrackGiftVolume')?.value)  || 0.12;
-  config.media.tracks.gift.startTime = parseInt(document.getElementById('edTrackGiftStart')?.value)     || 0;
+  const _musicEnabled = document.getElementById('edTrackEnabled')?.checked ?? true;
+  const _musicSrc     = document.getElementById('edTrackSrc')?.value.trim()     || '';
+  const _musicVolume  = (parseFloat(document.getElementById('edTrackVolume')?.value) || 14) / 100;
+  const _musicStart   = parseInt(document.getElementById('edTrackStart')?.value)    || 0;
+  ['main', 'gift'].forEach((ctx) => {
+    config.media.tracks[ctx].enabled   = _musicEnabled;
+    config.media.tracks[ctx].src       = _musicSrc;
+    config.media.tracks[ctx].volume    = _musicVolume;
+    config.media.tracks[ctx].startTime = _musicStart;
+  });
 
   // Páginas extras
   if (!config.pages) config.pages = {};
   ['historia', 'faq', 'hospedagem', 'mensagem', 'musica', 'presente'].forEach(key => {
     if (!config.pages[key]) config.pages[key] = {};
-    config.pages[key].enabled   = document.getElementById(`edPage_${key}_enabled`)?.checked ?? false;
-    config.pages[key].cardLabel = document.getElementById(`edPage_${key}_label`)?.value.trim() || '';
-    config.pages[key].cardHint  = document.getElementById(`edPage_${key}_hint`)?.value.trim()  || '';
+    config.pages[key].enabled = document.getElementById(`edPage_${key}_enabled`)?.checked ?? false;
   });
 
   // Capítulos de Nossa História
@@ -2112,6 +4395,52 @@ function collectEditorValues() {
     text:  document.getElementById(`edChapter${i}Text`)?.value.trim()  || '',
   }));
 
+  // FAQ
+  if (!config.pages.faq) config.pages.faq = {};
+  if (!config.pages.faq.content) config.pages.faq.content = {};
+  config.pages.faq.content.items = editorState.faqItems
+    .filter(it => (it.question || '').trim())
+    .map(it => ({ question: it.question.trim(), answer: it.answer.trim() }));
+
+  // Hospedagem
+  if (!config.pages.hospedagem) config.pages.hospedagem = {};
+  if (!config.pages.hospedagem.content) config.pages.hospedagem.content = {};
+  config.pages.hospedagem.content.tag = document.getElementById('edHospTag')?.value.trim() || '';
+  config.pages.hospedagem.content.title = document.getElementById('edHospTitle')?.value.trim() || '';
+  config.pages.hospedagem.content.intro = document.getElementById('edHospIntro')?.value.trim() || '';
+  config.pages.hospedagem.content.hotelsTitle = document.getElementById('edHospHotelsTitle')?.value.trim() || '';
+  config.pages.hospedagem.content.restaurantsTitle = document.getElementById('edHospRestaurantsTitle')?.value.trim() || '';
+  config.pages.hospedagem.content.hotels = editorState.hospedagemHotels
+    .filter((item) => (item.name || '').trim() || (item.description || '').trim() || (item.link || '').trim())
+    .map((item) => ({
+      name: (item.name || '').trim(),
+      description: (item.description || '').trim(),
+      link: (item.link || '').trim(),
+    }));
+  config.pages.hospedagem.content.restaurants = editorState.hospedagemRestaurants
+    .filter((item) => (item.name || '').trim() || (item.description || '').trim() || (item.link || '').trim())
+    .map((item) => ({
+      name: (item.name || '').trim(),
+      description: (item.description || '').trim(),
+      link: (item.link || '').trim(),
+    }));
+
+  // Traje & Paletas
+  if (!config.pages.traje) config.pages.traje = {};
+  if (!config.pages.traje.content) config.pages.traje.content = {};
+  config.pages.traje.content.dresscode = document.getElementById('edDresscode')?.value?.trim() ?? '';
+  config.pages.traje.content.bridesmaidsPalette = editorState.bridesmaidsPalette.filter(c => c.hex?.trim()).slice(0, 5);
+  config.pages.traje.content.groomsMenPalette   = editorState.groomsMenPalette.filter(c => c.hex?.trim()).slice(0, 5);
+  config.pages.traje.content.brideColor = {
+    hex:  document.getElementById('edBrideColorHex')?.value?.trim()  ?? '',
+    name: document.getElementById('edBrideColorName')?.value?.trim() ?? '',
+  };
+  config.pages.traje.content.groomColor = {
+    hex:  document.getElementById('edGroomColorHex')?.value?.trim()  ?? '',
+    name: document.getElementById('edGroomColorName')?.value?.trim() ?? '',
+  };
+  config.pages.traje.content.note = (document.getElementById('edTrajeNote')?.value ?? '').slice(0, 200).trim();
+
   // Imagens da galeria não têm campo de formulário — vivem em window.__SITE_CONFIG__
   // (modificado pelos uploads). Preserva o estado vivo para não descartar ao salvar.
   const liveGallery = window.__SITE_CONFIG__?.pages?.historia?.content?.gallery;
@@ -2122,12 +4451,12 @@ function collectEditorValues() {
   return config;
 }
 
-async function saveEditorConfig() {
+async function saveEditorConfig(silent = false) {
   const config = collectEditorValues();
 
   if (!state.eventId) {
-    updateEditorSaveStatus('Evento não carregado — recarregue o dashboard');
-    return;
+    if (!silent) updateEditorSaveStatus('Evento não carregado — recarregue o dashboard');
+    return false;
   }
 
   try {
@@ -2139,18 +4468,735 @@ async function saveEditorConfig() {
     const data = await response.json().catch(() => ({}));
 
     if (!response.ok) {
-      updateEditorSaveStatus(data.error || 'Erro ao salvar no servidor');
-      return;
+      if (!silent) updateEditorSaveStatus(data.error || 'Erro ao salvar no servidor');
+      return false;
     }
 
+    syncDashboardEventSlug(data?.event?.slug);
     const savedConfig = data?.config && typeof data.config === 'object' ? data.config : config;
     window.__SITE_CONFIG__ = savedConfig;
     editorState.isDirty = false;
     editorState.originalConfig = JSON.parse(JSON.stringify(savedConfig));
     applySiteConfig(savedConfig);
-    updateEditorSaveStatus('Salvo no servidor ✓');
+    if (!silent) {
+      updateEditorSaveStatus('As informações do seu convite foram salvas ✓');
+      showSectionFootersSaved();
+    }
+
+    return true;
   } catch (error) {
     console.error('[saveEditorConfig]', error);
-    updateEditorSaveStatus('Erro ao salvar no servidor');
+    if (!silent) updateEditorSaveStatus('Erro ao salvar no servidor');
+    return false;
+  }
+}
+
+// ============================================================
+// WIZARD DE ONBOARDING
+// ============================================================
+
+// Adicione novas chaves aqui quando criar novos temas em assets/layouts/classic/themes/
+const WIZARD_THEME_KEYS = [
+  'classic-gold',
+  'classic-silver',
+  'classic-gold-light',
+  'classic-silver-light',
+];
+const WIZARD_SLUG_MIN_LENGTH = 3;
+const WIZARD_SLUG_DEBOUNCE_MS = 2000;
+const WIZARD_SLUG_CACHE_TTL_MS = 30_000;
+
+let _wizardStep = 1;
+let _wizardSelectedTheme = 'classic-gold';
+let _wizardLoadedThemes = [];
+let _wizardSlugValidationTimer = null;
+let _wizardSlugValidationToken = 0;
+let _wizardSlugState = 'idle';
+let _wizardSlugBlockedUntil = 0;
+const _wizardSlugValidationCache = new Map();
+
+function _normalizeWizardSlug(value) {
+  return String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .replace(/-{2,}/g, '-');
+}
+
+function _normalizeWizardSlugInput(value) {
+  return String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9-]+/g, '-')
+    .replace(/-{2,}/g, '-')
+    .replace(/^-+/, '');
+}
+
+function _setWizardSlugStatus(stateName, message) {
+  const statusEl = document.getElementById('wzSlugStatus');
+  if (!statusEl) return;
+
+  const paletteByState = {
+    idle: 'var(--text-dim)',
+    loading: 'var(--text-dim)',
+    valid: 'var(--success)',
+    invalid: 'var(--danger)',
+  };
+
+  _wizardSlugState = stateName;
+  statusEl.textContent = message || '';
+  statusEl.style.color = paletteByState[stateName] || 'var(--text-dim)';
+}
+
+function _parseWizardNames(displayName) {
+  const source = String(displayName || '').trim();
+  if (!source) {
+    return { brideName: '', groomName: '' };
+  }
+
+  const separators = [' & ', ' e ', ' + ', '&', '+'];
+  const matchedSeparator = separators.find((separator) => source.includes(separator));
+  if (!matchedSeparator) {
+    return { brideName: source, groomName: '' };
+  }
+
+  const parts = source.split(matchedSeparator).map((part) => part.trim()).filter(Boolean);
+  return {
+    brideName: parts[0] || '',
+    groomName: parts[1] || '',
+  };
+}
+
+function _formatWizardDateForSlug(dateValue) {
+  const source = String(dateValue || '').trim();
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(source)) {
+    return 'dd-mm-aaaa';
+  }
+
+  const [year, month, day] = source.split('-');
+  return `${day}-${month}-${year}`;
+}
+
+function _buildWizardAutoSlugExample() {
+  const displayName = _wizardDisplayName();
+  const names = _parseWizardNames(displayName);
+  const bride = _normalizeWizardSlug(names.brideName || 'nome-noiva');
+  const groom = _normalizeWizardSlug(names.groomName || 'nome-noivo');
+  const dateText = _formatWizardDateForSlug(document.getElementById('wzDate')?.value || '');
+  return `${bride}-${groom}-${dateText}`;
+}
+
+function _updateWizardSlugExampleText() {
+  const exampleEl = document.getElementById('wzSlugExample');
+  if (!exampleEl) {
+    return;
+  }
+
+  const slugInput = document.getElementById('wzSlug');
+  const typedSlug = _normalizeWizardSlugInput(slugInput?.value || '');
+  if (typedSlug) {
+    exampleEl.textContent = `Seu link vai ficar assim: www.devazi.app/${typedSlug}`;
+    return;
+  }
+
+  exampleEl.textContent = `Seu link vai ficar assim: www.devazi.app/${_buildWizardAutoSlugExample()}`;
+}
+
+function _setWizardSlugFieldAvailability() {
+  const slugInput = document.getElementById('wzSlug');
+
+  if (!slugInput) {
+    return;
+  }
+
+  slugInput.disabled = false;
+  slugInput.classList.remove('field-auto');
+
+  _setWizardSlugStatus('idle', 'Você pode personalizar a URL ou deixar em branco para gerar automaticamente.');
+}
+
+function _populateWizardTimeOptions(defaultValue = '17:00') {
+  const select = document.getElementById('wzTime');
+  if (!select || select.tagName !== 'SELECT') {
+    return;
+  }
+
+  const normalizedDefault = /^\d{2}:\d{2}:\d{2}$/.test(String(defaultValue || ''))
+    ? String(defaultValue).slice(0, 5)
+    : String(defaultValue || '17:00');
+
+  if (select.options.length > 0) {
+    if (normalizedDefault) {
+      select.value = normalizedDefault;
+    }
+    return;
+  }
+
+  const fragment = document.createDocumentFragment();
+
+  for (let hour = 0; hour < 24; hour += 1) {
+    for (let minute = 0; minute < 60; minute += 15) {
+      const label = `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
+      const option = document.createElement('option');
+      option.value = label;
+      option.textContent = label;
+      fragment.appendChild(option);
+    }
+  }
+
+  select.appendChild(fragment);
+  select.value = normalizedDefault && select.querySelector(`option[value="${normalizedDefault}"]`) ? normalizedDefault : '17:00';
+}
+
+async function _validateWizardSlugAvailability({ immediate = false } = {}) {
+  const input = document.getElementById('wzSlug');
+  if (!input) return false;
+
+  const normalizedInput = _normalizeWizardSlugInput(input.value);
+  input.value = normalizedInput;
+  _updateWizardSlugExampleText();
+
+  if (!immediate && normalizedInput.endsWith('-')) {
+    _setWizardSlugStatus('idle', 'Continue digitando para validar a disponibilidade da URL.');
+    return false;
+  }
+
+  const normalizedSlug = _normalizeWizardSlug(normalizedInput);
+
+  if (immediate && normalizedSlug !== normalizedInput) {
+    input.value = normalizedSlug;
+    _updateWizardSlugExampleText();
+  }
+
+  if (!normalizedSlug) {
+    _setWizardSlugStatus('idle', 'Sem problema: se deixar em branco, criamos a URL automaticamente.');
+    return true;
+  }
+
+  if (normalizedSlug.length < WIZARD_SLUG_MIN_LENGTH) {
+    _setWizardSlugStatus('invalid', `A URL precisa ter ao menos ${WIZARD_SLUG_MIN_LENGTH} caracteres.`);
+    return false;
+  }
+
+  const now = Date.now();
+  if (_wizardSlugBlockedUntil > now) {
+    const remainingSec = Math.max(1, Math.ceil((_wizardSlugBlockedUntil - now) / 1000));
+    _setWizardSlugStatus('invalid', `Muitas tentativas. Aguarde ${remainingSec}s para tentar de novo.`);
+    return false;
+  }
+
+  const cachedResult = _wizardSlugValidationCache.get(normalizedSlug);
+  if (cachedResult && (now - cachedResult.timestamp) <= WIZARD_SLUG_CACHE_TTL_MS) {
+    _setWizardSlugStatus(cachedResult.state, cachedResult.message);
+    return cachedResult.valid;
+  }
+
+  const requestToken = ++_wizardSlugValidationToken;
+
+  const performCheck = async () => {
+    _setWizardSlugStatus('loading', 'Validando disponibilidade...');
+
+    try {
+      const params = new URLSearchParams({
+        mode: 'check-slug',
+        slug: normalizedSlug,
+      });
+      if (state.eventSlug) {
+        params.set('currentSlug', state.eventSlug);
+      }
+
+      const response = await fetch(`/api/event-config?${params.toString()}`);
+      const payload = await response.json().catch(() => ({}));
+
+      if (requestToken !== _wizardSlugValidationToken) {
+        return false;
+      }
+
+      if (!response.ok) {
+        if (response.status === 429) {
+          const retryAfterHeader = Number.parseInt(response.headers.get('Retry-After') || '15', 10);
+          const retryAfterSec = Number.isFinite(retryAfterHeader) && retryAfterHeader > 0
+            ? retryAfterHeader
+            : 15;
+          _wizardSlugBlockedUntil = Date.now() + (retryAfterSec * 1000);
+          _setWizardSlugStatus('invalid', `Muitas tentativas. Aguarde ${retryAfterSec}s para tentar de novo.`);
+          return false;
+        }
+
+        _setWizardSlugStatus('invalid', payload.error || 'Não foi possível validar a URL.');
+        return false;
+      }
+
+      if (payload.available === true) {
+        _wizardSlugValidationCache.set(normalizedSlug, {
+          timestamp: Date.now(),
+          valid: true,
+          state: 'valid',
+          message: 'URL disponível para publicar.',
+        });
+        _setWizardSlugStatus('valid', 'URL disponível para publicar.');
+        return true;
+      }
+
+      if (payload.reason === 'reserved') {
+        _setWizardSlugStatus('invalid', 'Essa URL é reservada pelo sistema.');
+        return false;
+      }
+
+      _wizardSlugValidationCache.set(normalizedSlug, {
+        timestamp: Date.now(),
+        valid: false,
+        state: 'invalid',
+        message: 'Essa URL já está em uso.',
+      });
+      _setWizardSlugStatus('invalid', 'Essa URL já está em uso.');
+      return false;
+    } catch (error) {
+      if (requestToken !== _wizardSlugValidationToken) {
+        return false;
+      }
+
+      _setWizardSlugStatus('invalid', 'Erro ao validar URL. Tente novamente.');
+      return false;
+    }
+  };
+
+  if (immediate) {
+    return performCheck();
+  }
+
+  if (_wizardSlugValidationTimer) {
+    clearTimeout(_wizardSlugValidationTimer);
+  }
+
+  _setWizardSlugStatus('loading', 'Verificando disponibilidade...');
+
+  return new Promise((resolve) => {
+    _wizardSlugValidationTimer = setTimeout(async () => {
+      _wizardSlugValidationTimer = null;
+      const result = await performCheck();
+      resolve(result);
+    }, WIZARD_SLUG_DEBOUNCE_MS);
+  });
+}
+
+function isFirstTimeUser(config) {
+  const loc = config?.event?.partyLocationName || config?.event?.locationName || '';
+  return loc === '' || loc === 'Definir local' || loc === 'Definir local da festa';
+}
+
+async function _loadWizardThemes() {
+  if (_wizardLoadedThemes.length) return _wizardLoadedThemes;
+  const results = await Promise.allSettled(
+    WIZARD_THEME_KEYS.map(key =>
+      fetch(`/assets/layouts/classic/themes/${key}.json`)
+        .then(r => r.ok ? r.json() : null)
+        .then(data => data ? { key, data } : null)
+        .catch(() => null)
+    )
+  );
+  _wizardLoadedThemes = results
+    .map(r => (r.status === 'fulfilled' ? r.value : null))
+    .filter(Boolean);
+  return _wizardLoadedThemes;
+}
+
+function _themeColors(themeData) {
+  const c = themeData?.colors || {};
+  return {
+    bg:          c.background   || '#0f0d0b',
+    primary:     c.primary      || '#c9a84c',
+    primarySoft: c.primarySoft  || c.primary || '#d4b480',
+    text:        c.text         || '#faf7f2',
+    textDim:     c.textDim      || 'rgba(250,247,242,.45)',
+    grid:        c.pageGridLine || 'rgba(255,255,255,.015)',
+    border:      c.border       || 'rgba(192,160,96,.25)',
+  };
+}
+
+function _wizardDisplayName() {
+  return document.getElementById('wzDisplayName')?.value.trim() || '';
+}
+
+function _parseDisplayNameParts(displayName) {
+  const input = String(displayName || '').trim();
+  
+  // Try common separators in order
+  const separators = [' e ', ' & ', ' + ', ' - '];
+  
+  for (const sep of separators) {
+    if (input.includes(sep)) {
+      const parts = input.split(sep);
+      if (parts.length >= 2) {
+        return {
+          first: parts[0].trim(),
+          second: parts.slice(1).join(sep).trim(),
+        };
+      }
+    }
+  }
+  
+  // Fallback: return empty if parsing fails
+  return { first: '', second: '' };
+}
+
+function _updateWizardPreview() {
+  const previewCard = document.getElementById('wzPreviewCard');
+  if (!previewCard) return;
+
+  const theme   = _wizardLoadedThemes.find(t => t.key === _wizardSelectedTheme);
+  const display = _wizardDisplayName();
+  const dateRaw = document.getElementById('wzDate')?.value || '';
+
+  const previewNames = document.getElementById('wzPreviewNames');
+  if (previewNames) previewNames.textContent = display || 'Nome & Nome';
+
+  const previewDate = document.getElementById('wzPreviewDate');
+  if (previewDate) {
+    if (dateRaw) {
+      const d = new Date(`${dateRaw}T12:00:00`);
+      if (!isNaN(d.getTime())) {
+        const dd = String(d.getDate()).padStart(2, '0');
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        previewDate.textContent = `${dd} · ${mm} · ${d.getFullYear()}`;
+      }
+    } else {
+      previewDate.textContent = '· · ·';
+    }
+  }
+
+  if (theme) {
+    const cols = _themeColors(theme.data);
+    previewCard.style.background  = cols.bg;
+    previewCard.style.borderColor = cols.border;
+    previewCard.style.setProperty('--wz-primary',  cols.primarySoft);
+    previewCard.style.setProperty('--wz-text',     cols.text);
+    previewCard.style.setProperty('--wz-text-dim', cols.textDim);
+    previewCard.style.setProperty('--wz-grid',     cols.grid);
+  }
+}
+
+function renderWizardThemes() {
+  const container = document.getElementById('wizardThemes');
+  if (!container) return;
+  container.innerHTML = '<div class="wizard-themes-loading">Carregando temas…</div>';
+
+  _loadWizardThemes().then(themes => {
+    container.innerHTML = '';
+    themes.forEach(({ key, data }) => {
+      const cols  = _themeColors(data);
+      const label = data?.meta?.name || data?.meta?.displayName || key;
+      const isSelected = key === _wizardSelectedTheme;
+
+      const card = document.createElement('button');
+      card.type = 'button';
+      card.className = 'wizard-theme-card' + (isSelected ? ' is-selected' : '');
+      card.dataset.themeKey = key;
+      card.innerHTML = `
+        <div class="wizard-theme-swatch" style="background:${cols.bg};border-color:${isSelected ? cols.primary : cols.primary + '55'}">
+          <div class="wizard-theme-accent" style="background:${cols.primary}"></div>
+          <div class="wizard-theme-lines">
+            <div style="background:${cols.text}40;width:60%;height:4px;border-radius:2px;margin-bottom:5px"></div>
+            <div style="background:${cols.text}25;width:80%;height:3px;border-radius:2px;margin-bottom:5px"></div>
+            <div style="background:${cols.primary}80;width:40%;height:3px;border-radius:2px"></div>
+          </div>
+        </div>
+        <span class="wizard-theme-label">${label}</span>
+      `;
+      card.addEventListener('click', () => {
+        _wizardSelectedTheme = key;
+        container.querySelectorAll('.wizard-theme-card').forEach(c => {
+          const sel = c.dataset.themeKey === key;
+          c.classList.toggle('is-selected', sel);
+          const swatch = c.querySelector('.wizard-theme-swatch');
+          if (swatch) {
+            const ct = themes.find(t => t.key === c.dataset.themeKey);
+            swatch.style.borderColor = sel ? (_themeColors(ct?.data).primary || 'transparent') : 'transparent';
+          }
+        });
+        _updateWizardPreview();
+      });
+      container.appendChild(card);
+    });
+    _updateWizardPreview();
+  });
+}
+
+function _wizardGoToStep(step) {
+  _wizardStep = step;
+
+  for (let i = 1; i <= 5; i++) {
+    const el = document.getElementById(`wizardStep${i}`);
+    if (el) el.classList.toggle('is-active', i === step);
+  }
+
+  const progressEl = document.getElementById('wizardProgress');
+  const footerEl   = document.getElementById('wizardFooter');
+  if (progressEl) progressEl.style.display = step === 5 ? 'none' : '';
+  if (footerEl)   footerEl.style.display   = step === 5 ? 'none' : '';
+
+  if (step === 5) {
+    const closeBtn = document.getElementById('wzCloseBtn');
+    if (closeBtn) closeBtn.onclick = () => document.getElementById('wizardOverlay').classList.remove('is-active');
+    return;
+  }
+
+  document.querySelectorAll('.wizard-dot').forEach(dot => {
+    dot.classList.toggle('is-active', Number(dot.dataset.step) <= Math.min(step, 4));
+  });
+
+  const backBtn = document.getElementById('wizardBtnBack');
+  const nextBtn = document.getElementById('wizardBtnNext');
+  if (backBtn) backBtn.style.display = step > 1 ? '' : 'none';
+  if (nextBtn) nextBtn.textContent   = step === 4 ? 'Salvar e publicar' : 'Próximo';
+
+  if (step === 4) _updateWizardPreview();
+}
+
+async function wizardNext() {
+  if (_wizardStep === 1) {
+    const displayInput = document.getElementById('wzDisplayName');
+    if (!displayInput?.value.trim()) {
+      displayInput?.focus();
+      return;
+    }
+  }
+
+  if (_wizardStep === 3) {
+    const slugInput = document.getElementById('wzSlug');
+    const hasCustomUrl = Boolean(slugInput?.value.trim());
+
+    if (hasCustomUrl) {
+      const isSlugValid = await _validateWizardSlugAvailability({ immediate: true });
+      if (!isSlugValid) {
+        slugInput?.focus();
+        return;
+      }
+    }
+  }
+
+  if (_wizardStep < 4) {
+    _wizardGoToStep(_wizardStep + 1);
+  } else {
+    _saveWizard();
+  }
+}
+
+function wizardBack() {
+  if (_wizardStep > 1 && _wizardStep < 5) _wizardGoToStep(_wizardStep - 1);
+}
+
+function _wizardDeriveDateLabels(dateOnly) {
+  const MS = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  const MF = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+  const WD = ['Domingo','Segunda-feira','Terça-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sábado'];
+  const p  = new Date(`${dateOnly}T12:00:00`);
+  if (isNaN(p.getTime())) return {};
+  const d  = String(p.getDate()).padStart(2, '0');
+  const mi = p.getMonth();
+  const mn = String(mi + 1).padStart(2, '0');
+  const yr = p.getFullYear();
+  return {
+    heroDate:    `${d} . ${mn} . ${yr}`,
+    detailDate:  `${d} ${MS[mi]} ${yr}`,
+    displayDate: `${d} de ${MF[mi]} de ${yr}`,
+    weekday:     WD[p.getDay()],
+  };
+}
+
+async function maybeShowWizard(config) {
+  if (!config || !isFirstTimeUser(config)) return;
+
+  await ensureUserProfileLoaded();
+
+  // Pré-carregar temas em background
+  _loadWizardThemes();
+
+  // Pré-preencher nome de exibição existente
+  const existingNames = config?.couple?.names || '';
+  if (existingNames && existingNames !== 'Novo Casal') {
+    const disp = document.getElementById('wzDisplayName');
+    if (disp) disp.value = existingNames;
+  }
+
+  _wizardSelectedTheme = extractDashboardThemeKey(config.activeTheme || 'classic-gold') || 'classic-gold';
+  if (!WIZARD_THEME_KEYS.includes(_wizardSelectedTheme)) {
+    _wizardSelectedTheme = 'classic-gold';
+  }
+  _populateWizardTimeOptions(config?.event?.time || '17:00');
+
+  const dateInput = document.getElementById('wzDate');
+  if (dateInput && config?.event?.date) {
+    const normalizedDate = String(config.event.date).split('T')[0];
+    if (/^\d{4}-\d{2}-\d{2}$/.test(normalizedDate)) {
+      dateInput.value = normalizedDate;
+    }
+  }
+
+  const slugInput = document.getElementById('wzSlug');
+  if (slugInput) {
+    _setWizardSlugFieldAvailability();
+
+    const initialSlug = _normalizeWizardSlug(state.eventSlug || config?.rsvp?.eventId || '');
+    slugInput.value = initialSlug;
+    if (initialSlug) {
+      _setWizardSlugStatus('idle', 'Verificando disponibilidade da URL...');
+      _validateWizardSlugAvailability({ immediate: true });
+    }
+
+    slugInput.addEventListener('input', () => {
+      _setWizardSlugStatus('loading', 'Verificando disponibilidade...');
+      _validateWizardSlugAvailability();
+    });
+    slugInput.addEventListener('blur', () => {
+      _validateWizardSlugAvailability({ immediate: true });
+    });
+  }
+
+  _updateWizardSlugExampleText();
+
+  // Binds do campo principal
+  document.getElementById('wzDisplayName')?.addEventListener('input', function () {
+    this.dataset.userEdited = '1';
+    _updateWizardPreview();
+    _updateWizardSlugExampleText();
+  });
+  document.getElementById('wzDate')?.addEventListener('change', () => {
+    _updateWizardPreview();
+    _updateWizardSlugExampleText();
+  });
+
+  // Clique nos exemplos
+  document.querySelectorAll('.wizard-name-ex').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const displayInput = document.getElementById('wzDisplayName');
+      if (displayInput) {
+        const separator = btn.dataset.sep || ' & ';
+        const currentValue = displayInput.value.trim();
+        
+        if (currentValue) {
+          const { first, second } = _parseDisplayNameParts(currentValue);
+          if (first && second) {
+            displayInput.value = `${first}${separator}${second}`;
+          }
+        }
+        
+        displayInput.dataset.userEdited = '1';
+        _updateWizardPreview();
+      }
+    });
+  });
+
+  renderWizardThemes();
+  _wizardGoToStep(1);
+
+  document.getElementById('wizardOverlay').classList.add('is-active');
+  document.getElementById('wizardBtnNext').onclick = wizardNext;
+  document.getElementById('wizardBtnBack').onclick = wizardBack;
+}
+
+async function _saveWizard() {
+  const nextBtn = document.getElementById('wizardBtnNext');
+  const backBtn = document.getElementById('wizardBtnBack');
+  if (nextBtn) { nextBtn.disabled = true; nextBtn.textContent = 'Salvando…'; }
+  if (backBtn) backBtn.disabled = true;
+
+  const displayName  = document.getElementById('wzDisplayName')?.value.trim()  || '';
+  const dateVal      = document.getElementById('wzDate')?.value                || '';
+  const timeVal      = document.getElementById('wzTime')?.value                || '17:00';
+  const venueName    = document.getElementById('wzVenueName')?.value.trim()    || '';
+  const venueAddress = document.getElementById('wzVenueAddress')?.value.trim() || '';
+  const slugValue    = _normalizeWizardSlug(document.getElementById('wzSlug')?.value || '');
+  const canCustomizeUrl = true;
+  const useAutoGeneratedUrl = !slugValue;
+
+  if (canCustomizeUrl && !useAutoGeneratedUrl && _wizardSlugState !== 'valid') {
+    const isValid = await _validateWizardSlugAvailability({ immediate: true });
+    if (!isValid) {
+      if (nextBtn) { nextBtn.disabled = false; nextBtn.textContent = 'Salvar e publicar'; }
+      if (backBtn) backBtn.disabled = false;
+      document.getElementById('wzSlug')?.focus();
+      return;
+    }
+  }
+
+  const dateLabels = dateVal ? _wizardDeriveDateLabels(dateVal) : {};
+
+  const configPatch = {
+    activeTheme:  resolveDashboardThemePath(_wizardSelectedTheme, 'classic'),
+    activeLayout: 'classic',
+    couple: {
+      names: displayName,
+    },
+    event: {
+      ...(dateVal && {
+        date:    `${dateVal}T${timeVal}:00-03:00`,
+        time:    timeVal,
+        ...dateLabels,
+      }),
+      ceremonyLocationName: venueName || 'A definir',
+      ceremonyLocationCity: '',
+      ceremonyAddress: venueAddress || 'A definir',
+      ceremonyMapsLink: '',
+      partyLocationName: venueName || 'A definir',
+      partyLocationCity: '',
+      partyAddress: venueAddress || 'A definir',
+      partyMapsLink: '',
+
+      // Compatibilidade com consumidores legados.
+      locationName: venueName || 'A definir',
+      venueAddress: venueAddress || 'A definir',
+      mapsLink: '',
+    },
+  };
+
+  if (canCustomizeUrl && slugValue) {
+    configPatch.rsvp = {
+      eventId: slugValue,
+    };
+  }
+
+  const payload = {
+    config: configPatch,
+    autoGenerateSlug: useAutoGeneratedUrl,
+  };
+
+  if (state.eventId) {
+    payload.eventId = state.eventId;
+  }
+
+  if (canCustomizeUrl && !useAutoGeneratedUrl) {
+    payload.slug = slugValue;
+  }
+
+  try {
+    const res  = await fetchWithAuth('/api/dashboard/event', {
+      method:  'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify(payload),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || 'Falha ao salvar');
+
+    if (data?.event?.id) {
+      state.eventId = data.event.id;
+    }
+    syncPreviewInviteLink(data?.event?.slug || slugValue);
+
+    if (data.config) {
+      window.__SITE_CONFIG__ = data.config;
+      applySiteConfig(data.config);
+    }
+
+    await loadAllData();
+    _wizardGoToStep(5);
+
+  } catch (err) {
+    console.error('[wizard] Erro ao salvar:', err);
+    if (nextBtn) { nextBtn.disabled = false; nextBtn.textContent = 'Salvar e publicar'; }
+    if (backBtn) backBtn.disabled = false;
   }
 }

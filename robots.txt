@@ -1,0 +1,9 @@
+User-agent: *
+Disallow: /dashboard.html
+Disallow: /editor.html
+Disallow: /font-preview.html
+Disallow: /signup.html
+Disallow: /confirm.html
+Disallow: /reset-password.html
+Disallow: /forgot-password.html
+Disallow: /api/

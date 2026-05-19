@@ -220,4 +220,62 @@ describe('POST /api/submissions', () => {
       code: 'VALIDATION_ERROR',
     });
   });
+
+  it('bloqueia submissões em convite demonstrativo', async () => {
+    const eventsBuilder = {
+      select: vi.fn(function select() {
+        return this;
+      }),
+      eq: vi.fn(function eq() {
+        return this;
+      }),
+      maybeSingle: vi.fn().mockResolvedValue({
+        data: {
+          id: 'event-demo-1',
+          slug: 'convite-demo',
+          config: {
+            demo: {
+              publicShowcase: true,
+            },
+          },
+        },
+        error: null,
+      }),
+    };
+
+    const insertMock = vi.fn().mockResolvedValue({ error: null });
+
+    createClientMock.mockReturnValue({
+      from: vi.fn((tableName) => {
+        if (tableName === 'events') {
+          return eventsBuilder;
+        }
+
+        return { insert: insertMock };
+      }),
+    });
+
+    const { default: handler } = await import('../../api/submissions.js');
+    const res = createMockResponse();
+
+    await handler({
+      method: 'POST',
+      body: {
+        table: 'guest_submissions',
+        payload: {
+          type: 'message',
+          guest_name: 'Ana',
+          event_id: 'convite-demo',
+          source: 'mensagem-page',
+          message: 'Parabens ao casal',
+        },
+      },
+    }, res);
+
+    expect(res.statusCode).toBe(403);
+    expect(res.body).toMatchObject({
+      code: 'DEMO_PUBLIC_SUBMISSIONS_BLOCKED',
+    });
+    expect(insertMock).not.toHaveBeenCalled();
+  });
 });
