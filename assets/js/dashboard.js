@@ -3983,9 +3983,6 @@ function updateCatalogItem(index, field, value) {
     renderCatalogItems();
   }
 }
-    markEditorDirty();
-  }
-}
 
 // ── FAQ ───────────────────────────────────────────────────────
 
