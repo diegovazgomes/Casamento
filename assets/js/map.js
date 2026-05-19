@@ -46,12 +46,12 @@ function initLeafletMap(event) {
         return;
     }
 
-    const resolvedCoordinates = event.partyCoordinates || event.venueCoordinates || { lat: -23.8545, lng: -46.5797 };
+    const resolvedCoordinates = event.partyCoordinates || event.ceremonyCoordinates || event.venueCoordinates || { lat: -23.8545, lng: -46.5797 };
     const { lat, lng } = resolvedCoordinates;
     const venueLocation = [lat, lng];
-    const venueName = event.partyLocationName || event.locationName || '';
-    const venueAddress = event.partyAddress || event.venueAddress || '';
-    const mapsLink = event.partyMapsLink || event.mapsLink || `https://www.google.com/maps/search/${lat},${lng}`;
+    const venueName = event.partyLocationName || event.ceremonyLocationName || event.locationName || '';
+    const venueAddress = event.partyAddress || event.ceremonyAddress || event.venueAddress || '';
+    const mapsLink = event.partyMapsLink || event.ceremonyMapsLink || event.mapsLink || `https://www.google.com/maps/search/${lat},${lng}`;
 
     section.hidden = false;
 

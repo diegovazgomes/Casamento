@@ -1854,6 +1854,10 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
     <p style="margin-top:1.25rem;font-size:.78rem;color:var(--text-dim);text-align:center;">
       <a href="forgot-password.html" style="color:var(--primary-soft);text-decoration:none;border-bottom:1px solid transparent;transition:border-color .2s;" onmouseover="this.style.borderBottomColor='var(--primary-soft)'" onmouseout="this.style.borderBottomColor='transparent'">Esqueci minha senha</a>
     </p>
+    <div style="margin-top:1.75rem;padding-top:1.75rem;border-top:1px solid var(--border);text-align:center;">
+      <p style="font-size:.78rem;color:var(--text-dim);margin-bottom:.75rem;">Ainda não tem conta?</p>
+      <a href="signup.html" style="display:inline-block;padding:10px 24px;background:var(--primary);color:var(--bg);border-radius:var(--radius);text-decoration:none;font-size:.78rem;font-weight:500;letter-spacing:.18em;text-transform:uppercase;transition:background .2s;" onmouseover="this.style.background='var(--primary-soft)'" onmouseout="this.style.background='var(--primary)'">Criar conta</a>
+    </div>
   </div>
 </div>
  
@@ -1933,9 +1937,9 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
     <div class="wizard-step" id="wizardStep4">
       <h2 class="wizard-title">Escolha o tema</h2>
       <p class="wizard-sub">Selecione o visual do convite. Pode mudar a qualquer momento no painel.</p>
-      <p class="wizard-sub" style="margin-top:-12px;margin-bottom:16px;color:var(--primary-soft);">
-        Esses são os temas do plano free. Upgrade para acessar mais temas na próxima tela.
-      </p>
+      <div id="wzPremiumBanner" style="display:none;margin-top:-12px;margin-bottom:16px;padding:12px 16px;background:rgba(192,160,96,.08);border:1px solid rgba(192,160,96,.25);border-radius:4px;font-size:.82rem;color:var(--primary-soft);text-align:center;">
+        Você está no plano Free. <a href="#" onclick="handleUpgrade(event);return false;" style="color:var(--primary-soft);text-decoration:underline;cursor:pointer;">Upgrade para acessar 7+ temas premium</a>
+      </div>
       <div class="wizard-theme-layout">
         <div class="wizard-themes" id="wizardThemes"></div>
         <div class="wizard-preview-wrap">

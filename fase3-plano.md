@@ -2,16 +2,7 @@
 
 ## Definição dos planos
 
-| Feature | Free | Premium (R$187) |
-|---|---|---|
-| Tema | classic-gold fixo | Todos os temas e layouts |
-| Convidados | Até 50, sem grupos | Ilimitado + grupos personalizados |
-| Páginas extras | Todas | Todas |
-| Foto do casal | ✓ | ✓ |
-| Galeria | Até 3 fotos | Até 5 fotos |
-| Áudio | ✗ | ✓ |
-| Tela de entrada | Logo devazi + botão abrir | Experiência premium (ver abaixo) |
-| Marca d'água | Rodapé "Criado com devazi.com.br" | ✗ |
+- Observar free_premium.md
 
 ---
 

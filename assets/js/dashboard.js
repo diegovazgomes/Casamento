@@ -718,15 +718,21 @@ function applyPlanRestrictions(profile) {
     }, true);
   }
 
-  // ── Seção 8: Áudio — bloquear sub-seção de música
+  // ── Seção 5: Áudio — bloquear sub-seção de música
   const midiaBody = document.querySelector('#edSectionMidia .editor-section-body');
   if (midiaBody && !midiaBody.querySelector('.premium-lock-audio')) {
-    const audioBanner = document.createElement('div');
-    audioBanner.className = 'premium-lock-banner premium-lock-audio';
-    audioBanner.innerHTML = '<span>🔒 Música no convite disponível no plano Premium</span>'
-      + '<button type="button" class="btn btn-subtle" onclick="handleUpgrade()">Fazer upgrade</button>';
-    const rule = midiaBody.querySelector('.editor-rule');
-    if (rule) rule.parentNode.insertBefore(audioBanner, rule);
+    // Procurar pelo label "Música do convite" e inserir o banner antes dele
+    const musicLabels = Array.from(midiaBody.querySelectorAll('.editor-sub-label')).filter(el => el.textContent.includes('Música'));
+    const insertBefore = musicLabels.length > 0 ? musicLabels[0] : null;
+    
+    if (insertBefore) {
+      const audioBanner = document.createElement('div');
+      audioBanner.className = 'premium-lock-banner premium-lock-audio';
+      audioBanner.innerHTML = '<span>🔒 Música do convite não está disponível no plano Free</span>'
+        + '<button type="button" class="btn btn-subtle" onclick="handleUpgrade()">Fazer upgrade</button>';
+      insertBefore.parentNode.insertBefore(audioBanner, insertBefore);
+    }
+    
     ['edTrackEnabled','edTrackSrc','edTrackVolume','edTrackStart'].forEach(id => {
       const el = document.getElementById(id);
       if (el) el.disabled = true;
@@ -3973,6 +3979,11 @@ function updateCatalogItem(index, field, value) {
   if (editorState.catalogItems[index]) {
     editorState.catalogItems[index][field] = value;
     markEditorDirty();
+    // Renderiza imediatamente para feedback visual
+    renderCatalogItems();
+  }
+}
+    markEditorDirty();
   }
 }
 
@@ -4496,12 +4507,23 @@ async function saveEditorConfig(silent = false) {
 // ============================================================
 
 // Adicione novas chaves aqui quando criar novos temas em assets/layouts/classic/themes/
-const WIZARD_THEME_KEYS = [
+const WIZARD_THEME_KEYS_ALL = [
   'classic-gold',
   'classic-silver',
   'classic-gold-light',
   'classic-silver-light',
+  'classic-purple',
+  'classic-blue',
+  'classic-green-light',
 ];
+
+const WIZARD_THEME_KEYS_FREE = ['classic-gold'];
+
+function getWizardThemeKeys() {
+  const isPremium = state.userProfile && isPremiumPlan(state.userProfile.plan);
+  return isPremium ? WIZARD_THEME_KEYS_ALL : WIZARD_THEME_KEYS_FREE;
+}
+
 const WIZARD_SLUG_MIN_LENGTH = 3;
 const WIZARD_SLUG_DEBOUNCE_MS = 2000;
 const WIZARD_SLUG_CACHE_TTL_MS = 30_000;
@@ -4790,8 +4812,9 @@ function isFirstTimeUser(config) {
 
 async function _loadWizardThemes() {
   if (_wizardLoadedThemes.length) return _wizardLoadedThemes;
+  const themeKeys = getWizardThemeKeys();
   const results = await Promise.allSettled(
-    WIZARD_THEME_KEYS.map(key =>
+    themeKeys.map(key =>
       fetch(`/assets/layouts/classic/themes/${key}.json`)
         .then(r => r.ok ? r.json() : null)
         .then(data => data ? { key, data } : null)
@@ -5023,7 +5046,7 @@ async function maybeShowWizard(config) {
   }
 
   _wizardSelectedTheme = extractDashboardThemeKey(config.activeTheme || 'classic-gold') || 'classic-gold';
-  if (!WIZARD_THEME_KEYS.includes(_wizardSelectedTheme)) {
+  if (!getWizardThemeKeys().includes(_wizardSelectedTheme)) {
     _wizardSelectedTheme = 'classic-gold';
   }
   _populateWizardTimeOptions(config?.event?.time || '17:00');
@@ -5092,6 +5115,12 @@ async function maybeShowWizard(config) {
 
   renderWizardThemes();
   _wizardGoToStep(1);
+
+  // Mostrar banner de premium se o usuário for free
+  const banner = document.getElementById('wzPremiumBanner');
+  if (banner && state.userProfile && !isPremiumPlan(state.userProfile.plan)) {
+    banner.style.display = 'block';
+  }
 
   document.getElementById('wizardOverlay').classList.add('is-active');
   document.getElementById('wizardBtnNext').onclick = wizardNext;
