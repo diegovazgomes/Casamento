@@ -476,6 +476,23 @@ export default async function handler(req, res) {
     if (plan !== 'premium') {
       mappedConfig.activeTheme = FREE_THEME;
       mappedConfig.activeLayout = FREE_LAYOUT;
+
+      // Bloquear páginas exclusivas do Premium
+      if (!mappedConfig.pages) mappedConfig.pages = {};
+      if (!mappedConfig.pages.mensagem) mappedConfig.pages.mensagem = {};
+      if (!mappedConfig.pages.musica)   mappedConfig.pages.musica   = {};
+      if (!mappedConfig.pages.traje)    mappedConfig.pages.traje    = {};
+      mappedConfig.pages.mensagem.enabled = false;
+      mappedConfig.pages.musica.enabled   = false;
+      mappedConfig.pages.traje.enabled    = false;
+
+      // Bloquear cartão e lista externa no free
+      if (!mappedConfig.gift) mappedConfig.gift = {};
+      mappedConfig.gift.cardPaymentEnabled = false;
+      delete mappedConfig.gift.cardPaymentLink;
+      if (mappedConfig.gift.external) {
+        mappedConfig.gift.external = { enabled: false };
+      }
     }
 
     const galleryImages = await resolveEventGalleryFromStorage(supabase, data.id, data.slug);

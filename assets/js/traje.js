@@ -1,95 +1,76 @@
 import { initExtraPage } from './extra-page.js';
-import { setText, escapeHtml } from './utils.js';
+import { setText } from './utils.js';
 
-function renderPalette(containerId, colors) {
-    const el = document.getElementById(containerId);
-    if (!el || !Array.isArray(colors) || colors.length === 0) return;
-    el.innerHTML = colors.map(c => `
-        <div class="traje-swatch">
-            <div class="traje-swatch-circle"
-                 style="background-color:${escapeHtml(c.hex || '#ccc')}"
-                 role="img"
-                 aria-label="${escapeHtml(c.name || c.hex || 'Cor')}"></div>
-            <span class="traje-swatch-label">${escapeHtml(c.name || '')}${c.name && c.hex ? '<br>' : ''}${escapeHtml(c.hex || '')}</span>
-        </div>
-    `).join('');
+function escapeAttr(value) {
+    return String(value || '').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
-function renderSoloColor(containerId, color) {
-    const el = document.getElementById(containerId);
-    if (!el || !color?.hex?.trim()) return;
-    el.innerHTML = `
-        <div class="traje-solo-circle"
-             style="background-color:${escapeHtml(color.hex)}"
-             role="img"
-             aria-label="${escapeHtml(color.name || color.hex)}"></div>
-        <span class="traje-solo-label">${color.name ? escapeHtml(color.name) + '<br>' : ''}${escapeHtml(color.hex)}</span>
-    `;
-}
-
-const OPTIONAL_SECTION_IDS = [
-    'trajeBridesmaidsPaletteSection',
-    'trajeGroomsmenPaletteSection',
-    'trajeBrideColorSection',
-    'trajeGroomColorSection',
-    'trajeNoteSection',
-];
-
-function toggleSection(id, show) {
+function showSection(id) {
     const el = document.getElementById(id);
-    if (el && show) el.removeAttribute('hidden');
+    if (el) el.removeAttribute('hidden');
 }
 
-function makeDivider() {
-    const el = document.createElement('div');
-    el.className = 'divider reveal';
-    el.setAttribute('aria-hidden', 'true');
-    el.innerHTML = '<div class="divider-line"></div><div class="divider-diamond"></div><div class="divider-line"></div>';
-    return el;
+function renderPaletteInto(containerId, colors) {
+    const container = document.getElementById(containerId);
+    if (!container || !Array.isArray(colors) || colors.length === 0) return;
+
+    container.innerHTML = colors.map((color) => {
+        const hex = String(color?.hex || '').trim();
+        const name = String(color?.name || '').trim();
+        const label = name || hex || '';
+        return `<div class="traje-swatch-item">
+            <span class="traje-swatch" style="background-color:${escapeAttr(hex || '#cccccc')}" role="img" aria-label="${escapeAttr(label)}"></span>
+            ${label ? `<span class="traje-swatch-label">${escapeAttr(label)}</span>` : ''}
+        </div>`;
+    }).join('');
 }
 
-function insertDividersBetweenSections() {
-    const parent = document.querySelector('.extra-main');
-    if (!parent) return;
+function renderSoloColor(swatchId, nameId, color) {
+    const hex = String(color?.hex || '').trim();
+    const name = String(color?.name || '').trim();
+    if (!hex) return;
 
-    const visible = OPTIONAL_SECTION_IDS
-        .map(id => document.getElementById(id))
-        .filter(el => el && !el.hasAttribute('hidden'));
+    const swatch = document.getElementById(swatchId);
+    if (swatch) swatch.style.backgroundColor = hex;
 
-    // Primeiro visível: o divider estático após dresscode já o separa.
-    // A partir do segundo: inserir um divider antes de cada um.
-    visible.forEach((section, i) => {
-        if (i === 0) return;
-        parent.insertBefore(makeDivider(), section);
-    });
+    const nameEl = document.getElementById(nameId);
+    if (nameEl) nameEl.textContent = name || hex;
 }
 
 initExtraPage({
     pageKey: 'traje',
     idPrefix: 'traje',
     onReady: (content) => {
-        setText('trajeDresscodeValue', content.dresscode);
+        setText('trajeDresscode', content.dresscode);
+
+        const hasBrideColor = String(content.brideColor?.hex || '').trim();
+        if (hasBrideColor) {
+            showSection('trajeBrideColorCard');
+            renderSoloColor('trajeBrideSwatch', 'trajeBrideColorName', content.brideColor);
+        }
+
+        const hasGroomColor = String(content.groomColor?.hex || '').trim();
+        if (hasGroomColor) {
+            showSection('trajeGroomColorCard');
+            renderSoloColor('trajeGroomSwatch', 'trajeGroomColorName', content.groomColor);
+        }
 
         const hasBridesmaids = Array.isArray(content.bridesmaidsPalette) && content.bridesmaidsPalette.length > 0;
-        toggleSection('trajeBridesmaidsPaletteSection', hasBridesmaids);
-        if (hasBridesmaids) renderPalette('trajeBridesmaidsPalette', content.bridesmaidsPalette);
+        if (hasBridesmaids) {
+            showSection('trajeBridesmaidsCard');
+            renderPaletteInto('trajeBridesmaidsPalette', content.bridesmaidsPalette);
+        }
 
-        const hasGroomsmen = Array.isArray(content.groomsMenPalette) && content.groomsMenPalette.length > 0;
-        toggleSection('trajeGroomsmenPaletteSection', hasGroomsmen);
-        if (hasGroomsmen) renderPalette('trajeGroomsmenPalette', content.groomsMenPalette);
+        const hasGroomsMen = Array.isArray(content.groomsMenPalette) && content.groomsMenPalette.length > 0;
+        if (hasGroomsMen) {
+            showSection('trajeGroomsMenCard');
+            renderPaletteInto('trajeGroomsMenPalette', content.groomsMenPalette);
+        }
 
-        const hasBrideColor = content.brideColor?.hex?.trim();
-        toggleSection('trajeBrideColorSection', hasBrideColor);
-        if (hasBrideColor) renderSoloColor('trajeBrideColor', content.brideColor);
-
-        const hasGroomColor = content.groomColor?.hex?.trim();
-        toggleSection('trajeGroomColorSection', hasGroomColor);
-        if (hasGroomColor) renderSoloColor('trajeGroomColor', content.groomColor);
-
-        const hasNote = content.note?.trim();
-        toggleSection('trajeNoteSection', hasNote);
-        if (hasNote) setText('trajeNote', content.note);
-
-        insertDividersBetweenSections();
+        const hasNote = String(content.note || '').trim();
+        if (hasNote) {
+            showSection('trajeNoteCard');
+            setText('trajeNote', content.note);
+        }
     },
 });

@@ -8,7 +8,7 @@ import {
 } from '../_lib/dashboard-auth.js';
 
 const GALLERY_LIMIT_FREE = 3;
-const GALLERY_LIMIT_PREMIUM = 5;
+const GALLERY_LIMIT_PREMIUM = 7;
 
 const MIME_EXTENSION_MAP = {
   'image/jpeg': 'jpg',

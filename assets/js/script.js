@@ -1307,13 +1307,14 @@ class InvitationExperience {
         }
 
         const pages = this.config.pages ?? {};
-        const PAGE_ORDER = ['historia', 'faq', 'hospedagem', 'mensagem', 'musica', 'presente'];
+        const PAGE_ORDER = ['historia', 'faq', 'hospedagem', 'mensagem', 'musica', 'traje', 'presente'];
         const PAGE_URLS = {
             historia: 'historia.html',
             faq: 'faq.html',
             hospedagem: 'hospedagem.html',
             mensagem: 'mensagem.html',
             musica: 'musica.html',
+            traje: 'traje.html',
             presente: 'presente.html'
         };
 
