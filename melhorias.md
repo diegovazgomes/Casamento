@@ -27,42 +27,42 @@
 
 #### 1) Cadastro: corrigir autofill (web + mobile)
 
-[ ] - Reproduzir e documentar o bug de autofill em `signup.html` (email, telefone, senha e demais campos afetados)
-[ ] - Corrigir estilo de `autofill` para manter identidade visual (evitar campo branco após preenchimento automático)
-[ ] - Corrigir sincronização de valor/validação para aceitar envio sem precisar apagar e digitar novamente
-[ ] - Validar comportamento em navegadores mobile e desktop (Chrome/Edge/Safari quando aplicável)
-[ ] - Adicionar teste de regressão (manual guiado e automatizado se viável)
+[x] - Reproduzir e documentar o bug de autofill em `signup.html` (email, telefone, senha e demais campos afetados)
+[x] - Corrigir estilo de `autofill` para manter identidade visual (evitar campo branco após preenchimento automático)
+[x] - Corrigir sincronização de valor/validação para aceitar envio sem precisar apagar e digitar novamente
+[x] - Validar comportamento em navegadores mobile e desktop (Chrome/Edge/Safari quando aplicável)
+[x] - Adicionar teste de regressão (manual guiado e automatizado se viável)
 
 #### 2) Mobile: aumentar tipografia proporcionalmente
 
-[ ] - Mapear escalas tipográficas atuais no mobile (base, títulos, labels, botões e helpers)
-[ ] - Definir nova escala proporcional mantendo legibilidade e sofisticação visual
-[ ] - Aplicar ajustes globais de fonte/tamanho/line-height para mobile sem quebrar layout
-[ ] - Revisar telas principais no celular (`landing`, `signup`, `dashboard`, `editor`)
-[ ] - Executar checklist visual de regressão (overflow, cortes de texto e hierarquia)
+[x] - Mapear escalas tipográficas atuais no mobile (base, títulos, labels, botões e helpers)
+[x] - Definir nova escala proporcional mantendo legibilidade e sofisticação visual
+[x] - Aplicar ajustes globais de fonte/tamanho/line-height para mobile sem quebrar layout
+[x] - Revisar telas principais no celular (`landing`, `signup`, `dashboard`, `editor`)
+[x] - Executar checklist visual de regressão (overflow, cortes de texto e hierarquia)
 
 #### 3) Editar Evento: reforçar estado de alterações não salvas por seção
 
-[ ] - Adicionar bloco de aviso no fim de cada seção da aba Editar Evento (`Aparências`, `Página de presentes`, `Confirmação`, etc.)
-[ ] - Exibir mensagem destacada de "Alterações não salvas" quando houver mudanças pendentes
-[ ] - Incluir botão de salvar no rodapé de cada seção (mesma ação do botão salvar do topo)
-[ ] - Após salvar com sucesso, exibir confirmação verde equivalente ao feedback do topo
-[ ] - Testar fluxo completo no mobile (editar -> aviso pendente -> salvar no rodapé -> confirmação)
+[x] - Adicionar bloco de aviso no fim de cada seção da aba Editar Evento (`Aparências`, `Página de presentes`, `Confirmação`, etc.)
+[x] - Exibir mensagem destacada de "Alterações não salvas" quando houver mudanças pendentes
+[x] - Incluir botão de salvar no rodapé de cada seção (mesma ação do botão salvar do topo)
+[x] - Após salvar com sucesso, exibir confirmação verde equivalente ao feedback do topo
+[x] - Testar fluxo completo no mobile (editar -> aviso pendente -> salvar no rodapé -> confirmação)
 
 #### 4) Upload de fotos: UX de envio e pós-envio
 
-[ ] - Melhorar instruções visuais da área de upload (hero e galeria) antes do envio
-[ ] - Adicionar estado de carregamento com feedback claro (ex.: barra/progresso ou status "carregando")
-[ ] - Exibir confirmação explícita após upload concluído com orientação para salvar alterações
-[ ] - Tratar estados de erro (falha de upload, arquivo inválido, limite excedido) com mensagens claras
-[ ] - Validar jornada completa em mobile: selecionar foto -> upload -> confirmação -> salvar
+[x] - Melhorar instruções visuais da área de upload (hero e galeria) antes do envio
+[x] - Adicionar estado de carregamento com feedback claro (ex.: barra/progresso ou status "carregando")
+[x] - Exibir confirmação explícita após upload concluído com orientação para salvar alterações
+[x] - Tratar estados de erro (falha de upload, arquivo inválido, limite excedido) com mensagens claras
+[x] - Validar jornada completa em mobile: selecionar foto -> upload -> confirmação -> salvar
 
 ### Sequência sugerida de entrega
 
-[ ] - Entrega A: item 1 (autofill) + testes de regressão
-[ ] - Entrega B: item 2 (tipografia mobile) + revisão visual completa
-[ ] - Entrega C: item 3 (avisos/save por seção) + testes de UX no editor
-[ ] - Entrega D: item 4 (upload de fotos) + testes ponta a ponta no mobile
+[x] - Entrega A: item 1 (autofill) + testes de regressão
+[x] - Entrega B: item 2 (tipografia mobile) + revisão visual completa
+[x] - Entrega C: item 3 (avisos/save por seção) + testes de UX no editor
+[x] - Entrega D: item 4 (upload de fotos) + testes ponta a ponta no mobile
 
 ---
 
@@ -104,29 +104,29 @@
 
 #### Fase A — Polimento imediato *(baixo esforço, alto impacto visual)*
 
-[ ] - Recolher seções por padrão no carregamento — abrir somente a seção 1 (Casal & Evento) automaticamente
-[ ] - Renomear tag "Assets" → "Fotos & Mídia" na seção 5
-[ ] - Pulsação do dot no estado dirty — `@keyframes pulse` ativada pela classe `.is-dirty .editor-save-dot`
-[ ] - Botão "Salvar e visualizar" — combina save + abertura do convite em nova aba quando há alterações pendentes
+[x] - Recolher seções por padrão no carregamento — abrir somente a seção 1 (Casal & Evento) automaticamente
+[x] - Renomear tag "Assets" → "Fotos & Mídia" na seção 5
+[x] - Pulsação do dot no estado dirty — `@keyframes pulse` ativada pela classe `.is-dirty .editor-save-dot`
+[x] - Botão "Salvar e visualizar" — combina save + abertura do convite em nova aba quando há alterações pendentes
 
 #### Fase B — Validação e feedback *(médio esforço, elimina erros silenciosos)*
 
-[ ] - Validação inline antes do save — checar campos obrigatórios e URLs, destacar o campo inválido com borda vermelha e rolar até ele
-[ ] - Modal de confirmação customizado para "Descartar" — substituir `confirm()` nativo por modal com design do dashboard
-[ ] - Indicador de completude por seção — ícone de check verde / ponto âmbar no header de cada seção colapsada
+[x] - Validação inline antes do save — checar campos obrigatórios e URLs, destacar o campo inválido com borda vermelha e rolar até ele
+[x] - Modal de confirmação customizado para "Descartar" — substituir `confirm()` nativo por modal com design do dashboard
+[x] - Indicador de completude por seção — ícone de check verde / ponto âmbar no header de cada seção colapsada
 
 #### Fase C — Upload e galeria *(médio esforço, elimina frustração com mídia)*
 
-[ ] - Delete de fotos da galeria — botão de remoção em cada card, atualizando o config local e marcando dirty
-[ ] - Reordenação da galeria por drag-and-drop — usando Drag and Drop API nativa, sem dependências externas
-[ ] - Badge "não salvo" no header da seção Fotos após upload, removido após save
+[x] - Delete de fotos da galeria — botão de remoção em cada card, atualizando o config local e marcando dirty
+[x] - Reordenação da galeria por drag-and-drop — usando Drag and Drop API nativa, sem dependências externas
+[x] - Badge "não salvo" no header da seção Fotos após upload, removido após save
 
 #### Fase D — Conteúdo e usabilidade avançada *(maior esforço, amplia capacidade)*
 
-[ ] - Capítulos dinâmicos em Nossa História — transformar os 3 campos fixos em lista dinâmica igual ao FAQ
-[ ] - Sliders para volume de áudio e timepicker para início (MM:SS) — substituir os inputs numéricos técnicos
-[ ] - Miniaturas de tema no seletor — swatch de cores (primária + fundo + destaque) ao lado de cada opção
+[x] - Capítulos dinâmicos em Nossa História — transformar os 3 campos fixos em lista dinâmica igual ao FAQ
+[x] - Sliders para volume de áudio e timepicker para início (MM:SS) — substituir os inputs numéricos técnicos
+[x] - Miniaturas de tema no seletor — swatch de cores (primária + fundo + destaque) ao lado de cada opção
 
 #### Sequência sugerida
 
-[ ] - Fase A → Fase B → Fase C → Fase D (A e B podem rodar em paralelo)
+[x] - Fase A → Fase B → Fase C → Fase D (A e B podem rodar em paralelo)
