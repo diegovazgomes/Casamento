@@ -4160,13 +4160,26 @@ function renderHospedagemList(containerId, items, type) {
 
 function renderHospedagemHotels() {
   renderHospedagemList('edHospHotelsList', editorState.hospedagemHotels, 'hotel');
+  _updateHospedagemAddBtn('edAddHotelBtn', editorState.hospedagemHotels.length);
 }
 
 function renderHospedagemRestaurants() {
   renderHospedagemList('edHospRestaurantsList', editorState.hospedagemRestaurants, 'restaurant');
+  _updateHospedagemAddBtn('edAddRestaurantBtn', editorState.hospedagemRestaurants.length);
+}
+
+const MAX_HOSPEDAGEM_ITEMS = 3;
+
+function _updateHospedagemAddBtn(btnId, count) {
+  const btn = document.getElementById(btnId);
+  if (!btn) return;
+  const atLimit = count >= MAX_HOSPEDAGEM_ITEMS;
+  btn.disabled = atLimit;
+  btn.title = atLimit ? `Limite de ${MAX_HOSPEDAGEM_ITEMS} itens atingido` : '';
 }
 
 function addHotelItem() {
+  if (editorState.hospedagemHotels.length >= MAX_HOSPEDAGEM_ITEMS) return;
   editorState.hospedagemHotels.push({ name: '', description: '', link: '' });
   renderHospedagemHotels();
   markEditorDirty();
@@ -4185,6 +4198,7 @@ function updateHotelItem(index, field, value) {
 }
 
 function addRestaurantItem() {
+  if (editorState.hospedagemRestaurants.length >= MAX_HOSPEDAGEM_ITEMS) return;
   editorState.hospedagemRestaurants.push({ name: '', description: '', link: '' });
   renderHospedagemRestaurants();
   markEditorDirty();
