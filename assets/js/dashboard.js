@@ -2921,20 +2921,25 @@ async function uploadMediaFile(type, file, options = {}) {
     })
     : await compressImageForUpload(file);
 
-  if (type === 'hero') {
+  if (type === 'hero' || type === 'gallery') {
+    try {
+      return await uploadMediaFileSigned(type, compressed, options);
+    } catch (signedUploadError) {
+      // Fallback legado para projetos sem suporte a signed upload.
+      return uploadMediaFileDirect(type, compressed, options);
+    }
+  }
+
+  if (type === 'pix-qr') {
     try {
       return await uploadMediaFileDirect(type, compressed, options);
     } catch (directUploadError) {
+      // Fallback de compatibilidade para projetos sem policy de upload direto no bucket.
       return uploadMediaFileViaApi(type, compressed, options, directUploadError);
     }
   }
 
-  try {
-    return await uploadMediaFileDirect(type, compressed, options);
-  } catch (directUploadError) {
-    // Fallback de compatibilidade para projetos sem policy de upload direto no bucket.
-    return uploadMediaFileViaApi(type, compressed, options, directUploadError);
-  }
+  return uploadMediaFileViaApi(type, compressed, options);
 }
 
 function sanitizeUploadFileBaseName(fileName) {
@@ -3071,6 +3076,73 @@ async function uploadMediaFileDirect(type, file, options = {}) {
     path: storagePath,
     type,
     url: data?.publicUrl || '',
+  };
+}
+
+async function requestSignedUpload(type, file) {
+  const eventId = encodeURIComponent(String(state.eventId || '').trim());
+  const fileName = encodeURIComponent(String(file?.name || 'upload'));
+  const contentType = encodeURIComponent(String(file?.type || ''));
+  const fileSize = encodeURIComponent(String(Number(file?.size || 0)));
+
+  const response = await fetchWithAuth(
+    `/api/dashboard/media?action=signed-upload&eventId=${eventId}&type=${encodeURIComponent(type)}&fileName=${fileName}&contentType=${contentType}&fileSize=${fileSize}`,
+    { method: 'GET' }
+  );
+  const payload = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    const error = new Error(payload.error || 'Não foi possível preparar o upload direto.');
+    error.status = response.status;
+    throw error;
+  }
+
+  if (!payload?.path || !payload?.token) {
+    throw new Error('Resposta inválida ao preparar upload direto.');
+  }
+
+  return payload;
+}
+
+async function uploadMediaFileSigned(type, file, options = {}) {
+  const { onProgress } = options;
+
+  if (!state.eventId) {
+    throw new Error('Evento não carregado no dashboard. Recarregue a página.');
+  }
+
+  if (typeof onProgress === 'function') {
+    onProgress(5);
+  }
+
+  const signed = await requestSignedUpload(type, file);
+  const supabase = await getDashboardSupabaseClient();
+  const storage = supabase.storage.from(MEDIA_BUCKET_ID);
+
+  if (typeof onProgress === 'function') {
+    onProgress(35);
+  }
+
+  const { error: uploadError } = await storage.uploadToSignedUrl(signed.path, signed.token, file);
+  if (uploadError) {
+    throw uploadError;
+  }
+
+  if (typeof onProgress === 'function') {
+    onProgress(90);
+  }
+
+  const { data } = storage.getPublicUrl(signed.path);
+
+  if (typeof onProgress === 'function') {
+    onProgress(100);
+  }
+
+  return {
+    eventId: state.eventId,
+    path: signed.path,
+    type,
+    url: data?.publicUrl || signed.url || '',
   };
 }
 

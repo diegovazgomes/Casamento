@@ -128,6 +128,21 @@ function resolveFileExtension(file) {
   return extension || 'bin';
 }
 
+function resolveUploadExtension(contentType, fileName = '') {
+  const normalizedContentType = String(contentType || '').trim().toLowerCase();
+  const mappedExtension = MIME_EXTENSION_MAP[normalizedContentType];
+  if (mappedExtension) {
+    return mappedExtension;
+  }
+
+  const normalizedFileName = String(fileName || '').trim();
+  const extension = normalizedFileName.includes('.')
+    ? normalizedFileName.split('.').pop().toLowerCase()
+    : '';
+
+  return extension || 'bin';
+}
+
 function buildStoragePath(storageRoot, type, file) {
   const extension = resolveFileExtension(file);
 
@@ -140,6 +155,17 @@ function buildStoragePath(storageRoot, type, file) {
   }
 
   const safeBaseName = sanitizeBaseName(file?.originalFilename);
+  return `${storageRoot}/gallery/${Date.now()}-${safeBaseName}.${extension}`;
+}
+
+function buildSignedUploadStoragePath(storageRoot, type, fileName, contentType) {
+  const extension = resolveUploadExtension(contentType, fileName);
+
+  if (type === 'hero') {
+    return `${storageRoot}/hero/hero.${extension}`;
+  }
+
+  const safeBaseName = sanitizeBaseName(fileName);
   return `${storageRoot}/gallery/${Date.now()}-${safeBaseName}.${extension}`;
 }
 
@@ -414,6 +440,83 @@ async function handleSongsList(req, res, eventId) {
   return res.status(200).json({ files });
 }
 
+async function handleSignedUploadRequest(req, res) {
+  const eventId = getSingleValue(req.query?.eventId);
+  const type = getSingleValue(req.query?.type || '');
+  const fileName = getSingleValue(req.query?.fileName || 'upload');
+  const contentType = getSingleValue(req.query?.contentType || '').toLowerCase();
+  const fileSize = Number(req.query?.fileSize || 0);
+
+  if (!eventId) {
+    return res.status(400).json({ error: 'eventId required' });
+  }
+
+  if (!['hero', 'gallery'].includes(type)) {
+    return res.status(400).json({ error: 'type must be hero or gallery' });
+  }
+
+  if (!Object.keys(MIME_EXTENSION_MAP).includes(contentType)) {
+    return res.status(400).json({ error: 'Unsupported file type' });
+  }
+
+  const ownedEvent = await resolveOwnedEventFromRequest(req, eventId);
+  if (!ownedEvent.ok) {
+    return res.status(ownedEvent.status).json({ error: ownedEvent.error });
+  }
+
+  const storageRoot = getEventStorageRoot(ownedEvent.event, eventId);
+  const storage = ownedEvent.supabase.storage.from('event-media');
+
+  if (type === 'gallery') {
+    const plan = await getUserPlan(ownedEvent.supabase, ownedEvent.user.id);
+    const isPremium = plan === 'premium';
+    const countLimit = isPremium ? GALLERY_COUNT_LIMIT_PREMIUM : GALLERY_COUNT_LIMIT_FREE;
+    const sizeLimitMB = isPremium ? GALLERY_SIZE_LIMIT_PREMIUM_MB : GALLERY_SIZE_LIMIT_FREE_MB;
+    const sizeLimitBytes = sizeLimitMB * 1024 * 1024;
+    const existing = await loadGalleryEntries(storage, storageRoot);
+
+    if (existing.length >= countLimit) {
+      return res.status(403).json({
+        error: `Limite de ${countLimit} fotos na galeria atingido. Remova fotos antes de enviar novas.`,
+        upgrade_required: !isPremium,
+      });
+    }
+
+    const usedBytes = existing.reduce((sum, entry) => sum + (Number(entry.metadata?.size) || 0), 0);
+    const incomingBytes = Number.isFinite(fileSize) ? Math.max(0, Math.round(fileSize)) : 0;
+    if (usedBytes + incomingBytes > sizeLimitBytes) {
+      const usedMB = (usedBytes / 1024 / 1024).toFixed(1);
+      return res.status(403).json({
+        error: `Limite de ${sizeLimitMB} MB da galeria atingido (${usedMB} MB em uso). Remova fotos antes de enviar novas.`,
+        upgrade_required: !isPremium,
+      });
+    }
+  }
+
+  const storagePath = buildSignedUploadStoragePath(storageRoot, type, fileName, contentType);
+
+  if (type === 'hero') {
+    await removeOtherFilesInFolder(storage, `${storageRoot}/hero`, '__pending-upload__');
+  }
+
+  const { data, error } = await storage.createSignedUploadUrl(storagePath);
+  if (error) {
+    throw error;
+  }
+
+  const { data: publicData } = storage.getPublicUrl(storagePath);
+
+  return res.status(200).json({
+    eventId: ownedEvent.event.id,
+    storageRoot,
+    type,
+    path: storagePath,
+    token: data?.token || '',
+    signedUrl: data?.signedUrl || '',
+    url: publicData?.publicUrl || '',
+  });
+}
+
 export default async function handler(req, res) {
   setCorsHeaders(res);
 
@@ -427,6 +530,11 @@ export default async function handler(req, res) {
 
   try {
     if (req.method === 'GET') {
+      const action = getSingleValue(req.query?.action);
+      if (action === 'signed-upload') {
+        return handleSignedUploadRequest(req, res);
+      }
+
       const eventId = getSingleValue(req.query?.eventId);
       const type = getSingleValue(req.query?.type || 'gallery');
       if (type === 'songs') {
