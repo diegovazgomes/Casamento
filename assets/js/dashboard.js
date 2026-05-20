@@ -2759,11 +2759,15 @@ function bindMediaFileSelectionMeta() {
   });
 }
 
-// Comprime imagens acima de 3 MB antes de enviar para ficar dentro do limite do Vercel (4.5 MB).
+// Comprime imagens antes de enviar para ficar dentro do limite do Vercel (4.5 MB).
+// Para JPEG: sempre passa pela canvas porque iOS pode reportar o file.size do HEIC
+// original (menor) mas transmitir o JPEG convertido (maior) — o que causa 413 no Vercel.
+// Para PNG/WebP: comprime apenas se acima de 3 MB.
 async function compressImageForUpload(file, maxBytes = 3 * 1024 * 1024) {
-  if (!file || file.size <= maxBytes || !/^image\/(jpeg|png|webp)$/i.test(file.type)) {
-    return file;
-  }
+  if (!file || !/^image\/(jpeg|png|webp)$/i.test(file.type)) return file;
+
+  const isJpeg = /^image\/jpeg$/i.test(file.type);
+  if (!isJpeg && file.size <= maxBytes) return file;
 
   return new Promise((resolve) => {
     const img = new Image();
