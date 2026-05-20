@@ -1217,6 +1217,8 @@
 .traje-swatch-item .traje-swatch {
     width: 48px;
     height: 48px;
+    min-width: 0;
+    aspect-ratio: 1 / 1;
 }
 
 .traje-swatch-label {

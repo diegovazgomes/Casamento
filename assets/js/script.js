@@ -745,9 +745,24 @@ class InvitationExperience {
         window.addEventListener('pagehide', () => {
             if (this.audio && !this.audio.userPaused) {
                 this.audio.pause();
-                // Sinaliza para o pageshow que o áudio foi pausado pela navegação,
-                // não pelo usuário, para poder retomar ao voltar.
                 try { sessionStorage.setItem('audio-nav-paused', '1'); } catch { /* silent */ }
+            }
+        });
+
+        // Pausa ao minimizar o navegador ou trocar de aba; retoma ao voltar
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'hidden') {
+                if (this.audio && !this.audio.userPaused) {
+                    this.audio.pause();
+                    try { sessionStorage.setItem('audio-visibility-paused', '1'); } catch { /* silent */ }
+                }
+            } else if (document.visibilityState === 'visible') {
+                try {
+                    if (sessionStorage.getItem('audio-visibility-paused') === '1') {
+                        sessionStorage.removeItem('audio-visibility-paused');
+                        this.audio?.resume();
+                    }
+                } catch { /* silent */ }
             }
         });
 
