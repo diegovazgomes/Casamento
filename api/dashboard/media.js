@@ -2,6 +2,10 @@ import { readFile } from 'fs/promises';
 
 import formidable from 'formidable';
 
+// Desabilita o body parser do Next.js para que o formidable leia o stream bruto.
+// Sem isso o Next.js rejeita multipart com mais de 1 MB antes de chegar ao handler.
+export const config = { api: { bodyParser: false } };
+
 import {
   getUserPlan,
   requireOwnedEvent,
