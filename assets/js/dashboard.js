@@ -741,6 +741,71 @@ function applyPlanRestrictions(profile) {
       btn.disabled = true;
     });
   }
+
+  // ── Páginas: Mensagem ao Casal e Sugestão de Música — bloquear para free
+  ['mensagem', 'musica'].forEach(pageKey => {
+    const toggle = document.getElementById(`edPage_${pageKey}_enabled`);
+    if (toggle && !toggle.dataset.planLocked) {
+      toggle.disabled = true;
+      toggle.checked  = false;
+      toggle.dataset.planLocked = 'true';
+      const card = toggle.closest('.page-card');
+      if (card && !card.querySelector('.page-card-lock')) {
+        const lockEl = document.createElement('span');
+        lockEl.className = 'page-card-lock';
+        lockEl.innerHTML = '<button type="button" class="btn btn-subtle" style="padding:3px 8px;font-size:9px" onclick="handleUpgrade()">Premium</button>';
+        card.appendChild(lockEl);
+      }
+    }
+  });
+
+  // ── Traje: paleta das madrinhas/padrinhos e cores dos noivos — bloquear para free
+  const trajeBody = document.querySelector('#edSectionTraje .editor-section-body');
+  if (trajeBody && !trajeBody.querySelector('.premium-lock-palette')) {
+    const paletteBanner = document.createElement('div');
+    paletteBanner.className = 'premium-lock-banner premium-lock-palette';
+    paletteBanner.innerHTML = '<span>🔒 Paletas de cores disponíveis no plano Premium</span>'
+      + '<button type="button" class="btn btn-subtle" onclick="handleUpgrade()">Fazer upgrade</button>';
+    // Inserir antes do bloco "Paleta das madrinhas"
+    const paletteStart = document.getElementById('edAddBridesmaid')?.closest('div[style]');
+    if (paletteStart) {
+      paletteStart.parentNode.insertBefore(paletteBanner, paletteStart);
+    } else {
+      trajeBody.appendChild(paletteBanner);
+    }
+    ['edAddBridesmaid','edAddGroomsman',
+     'edBrideColorPicker','edBrideColorHex','edBrideColorName',
+     'edGroomColorPicker','edGroomColorHex','edGroomColorName'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.disabled = true;
+    });
+  }
+
+  // ── Presentes: Cartão de crédito — bloquear para free
+  const cardBlock = document.getElementById('giftBlockCard');
+  if (cardBlock && !cardBlock.querySelector('.premium-lock-banner')) {
+    const cardBanner = document.createElement('div');
+    cardBanner.className = 'premium-lock-banner';
+    cardBanner.innerHTML = '<span>🔒 Link de pagamento por cartão disponível no plano Premium</span>'
+      + '<button type="button" class="btn btn-subtle" onclick="handleUpgrade()">Fazer upgrade</button>';
+    cardBlock.appendChild(cardBanner);
+    const cardInput  = document.getElementById('edGiftCardLink');
+    const cardToggle = document.getElementById('edGiftCardEnabled');
+    if (cardInput)  cardInput.disabled  = true;
+    if (cardToggle) cardToggle.disabled = true;
+  }
+
+  // ── Presentes: Lista externa — bloquear para free
+  const externalBlock = document.getElementById('giftBlockExternal');
+  if (externalBlock && !externalBlock.querySelector('.premium-lock-banner')) {
+    const extBanner = document.createElement('div');
+    extBanner.className = 'premium-lock-banner';
+    extBanner.innerHTML = '<span>🔒 Lista de presentes externa disponível no plano Premium</span>'
+      + '<button type="button" class="btn btn-subtle" onclick="handleUpgrade()">Fazer upgrade</button>';
+    externalBlock.appendChild(extBanner);
+    const externalToggle = document.getElementById('edExternalEnabled');
+    if (externalToggle) externalToggle.disabled = true;
+  }
 }
 
 function delay(ms) {
@@ -812,7 +877,7 @@ async function handleUpgrade() {
     }
 
     if (data.url) {
-      window.location.href = data.url;
+      window.open(data.url, '_blank', 'noopener,noreferrer');
     }
   } catch (err) {
     alert(err.message || 'Erro ao iniciar pagamento. Tente novamente.');
@@ -881,13 +946,22 @@ function showAuthError(message) {
   authError.style.display = 'block';
 }
 
+function hideDashInitLoading() {
+  const el = document.getElementById('dashInitLoading');
+  if (!el) return;
+  el.style.opacity = '0';
+  setTimeout(() => { if (el.parentNode) el.remove(); }, 420);
+}
+
 function showAuthScreen() {
+  hideDashInitLoading();
   authScreen.style.display = 'flex';
   dashboardScreen.style.display = 'none';
   dashboardScreen.classList.remove('is-active');
 }
 
 function showDashboard() {
+  hideDashInitLoading();
   authScreen.style.display = 'none';
   dashboardScreen.style.display = '';
   dashboardScreen.classList.add('is-active');
@@ -3946,13 +4020,13 @@ function renderCatalogItems() {
     <div class="catalog-item">
       <input type="text" class="field-input emoji-input" value="${escapeHtml(item.icon || '💛')}"
              placeholder="😊" title="Emoji do presente"
-             oninput="updateCatalogItem(${i},'icon',this.value)">
+             onchange="updateCatalogItem(${i},'icon',this.value)">
       <input type="text" class="field-input sm" value="${escapeHtml(item.name || '')}"
              placeholder="Descrição do presente"
-             oninput="updateCatalogItem(${i},'name',this.value)">
+             onchange="updateCatalogItem(${i},'name',this.value)">
       <input type="number" class="field-input sm" value="${item.amount ?? ''}"
-             min="0" step="10" placeholder="Valor (R$)"
-             oninput="updateCatalogItem(${i},'amount',Number(this.value))">
+             min="0" step="1" placeholder="Valor (R$)"
+             onchange="updateCatalogItem(${i},'amount',Number(this.value))">
       <button type="button" class="btn-icon-sm" onclick="removeCatalogItem(${i})" aria-label="Remover item">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
           <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
@@ -3979,8 +4053,6 @@ function updateCatalogItem(index, field, value) {
   if (editorState.catalogItems[index]) {
     editorState.catalogItems[index][field] = value;
     markEditorDirty();
-    // Renderiza imediatamente para feedback visual
-    renderCatalogItems();
   }
 }
 
@@ -4464,6 +4536,19 @@ async function saveEditorConfig(silent = false) {
 
   if (!state.eventId) {
     if (!silent) updateEditorSaveStatus('Evento não carregado — recarregue o dashboard');
+    return false;
+  }
+
+  // Validar chave Pix — rejeitar links/URLs para evitar burla de pagamento externo
+  const pixKeyVal = (config.gift?.pixKey || '').trim();
+  if (pixKeyVal && /^https?:\/\//i.test(pixKeyVal)) {
+    const pixField = document.getElementById('edGiftPixKey');
+    if (pixField) {
+      pixField.classList.add('field-error');
+      pixField.focus();
+      pixField.addEventListener('input', () => pixField.classList.remove('field-error'), { once: true });
+    }
+    if (!silent) updateEditorSaveStatus('Chave Pix inválida — não é permitido inserir links. Use CPF, e-mail, telefone ou chave aleatória.');
     return false;
   }
 
@@ -5210,7 +5295,15 @@ async function _saveWizard() {
     if (data?.event?.id) {
       state.eventId = data.event.id;
     }
-    syncPreviewInviteLink(data?.event?.slug || slugValue);
+    const resolvedSlug = data?.event?.slug || slugValue;
+    syncPreviewInviteLink(resolvedSlug);
+
+    // Mostrar botão "Ver convite" direto na etapa 5 para evitar dúvida sobre onde achar o link
+    const wzInviteLink = document.getElementById('wzInviteLink');
+    if (wzInviteLink && resolvedSlug) {
+      wzInviteLink.href = `${window.location.origin}/${encodeURIComponent(resolvedSlug)}`;
+      wzInviteLink.style.display = '';
+    }
 
     if (data.config) {
       window.__SITE_CONFIG__ = data.config;

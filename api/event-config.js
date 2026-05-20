@@ -482,9 +482,11 @@ export default async function handler(req, res) {
       if (!mappedConfig.pages.mensagem) mappedConfig.pages.mensagem = {};
       if (!mappedConfig.pages.musica)   mappedConfig.pages.musica   = {};
       if (!mappedConfig.pages.traje)    mappedConfig.pages.traje    = {};
+      // Mensagem e Música: ocultos completamente no free
       mappedConfig.pages.mensagem.enabled = false;
       mappedConfig.pages.musica.enabled   = false;
-      mappedConfig.pages.traje.enabled    = false;
+      // Traje: card visível no convite free, mas link bloqueado (só abre no premium)
+      mappedConfig.pages.traje.linkLocked = true;
 
       // Bloquear cartão e lista externa no free
       if (!mappedConfig.gift) mappedConfig.gift = {};

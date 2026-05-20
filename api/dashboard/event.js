@@ -520,6 +520,12 @@ export default async function handler(req, res) {
       );
     }
 
+    // Validar chave Pix — rejeitar URLs para evitar burla de pagamento externo
+    const incomingPixKey = sanitizedIncomingConfig.gift?.pixKey;
+    if (incomingPixKey && /^https?:\/\//i.test(String(incomingPixKey).trim())) {
+      return res.status(400).json({ error: 'Chave Pix inválida — links não são permitidos. Use CPF, e-mail, telefone ou chave aleatória.' });
+    }
+
     console.log('[dashboard/event] PATCH received:', {
       eventId: ownedEvent.event.id,
       slug: ownedEvent.event.slug,
@@ -626,7 +632,8 @@ export default async function handler(req, res) {
         if (fetchErr) {
           console.warn('[dashboard/event] Falha ao buscar event_gifts catalog:', fetchErr);
         } else {
-          const targetRow = (catalogRows || []).find(r => r.config?.key === catalogKey);
+          const targetRow = (catalogRows || []).find(r => r.config?.key === catalogKey)
+            ?? (catalogRows || [])[0]; // fallback: atualiza o único row de catálogo mesmo sem key correspondente
           if (targetRow) {
             const updatedConfig = Object.assign({}, targetRow.config, catalogConfig);
             const { error: updateErr } = await ownedEvent.supabase

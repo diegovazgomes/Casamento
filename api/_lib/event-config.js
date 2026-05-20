@@ -239,8 +239,11 @@ function mapGiftConfig(giftRecords, baseGiftConfig) {
     }
 
     if (giftRecord?.type === 'catalog') {
-      const catalogKey = resolveCatalogKey(config, index);
-      catalogLists[catalogKey] = mergeDeep(config, { enabled: Boolean(giftRecord.enabled) });
+      // Prefer the key stored in the row config; fall back to the active key already
+      // recorded in the base gift config (covers rows created before key support was added).
+      const enrichedConfig = config.key ? config : { ...config, key: gift.activeCatalogKey || gift.catalogs?.activeKey || config.key };
+      const catalogKey = resolveCatalogKey(enrichedConfig, index);
+      catalogLists[catalogKey] = mergeDeep(enrichedConfig, { enabled: Boolean(giftRecord.enabled) });
     }
   });
 

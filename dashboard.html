@@ -1803,6 +1803,21 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
 </head>
 <body>
 
+<!-- ══ DASHBOARD INITIAL LOADING ════════════════════════════════════════ -->
+<div id="dashInitLoading" style="
+  position:fixed;inset:0;z-index:9999;
+  background:var(--bg,#0f0d0b);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;
+  transition:opacity 0.4s ease;
+">
+  <svg width="120" height="38" viewBox="0 0 340 108" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Devazi" style="opacity:.9">
+    <rect class="brand-frame-bg"   x="2" y="2" width="336" height="104" rx="14" ry="14" fill="none" stroke="rgba(192,192,192,0.18)" stroke-width="1.5"/>
+    <rect class="brand-frame-beam" x="2" y="2" width="336" height="104" rx="14" ry="14" fill="none" stroke="rgba(192,192,192,0.45)" stroke-width="1.5" stroke-dasharray="900" stroke-dashoffset="900" style="animation:dash-beam 1.8s ease forwards"/>
+    <text x="170" y="68" text-anchor="middle" font-family="'Cormorant Garamond',serif" font-weight="300" font-size="52" letter-spacing="10" fill="rgba(250,247,242,0.92)">Devazi</text>
+  </svg>
+  <style>@keyframes dash-beam{to{stroke-dashoffset:0}}</style>
+</div>
+
 <!-- ══ LOGIN LOADING ═════════════════════════════════════════════════════ -->
 <div class="login-loading-screen" id="loginLoadingScreen" hidden>
   <div class="login-loading-shell" role="status" aria-live="polite" aria-atomic="true">
@@ -1988,7 +2003,9 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
           </div>
         </div>
       </div>
-      <div class="wizard-footer-step4">
+      <div class="wizard-footer-step4" style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center">
+        <a id="wzInviteLink" href="#" target="_blank" rel="noopener noreferrer"
+           class="btn btn-subtle" style="display:none">Ver convite</a>
         <button class="btn btn-primary" id="wzCloseBtn" type="button">Ir para o painel</button>
       </div>
     </div>

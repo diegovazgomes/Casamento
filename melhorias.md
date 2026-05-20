@@ -130,3 +130,16 @@
 #### Sequência sugerida
 
 [x] - Fase A → Fase B → Fase C → Fase D (A e B podem rodar em paralelo)
+
+
+[] Tela de carregamento rápido dashboard
+[] Ao sair do wizard e tentar abrir o convite ele não carrega, se atualiza a página ele aparece a tela de carregamento mas não abre, se volta para dashboard e abre denovo, ai funciona
+[] Botões de ir para upgrade devem abrir nova guia, não ir na mesma 
+[] Opção de inserir link de pagamento via cartão de crédito está aparecendo no dashboard para free (deve conter cadeado e instrução de upgrade)
+[] Campo de chave pix deve monitorar se é link e restringir input, para evitar burla de usuário
+[] Input de preço ao alterar item da lista de presente tá bugado, você põe um numero e tem que ficar clicando novamente para dar certo
+[] Ao mudar o valor de algum item na lista de presentes ele altera no banco, mas não muda no convite, verificar funcionamento completo deste recurso, possívelmente hardcode no present.html ou .js
+[] Opção de traje fica desbloqueado no plano free para edição. Quero o seguinte no convite esse box deve aparecer no convite normalmente, mas não abre outra página para ver as paletas dos padrinhos, isso deve ser premium, então no dashboard da para editar o traje, mas não a palete entre free e premium
+[] As páginas extras todas podem ser vistas no plano free, estão bloqueadas apenas no convite em si, mas precisamos bloquear no dashboar e por CTA de upgrade
+
+

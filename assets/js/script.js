@@ -1318,9 +1318,13 @@ class InvitationExperience {
             presente: 'presente.html'
         };
 
-        const enabledPages = PAGE_ORDER.filter((key) => pages[key]?.enabled === true);
+        // linkLocked pages appear in the grid but are not clickable (premium preview)
+        const visiblePages = PAGE_ORDER.filter((key) => {
+            const p = pages[key];
+            return p?.enabled === true || p?.linkLocked === true;
+        });
 
-        if (enabledPages.length === 0) {
+        if (visiblePages.length === 0) {
             return;
         }
 
@@ -1329,8 +1333,15 @@ class InvitationExperience {
             extrasDivider.hidden = false;
         }
 
-        grid.innerHTML = enabledPages.map((key) => {
+        grid.innerHTML = visiblePages.map((key) => {
             const page = pages[key];
+            if (page?.linkLocked) {
+                const dresscode = page.content?.dresscode ? `<span class="extras-card-hint">${page.content.dresscode}</span>` : `<span class="extras-card-hint">${page.cardHint ?? ''}</span>`;
+                return `<div class="extras-card extras-card--locked" aria-label="${page.cardLabel ?? ''} — disponível no plano Premium">
+                    <span class="extras-card-label">${page.cardLabel ?? ''}</span>
+                    ${dresscode}
+                </div>`;
+            }
             const url = buildInternalUrl(PAGE_URLS[key], this.guestToken);
             return `<a class="extras-card" href="${url}">
                 <span class="extras-card-label">${page.cardLabel ?? ''}</span>
