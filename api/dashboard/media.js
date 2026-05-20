@@ -7,8 +7,8 @@ import {
   requireOwnedEvent,
 } from '../_lib/dashboard-auth.js';
 
-const GALLERY_LIMIT_FREE = 3;
-const GALLERY_LIMIT_PREMIUM = 7;
+const GALLERY_SIZE_LIMIT_FREE_MB    = 10;
+const GALLERY_SIZE_LIMIT_PREMIUM_MB = 30;
 
 const MIME_EXTENSION_MAP = {
   'image/jpeg': 'jpg',
@@ -484,16 +484,20 @@ export default async function handler(req, res) {
       return res.status(ownedEvent.status).json({ error: ownedEvent.error });
     }
 
-    // Verificar limite de galeria por plano
+    // Verificar limite de galeria por tamanho (MB)
     if (type === 'gallery') {
       const plan = await getUserPlan(ownedEvent.supabase, ownedEvent.user.id);
-      const limit = plan === 'premium' ? GALLERY_LIMIT_PREMIUM : GALLERY_LIMIT_FREE;
+      const limitMB = plan === 'premium' ? GALLERY_SIZE_LIMIT_PREMIUM_MB : GALLERY_SIZE_LIMIT_FREE_MB;
+      const limitBytes = limitMB * 1024 * 1024;
       const storageRootCheck = getEventStorageRoot(ownedEvent.event, eventId);
       const storage = ownedEvent.supabase.storage.from('event-media');
       const existing = await loadGalleryEntries(storage, storageRootCheck);
-      if (existing.length >= limit) {
+      const usedBytes = existing.reduce((sum, entry) => sum + (Number(entry.metadata?.size) || 0), 0);
+      const newFileBytes = Number(file.size) || 0;
+      if (usedBytes + newFileBytes > limitBytes) {
+        const usedMB = (usedBytes / 1024 / 1024).toFixed(1);
         return res.status(403).json({
-          error: `Limite de ${limit} ${plan === 'premium' ? '' : '(plano free) '}fotos na galeria atingido.`,
+          error: `Limite de ${limitMB} MB da galeria atingido (${usedMB} MB em uso). Remova fotos antes de enviar novas.`,
           upgrade_required: plan !== 'premium',
         });
       }
