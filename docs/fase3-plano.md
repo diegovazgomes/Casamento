@@ -2,16 +2,7 @@
 
 ## Definição dos planos
 
-| Feature | Free | Premium (R$187) |
-|---|---|---|
-| Tema | classic-gold fixo | Todos os temas e layouts |
-| Convidados | Até 50, sem grupos | Ilimitado + grupos personalizados |
-| Páginas extras | Todas | Todas |
-| Foto do casal | ✓ | ✓ |
-| Galeria | Até 3 fotos | Até 5 fotos |
-| Áudio | ✗ | ✓ |
-| Tela de entrada | Logo devazi + botão abrir | Experiência premium (ver abaixo) |
-| Marca d'água | Rodapé "Criado com devazi.com.br" | ✗ |
+- Observar free_premium.md
 
 ---
 
@@ -142,7 +133,7 @@ Bloqueio em **duas camadas**:
 
 ### 5. Bloqueio de grupos (free)
 - [x] `api/dashboard/guest-groups.js` recusa `POST` com 403 quando `plan = 'free'`
-- [ ] Dashboard oculta/bloqueia botão "Novo grupo" para free com CTA de upgrade
+- [x] Dashboard oculta/bloqueia botão "Novo grupo" para free com CTA de upgrade (`applyPlanRestrictions()` em `dashboard.js`)
 
 ### 6. Limite de 50 convidados (free)
 - [x] `api/submissions.js` conta RSVPs via `checkRsvpLimit()` antes de inserir
@@ -152,11 +143,26 @@ Bloqueio em **duas camadas**:
 ### 7. Limite de galeria
 - [x] `api/dashboard/media.js` conta imagens existentes antes do upload
 - [x] Free: recusa acima de 3 imagens (`GALLERY_LIMIT_FREE = 3`)
-- [x] Premium: recusa acima de 5 imagens (`GALLERY_LIMIT_PREMIUM = 5`)
+- [x] Premium: recusa acima de 7 imagens (`GALLERY_LIMIT_PREMIUM = 7`) — corrigido de 5 para alinhar com `free_premium.md`
 
 ### 8. Áudio bloqueado no free
 - [x] `api/dashboard/event.js` remove `media.tracks` no PATCH quando `plan !== 'premium'`
-- [ ] Dashboard bloqueia seção de áudio para free com CTA de upgrade
+- [x] Dashboard bloqueia seção de áudio para free com CTA de upgrade (`applyPlanRestrictions()` em `dashboard.js`)
+
+### 12. Páginas premium no backend (novo)
+- [x] `api/event-config.js` força `pages.mensagem.enabled = false` para free
+- [x] `api/event-config.js` força `pages.musica.enabled = false` para free
+- [x] `api/event-config.js` força `pages.traje.enabled = false` para free
+- [x] `api/event-config.js` força `gift.cardPaymentEnabled = false` para free
+- [x] `api/event-config.js` remove `gift.cardPaymentLink` e desabilita `gift.external` para free
+
+### 13. Página traje (novo)
+- [x] `traje.html` criada seguindo padrão das outras páginas extras
+- [x] `assets/js/traje.js` criado com `initExtraPage({ pageKey: 'traje' })`
+- [x] `assets/js/script.js` → `setPages()` inclui `traje` em `PAGE_ORDER` e `PAGE_URLS`
+- [x] CSS de traje (`.extra-info-card`, `.traje-swatch`, `.traje-palette`) adicionado em `layout.css`
+- [x] `assets/config/site.json` e `defaults/site.json` já continham entrada `traje` com `enabled: true`
+- [x] Backend força `enabled: false` para free (item 12 acima)
 
 ### 9. Correções de UI/UX do dashboard e convite
 - [x] Layout "modern" oculto do `<select>` de layout no dashboard (`dashboard.html`) — estava quebrado e visível para o usuário
@@ -187,16 +193,10 @@ Bloqueio em **duas camadas**:
 
 ## Próximos passos (por prioridade)
 
-### A — Landing (desbloqueio comercial)
-1. Exibir Premium e padronizar preço para R$ 187.
-2. Remover textos de "em breve" e manter copy de compra ativa.
-3. Revisar CTA para fluxo cadastro/login -> dashboard upgrade.
+### A — Landing (desbloqueio comercial) ✅ Concluído
 
-### B — Frontend: CTAs de bloqueio no dashboard (itens 4, 5, 8)
-Usuários free ainda têm fricção confusa em recursos premium. Implementar:
-1. Seleção de tema: desabilitar temas non-free + botão "Disponível no Premium".
-2. Botão "Novo grupo": desabilitar + tooltip/CTA de upgrade.
-3. Seção de áudio: desabilitar campos + mensagem de upgrade.
+### B — Frontend: CTAs de bloqueio no dashboard ✅ Concluído
+`applyPlanRestrictions()` em `dashboard.js` cobre tema, grupos e áudio.
 
 ### C — Stripe em produção
 Depende de MEI ativo. Quando disponível:
