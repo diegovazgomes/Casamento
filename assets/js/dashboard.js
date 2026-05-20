@@ -2297,6 +2297,8 @@ function loadEditorTab() {
 
   // Páginas extras
   renderPagesGrid(config.pages || {});
+  // Aplica restrições de plano APÓS o grid ser criado (os toggles não existem antes disso)
+  applyPlanRestrictions(state.userProfile);
 
   // Capítulos de Nossa História
   const _chapters = config.pages?.historia?.content?.chapters || [];
