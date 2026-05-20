@@ -741,10 +741,29 @@ class InvitationExperience {
 
         window.addEventListener('beforeunload', () => this.countdown?.stop(), { once: true });
 
+        // Pausa o áudio ao sair da página (cobre navegações normais e bfcache)
+        window.addEventListener('pagehide', () => {
+            if (this.audio && !this.audio.userPaused) {
+                this.audio.pause();
+                // Sinaliza para o pageshow que o áudio foi pausado pela navegação,
+                // não pelo usuário, para poder retomar ao voltar.
+                try { sessionStorage.setItem('audio-nav-paused', '1'); } catch { /* silent */ }
+            }
+        });
+
         // Detecta restauração via bfcache (botão voltar do browser após redirect)
-        // e bloqueia o formulário se o convidado já confirmou nesta sessão.
         window.addEventListener('pageshow', (event) => {
-            if (event.persisted && this.rsvp?.wasAlreadySubmittedThisSession()) {
+            if (!event.persisted) return;
+
+            // Retoma o áudio se foi pausado pela navegação (não pelo usuário)
+            try {
+                if (sessionStorage.getItem('audio-nav-paused') === '1') {
+                    sessionStorage.removeItem('audio-nav-paused');
+                    this.audio?.resume();
+                }
+            } catch { /* silent */ }
+
+            if (this.rsvp?.wasAlreadySubmittedThisSession()) {
                 this.rsvp.showSlotCounter();
                 this.rsvp.blockForm();
             }
