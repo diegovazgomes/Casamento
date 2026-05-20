@@ -67,48 +67,67 @@ function initLeafletMap(event) {
         return;
     }
 
-    // Duplo rAF garante que o browser calculou o layout do container
-    // antes de o Leaflet tentar medir suas dimensões.
-    requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-            const map = L.map('map').setView(venueLocation, 15);
+    const mapEl = document.getElementById('map');
+    if (!mapEl) return;
 
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-                maxZoom: 19,
-            }).addTo(map);
+    function buildLeafletMap() {
+        if (mapInitialized) return;
+        mapInitialized = true;
 
-            const pinIcon = L.icon({
-                iconUrl: 'data:image/svg+xml,%3Csvg xmlns%3D"http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" viewBox%3D"0 0 24 24" fill%3D"%23737373"%3E%3Cpath d%3D"M12 0C7.58 0 4 3.58 4 8c0 5.25 8 16 8 16s8-10.75 8-16c0-4.42-3.58-8-8-8zm0 11c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3z"%2F%3E%3C%2Fsvg%3E',
-                iconSize: [32, 32],
-                iconAnchor: [16, 32],
-                popupAnchor: [0, -34],
-            });
+        const map = L.map('map').setView(venueLocation, 15);
 
-            const marker = L.marker(venueLocation, { icon: pinIcon, title: venueName }).addTo(map);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+            maxZoom: 19,
+        }).addTo(map);
 
-            const popup = L.popup({ closeButton: false }).setContent(
-                `<div class="map-popup">` +
-                `<strong class="map-popup-name">${venueName}</strong>` +
-                `<p class="map-popup-address">${venueAddress}</p>` +
-                `<a class="map-popup-link" href="${mapsLink}" target="_blank" rel="noopener noreferrer">Abrir no Google Maps</a>` +
-                `</div>`
-            );
-
-            marker.bindPopup(popup).openPopup();
-
-            L.circle(venueLocation, {
-                color: '#737373',
-                fillColor: '#a6a6a6',
-                fillOpacity: 0.15,
-                radius: 400,
-                interactive: false,
-            }).addTo(map);
-
-            map.invalidateSize();
-            mapInitialized = true;
+        const pinIcon = L.icon({
+            iconUrl: 'data:image/svg+xml,%3Csvg xmlns%3D"http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" viewBox%3D"0 0 24 24" fill%3D"%23737373"%3E%3Cpath d%3D"M12 0C7.58 0 4 3.58 4 8c0 5.25 8 16 8 16s8-10.75 8-16c0-4.42-3.58-8-8-8zm0 11c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3z"%2F%3E%3C%2Fsvg%3E',
+            iconSize: [32, 32],
+            iconAnchor: [16, 32],
+            popupAnchor: [0, -34],
         });
-    });
+
+        const marker = L.marker(venueLocation, { icon: pinIcon, title: venueName }).addTo(map);
+
+        const popup = L.popup({ closeButton: false }).setContent(
+            `<div class="map-popup">` +
+            `<strong class="map-popup-name">${venueName}</strong>` +
+            `<p class="map-popup-address">${venueAddress}</p>` +
+            `<a class="map-popup-link" href="${mapsLink}" target="_blank" rel="noopener noreferrer">Abrir no Google Maps</a>` +
+            `</div>`
+        );
+
+        marker.bindPopup(popup).openPopup();
+
+        L.circle(venueLocation, {
+            color: '#737373',
+            fillColor: '#a6a6a6',
+            fillOpacity: 0.15,
+            radius: 400,
+            interactive: false,
+        }).addTo(map);
+
+        map.invalidateSize();
+    }
+
+    // Aguarda o container ter dimensões reais antes de inicializar o Leaflet.
+    // ResizeObserver é mais confiável que rAF porque dispara após o layout ser calculado.
+    const rect = mapEl.getBoundingClientRect();
+    if (rect.width > 0 && rect.height > 0) {
+        buildLeafletMap();
+    } else if (typeof ResizeObserver !== 'undefined') {
+        const ro = new ResizeObserver((entries, obs) => {
+            const r = entries[0]?.contentRect;
+            if (r && r.width > 0 && r.height > 0) {
+                obs.disconnect();
+                buildLeafletMap();
+            }
+        });
+        ro.observe(mapEl);
+    } else {
+        requestAnimationFrame(() => requestAnimationFrame(buildLeafletMap));
+    }
 }
 
 window.addEventListener('app:ready', ({ detail }) => {

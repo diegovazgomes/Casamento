@@ -2753,16 +2753,54 @@ function bindMediaFileSelectionMeta() {
   });
 }
 
+// Comprime imagens acima de 3 MB antes de enviar para ficar dentro do limite do Vercel (4.5 MB).
+async function compressImageForUpload(file, maxBytes = 3 * 1024 * 1024) {
+  if (!file || file.size <= maxBytes || !/^image\/(jpeg|png|webp)$/i.test(file.type)) {
+    return file;
+  }
+
+  return new Promise((resolve) => {
+    const img = new Image();
+    const objectUrl = URL.createObjectURL(file);
+
+    img.onload = () => {
+      URL.revokeObjectURL(objectUrl);
+      const canvas = document.createElement('canvas');
+      canvas.width = img.naturalWidth;
+      canvas.height = img.naturalHeight;
+      canvas.getContext('2d').drawImage(img, 0, 0);
+
+      const tryQuality = (q) => {
+        canvas.toBlob((blob) => {
+          if (!blob) { resolve(file); return; }
+          if (blob.size <= maxBytes || q <= 0.3) {
+            resolve(new File([blob], file.name.replace(/\.[^.]+$/, '.jpg'), { type: 'image/jpeg' }));
+          } else {
+            tryQuality(q - 0.15);
+          }
+        }, 'image/jpeg', q);
+      };
+
+      tryQuality(0.82);
+    };
+
+    img.onerror = () => { URL.revokeObjectURL(objectUrl); resolve(file); };
+    img.src = objectUrl;
+  });
+}
+
 async function uploadMediaFile(type, file, options = {}) {
+  const compressed = await compressImageForUpload(file);
+
   if (type === 'hero') {
-    return uploadMediaFileViaApi(type, file, options);
+    return uploadMediaFileViaApi(type, compressed, options);
   }
 
   try {
-    return await uploadMediaFileDirect(type, file, options);
+    return await uploadMediaFileDirect(type, compressed, options);
   } catch (directUploadError) {
     // Fallback de compatibilidade para projetos sem policy de upload direto no bucket.
-    return uploadMediaFileViaApi(type, file, options, directUploadError);
+    return uploadMediaFileViaApi(type, compressed, options, directUploadError);
   }
 }
 
