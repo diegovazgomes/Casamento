@@ -126,6 +126,7 @@ async function handleCheckout(req, res, rawBody) {
 
   const session = await stripe.checkout.sessions.create({
     mode: 'payment',
+    payment_method_types: ['card', 'pix'],
     customer: stripeCustomerId,
     line_items: [{ price: priceId, quantity: 1 }],
     success_url: `${appUrl}/dashboard.html?payment=success`,
