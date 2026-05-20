@@ -1485,8 +1485,11 @@ async function bootstrap() {
         if (!experience.hasStarted) {
             // Primeira visita → loading screen é o ponto de entrada para ambos os planos
             markBootstrapComplete();
-            const onOpen = async () => {
-                const audioPromise = experience.isAudioEnabled()
+            let inviteOpened = false;
+            const onOpen = async (fromGesture = false) => {
+                if (inviteOpened) return;
+                inviteOpened = true;
+                const audioPromise = fromGesture && experience.isAudioEnabled()
                     ? experience.audio.startFromGesture(experience.getInitialAudioContext())
                     : null;
                 experience.enterInvitation({ skipIntro: true, audioPromise });
@@ -1497,10 +1500,20 @@ async function bootstrap() {
                     coupleNames: config.couple?.names || '',
                     label: config.texts?.introLabel || '',
                     subtitle: config.couple?.subtitle || config.texts?.intro || '',
-                    onOpen,
+                    onOpen: () => onOpen(true),
                 });
             } else {
-                showFreeInviteButton(onOpen);
+                showFreeInviteButton(() => onOpen(true));
+                // Se a fase brand estiver oculta (couple phase ativa em visitas
+                // subsequentes), o botão fica invisível — abre automaticamente.
+                // Na fase brand (primeira visita) define um fallback de 9s caso o
+                // usuário não interaja com o botão.
+                const brandPhase = document.getElementById('loadingPhaseBrand');
+                if (!brandPhase || brandPhase.hidden) {
+                    onOpen(false);
+                } else {
+                    setTimeout(() => onOpen(false), 9000);
+                }
             }
         } else {
             // Retornando → esconde loading, convite já aberto
