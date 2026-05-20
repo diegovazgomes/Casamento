@@ -101,6 +101,9 @@ function initLeafletMap(event) {
         interactive: false,
     }).addTo(map);
 
+    // Recalcula dimensões após a seção sair do hidden (display:none → visível)
+    setTimeout(() => map.invalidateSize(), 100);
+
     mapInitialized = true;
 }
 
