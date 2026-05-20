@@ -26,6 +26,7 @@ const DASHBOARD_PAYMENT_SYNC_PENDING_KEY = 'dashboard-payment-sync-pending';
 
 let dashboardSupabaseClientPromise = null;
 let loginLoadingHideTimer = null;
+let loginLoadingStartTime = 0;
 let galleryOrderSaveTimer = null;
 
 function redirectRecoveryCallbackToResetPage() {
@@ -342,6 +343,7 @@ async function handleAuth(event) {
     }
     loginLoadingScreen.classList.remove('is-hiding');
     loginLoadingScreen.removeAttribute('hidden');
+    loginLoadingStartTime = Date.now();
   }
   setLoginLoadingProgress(0);
 
@@ -459,21 +461,25 @@ function setLoginLoadingProgress(percent) {
 
 function hideLoginLoadingScreen() {
   const loginLoadingScreen = document.getElementById('loginLoadingScreen');
-  if (!loginLoadingScreen) {
-    return;
-  }
+  if (!loginLoadingScreen) return;
 
   if (loginLoadingHideTimer) {
     clearTimeout(loginLoadingHideTimer);
     loginLoadingHideTimer = null;
   }
 
-  loginLoadingScreen.classList.add('is-hiding');
+  const MIN_DISPLAY_MS = 2000;
+  const elapsed = loginLoadingStartTime ? Date.now() - loginLoadingStartTime : MIN_DISPLAY_MS;
+  const waitMs = Math.max(0, MIN_DISPLAY_MS - elapsed);
+
   loginLoadingHideTimer = setTimeout(() => {
-    loginLoadingScreen.setAttribute('hidden', '');
-    loginLoadingScreen.classList.remove('is-hiding');
-    loginLoadingHideTimer = null;
-  }, 360);
+    loginLoadingScreen.classList.add('is-hiding');
+    loginLoadingHideTimer = setTimeout(() => {
+      loginLoadingScreen.setAttribute('hidden', '');
+      loginLoadingScreen.classList.remove('is-hiding');
+      loginLoadingHideTimer = null;
+    }, 360);
+  }, waitMs);
 }
 
 function normalizeDashboardAuthMessage(message) {

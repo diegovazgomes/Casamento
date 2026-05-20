@@ -5,6 +5,7 @@
  */
 
 let mapInitialized = false;
+let leafletMapInstance = null;
 let leafletLoadRetries = 0;
 const MAX_LEAFLET_RETRIES = 8;
 const LEAFLET_RETRY_DELAY_MS = 250;
@@ -74,7 +75,8 @@ function initLeafletMap(event) {
         if (mapInitialized) return;
         mapInitialized = true;
 
-        const map = L.map('map').setView(venueLocation, 15);
+        leafletMapInstance = L.map('map').setView(venueLocation, 15);
+        const map = leafletMapInstance;
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
@@ -109,6 +111,8 @@ function initLeafletMap(event) {
         }).addTo(map);
 
         map.invalidateSize();
+        setTimeout(() => leafletMapInstance?.invalidateSize(), 200);
+        setTimeout(() => leafletMapInstance?.invalidateSize(), 700);
     }
 
     // Aguarda o container ter dimensões reais antes de inicializar o Leaflet.
