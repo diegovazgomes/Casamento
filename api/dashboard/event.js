@@ -407,6 +407,9 @@ function setCorsHeaders(res) {
   res.setHeader('Access-Control-Allow-Methods', 'GET, PATCH, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   res.setHeader('Content-Type', 'application/json');
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
 }
 
 export default async function handler(req, res) {
@@ -456,7 +459,7 @@ export default async function handler(req, res) {
 
     const ownedEvent = await requireOwnedEvent(req, {
       lookup,
-      allowFallbackOwnedEvent: true,
+      allowFallbackOwnedEvent: false,
       selectClause: 'id,user_id,config,slug',
     });
 

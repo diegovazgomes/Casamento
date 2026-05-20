@@ -29,6 +29,36 @@ let loginLoadingHideTimer = null;
 let loginLoadingStartTime = 0;
 let galleryOrderSaveTimer = null;
 
+function clearDashboardSlugFromUrl() {
+  const currentUrl = new URL(window.location.href);
+  if (!currentUrl.searchParams.has('slug')) {
+    return;
+  }
+
+  currentUrl.searchParams.delete('slug');
+  const nextSearch = currentUrl.searchParams.toString();
+  const nextUrl = `${currentUrl.pathname}${nextSearch ? `?${nextSearch}` : ''}${currentUrl.hash}`;
+  history.replaceState(null, '', nextUrl);
+}
+
+function resetDashboardRuntimeContext() {
+  state.eventId = '';
+  state.eventSlug = null;
+  state.userProfile = null;
+  state.grupos = [];
+  state.confirmacoes = [];
+  state.allConfirmacoes = [];
+  state.mensagens = [];
+  state.musicas = [];
+  state.currentPage = 1;
+  state.editingGrupoId = null;
+  state.grupoModalMode = 'group';
+
+  window.__SITE_JSON__ = null;
+  window.__SITE_CONFIG__ = null;
+  window.__catalogType = 'honeymoon';
+}
+
 function redirectRecoveryCallbackToResetPage() {
   const currentUrl = new URL(window.location.href);
   const hashParams = new URLSearchParams(currentUrl.hash.startsWith('#') ? currentUrl.hash.slice(1) : currentUrl.hash);
@@ -299,7 +329,9 @@ function applySiteConfig(siteConfig) {
 
 async function hydrateDashboardEventContext() {
   const slugQuery = state.eventSlug ? `?slug=${encodeURIComponent(state.eventSlug)}` : '';
-  const response = await fetchWithAuth(`/api/dashboard/event${slugQuery}`);
+  const response = await fetchWithAuth(`/api/dashboard/event${slugQuery}`, {
+    cache: 'no-store',
+  });
   const data = await response.json();
 
   if (!response.ok) {
@@ -372,6 +404,9 @@ async function handleAuth(event) {
 
     // Limpar form
     authForm.reset();
+
+    // Garante que nenhum contexto da sessão anterior sobreviva ao novo login.
+    resetDashboardRuntimeContext();
 
     try {
       // Progresso 60% - carregando contexto do evento
@@ -636,7 +671,10 @@ async function getDashboardAccessToken() {
 
 async function clearDashboardSession() {
   state.authToken = null;
-  state.userProfile = null;
+
+  resetDashboardRuntimeContext();
+  clearDashboardSlugFromUrl();
+
   sessionStorage.removeItem(LEGACY_DASHBOARD_TOKEN_STORAGE_KEY);
   sessionStorage.removeItem(DASHBOARD_SUPABASE_STORAGE_KEY);
   sessionStorage.removeItem(DASHBOARD_ACCESS_TOKEN_STORAGE_KEY);
@@ -646,6 +684,9 @@ async function clearDashboardSession() {
     await supabase.auth.signOut();
   } catch (error) {
     console.warn('[dashboard] Não foi possível encerrar a sessão Supabase.', error);
+  } finally {
+    // Força novo client e novo estado de auth no próximo login.
+    dashboardSupabaseClientPromise = null;
   }
 }
 
