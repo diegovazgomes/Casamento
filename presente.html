@@ -879,9 +879,18 @@ function sanitizeCatalogItems(items = [], fallbackCategory = 'Lua de Mel') {
 function resolveActiveCatalog(giftConfig = {}) {
   const catalogsRoot = giftConfig?.catalogs;
   const lists = catalogsRoot?.lists;
-  // gift.catalog.key é definido pelo mapGiftConfig e é a fonte mais confiável do catálogo ativo
   const configuredActiveKey = giftConfig?.activeCatalogKey || catalogsRoot?.activeKey || giftConfig?.catalog?.key;
 
+  // gift.catalog is set by mapGiftConfig and always carries authoritative JSONB items.
+  // Prefer it when items exist — list entries in catalogs.lists may carry stale row items.
+  if (giftConfig?.catalog && typeof giftConfig.catalog === 'object') {
+    const cat = giftConfig.catalog;
+    if (Array.isArray(cat.items) && cat.items.length > 0) {
+      return { catalog: cat, catalogKey: configuredActiveKey || cat.key || 'honeymoon' };
+    }
+  }
+
+  // Fallback: resolve from catalogs.lists (metadata: key, title, subtitle, enabled)
   if (lists && typeof lists === 'object' && !Array.isArray(lists)) {
     const entries = Object.entries(lists).filter(([, value]) => value && typeof value === 'object');
 
@@ -894,9 +903,10 @@ function resolveActiveCatalog(giftConfig = {}) {
     }
   }
 
-  // Fallback: usa gift.catalog diretamente — já contém os itens do catálogo ativo via mapGiftConfig
+  // Last resort: use gift.catalog even if items are empty
   if (giftConfig?.catalog && typeof giftConfig.catalog === 'object') {
-    return { catalog: giftConfig.catalog, catalogKey: configuredActiveKey || giftConfig.catalog?.key || 'honeymoon' };
+    const cat = giftConfig.catalog;
+    return { catalog: cat, catalogKey: configuredActiveKey || cat.key || 'honeymoon' };
   }
 
   return { catalog: DEFAULT_CATALOGS.honeymoon, catalogKey: 'honeymoon' };

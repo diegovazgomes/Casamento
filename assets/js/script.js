@@ -1142,6 +1142,18 @@ class InvitationExperience {
             this.config.texts?.detailsOccasionValue
         );
 
+        // Free plan: traje card visible but not clickable — remove href and hint
+        if (this.config.pages?.traje?.linkLocked) {
+            const trajeCard = document.querySelector('.detail-card-traje');
+            if (trajeCard) {
+                trajeCard.removeAttribute('href');
+                trajeCard.style.cursor = 'default';
+                trajeCard.style.pointerEvents = 'none';
+                const hint = trajeCard.querySelector('.detail-link-hint');
+                if (hint) hint.hidden = true;
+            }
+        }
+
         const setLocationLink = (elementId, mapLink, locationName, fallbackLabel) => {
             const locationLink = document.getElementById(elementId);
             if (!locationLink || !mapLink) {
@@ -1307,24 +1319,19 @@ class InvitationExperience {
         }
 
         const pages = this.config.pages ?? {};
-        const PAGE_ORDER = ['historia', 'faq', 'hospedagem', 'mensagem', 'musica', 'traje', 'presente'];
+        const PAGE_ORDER = ['historia', 'faq', 'hospedagem', 'mensagem', 'musica', 'presente'];
         const PAGE_URLS = {
             historia: 'historia.html',
             faq: 'faq.html',
             hospedagem: 'hospedagem.html',
             mensagem: 'mensagem.html',
             musica: 'musica.html',
-            traje: 'traje.html',
             presente: 'presente.html'
         };
 
-        // linkLocked pages appear in the grid but are not clickable (premium preview)
-        const visiblePages = PAGE_ORDER.filter((key) => {
-            const p = pages[key];
-            return p?.enabled === true || p?.linkLocked === true;
-        });
+        const enabledPages = PAGE_ORDER.filter((key) => pages[key]?.enabled === true);
 
-        if (visiblePages.length === 0) {
+        if (enabledPages.length === 0) {
             return;
         }
 
@@ -1333,15 +1340,8 @@ class InvitationExperience {
             extrasDivider.hidden = false;
         }
 
-        grid.innerHTML = visiblePages.map((key) => {
+        grid.innerHTML = enabledPages.map((key) => {
             const page = pages[key];
-            if (page?.linkLocked) {
-                const dresscode = page.content?.dresscode ? `<span class="extras-card-hint">${page.content.dresscode}</span>` : `<span class="extras-card-hint">${page.cardHint ?? ''}</span>`;
-                return `<div class="extras-card extras-card--locked" aria-label="${page.cardLabel ?? ''} — disponível no plano Premium">
-                    <span class="extras-card-label">${page.cardLabel ?? ''}</span>
-                    ${dresscode}
-                </div>`;
-            }
             const url = buildInternalUrl(PAGE_URLS[key], this.guestToken);
             return `<a class="extras-card" href="${url}">
                 <span class="extras-card-label">${page.cardLabel ?? ''}</span>

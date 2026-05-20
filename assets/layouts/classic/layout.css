@@ -915,15 +915,6 @@
     text-transform: uppercase;
 }
 
-.extras-card--locked {
-    cursor: default;
-    opacity: 0.65;
-}
-
-.extras-card--locked::before {
-    display: none;
-}
-
 /* ─── Extra pages — shared layout ───────────────────────────────────────── */
 
 .extra-page {

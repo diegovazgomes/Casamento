@@ -264,7 +264,18 @@ function mapGiftConfig(giftRecords, baseGiftConfig) {
     lists: catalogLists,
   });
   gift.activeCatalogKey = activeKey;
+
+  // Capture JSONB catalog items before the row-based merge overwrites them.
+  // Items in events.config (JSONB) are always authoritative — event_gifts catalog
+  // row items may be stale if step-4c sync was skipped or failed.
+  const jsonbCatalogItems = gift.catalog?.items;
+
   gift.catalog = mergeDeep(gift.catalog, catalogLists[activeKey]);
+
+  // Restore JSONB items when they exist, ignoring potentially-stale row items.
+  if (Array.isArray(jsonbCatalogItems) && jsonbCatalogItems.length > 0) {
+    gift.catalog.items = jsonbCatalogItems;
+  }
 
   return gift;
 }
