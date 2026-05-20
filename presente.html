@@ -358,6 +358,16 @@
   opacity: 1; transform: translateX(4px);
 }
 
+/* Opção de pagamento bloqueada (cartão desabilitado) */
+.gift-payment-opt.is-locked {
+  cursor: default;
+  opacity: 0.45;
+  pointer-events: none;
+}
+.gift-payment-opt.is-locked .gift-payment-opt-arrow {
+  display: none;
+}
+
 /* Pix inline no modal */
 .gift-pix-inline {
   display: none;
@@ -972,6 +982,7 @@ function renderGiftList(pixKey, qrSrc, paymentBaseUrl) {
 /* ── Modal ───────────────────────────────────────────────────────────── */
 let _pixKey = '';
 let _qrSrc  = '';
+let CARD_ENABLED = true;
 
 function openModal(itemId, pixKey, qrSrc, paymentBaseUrl) {
   const item = GIFT_ITEMS.find(i => i.id === itemId);
@@ -985,16 +996,25 @@ function openModal(itemId, pixKey, qrSrc, paymentBaseUrl) {
   document.getElementById('giftModalPixKey').textContent    = pixKey || 'Chave Pix não configurada';
   document.getElementById('giftModalQrImg').src = qrSrc || 'assets/images/icons/pix-placeholder.svg';
 
-  /* Link Mercado Pago com valor sugerido */
+  /* Link de pagamento (Mercado Pago ou similar) */
   const linkBtn = document.getElementById('giftOptLink');
-  const paymentUrl = buildMercadoPagoUrl(paymentBaseUrl, item.amount);
-  if (paymentUrl !== '#') {
+  if (!CARD_ENABLED) {
     linkBtn.style.display = '';
-    linkBtn.href = paymentUrl;
-    document.getElementById('giftOptLinkLabel').textContent = 'Pagar com link de pagamento';
-    document.getElementById('giftOptLinkHint').textContent  = `Valor sugerido: ${item.price || formatBRL(item.amount)}`;
+    linkBtn.removeAttribute('href');
+    linkBtn.classList.add('is-locked');
+    document.getElementById('giftOptLinkLabel').textContent = '🔒 Link de pagamento';
+    document.getElementById('giftOptLinkHint').textContent  = 'Indisponível';
   } else {
-    linkBtn.style.display = 'none';
+    linkBtn.classList.remove('is-locked');
+    const paymentUrl = buildMercadoPagoUrl(paymentBaseUrl, item.amount);
+    if (paymentUrl !== '#') {
+      linkBtn.style.display = '';
+      linkBtn.href = paymentUrl;
+      document.getElementById('giftOptLinkLabel').textContent = 'Pagar com link de pagamento';
+      document.getElementById('giftOptLinkHint').textContent  = `Valor sugerido: ${item.price || formatBRL(item.amount)}`;
+    } else {
+      linkBtn.style.display = 'none';
+    }
   }
 
   /* Fecha Pix inline se estava aberto */
@@ -1065,6 +1085,7 @@ window.addEventListener('app:ready', ({ detail: { config } }) => {
   const qrSrc  = config?.gift?.pixQrImage || 'assets/images/icons/pix-placeholder.svg';
   const cardLink = config?.gift?.cardPaymentLink || '';
   const cardEnabled = config?.gift?.cardPaymentEnabled !== false;
+  CARD_ENABLED = cardEnabled;
   const { catalog: activeCatalog, catalogKey } = resolveActiveCatalog(config?.gift || {});
   const categoryFallback = DEFAULT_CATALOGS[catalogKey]?.items?.[0]?.category || 'Presente';
   const normalizedCatalog = sanitizeCatalogItems(activeCatalog?.items, categoryFallback);
