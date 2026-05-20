@@ -1361,6 +1361,7 @@
 .traje-swatch-circle {
     width: 56px;
     height: 56px;
+    aspect-ratio: 1 / 1;
     border-radius: 50%;
     border: 1px solid var(--color-border);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
@@ -1387,9 +1388,11 @@
 .traje-solo-circle {
     width: 88px;
     height: 88px;
+    aspect-ratio: 1 / 1;
     border-radius: 50%;
     border: 1px solid var(--color-border);
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+    flex-shrink: 0;
 }
 
 .traje-solo-label {
@@ -1625,11 +1628,13 @@
     .traje-swatch-circle {
         width: 48px;
         height: 48px;
+        aspect-ratio: 1 / 1;
     }
 
     .traje-solo-circle {
         width: 72px;
         height: 72px;
+        aspect-ratio: 1 / 1;
     }
 
     .traje-note-card {
