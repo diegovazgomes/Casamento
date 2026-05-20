@@ -28,6 +28,7 @@ let dashboardSupabaseClientPromise = null;
 let loginLoadingHideTimer = null;
 let loginLoadingStartTime = 0;
 let galleryOrderSaveTimer = null;
+let postLoginUiSyncInProgress = false;
 
 function clearDashboardSlugFromUrl() {
   const currentUrl = new URL(window.location.href);
@@ -209,6 +210,7 @@ async function initializeDashboard() {
         await hydrateDashboardEventContext();
         await loadAllData();
         showDashboard();
+        await runPostLoginUiSync();
 
         // Mantem o badge de plano sincronizado ao retornar do checkout.
         fetchUserProfile({ forceRefresh: true }).then((profile) => {
@@ -431,6 +433,7 @@ async function handleAuth(event) {
     
     // Mostrar dashboard
     showDashboard();
+    await runPostLoginUiSync();
 
     // Esconder tela de loading após transição
     setTimeout(() => {
@@ -1013,6 +1016,45 @@ function showDashboard() {
   dashboardScreen.style.display = '';
   dashboardScreen.classList.add('is-active');
   maybeShowWizard(window.__SITE_CONFIG__);
+}
+
+async function runPostLoginUiSync() {
+  postLoginUiSyncInProgress = true;
+  updateEditorSaveStatus('Sincronizando dados da conta atual...');
+
+  try {
+    syncActiveTab();
+    const activeTab = document.querySelector('.nav-item.is-active')?.dataset.tab || 'overview';
+
+    if (activeTab === 'editar') {
+      loadEditorTab();
+      return;
+    }
+
+    if (activeTab === 'confirmacoes') {
+      await reloadConfirmacoes();
+      return;
+    }
+
+    if (activeTab === 'mensagens') {
+      await reloadMensagens();
+      return;
+    }
+
+    if (activeTab === 'musicas') {
+      await reloadMusicas();
+      return;
+    }
+
+    if (activeTab === 'relatorios') {
+      await loadRelatorios();
+      return;
+    }
+
+    await loadAllData();
+  } finally {
+    postLoginUiSyncInProgress = false;
+  }
 }
 
 // ============================================================
@@ -4832,6 +4874,13 @@ function collectEditorValues() {
 }
 
 async function saveEditorConfig(silent = false) {
+  if (postLoginUiSyncInProgress) {
+    if (!silent) {
+      updateEditorSaveStatus('Sincronizando dados da conta atual. Aguarde e tente salvar novamente.');
+    }
+    return false;
+  }
+
   const config = collectEditorValues();
 
   if (!state.eventId) {
