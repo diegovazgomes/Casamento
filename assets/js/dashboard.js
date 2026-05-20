@@ -2082,6 +2082,10 @@ const editorState = {
 const MEDIA_MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024;
 const MEDIA_BUCKET_ID = 'event-media';
 const SUPPORTED_IMAGE_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+const MOBILE_UPLOAD_TARGET_BYTES = 2.5 * 1024 * 1024;
+const MOBILE_UPLOAD_MAX_DIMENSION = 2048;
+const MOBILE_UPLOAD_MIN_DIMENSION = 960;
+const MOBILE_UPLOAD_QUALITY_STEPS = [0.82, 0.72, 0.62, 0.52, 0.42, 0.34];
 
 const DEFAULT_FAQ_ITEMS = [
   {
@@ -2799,11 +2803,130 @@ async function compressImageForUpload(file, maxBytes = 3 * 1024 * 1024) {
   });
 }
 
+function isLikelyIosBrowser() {
+  const ua = String(navigator.userAgent || '');
+  const platform = String(navigator.platform || '');
+  const touchPoints = Number(navigator.maxTouchPoints || 0);
+  return /iPhone|iPad|iPod/i.test(ua)
+    || (platform === 'MacIntel' && touchPoints > 1);
+}
+
+function canvasToJpegBlob(canvas, quality) {
+  return new Promise((resolve) => {
+    canvas.toBlob((blob) => {
+      resolve(blob || null);
+    }, 'image/jpeg', quality);
+  });
+}
+
+async function compressImageForUploadRobust(file, options = {}) {
+  if (!file || !/^image\/(jpeg|png|webp)$/i.test(file.type || '')) {
+    return file;
+  }
+
+  const {
+    targetBytes = MOBILE_UPLOAD_TARGET_BYTES,
+    maxDimension = MOBILE_UPLOAD_MAX_DIMENSION,
+    minDimension = MOBILE_UPLOAD_MIN_DIMENSION,
+  } = options;
+
+  const sourceImage = await new Promise((resolve, reject) => {
+    const image = new Image();
+    const objectUrl = URL.createObjectURL(file);
+
+    image.onload = () => {
+      URL.revokeObjectURL(objectUrl);
+      resolve(image);
+    };
+
+    image.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      reject(new Error('Falha ao processar imagem para upload.'));
+    };
+
+    image.src = objectUrl;
+  }).catch(() => null);
+
+  if (!sourceImage) {
+    return compressImageForUpload(file, targetBytes);
+  }
+
+  const originalWidth = Number(sourceImage.naturalWidth || sourceImage.width || 0);
+  const originalHeight = Number(sourceImage.naturalHeight || sourceImage.height || 0);
+  if (originalWidth <= 0 || originalHeight <= 0) {
+    return compressImageForUpload(file, targetBytes);
+  }
+
+  const longestSide = Math.max(originalWidth, originalHeight);
+  const needsInitialDownscale = longestSide > maxDimension;
+  const initialScale = needsInitialDownscale ? (maxDimension / longestSide) : 1;
+  const iosScaleSteps = [1, 0.88, 0.76, 0.66, 0.58, 0.5, 0.42];
+  const defaultScaleSteps = [1, 0.9, 0.8, 0.7, 0.6];
+  const scaleSteps = isLikelyIosBrowser() ? iosScaleSteps : defaultScaleSteps;
+
+  let bestBlob = null;
+
+  for (const scaleStep of scaleSteps) {
+    const scale = initialScale * scaleStep;
+    const width = Math.max(1, Math.round(originalWidth * scale));
+    const height = Math.max(1, Math.round(originalHeight * scale));
+    if (Math.max(width, height) < minDimension && bestBlob) {
+      break;
+    }
+
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    const context = canvas.getContext('2d');
+    if (!context) {
+      continue;
+    }
+
+    context.drawImage(sourceImage, 0, 0, width, height);
+
+    for (const quality of MOBILE_UPLOAD_QUALITY_STEPS) {
+      const blob = await canvasToJpegBlob(canvas, quality);
+      if (!blob) {
+        continue;
+      }
+
+      if (!bestBlob || blob.size < bestBlob.size) {
+        bestBlob = blob;
+      }
+
+      if (blob.size <= targetBytes) {
+        return new File([blob], file.name.replace(/\.[^.]+$/, '.jpg'), {
+          type: 'image/jpeg',
+          lastModified: Date.now(),
+        });
+      }
+    }
+  }
+
+  if (bestBlob) {
+    return new File([bestBlob], file.name.replace(/\.[^.]+$/, '.jpg'), {
+      type: 'image/jpeg',
+      lastModified: Date.now(),
+    });
+  }
+
+  return compressImageForUpload(file, targetBytes);
+}
+
 async function uploadMediaFile(type, file, options = {}) {
-  const compressed = await compressImageForUpload(file);
+  const isHeroOrGallery = type === 'hero' || type === 'gallery';
+  const compressed = isHeroOrGallery
+    ? await compressImageForUploadRobust(file, {
+      targetBytes: MOBILE_UPLOAD_TARGET_BYTES,
+    })
+    : await compressImageForUpload(file);
 
   if (type === 'hero') {
-    return uploadMediaFileViaApi(type, compressed, options);
+    try {
+      return await uploadMediaFileDirect(type, compressed, options);
+    } catch (directUploadError) {
+      return uploadMediaFileViaApi(type, compressed, options, directUploadError);
+    }
   }
 
   try {
