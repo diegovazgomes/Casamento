@@ -221,13 +221,15 @@ Removidos os campos `details` e `hint` do Supabase das respostas HTTP de erro em
 CSP adicionado ao `vercel.json` em 2026-05-18 cobrindo todas as páginas:
 - `default-src 'self'` — bloqueia origens desconhecidas por padrão
 - `script-src` — permite `'self'`, `cdn.jsdelivr.net` (Supabase SDK) e `unpkg.com` (Leaflet)
-- `style-src` / `font-src` — permite Google Fonts
+- `style-src` / `font-src` — permite Google Fonts e `unpkg.com` (Leaflet CSS)
 - `media-src 'self' https://*.supabase.co` — permite áudio servido pelo Supabase Storage
 - `connect-src 'self' https://*.supabase.co https://cdn.jsdelivr.net` — permite fetch/XHR para Supabase e source maps do CDN
 - `frame-ancestors 'none'` — anti-clickjacking (reforça X-Frame-Options)
 - `base-uri 'self'` e `form-action 'self'` — previne injeção de base e hijack de formulários
 
 **Correção aplicada em 2026-05-18:** CSP inicial estava bloqueando o áudio (faltava `media-src`) e source maps do Supabase JS SDK (faltava `cdn.jsdelivr.net` em `connect-src`). Ambos corrigidos.
+
+**Ajuste aplicado em 2026-05-20:** `style-src` passou a incluir `https://unpkg.com` para permitir o carregamento do `leaflet.css` na página de hospedagem. Sem esse stylesheet, o mapa renderiza com tiles desalinhados/quebrados.
 
 **Ressalva:** `unsafe-inline` em `script-src` é necessário pelos scripts inline de bootstrap no `index.html`. Eles lêem `sessionStorage` antes do carregamento do JS modular e não podem ser movidos para arquivos externos sem refatoração. O CSP atual ainda bloqueia scripts de origens externas não listadas, que é o vetor mais comum de XSS.
 
