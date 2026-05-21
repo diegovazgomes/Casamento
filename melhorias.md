@@ -65,4 +65,4 @@
 ## Decisões pendentes
 
 - [x] **D1 — Comportamento do áudio ao retornar para a página principal**
-  > Decisão: retoma automaticamente ao voltar (via bfcache ou visibilitychange), somente se a pausa foi causada pela navegação — pausa manual do usuário é preservada.
+  > Decisão: retoma automaticamente ao voltar (via bfcache ou visibilitychange), somente se a pausa foi causada pela navegação — pausa manual do usuário é preservada
