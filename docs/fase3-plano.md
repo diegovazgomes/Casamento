@@ -187,7 +187,7 @@ Bloqueio em **duas camadas**:
 ### 11. Testes end-to-end
 - [ ] Fluxo completo free: landing -> cadastro -> convite -> marca d'água -> bloqueios ativos
 - [ ] Fluxo completo premium: landing -> cadastro/login -> checkout -> webhook -> plano atualizado -> limites removidos
-- [ ] Reenvio de webhook não duplica atualização de plano
+- [ ] Reenvio de webhook não duplica atualização de plano.
 
 ---
 
