@@ -2,7 +2,7 @@
 
 ## 1. Objetivo deste documento
 
-Este arquivo serve como referencia tecnica completa do projeto de convite de casamento de Siannah e Diego. A intencao e que qualquer pessoa, inclusive em outro projeto, consiga entender:
+Este arquivo serve como referencia tecnica completa da plataforma Devazi e da experiencia publica de convite operada por ela. A intencao e que qualquer pessoa, inclusive em outro projeto, consiga entender:
 
 - como a aplicacao esta organizada hoje;
 - quais arquivos participam do funcionamento;
@@ -26,37 +26,71 @@ Mudancas de status devem ficar no `ROADMAP.md`. Este arquivo deve registrar apen
 
 ## 2. Visao geral do projeto
 
-Trata-se de um site estatico de convite de casamento construido sem framework e sem build step para runtime. A aplicacao roda diretamente no navegador e usa npm apenas para a camada de testes (Vitest/happy-dom), com:
+O repositorio nao e mais apenas um site estatico. Hoje ele combina duas camadas que convivem no mesmo codigo:
+
+1. uma plataforma SaaS de operacao do convite, com landing page, cadastro, autenticacao, dashboard, pagamentos e rotas serverless;
+2. uma experiencia publica do convite, renderizada em HTML/CSS/ES Modules, resolvida por slug e configurada por JSON/API.
+
+No frontend, a aplicacao continua sem framework e sem build step de runtime. No backend, a pasta `api/` implementa funcoes serverless para leitura/escrita de configuracao, autenticacao auxiliar, uploads, pagamentos e submissoes. A base integra:
 
 - HTML estatico por pagina;
 - CSS global com variaveis CSS;
 - JavaScript modular em ES Modules;
-- arquivos JSON para configuracao de conteudo, tema e tipografia.
+- rotas serverless em `api/`;
+- Supabase para Auth, banco e Storage;
+- Stripe para checkout e upgrade de plano.
 
 ### Caracteristicas principais
 
-- O conteudo exibido nas paginas vem quase todo de `assets/config/site.json`.
-- O tema visual e carregado em runtime a partir de um arquivo JSON em `assets/config/themes/`.
+- A experiencia publica pode carregar configuracao estatica local (`assets/config/site.json`) ou configuracao dinamica por slug via `/api/event-config`.
+- O tema visual e carregado em runtime a partir do layout ativo e do tema ativo, com merge de defaults, tipografia global e overrides de site.
 - A tipografia global disponivel fica em `assets/config/typography.json`.
-- O arquivo central de inicializacao e `assets/js/script.js`.
-- O projeto possui uma pagina principal (`index.html`), paginas extras (`historia.html`, `faq.html`, `hospedagem.html`, `mensagem.html`, `musica.html`, `presente.html`) e duas ferramentas auxiliares (`editor.html` e `font-preview.html`).
-- Existe um fluxo de intro screen, liberacao da experiencia, troca de contexto de audio e navegacao dinamica entre paginas e secoes.
+- O arquivo central da experiencia publica continua sendo `assets/js/script.js`.
+- O projeto possui camada comercial e operacional (`landing.html`, `signup.html`, `confirm.html`, `forgot-password.html`, `reset-password.html`, `dashboard.html`) alem das paginas publicas do convite.
+- O dashboard usa Supabase Auth no cliente e rotas autenticadas em `api/dashboard/` para isolar cada evento por usuario.
+- Existe um fluxo de loading screen, liberacao da experiencia, troca de contexto de audio, guest token por query param `g`, navegacao dinamica entre paginas e resolucao de slug por rewrite.
 
 ### O que o sistema faz hoje
 
-- Exibe uma tela inicial de abertura do convite.
-- Mostra hero, contagem regressiva, detalhes do evento, confirmacao de presenca e rodape.
-- Gera links para paginas extras a partir da configuracao.
-- Carrega uma pagina de presentes com Pix e estado de copia para a area de transferencia.
-- Redireciona o usuario ao WhatsApp com mensagem preformatada apos a confirmacao de presenca.
-- Aplica tema visual e tipografico por JSON, sem recompilar nada.
+- Cadastra novos casais e cria um evento inicial com slug, configuracao padrao e plano inicial.
+- Autentica o casal no dashboard, carrega o evento correto e aplica restricoes de plano free/premium.
+- Permite editar tema, conteudo, presentes, hospedagem, extras, grupos, galeria e configuracoes do evento.
+- Publica o convite em rota por slug, resolvendo o config publico do evento pela API.
+- Exibe loading screen, hero, contagem regressiva, detalhes do evento, confirmacao de presenca, extras e rodape.
+- Gera links entre paginas preservando slug e guest token quando aplicavel.
+- Processa RSVP, mensagens e sugestoes de musica com persistencia backend e integracao com grupos/token de convidado.
+- Carrega uma pagina de presentes com Pix, opcao de checkout por cartao e sincronizacao com o painel.
+- Aplica tema visual e tipografico por JSON/API sem recompilar nada.
 - Controla trilha sonora com dois contextos: principal e presente.
 
 ---
 
 ## 3. Como executar e testar localmente
 
-Como o projeto e estatico, basta abrir os arquivos HTML diretamente no navegador ou servir a pasta com qualquer servidor estatico.
+O repositorio tem duas formas de execucao local:
+
+1. camada publica estatica, que pode ser servida por um servidor simples;
+2. camada SaaS/serverless, que depende das variaveis de ambiente e de um runtime compativel com a pasta `api/`.
+
+Abrir HTML por `file://` nao representa o comportamento real do produto. Para a experiencia publica, use um servidor local. Para fluxos com cadastro, dashboard, pagamentos ou APIs, rode em ambiente compativel com Vercel Functions ou valide em preview/deploy com as variaveis configuradas.
+
+### Dependencias e ambiente
+
+```bash
+npm install
+```
+
+Arquivos de referencia de ambiente:
+
+- `.env.example`: contrato minimo de Supabase publico.
+- `.env.local.example`: exemplo expandido com `SUPABASE_SERVICE_ROLE_KEY` e integracoes opcionais.
+
+Variaveis mais relevantes para a camada SaaS:
+
+- `SUPABASE_URL`
+- `SUPABASE_ANON_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `APP_URL` / `SITE_URL` / `PUBLIC_SITE_URL` / `SUPABASE_EMAIL_REDIRECT_TO` para callbacks de autenticacao
 
 ### Opcoes comuns
 
@@ -72,19 +106,21 @@ python -m http.server 8080
 
 ### Entradas principais
 
-- Pagina inicial: `index.html`
-- Pagina de presentes: `presente.html`
-- Paginas extras: `historia.html`, `faq.html`, `hospedagem.html`, `mensagem.html`, `musica.html`
-- Ferramenta de edicao de configuracao: `editor.html`
-- Ferramenta de comparacao tipografica: `font-preview.html`
+- Landing comercial: `landing.html`
+- Cadastro e recuperacao: `signup.html`, `confirm.html`, `forgot-password.html`, `reset-password.html`
+- Dashboard autenticado: `dashboard.html`
+- Convite publico local/default: `index.html`
+- Convite publico por slug: `/{slug}` (rewrite para `index.html` + carga via `/api/event-config`)
+- Paginas extras publicas: `historia.html`, `faq.html`, `hospedagem.html`, `mensagem.html`, `musica.html`, `traje.html`, `presente.html`
+- Ferramentas internas: `editor.html`, `font-preview.html`
 
 ### Observacao importante
 
-Embora varios navegadores consigam abrir o site direto por arquivo local, o comportamento com `fetch()` e mais previsivel quando se usa um servidor estatico local. Isso e especialmente importante porque o sistema carrega JSON em runtime.
+O servidor estatico atende apenas a camada visual. Rotas em `api/` nao executam via `npx serve .`; elas exigem runtime serverless compativel ou ambiente de deploy. Isso importa especialmente para `/api/event-config`, `/api/submissions`, `/api/payments`, `/api/auth/signup` e `/api/dashboard/*`.
 
-### Testes de smoke (Vitest)
+### Testes automatizados (Vitest + happy-dom)
 
-O projeto possui uma suite minima de smoke tests com Vitest para validar partes criticas de configuracao e logica.
+O projeto possui uma suite automatizada maior do que um smoke minimo. O `package.json` usa Vitest, e `tests/vitest.config.js` roda os testes em `happy-dom` com setup comum em `tests/setup/globals.js`.
 
 #### Instalar dependencias de teste
 
@@ -112,12 +148,33 @@ npm run test:coverage
 
 #### Escopo atual da suite
 
-- `tests/unit/utils.test.js`: `mergeDeep()` e `cloneDeep()`
-- `tests/unit/countdown.calculation.test.js`: calculo puro do countdown
-- `tests/unit/rsvp.message.test.js`: construcao de mensagem/URL de WhatsApp
-- `tests/integration/script.config.test.js`: `loadConfig()` e `loadTheme()` com `fetch` mockado
-- `tests/integration/countdown.integration.test.js`: atualizacao de DOM do contador
-- `tests/integration/presente.clipboard.test.js`: fluxo de copia do Pix (clipboard e fallback)
+- Unitarios:
+	- `tests/unit/utils.test.js`: `mergeDeep()` e `cloneDeep()`
+	- `tests/unit/countdown.calculation.test.js`: calculo puro do countdown
+	- `tests/unit/rsvp.message.test.js`: construcao de mensagem/URL de WhatsApp
+	- `tests/unit/rsvp.persistence.test.js`: persistencia do RSVP e degradacao controlada
+	- `tests/unit/event-config.mapper.test.js`: mapeamento entre evento/API/config publico
+	- `tests/unit/invite-copy.test.js`: copia/compartilhamento de convite
+- Integracao e API:
+	- `tests/integration/script.config.test.js`: bootstrap de config/tema
+	- `tests/integration/loading-screen.test.js`: transicoes e estados da loading screen
+	- `tests/integration/countdown.integration.test.js`: atualizacao de DOM do contador
+	- `tests/integration/presente.clipboard.test.js`: fluxo de copia Pix
+	- `tests/integration/rsvp.flow.integration.test.js`: fluxo publico de RSVP
+	- `tests/integration/guest-submissions.integration.test.js`: submissao por convidado/token
+	- `tests/integration/event-config.api.test.js`: contrato do endpoint publico de config
+	- `tests/integration/invite-share.api.test.js`: share preview e comportamento por slug
+	- `tests/integration/submissions.api.test.js`: endpoint unificado de submissoes
+	- `tests/integration/signup.api.test.js` e `tests/integration/signup.form.integration.test.js`: cadastro e formulario
+	- `tests/integration/dashboard.integration.test.js`: comportamento geral do painel
+	- `tests/integration/dashboard-event.api.test.js`: leitura/atualizacao do evento no dashboard
+	- `tests/integration/dashboard-media.api.test.js`: upload e limites de midia
+	- `tests/integration/dashboard-theme-config.test.js`: resolucao de tema/config no painel
+
+### Scripts auxiliares e verificacoes manuais
+
+- `tests/test-dashboard.ps1` e `tests/test-dashboard-simple.ps1`: checks auxiliares do dashboard
+- `tests/test-e2e-config-sync.js`: roteiro manual de sincronizacao dashboard -> API -> site
 
 ---
 
@@ -144,9 +201,13 @@ Isso torna o projeto relativamente facil de portar para outro casal, outro event
 
 ```text
 .
-├── CLAUDE.md
-├── ROADMAP.md
 ├── cursorrules
+├── landing.html
+├── signup.html
+├── confirm.html
+├── forgot-password.html
+├── reset-password.html
+├── dashboard.html
 ├── index.html
 ├── presente.html
 ├── historia.html
@@ -154,11 +215,15 @@ Isso torna o projeto relativamente facil de portar para outro casal, outro event
 ├── hospedagem.html
 ├── mensagem.html
 ├── musica.html
+├── traje.html
+├── privacy.html
+├── terms.html
 ├── editor.html
 ├── font-preview.html
 ├── package.json
 ├── package-lock.json
-├── vitest.config.js
+├── vercel.json
+├── melhorias.md
 ├── assets/
 │   ├── audio/
 │   ├── config/
@@ -190,44 +255,79 @@ Isso torna o projeto relativamente facil de portar para outro casal, outro event
 │   │       └── themes/
 │   │           └── black-silver.json
 │   ├── images/
-│   │   ├── couple/
-│   │   ├── gallery/
-│   │   ├── icons/
-│   │   └── venue/
-│   └── js/
-│       ├── script.js
-│       ├── main.js
-│       ├── countdown.js
-│       ├── rsvp.js
-│       ├── audio.js
-│       ├── presente.js
-│       ├── historia.js
-│       ├── faq.js
-│       ├── hospedagem.js
-│       ├── extra-page.js
-│       ├── mensagem.js
-│       ├── musica.js
-│       ├── editor.js
-│       ├── font-preview.js
-│       ├── gallery.js
-│       ├── map.js
-│       └── utils.js
+│   │   └── icons/
+│   ├── js/
+│   │   ├── script.js
+│   │   ├── config-source.js
+│   │   ├── loading-screen.js
+│   │   ├── dashboard.js
+│   │   ├── dashboard-theme-config.js
+│   │   ├── rsvp-persistence.js
+│   │   ├── invite-copy.js
+│   │   ├── debug-badge.js
+│   │   ├── main.js
+│   │   ├── countdown.js
+│   │   ├── rsvp.js
+│   │   ├── audio.js
+│   │   ├── presente.js
+│   │   ├── historia.js
+│   │   ├── faq.js
+│   │   ├── hospedagem.js
+│   │   ├── mensagem.js
+│   │   ├── musica.js
+│   │   ├── traje.js
+│   │   ├── gallery.js
+│   │   ├── map.js
+│   │   ├── editor.js
+│   │   ├── font-preview.js
+│   │   └── utils.js
+├── api/
+│   ├── event-config.js
+│   ├── guest-token.js
+│   ├── payments.js
+│   ├── submissions.js
+│   ├── auth/
+│   │   └── signup.js
+│   ├── dashboard/
+│   │   ├── confirmations.js
+│   │   ├── event.js
+│   │   ├── guest-groups.js
+│   │   ├── media.js
+│   │   ├── profile.js
+│   │   ├── reminders.js
+│   │   └── submissions.js
+│   └── _lib/
+│       ├── dashboard-auth.js
+│       ├── event-config.js
+│       └── supabase-server.js
+├── docs/
+│   ├── CLAUDE.md
+│   ├── E2E.md
+│   ├── roadmap_saas.md
+│   ├── seguranca.md
+│   └── migrations/
 ├── tests/
 │   ├── integration/
 │   ├── setup/
-│   └── unit/
-└── docs/
-		└── theme-guide.md
+│   ├── unit/
+│   ├── test-dashboard.ps1
+│   ├── test-dashboard-simple.ps1
+│   └── vitest.config.js
+└── .env.local.example
 ```
 
 ### Leitura rapida por area
 
-- `index.html` e a experiencia principal.
-- `assets/js/script.js` e o entry point e o orchestrator do sistema.
-- `assets/config/site.json` e a principal fonte de conteudo e parametrizacao.
-- `assets/config/themes/*.json` definem visual, espacamentos, cores, animacao e tipografia.
-- `assets/css/style.css` e `assets/css/animations.css` consomem as variaveis de tema.
-- `editor.html` + `assets/js/editor.js` funcionam como ferramenta interna para editar `site.json` no navegador.
+- `landing.html`, `signup.html`, `confirm.html`, `forgot-password.html` e `reset-password.html` compoem a entrada comercial e de autenticacao.
+- `dashboard.html` + `assets/js/dashboard.js` sao a superficie operacional autenticada do casal.
+- `api/event-config.js` resolve a configuracao publica por slug e e a ponte principal entre SaaS e convite publico.
+- `api/dashboard/*` concentra a escrita autenticada do evento, grupos, midia, lembretes e submissoes administrativas.
+- `assets/js/script.js` continua sendo o orchestrator da experiencia publica.
+- `assets/js/config-source.js` decide se o bootstrap usa `site.json` ou `/api/event-config`.
+- `assets/js/loading-screen.js` controla a tela inicial e seus estados entre brand/couple/card.
+- `assets/config/site.json` continua sendo fallback estatico e base util para desenvolvimento local.
+- `assets/config/themes/*.json` e `assets/layouts/*` definem visual, layout, cores, animacao e tipografia.
+- `editor.html` + `assets/js/editor.js` funcionam como ferramenta interna/manual para editar configuracao JSON.
 
 ---
 
@@ -235,22 +335,32 @@ Isso torna o projeto relativamente facil de portar para outro casal, outro event
 
 Esse ponto e um dos mais importantes do projeto.
 
-### 6.1 Conteudo principal
+### 6.1 Configuracao publica resolvida
 
-O conteudo principal vem de `assets/config/site.json`.
+A experiencia publica nao depende mais de uma unica fonte fixa. O bootstrap resolve a origem de configuracao assim:
 
-Esse arquivo hoje concentra:
+1. `assets/js/config-source.js` executa `resolveSiteConfigSource()`.
+2. Se houver slug na URL ou query (`/{slug}`, `?slug=...`, `?event=...`), a origem passa a ser `/api/event-config?slug=...`.
+3. Sem slug, o bootstrap usa `assets/config/site.json` como configuracao estatica local/default.
+4. Se a carga inicial vier do arquivo estatico e esse arquivo trouxer `rsvp.eventId`, `script.js` promove a resolucao para `/api/event-config?slug={eventId}`.
+
+Na pratica, `assets/config/site.json` deixou de ser a unica fonte de verdade do produto. Ele hoje cumpre tres papeis:
+
+- fallback local para desenvolvimento e preview estatico;
+- base de conteudo/default para o bootstrap;
+- formato de configuracao compativel com o config publico devolvido pela API.
+
+O config publico final concentra:
 
 - nomes do casal;
-- subtitulo;
-- data e informacoes do evento;
+- data, locais e links do evento;
 - textos da interface;
-- informacoes de presente;
+- informacoes de presentes;
 - trilhas de audio;
-- configuracao de WhatsApp;
+- configuracao de WhatsApp e RSVP;
 - definicao das paginas extras;
-- tema ativo;
-- sobrescritas de tema (`themeOverrides`, quando usadas).
+- tema/layout ativos;
+- sobrescritas de tema e midias resolvidas por Storage/API.
 
 ### 6.2 Tema ativo
 
@@ -353,40 +463,49 @@ Valores aceitos: `"classic"` | `"modern"`. Padrao: `"classic"`.
 
 ### 7.1 Bootstrap da pagina
 
-Em `assets/js/script.js`, a funcao `bootstrap()`:
+Em `assets/js/script.js`, a funcao `bootstrap()` segue esta ordem real:
 
 1. carrega defaults (`assets/config/defaults/theme.json` e `assets/config/defaults/site.json`) com `loadDefaults()`;
-2. carrega `site.json` com `loadConfig()`;
-3. identifica o tema ativo;
-4. carrega o tema com `loadTheme()`;
-5. carrega `typography.json` com `loadTypographyConfig()`;
-6. mescla tipografia, overrides e responsividade;
-7. aplica todas as CSS variables no `:root`;
-8. instancia `InvitationExperience`;
-9. dispara o evento global `app:ready` com `{ config, theme }`.
+2. resolve a origem inicial do config com `resolveSiteConfigSource()`;
+3. carrega a configuracao inicial com `loadConfig(configSource.url, ...)`;
+4. se a origem ainda for estatica e `initialConfig.rsvp.eventId` existir, faz um segundo carregamento preferindo `/api/event-config?slug={eventId}`;
+5. resolve `activeLayout`, injeta o CSS estrutural com `loadLayout()` e resolve o caminho do tema com `resolveThemePath()`;
+6. carrega tema e `typography.json` em paralelo;
+7. mescla tipografia global, `themeOverrides` do site e responsividade mobile;
+8. aplica o tema no `:root` com `applyTheme()`;
+9. sincroniza a loading screen com `applyThemeToLoadingScreen()` e `applyEventDataToLoadingScreen()`;
+10. instancia `InvitationExperience`, inicializa o app e dispara `app:ready` com `{ config, theme }`;
+11. aplica comportamento por plano (`free`/`premium`) na loading screen e marca d'agua Devazi.
 
 ### 7.2 Bootstrapping antecipado no HTML
 
-Em `index.html` existe um script inline no `<head>` que executa antes do carregamento visual principal. Ele:
+Nas paginas publicas existe bootstrap inline no `<head>` para reduzir flash visual e preparar navegacao antes do modulo ES carregar.
 
-- tenta ler `sessionStorage`;
-- tenta ler o query param `section`;
-- define `window.__INVITATION_BOOTSTRAP__`;
-- define `shouldSkipIntro` quando necessario;
-- adiciona `skip-intro` ao `documentElement` quando precisa pular a intro;
-- configura `history.scrollRestoration = 'manual'` quando disponivel.
+Esse bootstrap antecipado cobre dois grupos de dados:
 
-Isso reduz flicker visual e impede que a intro apareca quando o usuario ja iniciou a experiencia antes.
+- estado visual da loading screen:
+	- tenta ler cores persistidas em `sessionStorage`;
+	- tenta ler iniciais/data ja conhecidas do casal;
+	- aplica classes como `ls-pending` para evitar flash de placeholders;
+- estado de navegacao da experiencia:
+	- le query params como `section` e `g`;
+	- define `window.__INVITATION_BOOTSTRAP__` quando necessario;
+	- calcula `shouldSkipIntro`;
+	- configura `history.scrollRestoration = 'manual'` quando disponivel.
+
+Isso reduz flicker visual, preserva guest token e impede que a intro reapareca sem necessidade quando o usuario ja iniciou a experiencia.
 
 ### 7.3 Liberacao da experiencia
 
 Depois de iniciado, o sistema:
 
+- decide a entrada da loading screen conforme o plano (`showFreeInviteButton()` ou `showPremiumInviteCard()`);
 - marca a experiencia como iniciada em `sessionStorage`;
 - mostra o shell principal do site;
 - inicializa os modulos centrais;
 - desbloqueia o audio;
-- navega para hash ou secao, quando aplicavel.
+- navega para hash ou secao, quando aplicavel;
+- preserva guest token em links internos quando necessario.
 
 ---
 
@@ -1314,13 +1433,60 @@ A secao do mapa some sem erros. O padrao em `assets/config/defaults/site.json` e
 
 ## 17. Paginas HTML e papel de cada uma
 
-### 17.1 `index.html`
+### 17.1 `landing.html`
 
-Pagina principal do convite.
+Landing comercial da Devazi.
+
+#### Papel
+
+- apresentar proposta do produto;
+- atrair novos casais;
+- encaminhar para cadastro e login/dashboard.
+
+### 17.2 `signup.html`, `confirm.html`, `forgot-password.html`, `reset-password.html`
+
+Superficie de autenticacao e onboarding.
+
+#### Papel
+
+- `signup.html`: cria a conta do casal e inicia o provisionamento do evento via `/api/auth/signup`;
+- `confirm.html`: recebe o retorno de confirmacao de e-mail e orienta o proximo passo;
+- `forgot-password.html` e `reset-password.html`: fluxo de recuperacao de acesso integrado ao Supabase Auth.
+
+### 17.3 `dashboard.html`
+
+Painel autenticado de operacao do evento.
+
+#### Papel
+
+- autenticar casal com Supabase Auth;
+- carregar perfil, plano e evento atual;
+- editar configuracao publica do convite;
+- gerenciar convites/grupos, confirmacoes, mensagens, musicas, presentes e midia;
+- iniciar fluxos de upgrade e sincronizacao de plano.
+
+#### Scripts usados
+
+- `assets/js/dashboard.js`
+- `assets/js/dashboard-theme-config.js`
+
+#### APIs relacionadas
+
+- `api/dashboard/event.js`
+- `api/dashboard/profile.js`
+- `api/dashboard/guest-groups.js`
+- `api/dashboard/confirmations.js`
+- `api/dashboard/submissions.js`
+- `api/dashboard/media.js`
+- `api/dashboard/reminders.js`
+
+### 17.4 `index.html`
+
+Pagina principal da experiencia publica do convite.
 
 #### Estrutura principal
 
-- intro screen
+- loading screen / intro
 - hero
 - countdown
 - details
@@ -1331,16 +1497,40 @@ Pagina principal do convite.
 
 #### Particularidades
 
-- contem o script bootstrap inline no `<head>`;
+- contem bootstrap inline no `<head>`;
 - usa `body.experience-locked` ate a experiencia ser liberada;
 - a secao `extras` inicia com `hidden` e so aparece se houver paginas extras habilitadas;
-- o card de presente redireciona para a pagina dedicada `presente.html`.
+- e a pagina alvo do rewrite por slug em `vercel.json`, enquanto o config real vem de `/api/event-config`.
 
 #### Scripts usados
 
 - `assets/js/script.js`
 
-### 17.2 `presente.html`
+### 17.5 `historia.html`, `faq.html`, `hospedagem.html`, `mensagem.html`, `musica.html`, `traje.html`
+
+Paginas extras da experiencia publica.
+
+#### Papel
+
+- `historia.html`: timeline e galeria do casal;
+- `faq.html`: perguntas frequentes;
+- `hospedagem.html`: hospedagem, restaurantes e mapa;
+- `mensagem.html`: envio de recados dos convidados;
+- `musica.html`: sugestoes de musicas;
+- `traje.html`: orientacoes visuais de vestimenta e paletas.
+
+#### Scripts usados
+
+- `assets/js/script.js`
+- `assets/js/historia.js`
+- `assets/js/faq.js`
+- `assets/js/hospedagem.js`
+- `assets/js/mensagem.js`
+- `assets/js/musica.js`
+- `assets/js/traje.js`
+- `assets/js/map.js` e `assets/js/gallery.js` quando habilitados/configurados
+
+### 17.6 `presente.html`
 
 Pagina dedicada de presentes.
 
@@ -1348,7 +1538,7 @@ Pagina dedicada de presentes.
 
 - introducao
 - bloco Pix
-- placeholder de pagamento por cartao
+- opcao de checkout/cartao quando habilitada
 - link de retorno para `index.html?section=extras`
 
 #### Scripts usados
@@ -1356,69 +1546,27 @@ Pagina dedicada de presentes.
 - `assets/js/script.js`
 - `assets/js/presente.js`
 
-#### Observacao
+### 17.7 `privacy.html` e `terms.html`
 
-Parte da logica de preenchimento dessa pagina vem de `script.js`; a logica especifica de copia vem de `presente.js`.
+Paginas institucionais e juridicas da plataforma.
 
-### 17.3 `historia.html`
+#### Papel
 
-Pagina extra que exibe a historia do casal em formato de timeline.
+- expor politicas de privacidade e termos de uso do produto;
+- apoiar o fluxo comercial e de cadastro.
 
-#### Scripts usados
+### 17.8 `editor.html` e `font-preview.html`
 
-- `assets/js/script.js`
-- `assets/js/historia.js`
+Ferramentas internas/manuais de apoio.
 
-### 17.4 `faq.html`
+#### Papel
 
-Pagina extra de perguntas frequentes.
-
-#### Scripts usados
-
-- `assets/js/script.js`
-- `assets/js/faq.js`
-
-### 17.5 `hospedagem.html`
-
-Pagina extra para convidados de fora, com hospedagem e restaurantes.
-
-#### Scripts usados
-
-- `assets/js/script.js`
-- `assets/js/hospedagem.js`
-
-### 17.6 `mensagem.html`
-
-Pagina extra para convidados deixarem uma mensagem ao casal.
-
-#### Scripts usados
-
-- `assets/js/script.js`
-- `assets/js/mensagem.js`
-
-### 17.7 `musica.html`
-
-Pagina extra para sugestoes de musica para a festa.
-
-#### Scripts usados
-
-- `assets/js/script.js`
-- `assets/js/musica.js`
-
-### 17.8 `editor.html`
-
-Ferramenta administrativa/operacional para edicao do JSON.
+- `editor.html`: editar e validar configuracao JSON fora do fluxo do dashboard;
+- `font-preview.html`: auditar familias tipograficas cadastradas.
 
 #### Scripts usados
 
 - `assets/js/editor.js`
-
-### 17.9 `font-preview.html`
-
-Ferramenta visual para auditar familias tipograficas cadastradas.
-
-#### Scripts usados
-
 - `assets/js/font-preview.js`
 
 ---
@@ -1955,26 +2103,36 @@ Essa secao e importante para qualquer evolucao futura.
 
 Boa parte do sistema depende de `document.getElementById()` com nomes fixos. Isso reduz a flexibilidade para refatorar HTML sem atualizar simultaneamente o JS.
 
-### 26.4 Fluxo de RSVP sem persistencia real
+### 26.4 Persistencia existe, mas depende de contratos entre front, API e schema
 
-O sistema nao confirma presenca em backend. Ele apenas encaminha uma mensagem ao WhatsApp. Se for necessario controle real de convidados, essa arquitetura nao basta.
+RSVP, mensagens e sugestoes de musica ja passam por persistencia backend, mas o fluxo depende de alinhamento fino entre:
+
+- config publico resolvido por slug;
+- endpoints em `api/submissions.js` e modulos auxiliares;
+- guest tokens/grupos;
+- schema e policies no Supabase.
+
+O risco atual nao e ausencia de backend, e sim regressao por drift de schema, fallback mal calibrado ou desacoplamento entre dashboard e experiencia publica.
 
 ### 26.5 Cobertura de testes ainda parcial
 
-O projeto ja possui suite minima de smoke com Vitest cobrindo:
+O projeto ja possui cobertura bem mais ampla do que a versao anterior deste documento. Hoje a suite cobre, entre outros:
 
-- carga/merge de config e tema;
-- utilitarios de merge/clone;
+- bootstrap de config/tema e loading screen;
+- utilitarios de merge/clone e mapeamento de config publico;
 - calculo e atualizacao do countdown;
-- geracao de URL/mensagem de RSVP;
-- fluxo de copia Pix (clipboard e fallback).
+- geracao de URL/mensagem de RSVP e persistencia associada;
+- fluxo de copia Pix;
+- endpoints de signup, event-config, submissions e share preview;
+- dashboard (eventos, tema/config, midia e integracao geral).
 
 Ainda faltam testes para partes relevantes, como:
 
-- fluxo de navegacao completo entre intro, secoes e extras;
+- fluxo completo de onboarding do casal com confirmacao de email e recuperacao de senha;
 - comportamento de audio (troca de contexto, pausa/retomada, erros de autoplay);
+- checkout/upgrade com sincronizacao de plano ponta a ponta;
 - validacao/export do editor com cenarios mais amplos;
-- integracao de mapa e galeria em cenarios de erro de dados.
+- integracao de mapa e galeria em cenarios de erro de dados e CSP.
 
 ### 26.6 Erros sao tratados de forma simples
 
@@ -2106,16 +2264,17 @@ Essa e uma das motivacoes principais deste documento.
 
 ## 29. Resumo executivo do estado atual
 
-O projeto esta em um ponto bom para um site estatico rico e configuravel. A principal virtude e a combinacao de:
+O projeto esta em um ponto em que a camada SaaS e a experiencia publica do convite ja formam um unico produto. A principal virtude e a combinacao de:
 
-- conteudo orientado por JSON;
-- tema orientado por JSON;
-- CSS parametrico;
-- JavaScript modular simples.
+- configuracao publica orientada por JSON/API;
+- tema e layout orientados por JSON;
+- frontend sem framework, com bootstrap relativamente previsivel;
+- APIs serverless focadas no dominio do evento;
+- autenticacao, persistencia e storage apoiados em Supabase.
 
-Ao mesmo tempo, o projeto ainda opera com contratos implicitos, poucos mecanismos de validacao e certa dependencia de convencoes de DOM e nomenclatura. Isso nao impede o uso atual, mas limita seguranca de manutencao e escalabilidade.
+Ao mesmo tempo, o projeto ainda opera com contratos implicitos entre dashboard, APIs, config publico e schema. Isso nao impede o uso atual, mas limita seguranca de manutencao, onboarding de novos devs e escalabilidade do produto.
 
-Se a meta for continuar como convite estatico premium, a base atual e suficiente e bem aproveitavel. Se a meta for evoluir para um produto mais robusto, o proximo passo natural e formalizar schemas, reduzir duplicacoes e introduzir validacao real.
+Se a meta for continuar evoluindo a Devazi como produto, o proximo passo natural e endurecer os contratos: documentar melhor fronteiras SaaS/publico, ampliar testes de fluxos autenticados e reduzir pontos onde `site.json` ainda aparece como fonte exclusiva quando, na pratica, a fonte efetiva ja e a API por slug.
 
 ---
 
@@ -2124,13 +2283,18 @@ Se a meta for continuar como convite estatico premium, a base atual e suficiente
 Se alguem precisar entender o projeto rapidamente, a ordem recomendada de leitura e:
 
 1. `assets/js/script.js`
-2. `assets/config/site.json`
-3. `assets/config/themes/*.json`
-4. `index.html`
-5. `assets/css/style.css`
-6. `assets/js/rsvp.js`
-7. `assets/js/audio.js`
-8. `assets/js/utils.js`
-9. `assets/js/editor.js`
+2. `assets/js/config-source.js`
+3. `api/event-config.js`
+4. `dashboard.html`
+5. `assets/js/dashboard.js`
+6. `assets/config/site.json`
+7. `assets/config/themes/*.json` e `assets/layouts/*`
+8. `index.html`
+9. `api/submissions.js`
+10. `api/dashboard/event.js`
+11. `assets/js/rsvp.js`
+12. `assets/js/audio.js`
+13. `assets/js/loading-screen.js`
+14. `assets/js/utils.js`
 
-Essa sequencia da uma visao quase completa da arquitetura e do comportamento atual.
+Essa sequencia da uma visao quase completa da arquitetura atual, incluindo a ponte entre plataforma SaaS e convite publico.

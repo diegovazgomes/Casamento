@@ -70,25 +70,25 @@
 
 ## Documentação técnica
 
-- [ ] **T1 — Reposicionar o CLAUDE.md para refletir a fase atual do produto**
+- [x] **T1 — Reposicionar o CLAUDE.md para refletir a fase atual do produto**
   O `docs/CLAUDE.md` hoje descreve bem o subsistema do convite público, mas não representa mais o projeto como um todo. A nota atual é **4/10**, porque o documento ainda enquadra a base como site estático, enquanto o repositório já opera como plataforma SaaS em evolução.
-  > Corrigir a abertura do documento para deixar explícito que o projeto tem duas camadas: **plataforma SaaS** e **experiência pública do convite**.
+  > Corrigido em `docs/CLAUDE.md`: abertura e visão geral reescritas para explicitar as duas camadas do produto: **plataforma SaaS** e **experiência pública do convite**.
 
-- [ ] **T2 — Documentar a arquitetura SaaS que já existe no repositório**
+- [x] **T2 — Documentar a arquitetura SaaS que já existe no repositório**
   Faltam no `docs/CLAUDE.md` os fluxos e componentes centrais já presentes no projeto, como `dashboard.html`, `signup.html`, `landing.html`, a pasta `api/` e a autenticação com Supabase.
-  > Adicionar seções para dashboard, autenticação, onboarding, rotas serverless, isolamento por usuário, slug por evento e fluxo de publicação.
+  > Corrigido em `docs/CLAUDE.md`: adicionadas seções para dashboard, autenticação, onboarding, rotas serverless, resolução por slug e ponte entre SaaS e convite público.
 
-- [ ] **T3 — Atualizar o pipeline real de bootstrap e carregamento de configuração**
+- [x] **T3 — Atualizar o pipeline real de bootstrap e carregamento de configuração**
   A documentação ainda está centrada demais em configuração local via `site.json`, mas o runtime atual já usa resolução por slug e API.
-  > Atualizar a descrição de bootstrap para incluir `assets/js/config-source.js`, `assets/js/loading-screen.js`, carregamento por `/api/event-config` e fallback controlado.
+  > Corrigido em `docs/CLAUDE.md`: bootstrap atualizado com `assets/js/config-source.js`, `assets/js/loading-screen.js`, carga por `/api/event-config` e fallback controlado via `site.json`/defaults.
 
-- [ ] **T4 — Corrigir inventário de páginas, módulos e estrutura do projeto**
+- [x] **T4 — Corrigir inventário de páginas, módulos e estrutura do projeto**
   O inventário atual está incompleto para a fase do produto e omite páginas e módulos que hoje são estruturais.
-  > Incluir páginas SaaS e comerciais como `dashboard.html`, `landing.html`, `confirm.html`, `forgot-password.html`, `reset-password.html`, `privacy.html`, `terms.html` e módulos como `assets/js/dashboard.js`.
+  > Corrigido em `docs/CLAUDE.md`: estrutura de pastas e seção de páginas agora incluem superfícies SaaS/comerciais, páginas legais e módulos centrais como `assets/js/dashboard.js`.
 
-- [ ] **T5 — Atualizar a seção de stack e testes para o estado real do repositório**
+- [x] **T5 — Atualizar a seção de stack e testes para o estado real do repositório**
   A seção de testes está subdimensionada e o stack descrito não cobre mais o projeto atual.
-  > Revisar com base em `package.json` e na pasta `tests/integration/`, incluindo dashboard, signup, event-config, loading screen, submissions e demais fluxos já cobertos.
+  > Corrigido em `docs/CLAUDE.md`: stack local/serverless e cobertura de testes revisados com base em `package.json`, `tests/integration/` e `tests/unit/`.
 
 ---
 
