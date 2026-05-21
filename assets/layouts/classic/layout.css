@@ -1214,11 +1214,15 @@
     gap: var(--space-xs);
 }
 
+.traje-swatch-item .traje-swatch,
+.traje-color-item .traje-swatch {
+    min-width: 0;
+    height: auto;
+    aspect-ratio: 1 / 1;
+}
+
 .traje-swatch-item .traje-swatch {
     width: 48px;
-    height: 48px;
-    min-width: 0;
-    aspect-ratio: 1 / 1;
 }
 
 .traje-swatch-label {
@@ -1475,7 +1479,7 @@
     border-radius: var(--radius-card);
     border: 1px solid var(--color-border);
     background: var(--color-surface);
-    aspect-ratio: 4 / 3;
+    aspect-ratio: 3 / 4;
     touch-action: pan-y;
 }
 
@@ -1885,7 +1889,7 @@
     }
 
     .gallery-track {
-        aspect-ratio: 1 / 1;
+        aspect-ratio: 3 / 4;
     }
 
     .gallery-nav {
