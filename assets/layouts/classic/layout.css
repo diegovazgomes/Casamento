@@ -1226,6 +1226,14 @@
     width: 48px;
 }
 
+.traje-color-item .traje-swatch {
+    width: 58px;
+}
+
+.traje-color-item .traje-color-name {
+    font-size: 11px;
+}
+
 .traje-swatch-label {
     color: var(--color-text-muted);
     font-size: 10px;
@@ -1434,7 +1442,7 @@
 
 .traje-note-body {
     font-family: var(--font-serif);
-    font-size: clamp(15px, 2.8vw, 20px);
+    font-size: var(--section-body-size);
     font-weight: 300;
     font-style: italic;
     line-height: 1.9;
