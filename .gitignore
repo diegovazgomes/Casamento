@@ -21,3 +21,4 @@ push.bat
 .claude/worktrees/
 # Configuração local por usuário — não versionada
 .claude/settings.local.json
+.vercel
