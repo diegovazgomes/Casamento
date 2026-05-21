@@ -22,8 +22,9 @@
   Quando o pagamento por cartão não está habilitado, o modal ainda mostra a opção e redireciona para URL aleatória. A opção deve aparecer com **cadeado visual** e sem link clicável.
   > Corrigido em `presente.html`: variável `CARD_ENABLED` sincronizada com `cardPaymentEnabled`; botão exibe 🔒, sem `href` e `pointer-events: none`.
 
-- [ ] **B5 — Corrigir paletas do noivo e da noiva em Traje**
+- [x] **B5 — Corrigir paletas do noivo e da noiva em Traje**
   Após o ajuste dos círculos de padrinhos e madrinhas (mobile), os círculos das paletas do **noivo** e da **noiva** ficaram visualmente bugados. É necessário padronizar para círculos perfeitos (sem deformação elíptica), mantendo consistência entre todos os blocos de paleta.
+  > Corrigido em `layout.css`: `.traje-color-item .traje-swatch` recebia `width:56px` da media query mas mantinha `height:44px` — `aspect-ratio:1/1` não tem efeito com duas dimensões explícitas. Adicionado `height:auto` para que o aspect-ratio compute a altura a partir da largura. Confirmado 56×56px no mobile via preview.
 
 ---
 
@@ -63,8 +64,9 @@
 - [x] **N6 — Pix como método de pagamento no checkout de upgrade**
   > Corrigido em `api/payments.js`: usa `automatic_payment_methods: { enabled: true }` em vez de lista explícita. **Para ativar Pix:** habilitar em Stripe Dashboard → Settings → Payment methods. O Pix aparecerá automaticamente quando condições forem atendidas (conta BRL + Pix habilitado).
 
-- [ ] **N7 — Redesign da galeria para formato retrato (mobile-first)**
+- [x] **N7 — Redesign da galeria para formato retrato (mobile-first)**
   A galeria atual usa cards quadrados. Precisamos redesenhar para proporção de foto em retrato (mais comum em celulares), com redimensionamento responsivo e boa composição visual no desktop e no mobile.
+  > Corrigido em `layout.css`: `.gallery-track` alterado de `aspect-ratio:4/3` para `3/4` em todos os breakpoints. Verificado via preview: mobile 343×457px (ratio 0.750), desktop 396×528px (ratio 0.750).
 
 ---
 
