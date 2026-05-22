@@ -11,6 +11,11 @@ function getLookupValue(value) {
   return String(value || '').trim();
 }
 
+function isLikelyUuid(value) {
+  const normalized = String(value || '').trim();
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(normalized);
+}
+
 export function isDemoLockedEvent(event) {
   return event?.is_demo_locked === true
     || event?.config?.demo?.locked === true;
@@ -159,18 +164,62 @@ export async function findOwnedGuestToken(supabase, userId, tokenId, selectClaus
     return null;
   }
 
-  const { data, error } = await supabase
+  const { data: tokenData, error: tokenError } = await supabase
     .from('guest_tokens')
-    .select(`${selectClause},events!inner(id,user_id,slug,config)`)
+    .select(selectClause)
     .eq('id', tokenId)
-    .eq('events.user_id', userId)
     .maybeSingle();
 
-  if (error) {
-    throw error;
+  if (tokenError) {
+    throw tokenError;
   }
 
-  return data;
+  if (!tokenData) {
+    return null;
+  }
+
+  const tokenEventLookup = getLookupValue(tokenData.event_id);
+  if (!tokenEventLookup) {
+    return null;
+  }
+
+  let ownedEvent = null;
+
+  // Produção pode ter schemas legados onde guest_tokens.event_id guarda o slug.
+  const { data: eventBySlug, error: eventBySlugError } = await supabase
+    .from('events')
+    .select('id,user_id,slug,config')
+    .eq('slug', tokenEventLookup)
+    .maybeSingle();
+
+  if (eventBySlugError) {
+    throw eventBySlugError;
+  }
+
+  if (eventBySlug) {
+    ownedEvent = eventBySlug;
+  } else if (isLikelyUuid(tokenEventLookup)) {
+    const { data: eventById, error: eventByIdError } = await supabase
+      .from('events')
+      .select('id,user_id,slug,config')
+      .eq('id', tokenEventLookup)
+      .maybeSingle();
+
+    if (eventByIdError) {
+      throw eventByIdError;
+    }
+
+    ownedEvent = eventById || null;
+  }
+
+  if (!ownedEvent || ownedEvent.user_id !== userId) {
+    return null;
+  }
+
+  return {
+    ...tokenData,
+    events: ownedEvent,
+  };
 }
 
 export function buildEventUpdatePayload(body, fieldMap, existingConfig, mergeDeep) {
