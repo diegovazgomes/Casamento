@@ -62,9 +62,8 @@
                     document.documentElement.classList.add('ls-pending');
                 }
                 var planMeta = document.querySelector('meta[name="devazi-plan"]');
-                if (planMeta && planMeta.content === 'premium') {
-                    try { localStorage.setItem('devazi_plan', 'premium'); } catch (ex) {}
-                }
+                var planValue = (planMeta && planMeta.content === 'premium') ? 'premium' : 'free';
+                try { localStorage.setItem('devazi_plan', planValue); } catch (ex) {}
             } catch (e) { window.__LS_COUPLE_DATA__ = null; }
         })();
     </script>
