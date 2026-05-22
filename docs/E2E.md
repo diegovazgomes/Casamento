@@ -16,7 +16,7 @@
 - [ ] Abrir a página de cadastro
 - [ ] Preencher nome, e-mail e senha válidos e clicar em "Criar conta"
 - [ ] Verificar se aparece mensagem de confirmação ou se redireciona para o dashboard
-- [ ] Verificar se um evento foi criado automaticamente para o novo usuário
+- [ ] Verificar se um evento foi criado automaticamente para o novo usuário.
 
 ### 1.2 Login com conta existente
 - [ ] Acessar a página de login
