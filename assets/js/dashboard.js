@@ -1199,6 +1199,52 @@ function openGroupModal(mode = 'group') {
 // GRUPOS
 // ============================================================
 
+function buildGuestGroupByIdUrls(grupoId) {
+  const encodedId = encodeURIComponent(String(grupoId || '').trim());
+  return {
+    canonicalUrl: `/api/dashboard/guest-groups?id=${encodedId}`,
+    legacyPathUrl: `/api/dashboard/guest-groups/${encodedId}`,
+  };
+}
+
+async function fetchGuestGroupByIdWithFallback(grupoId, options = {}) {
+  const { canonicalUrl, legacyPathUrl } = buildGuestGroupByIdUrls(grupoId);
+  const response = await fetchWithAuth(canonicalUrl, options);
+
+  // Compatibilidade com clientes/infra legados que usam /guest-groups/:id.
+  if (response.status !== 404) {
+    return response;
+  }
+
+  return fetchWithAuth(legacyPathUrl, options);
+}
+
+async function getApiErrorMessage(response) {
+  const fallback = `${response.status} ${response.statusText || 'Erro de requisição'}`.trim();
+
+  try {
+    const payload = await response.json();
+    const detail = String(payload?.error || payload?.message || '').trim();
+    return detail ? `${fallback} - ${detail}` : fallback;
+  } catch {
+    try {
+      const text = String(await response.text() || '').trim();
+      return text ? `${fallback} - ${text}` : fallback;
+    } catch {
+      return fallback;
+    }
+  }
+}
+
+async function throwIfApiNotOk(response, contextLabel) {
+  if (response.ok) {
+    return;
+  }
+
+  const detail = await getApiErrorMessage(response);
+  throw new Error(`${contextLabel}: ${detail}`);
+}
+
 async function loadGrupos() {
   const container = document.getElementById('gruposTable');
   const loading = document.getElementById('gruposLoading');
@@ -1308,7 +1354,7 @@ async function handleSaveGrupo(event) {
   try {
     if (state.editingGrupoId) {
       // Editar
-      const response = await fetchWithAuth(`/api/dashboard/guest-groups?id=${state.editingGrupoId}`, {
+      const response = await fetchGuestGroupByIdWithFallback(state.editingGrupoId, {
         method: 'PATCH',
         body: JSON.stringify({
           groupName: grupoName,
@@ -1318,7 +1364,7 @@ async function handleSaveGrupo(event) {
         }),
       });
 
-      if (!response.ok) throw new Error(response.statusText);
+      await throwIfApiNotOk(response, 'Falha ao atualizar grupo');
       alert('Grupo atualizado com sucesso!');
     } else {
       // Criar novo
@@ -1333,7 +1379,7 @@ async function handleSaveGrupo(event) {
         }),
       });
 
-      if (!response.ok) throw new Error(response.statusText);
+      await throwIfApiNotOk(response, 'Falha ao criar grupo');
       const data = await response.json();
       alert(isIndividualMode
         ? `Convite individual criado! Link: ${data.data.inviteLink}`
@@ -1345,7 +1391,7 @@ async function handleSaveGrupo(event) {
     await loadGrupos();
   } catch (error) {
     console.error('[handleSaveGrupo]', error);
-    alert('Erro ao salvar grupo');
+    alert(String(error?.message || 'Erro ao salvar grupo'));
   }
 }
 
@@ -1355,16 +1401,16 @@ async function deleteGrupo(grupoId) {
   }
 
   try {
-    const response = await fetchWithAuth(`/api/dashboard/guest-groups?id=${grupoId}`, {
+    const response = await fetchGuestGroupByIdWithFallback(grupoId, {
       method: 'DELETE',
     });
 
-    if (!response.ok) throw new Error(response.statusText);
+    await throwIfApiNotOk(response, 'Falha ao deletar grupo');
     alert('Grupo deletado com sucesso');
     await loadGrupos();
   } catch (error) {
     console.error('[deleteGrupo]', error);
-    alert('Erro ao deletar grupo');
+    alert(String(error?.message || 'Erro ao deletar grupo'));
   }
 }
 

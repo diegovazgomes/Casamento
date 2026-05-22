@@ -2,6 +2,12 @@
  * Endpoint: GET/POST/PATCH/DELETE /api/dashboard/guest-groups
  * CRUD de grupos de convidados (guest_tokens)
  *
+ * PATCH/DELETE esperam o id em query string:
+ *   /api/dashboard/guest-groups?id=<tokenId>
+ *
+ * Compatibilidade legada de path (/api/dashboard/guest-groups/:id)
+ * pode ser tratada por rewrite da plataforma.
+ *
  * Todos os endpoints requerem: Authorization: Bearer <token>
  */
 
@@ -18,6 +24,14 @@ const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 function getSupabaseClient() {
   return createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+}
+
+function resolveTokenId(req) {
+  const rawId = req?.query?.id ?? req?.query?.tokenId;
+  if (Array.isArray(rawId)) {
+    return String(rawId[0] || '').trim();
+  }
+  return String(rawId || '').trim();
 }
 
 export default function handler(req, res) {
@@ -176,14 +190,14 @@ async function handleCreateGroup(req, res) {
 }
 
 /**
- * PATCH /api/dashboard/guest-groups/:tokenId
+ * PATCH /api/dashboard/guest-groups?id=:tokenId
  * Editar grupo (principalmente max_confirmations)
  *
  * Body:
  *   { "maxConfirmations": 3, "groupName": "...", "phone": "...", "notes": "..." }
  */
 async function handleUpdateGroup(req, res) {
-  const { id: tokenId } = req.query;
+  const tokenId = resolveTokenId(req);
   const { maxConfirmations, groupName, phone, notes } = req.body || {};
 
   if (!tokenId) {
@@ -247,11 +261,11 @@ async function handleUpdateGroup(req, res) {
 }
 
 /**
- * DELETE /api/dashboard/guest-groups/:tokenId
+ * DELETE /api/dashboard/guest-groups?id=:tokenId
  * Deletar grupo (e cascadear para views/reminders)
  */
 async function handleDeleteGroup(req, res) {
-  const { id: tokenId } = req.query;
+  const tokenId = resolveTokenId(req);
 
   if (!tokenId) {
     return res.status(400).json({ error: 'tokenId required' });

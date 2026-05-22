@@ -21,6 +21,10 @@
   ],
   "rewrites": [
     {
+      "source": "/api/dashboard/guest-groups/:id",
+      "destination": "/api/dashboard/guest-groups?id=:id"
+    },
+    {
       "source": "/:slug((?!api|assets|.*\\..*).+)",
       "has": [
         {
