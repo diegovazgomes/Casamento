@@ -121,7 +121,12 @@ export function initLoadingScreen() {
             : null;
 
         const dataReady = ssGet(LOADING_DATA_READY_KEY) === '1';
-        const isPremium = lsGet('devazi_plan') === 'premium';
+        // Usa window.__INVITATION_BOOTSTRAP__.plan como fonte primária (síncrona, não falha).
+        // Cai para localStorage como fallback em deployments sem o campo plan.
+        const bootstrapPlan = window.__INVITATION_BOOTSTRAP__?.plan;
+        const isPremium = bootstrapPlan != null
+            ? bootstrapPlan === 'premium'
+            : lsGet('devazi_plan') === 'premium';
         document.body.insertAdjacentHTML('afterbegin', buildLoadingHTML(prefill, {
             showCouplePhase: dataReady && !isPremium,
             hideBrand: isPremium,
@@ -417,6 +422,16 @@ export function markContentReady() {
  * @param {() => void} onOpen — callback disparado ao clicar
  */
 export function showFreeInviteButton(onOpen) {
+    // Corrige mismatch: brand oculta E couple oculta indica que o initLoadingScreen
+    // assumiu premium (localStorage stale ou plan errado), mas o plano real é free.
+    // Nesse caso restaura a brand phase. Se couple estiver visível, é visita de retorno
+    // e o auto-open no caller é o comportamento correto — não interferir.
+    const brandPhase = document.getElementById('loadingPhaseBrand');
+    const couplePhase = document.getElementById('loadingPhaseCouple');
+    if (brandPhase?.hidden && couplePhase?.hidden) {
+        brandPhase.hidden = false;
+    }
+
     const btn = document.getElementById('loadingBrandBtn');
     if (!btn) return;
     btn.hidden = false;

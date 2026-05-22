@@ -36,7 +36,8 @@
             window.__INVITATION_BOOTSTRAP__ = {
                 navigationTarget: navigationTarget,
                 guestToken: guestToken,
-                shouldSkipIntro: invitationStarted || Boolean(navigationTarget)
+                shouldSkipIntro: invitationStarted || Boolean(navigationTarget),
+                plan: 'premium'
             };
 
             if (window.__INVITATION_BOOTSTRAP__.shouldSkipIntro) {
@@ -61,9 +62,8 @@
                     if (d && d.first && d.second) { window.__LS_COUPLE_DATA__ = d; }
                     document.documentElement.classList.add('ls-pending');
                 }
-                var planMeta = document.querySelector('meta[name="devazi-plan"]');
-                var planValue = (planMeta && planMeta.content === 'premium') ? 'premium' : 'free';
-                try { localStorage.setItem('devazi_plan', planValue); } catch (ex) {}
+                var plan = window.__INVITATION_BOOTSTRAP__?.plan;
+                if (plan) { try { localStorage.setItem('devazi_plan', plan); } catch (ex) {} }
             } catch (e) { window.__LS_COUPLE_DATA__ = null; }
         })();
     </script>
