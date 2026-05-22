@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="description" content="">
     <meta name="theme-color" content="#1a1714">
+    <meta name="devazi-plan" content="premium">
     <title></title>
     <script>
         (function () {
@@ -59,6 +60,10 @@
                     var d = JSON.parse(sessionStorage.getItem('ls_couple') || 'null');
                     if (d && d.first && d.second) { window.__LS_COUPLE_DATA__ = d; }
                     document.documentElement.classList.add('ls-pending');
+                }
+                var planMeta = document.querySelector('meta[name="devazi-plan"]');
+                if (planMeta && planMeta.content === 'premium') {
+                    try { localStorage.setItem('devazi_plan', 'premium'); } catch (ex) {}
                 }
             } catch (e) { window.__LS_COUPLE_DATA__ = null; }
         })();
