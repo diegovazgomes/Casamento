@@ -1,6 +1,6 @@
 (function () {
-  const LOVE_LETTER = String.fromCodePoint(0x1F48C);
-  const WHITE_HEART = String.fromCodePoint(0x1F90D);
+  const LOVE_LETTER = String.fromCodePoint(0x2709, 0xFE0F);
+  const WHITE_HEART = String.fromCodePoint(0x2764, 0xFE0F);
 
   function buildInviteWhatsAppMessage({ coupleNames, link, isIndividual = false, groupSizeLabel = '' } = {}) {
     const coupleLabel = String(coupleNames || 'os noivos').trim() || 'os noivos';
