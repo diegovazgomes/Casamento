@@ -215,7 +215,7 @@
 - [ ] Testar o convite no **celular** (Android ou iPhone) — verificar layout, botões e fontes
 - [ ] Testar o convite no **computador** (Chrome ou Edge)
 - [ ] Testar o convite no **Safari** (iPhone ou Mac) — áudio e animações podem se comportar diferente
-- [ ] Testar o dashboard no celular — verificar se os campos de edição ficam legíveis e utilizáveis
+- [ ] Testar o dashboard no celular — verificar se os campos de edição ficam legíveis e utilizáveis.
 
 ---
 
