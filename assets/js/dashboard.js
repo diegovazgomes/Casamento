@@ -1341,7 +1341,7 @@ async function loadGrupos() {
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4 20-7z"/><path d="M22 2 11 13"/></svg>
               <span class="icon-btn-label">Convidar</span>
             </button>
-            <button class="icon-btn"${isFreePlan ? premiumActionDisabledAttr : `${phoneDisabledAttr}${phoneDisabledClass}`} onclick="${(!isFreePlan && hasPhone) ? `copyInviteWhatsAppMessage('${escapeHtmlAttribute(grupo.id)}', this)` : ''}" aria-label="Copiar texto do convite de ${escapeHtml(grupo.group_name)}" title="${isFreePlan ? 'Disponível no plano Premium' : (hasPhone ? 'Copiar texto do convite' : 'Telefone não cadastrado')}">
+            <button class="icon-btn"${isFreePlan ? premiumActionDisabledAttr : ''} onclick="${isFreePlan ? '' : `copyInviteWhatsAppMessage('${escapeHtmlAttribute(grupo.id)}', this)`}" aria-label="Copiar texto do convite de ${escapeHtml(grupo.group_name)}" title="${isFreePlan ? 'Disponível no plano Premium' : 'Copiar texto do convite'}">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
               <span class="icon-btn-label">Copiar texto</span>
             </button>

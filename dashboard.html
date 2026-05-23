@@ -936,13 +936,12 @@ input[type="date"].field-input{width:100%;min-width:0;box-sizing:border-box;-web
   .stats{grid-template-columns:1fr}
   .filters{grid-template-columns:1fr}
   .topbar{flex-wrap:wrap;row-gap:8px}
-  .topbar-actions{width:100%;flex-shrink:1;min-width:0;justify-content:flex-end}
+  .topbar-actions{width:100%;flex-shrink:1;min-width:0;flex-direction:column;gap:8px}
   .topbar-actions .btn-label{display:none}
+  .topbar-actions .top-action-btn .btn-label{display:inline}
   .topbar-actions .btn{padding:10px 14px}
-  #btnNewGroup .btn-label-mobile,#btnNewSingleInvite .btn-label-mobile,#btnCopyGeneralInvite .btn-label-mobile{display:inline}
-  #btnNewGroup svg,#btnNewSingleInvite svg,#btnCopyGeneralInvite svg{display:none}
-  #btnNewGroup,#btnNewSingleInvite,#btnCopyGeneralInvite{flex:1 1 0;max-width:160px;padding:8px 6px;font-size:12px;min-width:0;justify-content:center}
-  #btnNewSingleInvite .btn-label-mobile{font-size:10px;letter-spacing:0.15em}
+  #btnNewGroup .btn-label-mobile,#btnNewSingleInvite .btn-label-mobile,#btnCopyGeneralInvite .btn-label-mobile{display:none}
+  #btnNewGroup,#btnNewSingleInvite,#btnCopyGeneralInvite{width:100%;box-sizing:border-box;justify-content:center;padding:11px 16px}
   .topbar-left{overflow:hidden}
   .topbar-title{font-size:19px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   #gruposTable th:nth-child(3),#gruposTable td:nth-child(3){display:none}
