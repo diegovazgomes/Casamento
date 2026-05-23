@@ -1,3 +1,8 @@
+---
+name: criar-layout
+description: Cria um novo layout visual completo para o projeto de convite de casamento. Use quando o usuário pedir para criar, adicionar ou duplicar um layout em assets/layouts/.
+---
+
 # Skill: Criar Novo Layout
 
 Cria um novo layout visual completo para o projeto de convite de casamento — `layout.css` + `defaults.json` — e o registra automaticamente no dashboard, editor e seletores de layout.
