@@ -98,3 +98,12 @@
 
 - [x] **D1 — Comportamento do áudio ao retornar para a página principal**
   > Decisão: retoma automaticamente ao voltar (via bfcache ou visibilitychange), somente se a pausa foi causada pela navegação — pausa manual do usuário é preservada
+
+
+Usuario free não cria nem convite individual : Falha ao criar grtupo: 403 erro de requisição - Grupos de convidados estão dísponiveis apenas no plano premium
+
+Se não coloca o telefone ao criar convite o botão de compartilhar e o botão de copiar mensagem com link não aparecem, sendo que deveria aparecer o de copiar o link. 
+
+Podemos deixar convites individuais e grupos apenas para premium. Criar um terceiro botão de copiar link do convite, dessa forma a pessoa só copia e cola para os convidados, mas eles poderão compartilhar os links entre eles 
+
+Máximo de 50 confirmações no free está funcionando?
