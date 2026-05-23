@@ -1575,12 +1575,15 @@ function renderMusica() {
 
 // ── Theme tab ─────────────────────────────────────────────────────────────────
 
-const DEFAULT_THEME_FILES = [
-  'assets/config/themes/classic-gold.json',
-  'assets/config/themes/classic-gold-light.json',
-  'assets/config/themes/classic-silver.json',
-  'assets/config/themes/classic-silver-light.json',
-  'assets/config/themes/classic-purple.json',
+// Paletas compartilhadas — disponíveis para todos os layouts
+const DEFAULT_PALETTE_FILES = [
+  'assets/themes/gold.json',
+  'assets/themes/gold-light.json',
+  'assets/themes/silver.json',
+  'assets/themes/silver-light.json',
+  'assets/themes/purple.json',
+  'assets/themes/blue.json',
+  'assets/themes/green-light.json',
 ];
 
 const LAYOUT_DEFINITIONS = [
@@ -1588,13 +1591,11 @@ const LAYOUT_DEFINITIONS = [
     key: 'classic',
     name: 'Classic',
     description: 'Hero centralizado, seções empilhadas, elegante e formal com tipografia mista.',
-    themePrefix: 'assets/layouts/classic/themes/',
   },
   {
     key: 'modern',
     name: 'Modern',
     description: 'Hero dividido com foto à direita, títulos à esquerda, minimalista e sans-serif.',
-    themePrefix: 'assets/layouts/modern/themes/',
   },
 ];
 
@@ -1626,35 +1627,35 @@ const THEME_COLOR_SECTIONS = [
   },
 ];
 
-let themeCatalog = [];  // [{ path, meta, colors, fonts }]
+let themeCatalog = [];  // [{ key, path, name, description, allColors, colors }]
 
-function getThemeFiles() {
-  const allFiles = Array.isArray(config?.themeFiles) && config.themeFiles.length > 0
-    ? config.themeFiles
-    : DEFAULT_THEME_FILES;
+// Extrai a chave simples de um caminho de tema (ex: "gold" de "assets/themes/gold.json")
+function extractThemeKey(themePathOrKey) {
+  if (!themePathOrKey) return '';
+  // Se já é uma chave simples (sem "/" e sem ".json")
+  if (!themePathOrKey.includes('/')) return themePathOrKey.replace('.json', '');
+  // Extrai o filename sem extensão
+  const parts = themePathOrKey.split('/');
+  return parts[parts.length - 1].replace('.json', '');
+}
 
-  const activeLayout = config?.activeLayout;
-  if (activeLayout) {
-    const layoutDef = LAYOUT_DEFINITIONS.find(l => l.key === activeLayout);
-    if (layoutDef) {
-      const layoutThemes = allFiles.filter(f => f.startsWith(layoutDef.themePrefix));
-      if (layoutThemes.length > 0) return layoutThemes;
-    }
-  }
-
-  return allFiles;
+function getPaletteFiles() {
+  // Paletas são compartilhadas entre layouts — sempre usa a lista canônica
+  return DEFAULT_PALETTE_FILES;
 }
 
 async function loadThemeCatalog() {
   if (themeCatalog.length) return;
-  const themeFiles = getThemeFiles();
-  const results = await Promise.allSettled(themeFiles.map(async (path) => {
+  const paletteFiles = getPaletteFiles();
+  const results = await Promise.allSettled(paletteFiles.map(async (path) => {
     const res = await fetch(path);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
+    const key = extractThemeKey(path);
     return {
+      key,
       path,
-      name: data.meta?.name ?? path,
+      name: data.meta?.name ?? key,
       description: data.meta?.description ?? '',
       allColors: data.colors ?? {},
       colors: {
@@ -1664,11 +1665,6 @@ async function loadThemeCatalog() {
         text:       data.colors?.text       ?? '#faf7f2',
         surface:    data.colors?.surface    ?? '#222',
         border:     data.colors?.border     ?? 'rgba(201,168,76,0.2)',
-      },
-      fonts: {
-        accent:  data.typography?.fonts?.accent  ?? "'Great Vibes', cursive",
-        serif:   data.typography?.fonts?.serif   ?? "'Cormorant Garamond', serif",
-        primary: data.typography?.fonts?.primary ?? "'Jost', sans-serif",
       },
     };
   }));
@@ -1682,7 +1678,7 @@ function colorSwatch(color) {
 }
 
 function themeCardHtml(theme) {
-  const isActive = config.activeTheme === theme.path;
+  const isActive = extractThemeKey(config.activeTheme) === theme.key;
   const bg   = theme.colors.background;
   const fg   = theme.colors.text;
   const pri  = theme.colors.primary;
@@ -1714,7 +1710,7 @@ function themeCardHtml(theme) {
           ${colorSwatch(fg)}
           ${colorSwatch(bdr)}
         </div>
-        <button class="ed-theme-btn${isActive ? ' is-active' : ''}" data-select-theme="${esc(theme.path)}">
+        <button class="ed-theme-btn${isActive ? ' is-active' : ''}" data-select-theme="${esc(theme.key)}">
           ${isActive ? 'Tema atual' : 'Usar este tema'}
         </button>
       </div>
@@ -1723,7 +1719,7 @@ function themeCardHtml(theme) {
 
 function layoutSelectorHtml() {
   const activeLayout = config?.activeLayout || 'classic';
-  const cards = LAYOUT_DEFINITIONS.filter(l => l.key !== 'modern').map(layout => {
+  const cards = LAYOUT_DEFINITIONS.map(layout => {
     const isActive = layout.key === activeLayout;
     return `
       <button
@@ -1749,7 +1745,8 @@ async function renderTema() {
   await loadThemeCatalog();
   const cards = themeCatalog.map(t => themeCardHtml(t)).join('');
 
-  const activeTheme = themeCatalog.find((theme) => theme.path === config.activeTheme) || themeCatalog[0] || { allColors: {} };
+  const activeThemeKey = extractThemeKey(config.activeTheme);
+  const activeTheme = themeCatalog.find((theme) => theme.key === activeThemeKey) || themeCatalog[0] || { allColors: {} };
 
   function getColorContext({ key, description, aliases = [] }) {
     const overrideValue = getPath(config, `themeOverrides.colors.${key}`);

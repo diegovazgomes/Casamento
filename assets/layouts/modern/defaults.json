@@ -1,0 +1,222 @@
+{
+  "typography": {
+    "roles": {
+      "heroTitle": {
+        "family": "jost",
+        "size": { "min": "60px", "fluid": "9.8vw", "max": "126px" },
+        "weight": 800,
+        "lineHeight": 0.92,
+        "style": "normal"
+      },
+      "heroSubtitle": {
+        "family": "jost",
+        "size": "10px",
+        "weight": 300,
+        "lineHeight": 1.4,
+        "style": "normal"
+      },
+      "eyebrow": {
+        "family": "jost",
+        "size": "11px",
+        "weight": 500,
+        "textTransform": "uppercase",
+        "letterSpacing": "0.1em",
+        "lineHeight": 1.2,
+        "style": "normal"
+      },
+      "sectionTitle": {
+        "family": "jost",
+        "size": { "min": "34px", "fluid": "6vw", "max": "64px" },
+        "weight": 700,
+        "lineHeight": 1.0,
+        "style": "normal"
+      },
+      "sectionSubtitle": {
+        "family": "jost",
+        "size": "12px",
+        "weight": 300,
+        "lineHeight": 1.5,
+        "style": "normal"
+      },
+      "body": {
+        "family": "jost",
+        "size": "14px",
+        "weight": 500,
+        "lineHeight": 1.75,
+        "style": "normal"
+      },
+      "formLabel": {
+        "family": "jost",
+        "size": "10px",
+        "weight": 400,
+        "lineHeight": 1.4,
+        "style": "normal"
+      },
+      "button": {
+        "family": "jost",
+        "size": "10px",
+        "weight": 500,
+        "letterSpacing": "0.04em",
+        "lineHeight": 1.2,
+        "style": "normal"
+      },
+      "countdownNumber": {
+        "family": "jost",
+        "size": "52px",
+        "weight": 700,
+        "lineHeight": 0.95,
+        "style": "normal"
+      },
+      "footer": {
+        "family": "jost",
+        "size": "22px",
+        "weight": 600,
+        "lineHeight": 1.2,
+        "style": "normal"
+      }
+    },
+    "fonts": {
+      "primary": "'Jost', sans-serif",
+      "serif": "'Cormorant Garamond', serif",
+      "accent": "'Jost', sans-serif"
+    },
+    "sizes": {
+      "base": "14px",
+      "heroLabel": "10px",
+      "heroDate": "10px",
+      "heroNames": { "min": "60px", "fluid": "9.8vw", "max": "126px" },
+      "scrollHint": "9px",
+      "sectionTag": "11px",
+      "sectionTitle": { "min": "34px", "fluid": "6vw", "max": "64px" },
+      "sectionBody": "14px",
+      "countdownNumber": "52px",
+      "countdownLabel": "9px",
+      "countdownFinished": "32px",
+      "detailIcon": "20px",
+      "detailTitle": "9px",
+      "detailValue": "22px",
+      "detailSub": "10px",
+      "rsvpTitle": "42px",
+      "rsvpSubtitle": "12px",
+      "rsvpInput": "13px",
+      "rsvpChoice": "10px",
+      "rsvpSubmit": "10px",
+      "rsvpSuccessText": "28px",
+      "rsvpSuccessSub": "12px",
+      "footerNames": "28px",
+      "footerNote": "10px"
+    }
+  },
+
+  "spacing": {
+    "containerWidth": "800px",
+    "cardPadding": "32px",
+    "sectionPaddingTop": "96px",
+    "sectionPaddingInline": "28px",
+    "detailsSectionPaddingTop": "96px",
+    "sectionTagGap": "24px",
+    "sectionTitleGap": "20px",
+    "heroLabelGap": "20px",
+    "heroDateGap": "24px",
+    "scrollHintBottom": "24px",
+    "scrollHintGap": "8px",
+    "dividerMarginTop": "64px",
+    "countdownMarginTop": "40px",
+    "countdownGap": "16px",
+    "detailsMarginTop": "40px",
+    "detailsGridGap": "2px",
+    "detailCardPaddingBlock": "32px",
+    "detailCardPaddingInline": "24px",
+    "rsvpShellPaddingBottom": "96px",
+    "rsvpCardMarginTop": "40px",
+    "rsvpCardPaddingBlock": "56px",
+    "rsvpCardPaddingInline": "40px",
+    "rsvpSubtitleGap": "32px",
+    "rsvpFormGap": "14px",
+    "rsvpChoiceGap": "10px",
+    "rsvpSubmitMarginTop": "8px",
+    "footerPaddingBottom": "56px"
+  },
+
+  "layout": {
+    "heroHeight": "100vh",
+    "heroPadding": "0 28px 72px",
+    "heroContentWidth": "680px",
+    "heroContentPaddingBottom": "40px",
+    "heroFadeOffset": "0px",
+    "contentMaxWidth": "800px"
+  },
+
+  "components": {
+    "dividerWidth": "240px",
+    "dividerDiamond": "5px",
+    "scrollArrowWidth": "14px",
+    "scrollArrowHeight": "48px",
+    "scrollArrowStemHeight": "36px",
+    "scrollArrowHeadSize": "8px",
+    "countdownCardPaddingTop": "24px",
+    "countdownCardPaddingInline": "12px",
+    "countdownCardPaddingBottom": "20px",
+    "rsvpInputPaddingBlock": "16px",
+    "rsvpInputPaddingInline": "20px",
+    "rsvpChoiceMinHeight": "52px",
+    "rsvpChoicePadding": "14px",
+    "rsvpSubmitPaddingBlock": "18px",
+    "rsvpSubmitPaddingInline": "36px",
+    "rsvpSuccessIcon": "36px",
+    "cardLineHeight": "1px",
+    "cardLineHeightExtras": "1.5px",
+    "cardLineZIndex": 10
+  },
+
+  "radius": {
+    "card": "10px",
+    "button": "8px"
+  },
+
+  "effects": {
+    "transition": "all 0.35s cubic-bezier(0.2, 0.8, 0.2, 1)",
+    "cardLineTransition": "transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1)"
+  },
+
+  "animation": {
+    "fadeDuration": "0.7s",
+    "staggerDelay": "0.08s",
+    "heroFadeDuration": "1.2s",
+    "heroRevealDelayMs": 280,
+    "cardLineTransition": "transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1)"
+  },
+
+  "countdown": {
+    "format": "two-digits",
+    "updateInterval": 1000
+  },
+
+  "responsive": {
+    "mobile": {
+      "typography": {
+        "sizes": {
+          "base": "12px",
+          "heroNames": { "min": "36px", "fluid": "10vw", "max": "56px" }
+        }
+      },
+      "spacing": {
+        "sectionPaddingTop": "48px",
+        "sectionPaddingInline": "20px",
+        "detailsSectionPaddingTop": "48px"
+      },
+      "layout": {
+        "heroHeight": "680px",
+        "heroPadding": "0 20px 80px",
+        "heroContentWidth": "360px",
+        "heroContentPaddingBottom": "36px",
+        "heroFadeOffset": "0px",
+        "contentMaxWidth": "620px"
+      },
+      "animation": {
+        "heroFadeDuration": "1.8s",
+        "heroRevealDelayMs": 800
+      }
+    }
+  }
+}

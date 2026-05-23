@@ -1,6 +1,8 @@
 export const STATIC_SITE_CONFIG_URL = 'assets/config/site.json';
 export const DEFAULT_LAYOUT_KEY = 'classic';
-export const DEFAULT_THEME_PATH = 'assets/layouts/classic/themes/classic-silver.json';
+export const DEFAULT_THEME_PATH = 'assets/themes/silver-light.json';
+export const DEFAULT_LAYOUT_DEFAULTS_PATH = (layoutKey) =>
+    `assets/layouts/${layoutKey}/defaults.json`;
 
 function normalizePathname(pathname) {
   if (typeof pathname !== 'string') {
@@ -64,9 +66,22 @@ export function resolveThemePath(activeTheme, layoutKey = DEFAULT_LAYOUT_KEY) {
     return DEFAULT_THEME_PATH;
   }
 
+  // Caminho completo — usar como está (retrocompat e referências diretas)
   if (activeTheme.startsWith('assets/')) {
     return activeTheme;
   }
 
-  return `assets/layouts/${layoutKey}/themes/${activeTheme}.json`;
+  // Chave legada com prefixo de layout (ex: "classic-gold", "black-silver")
+  // → retrocompat: resolve para o caminho antigo de temas por layout
+  const layoutPrefixes = ['classic-', 'black-'];
+  if (layoutPrefixes.some((prefix) => activeTheme.startsWith(prefix))) {
+    return `assets/layouts/${layoutKey}/themes/${activeTheme}.json`;
+  }
+
+  // Chave simples (ex: "gold", "silver", "purple") → nova paleta compartilhada
+  return `assets/themes/${activeTheme}.json`;
+}
+
+export function resolveLayoutDefaultsPath(layoutKey = DEFAULT_LAYOUT_KEY) {
+  return `assets/layouts/${layoutKey}/defaults.json`;
 }

@@ -123,6 +123,17 @@
 
 ## Próximos pontos de melhoria
 
+- [x] **A1 — Separação de Layouts e Paletas de Cores**
+  O sistema de temas misturava tipografia/espaçamentos do layout com paletas de cores, impedindo reutilização de temas entre layouts. Cada novo layout exigiria recriar todos os arquivos de tema (2 layouts × 7 temas = 14 arquivos, escalando linearmente).
+  > Implementado em 23/05/2026:
+  > - Criados `assets/themes/` com 7 paletas compartilhadas (gold, gold-light, silver, silver-light, purple, blue, green-light) — cada uma contém apenas `colors` e `effects` derivados da cor.
+  > - Criados `assets/layouts/classic/defaults.json` e `assets/layouts/modern/defaults.json` com tipografia, espaçamentos, radius e animação específicos de cada layout.
+  > - Bootstrap atualizado (`script.js` + `config-source.js`): merge em 3 camadas — system defaults ← layout defaults ← paleta de cor ← site overrides.
+  > - `site.json.activeTheme` agora usa chave simples `"gold"` em vez de caminho completo; retrocompatibilidade mantida para paths `assets/layouts/*/themes/` legados.
+  > - Editor visual (`editor.js`): catálogo de temas lê de `assets/themes/` (compartilhado entre layouts); modern layout reabilitado no seletor.
+  > - Dashboard (`dashboard.js`, `dashboard.html`): lista de paletas unificada, seletor de layout inclui Modern, wizard usa novas chaves.
+  > - Resultado: novo layout = apenas `layout.css` + `defaults.json`; todos os temas funcionam automaticamente.
+
 - [x] **P1 — Verificar limite de 50 confirmações no Free**
   O limite de 50 confirmações para contas Free estava implementado corretamente na API (`api/submissions.js`: `checkRsvpLimit()`, HTTP 429, `code: 'RSVP_LIMIT_REACHED'`), mas o frontend não tratava esse código — o convidado via a mensagem genérica de erro de rede em vez de uma mensagem clara.
   > Corrigido em `assets/js/rsvp.js`: adicionada constante `RSVP_LIMIT_REACHED_CODE` e bloco de tratamento específico no fluxo de submit. Quando o limite é atingido, o convidado vê "Confirmações encerradas. Este evento já atingiu o limite de confirmações disponíveis. Entre em contato com os noivos para mais informações." Implementado em 23/05/2026.

@@ -4,7 +4,7 @@ import { RSVP } from './rsvp.js';
 import { PresentPage } from './presente.js';
 import { AudioController } from './audio.js';
 import { cloneDeep, mergeDeep, setInputPlaceholder, setText } from './utils.js';
-import { getEventSlugFromPath, resolveSiteConfigSource, resolveThemePath } from './config-source.js';
+import { getEventSlugFromPath, resolveSiteConfigSource, resolveThemePath, resolveLayoutDefaultsPath } from './config-source.js';
 import { markBootstrapComplete, hideLoadingScreen, applyThemeToLoadingScreen, applyEventDataToLoadingScreen, showFreeInviteButton, showPremiumInviteCard } from './loading-screen.js';
 import { onConfigLoaded } from './debug-badge.js';
 
@@ -14,9 +14,9 @@ const AUDIO_PAUSED_STORAGE_KEY = 'wedding-audio-paused';
 const NAVIGATION_SECTION_PARAM = 'section';
 const GUEST_TOKEN_API_URL = '/api/guest-token';
 
-// Para trocar o tema, altere apenas esta constante.
-// Temas disponíveis: classic-gold.json, classic-silver.json
-const ACTIVE_THEME_PATH = 'assets/config/themes/classic-silver-light.json';
+// Fallback de tema quando site.json não define activeTheme.
+// Paletas disponíveis em assets/themes/ (gold, silver, purple, blue, green-light, etc.)
+const ACTIVE_THEME_PATH = 'assets/themes/silver-light.json';
 
 // Layout padrão quando site.json não define activeLayout
 const ACTIVE_LAYOUT_KEY = 'classic';
@@ -523,6 +523,29 @@ export async function loadTheme(themePath, defaults = DEFAULT_THEME) {
     } catch (error) {
         console.warn(`Falha ao carregar ${themePath}. Usando fallback local.`, error);
         return baseTheme;
+    }
+}
+
+async function loadLayoutDefaults(layoutKey) {
+    const path = resolveLayoutDefaultsPath(layoutKey);
+
+    try {
+        const response = await fetch(path, {
+            method: 'GET',
+            headers: { Accept: 'application/json' },
+            cache: 'no-store'
+        });
+
+        if (!response.ok) {
+            console.warn(`[loadLayoutDefaults] Layout defaults não encontrado (${path}). Usando apenas system defaults.`);
+            return cloneDeep(DEFAULT_THEME);
+        }
+
+        const layoutDefaults = await response.json();
+        return mergeDeep(cloneDeep(DEFAULT_THEME), layoutDefaults);
+    } catch (error) {
+        console.warn(`[loadLayoutDefaults] Falha ao carregar ${path}. Usando system defaults.`, error);
+        return cloneDeep(DEFAULT_THEME);
     }
 }
 
@@ -1479,8 +1502,13 @@ async function bootstrap() {
         const layoutKey = config.activeLayout || ACTIVE_LAYOUT_KEY;
         await loadLayout(layoutKey);
         const themePath = resolveThemePath(config.activeTheme, layoutKey) || ACTIVE_THEME_PATH;
+
+        // Merge em 3 camadas: system defaults ← layout defaults ← paleta de cor ← overrides do site
+        // Camada 1+2: system defaults já mesclados com os defaults do layout (tipografia, espaçamentos)
+        const layoutBase = await loadLayoutDefaults(layoutKey);
+        // Camada 3: paleta de cor (colors + effects derivados da cor) sobre o base do layout
         const [theme, typographyConfig] = await Promise.all([
-            loadTheme(themePath),
+            loadTheme(themePath, layoutBase),
             loadTypographyConfig()
         ]);
         const themeWithGlobalTypography = mergeThemeWithGlobalTypography(theme, typographyConfig);

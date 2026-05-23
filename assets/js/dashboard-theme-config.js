@@ -136,7 +136,25 @@ function applySiteThemeOverrides(theme, siteConfig, activeThemePath) {
 function resolveThemePath(activeTheme, layoutKey) {
   if (!activeTheme) return null;
   if (activeTheme.startsWith('assets/')) return activeTheme;
-  return `assets/layouts/${layoutKey}/themes/${activeTheme}.json`;
+
+  // Chave legada com prefixo de layout (retrocompat)
+  const layoutPrefixes = ['classic-', 'black-'];
+  if (layoutPrefixes.some((prefix) => activeTheme.startsWith(prefix))) {
+    return `assets/layouts/${layoutKey}/themes/${activeTheme}.json`;
+  }
+
+  // Chave simples → paleta compartilhada
+  return `assets/themes/${activeTheme}.json`;
+}
+
+async function loadLayoutDefaults(layoutKey, themeDefaults) {
+  const path = `assets/layouts/${layoutKey}/defaults.json`;
+  try {
+    const layoutDefaults = await fetchJson(path);
+    return mergeDeep(cloneDeep(themeDefaults), layoutDefaults);
+  } catch {
+    return cloneDeep(themeDefaults);
+  }
 }
 
 function resolveTheme(theme) {
@@ -151,9 +169,10 @@ export async function loadDashboardThemeConfig() {
   const { themeDefaults, siteDefaults } = await loadDefaults();
   const config = await loadConfig(siteDefaults);
   const layoutKey = config.activeLayout || ACTIVE_LAYOUT_KEY;
-  const themePath = resolveThemePath(config.activeTheme, layoutKey) || 'assets/layouts/classic/themes/classic-silver.json';
+  const themePath = resolveThemePath(config.activeTheme, layoutKey) || 'assets/themes/silver-light.json';
+  const layoutBase = await loadLayoutDefaults(layoutKey, themeDefaults);
   const [theme, typographyConfig] = await Promise.all([
-    loadTheme(themePath, themeDefaults),
+    loadTheme(themePath, layoutBase),
     loadTypographyConfig(),
   ]);
 

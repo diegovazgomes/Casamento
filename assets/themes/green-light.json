@@ -1,0 +1,52 @@
+{
+  "meta": {
+    "name": "Green Light",
+    "description": "Claro com acentos verde-sálvia"
+  },
+
+  "colors": {
+    "background": "#EEF3EA",
+    "surface": "#F7FAF5",
+    "surfaceSoft": "rgba(74,122,82,0.045)",
+    "primary": "#4A7A52",
+    "primarySoft": "#7DAB84",
+    "text": "#1A2B1C",
+    "textMuted": "rgba(26,43,28,0.64)",
+    "textSoft": "rgba(26,43,28,0.68)",
+    "textDim": "rgba(26,43,28,0.46)",
+    "textFaint": "rgba(26,43,28,0.4)",
+    "textPlaceholder": "rgba(26,43,28,0.42)",
+    "border": "rgba(74,122,82,0.22)",
+    "borderSoft": "rgba(74,122,82,0.14)",
+    "borderStrong": "rgba(74,122,82,0.36)",
+    "goldSurfaceSoft": "rgba(74,122,82,0.05)",
+    "goldSurface": "rgba(74,122,82,0.08)",
+    "goldSurfaceStrong": "rgba(74,122,82,0.14)",
+    "primaryGlow": "rgba(74,122,82,0.12)",
+    "pageGridLine": "rgba(26,43,28,0.04)",
+    "overlayBackdrop": "rgba(12,24,14,0.64)",
+    "audioPanelBg": "rgba(247,250,245,0.82)",
+    "audioPanelHoverBg": "rgba(247,250,245,0.94)",
+    "audioPanelBorder": "rgba(74,122,82,0.26)",
+    "pulseRing": "rgba(74,122,82,0.42)",
+    "pulseRingSpread": "rgba(74,122,82,0)",
+    "inputFocusBg": "rgba(74,122,82,0.08)"
+  },
+
+  "effects": {
+    "shadowSoft": "0 20px 60px rgba(26,43,28,0.10)",
+    "shadowHover": "0 12px 28px rgba(26,43,28,0.08)",
+    "textShadowStrong": "0 8px 28px rgba(247,250,245,0.55)",
+    "textShadowSoft": "0 2px 18px rgba(247,250,245,0.38)",
+    "focusRing": "0 0 0 3px rgba(74,122,82,0.12)",
+    "pageGradient": "linear-gradient(180deg, #EEF3EA 0%, #EEF3EA 100%)",
+    "introBackdropGradient": "linear-gradient(180deg, rgba(238,243,234,0.96) 0%, rgba(247,250,245,0.97) 45%, rgba(238,243,234,0.98) 100%)",
+    "introCardGradient": "linear-gradient(180deg, rgba(255,255,255,0.55), rgba(74,122,82,0.04))",
+    "buttonFillGradient": "linear-gradient(135deg, rgba(74,122,82,0.95), rgba(125,171,132,0.95))",
+    "heroOverlayGradient": "linear-gradient(to bottom, rgba(238,243,234,0.06) 0%, rgba(238,243,234,0.16) 40%, rgba(238,243,234,0.78) 76%, rgba(238,243,234,1) 100%)",
+    "overlayPanelGradient": "linear-gradient(180deg, rgba(247,250,245,0.98) 0%, rgba(238,243,234,0.98) 100%)",
+    "overlayCloseGradient": "linear-gradient(180deg, rgba(247,250,245,0.92), rgba(247,250,245,0))",
+    "rsvpPanelGradient": "linear-gradient(135deg, rgba(74,122,82,0.05), rgba(74,122,82,0.015))",
+    "giftPanelGradient": "linear-gradient(135deg, rgba(74,122,82,0.05), rgba(255,255,255,0.04))"
+  }
+}

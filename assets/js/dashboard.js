@@ -2315,42 +2315,62 @@ const PAGE_LABELS = {
   presente:   'Lista de Presentes',
 };
 
+// Paletas compartilhadas — as mesmas para todos os layouts
+const PALETTE_LIST = [
+  { key: 'gold',         label: 'Dourado' },
+  { key: 'gold-light',   label: 'Dourado Claro' },
+  { key: 'silver',       label: 'Prata' },
+  { key: 'silver-light', label: 'Prata Claro' },
+  { key: 'purple',       label: 'Roxo' },
+  { key: 'blue',         label: 'Azul' },
+  { key: 'green-light',  label: 'Verde' },
+];
+
+// Mantido para retrocompat com código legado que ainda referencie LAYOUT_THEMES
 const LAYOUT_THEMES = {
-  classic: [
-    { key: 'classic-gold',        label: 'Clássico Dourado' },
-    { key: 'classic-gold-light',  label: 'Clássico Dourado Claro' },
-    { key: 'classic-silver',      label: 'Clássico Prata' },
-    { key: 'classic-silver-light',label: 'Clássico Prata Claro' },
-    { key: 'classic-purple',      label: 'Clássico Roxo' },
-    { key: 'classic-blue',        label: 'Clássico Azul' },
-    { key: 'classic-green-light', label: 'Clássico Verde' },
-  ],
-  modern: [
-    { key: 'black-silver', label: 'Moderno Preto & Prata' },
-  ],
+  classic: PALETTE_LIST,
+  modern:  PALETTE_LIST,
 };
 
-function resolveDashboardThemePath(activeTheme, layoutKey = 'classic') {
+function resolveDashboardThemePath(activeTheme) {
   const themeValue = String(activeTheme || '').trim();
-  if (!themeValue) {
-    return '';
-  }
+  if (!themeValue) return '';
 
-  if (themeValue.startsWith('assets/')) {
-    return themeValue;
-  }
+  // Caminho completo legado — compatibilidade retroativa
+  if (themeValue.startsWith('assets/')) return themeValue;
 
-  return `assets/layouts/${layoutKey}/themes/${themeValue}.json`;
+  // Chave simples nova (ex: "gold") → nova paleta compartilhada
+  return `assets/themes/${themeValue}.json`;
 }
 
 function extractDashboardThemeKey(activeThemePath) {
   const themePath = String(activeThemePath || '').trim();
-  if (!themePath) {
-    return '';
+  if (!themePath) return '';
+
+  // Paleta nova: "assets/themes/gold.json" → "gold"
+  const newMatch = themePath.match(/^assets\/themes\/([^/]+)\.json$/i);
+  if (newMatch) return newMatch[1];
+
+  // Legado: "assets/layouts/classic/themes/classic-gold.json" → "classic-gold"
+  const legacyMatch = themePath.match(/\/themes\/([^/]+)\.json$/i);
+  if (legacyMatch) {
+    // Converte chave legada para nova chave se possível (ex: "classic-gold" → "gold")
+    const legacyKey = legacyMatch[1];
+    const legacyToNew = {
+      'classic-gold':         'gold',
+      'classic-gold-light':   'gold-light',
+      'classic-silver':       'silver',
+      'classic-silver-light': 'silver-light',
+      'classic-purple':       'purple',
+      'classic-blue':         'blue',
+      'classic-green-light':  'green-light',
+      'black-silver':         'silver',
+    };
+    return legacyToNew[legacyKey] || legacyKey;
   }
 
-  const match = themePath.match(/\/themes\/([^/]+)\.json$/i);
-  return match ? match[1] : themePath;
+  // Chave direta sem caminho
+  return themePath;
 }
 
 function syncDashboardEventSlug(slug) {
@@ -4301,17 +4321,16 @@ function populateThemeSelect(layout, currentPath) {
   const select = document.getElementById('edActiveTheme');
   if (!select) return;
 
-  const themes = LAYOUT_THEMES[layout] || LAYOUT_THEMES.classic;
-  const normalizedCurrentPath = resolveDashboardThemePath(currentPath, layout);
-  const normalizedCurrentKey = extractDashboardThemeKey(currentPath);
+  // Paletas são as mesmas para qualquer layout
+  const themes = PALETTE_LIST;
+  const currentKey = extractDashboardThemeKey(currentPath);
   select.innerHTML = themes.map(t => {
-    const path = `assets/layouts/${layout}/themes/${t.key}.json`;
-    const sel  = (normalizedCurrentPath === path || normalizedCurrentKey === t.key) ? ' selected' : '';
-    return `<option value="${escapeHtml(path)}"${sel}>${escapeHtml(t.label)}</option>`;
+    const sel = currentKey === t.key ? ' selected' : '';
+    return `<option value="${escapeHtml(t.key)}"${sel}>${escapeHtml(t.label)}</option>`;
   }).join('');
 
   if (!select.value && themes.length > 0) {
-    select.value = `assets/layouts/${layout}/themes/${themes[0].key}.json`;
+    select.value = themes[0].key;
   }
 }
 
@@ -4870,8 +4889,9 @@ function collectEditorValues() {
 
   // Tema
   config.activeLayout = document.getElementById('edActiveLayout')?.value || 'classic';
+  // Salva apenas a chave simples da paleta (ex: "gold"), não o caminho completo
   const rawThemeValue = document.getElementById('edActiveTheme')?.value || config.activeTheme;
-  config.activeTheme = resolveDashboardThemePath(rawThemeValue, config.activeLayout) || config.activeTheme;
+  config.activeTheme = extractDashboardThemeKey(rawThemeValue) || config.activeTheme;
 
   // WhatsApp & RSVP
   if (!config.whatsapp) config.whatsapp = {};
@@ -5062,18 +5082,18 @@ async function saveEditorConfig(silent = false) {
 // WIZARD DE ONBOARDING
 // ============================================================
 
-// Adicione novas chaves aqui quando criar novos temas em assets/layouts/classic/themes/
+// Adicione novas chaves aqui quando criar novos temas em assets/themes/
 const WIZARD_THEME_KEYS_ALL = [
-  'classic-gold',
-  'classic-silver',
-  'classic-gold-light',
-  'classic-silver-light',
-  'classic-purple',
-  'classic-blue',
-  'classic-green-light',
+  'gold',
+  'silver',
+  'gold-light',
+  'silver-light',
+  'purple',
+  'blue',
+  'green-light',
 ];
 
-const WIZARD_THEME_KEYS_FREE = ['classic-gold'];
+const WIZARD_THEME_KEYS_FREE = ['gold'];
 
 function getWizardThemeKeys() {
   const isPremium = state.userProfile && isPremiumPlan(state.userProfile.plan);
@@ -5085,7 +5105,7 @@ const WIZARD_SLUG_DEBOUNCE_MS = 2000;
 const WIZARD_SLUG_CACHE_TTL_MS = 30_000;
 
 let _wizardStep = 1;
-let _wizardSelectedTheme = 'classic-gold';
+let _wizardSelectedTheme = 'gold';
 let _wizardLoadedThemes = [];
 let _wizardSlugValidationTimer = null;
 let _wizardSlugValidationToken = 0;
@@ -5371,7 +5391,7 @@ async function _loadWizardThemes() {
   const themeKeys = getWizardThemeKeys();
   const results = await Promise.allSettled(
     themeKeys.map(key =>
-      fetch(`/assets/layouts/classic/themes/${key}.json`)
+      fetch(`/assets/themes/${key}.json`)
         .then(r => r.ok ? r.json() : null)
         .then(data => data ? { key, data } : null)
         .catch(() => null)
@@ -5601,9 +5621,9 @@ async function maybeShowWizard(config) {
     if (disp) disp.value = existingNames;
   }
 
-  _wizardSelectedTheme = extractDashboardThemeKey(config.activeTheme || 'classic-gold') || 'classic-gold';
+  _wizardSelectedTheme = extractDashboardThemeKey(config.activeTheme || 'gold') || 'gold';
   if (!getWizardThemeKeys().includes(_wizardSelectedTheme)) {
-    _wizardSelectedTheme = 'classic-gold';
+    _wizardSelectedTheme = 'gold';
   }
   _populateWizardTimeOptions(config?.event?.time || '17:00');
 
@@ -5711,7 +5731,7 @@ async function _saveWizard() {
   const dateLabels = dateVal ? _wizardDeriveDateLabels(dateVal) : {};
 
   const configPatch = {
-    activeTheme:  resolveDashboardThemePath(_wizardSelectedTheme, 'classic'),
+    activeTheme:  _wizardSelectedTheme,  // chave simples da paleta (ex: "gold")
     activeLayout: 'classic',
     couple: {
       names: displayName,
