@@ -1314,6 +1314,9 @@ async function loadGrupos() {
       return;
     }
 
+    // Garantir que o perfil esteja carregado antes de verificar o plano
+    if (!state.userProfile) await fetchUserProfile();
+
     // Renderizar tabela
     const isFreePlan = !isPremiumPlan(state.userProfile?.plan);
     body.innerHTML = state.grupos.map(grupo => {
@@ -2124,7 +2127,14 @@ async function copyGeneralInviteLink(triggerButton = null) {
   const link = buildGeneralInviteLink();
   try {
     await copyTextToClipboard(link);
-    showCopyFeedback('', triggerButton);
+    if (triggerButton) {
+      const labelEl = triggerButton.querySelector('.btn-label');
+      if (labelEl) {
+        const original = labelEl.textContent;
+        labelEl.textContent = 'Link copiado';
+        setTimeout(() => { labelEl.textContent = original; }, 2000);
+      }
+    }
   } catch (error) {
     console.error('[copyGeneralInviteLink]', error);
     alert('Não foi possível copiar o link do convite.');
