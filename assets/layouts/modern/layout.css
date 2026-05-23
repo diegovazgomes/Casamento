@@ -1331,6 +1331,15 @@
     text-transform: uppercase;
 }
 
+/* Campo de observação: preserva caixa exata do usuário, estilo corpo de texto */
+#trajeNoteCard .extra-info-value {
+    font-size: var(--section-body-size, 13px);
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    line-height: 1.7;
+    text-transform: none;
+}
+
 /* Traje & Paletas */
 
 .traje-color-item {
@@ -1344,7 +1353,7 @@
 .traje-swatch {
     display: inline-block;
     width: 52px;
-    height: 52px;
+    height: auto; /* aspect-ratio controla a altura — evita ovalização */
     min-width: 0;
     aspect-ratio: 1 / 1;
     border-radius: 50%;
@@ -1435,7 +1444,7 @@
 .gallery-controls {
     display: flex;
     align-items: center;
-    justify-content: flex-start;
+    justify-content: center;
     gap: 10px;
     margin-top: 12px;
 }
