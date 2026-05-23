@@ -22,3 +22,4 @@ push.bat
 # Configuração local por usuário — não versionada
 .claude/settings.local.json
 .vercel
+.docx
