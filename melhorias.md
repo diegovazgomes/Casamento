@@ -42,6 +42,14 @@
   No Free, criar grupo e criar convite individual ainda geravam fluxo inconsistente (UI parcial + erro 403). Também faltava uma ação simples para copiar apenas o link do convite e colar manualmente para convidados.
   > Corrigido em `dashboard.js` e `dashboard.html`: bloqueio com CTA de upgrade para **Novo grupo** e **Criar convite individual**, tabela de convites em modo somente leitura no Free para grupos legados, tratamento amigável de `upgrade_required` e novo botão de topo **Copiar link do convite** (sem `?g=token`). Implementado em 23/05/2026.
 
+- [x] **F4 — Botão "Copiar texto" na tabela bloqueado sem telefone**
+  O botão que copia o texto do convite ficava desabilitado quando o grupo não tinha telefone cadastrado. A função `copyInviteWhatsAppMessage` não depende do telefone, apenas o botão de envio por WhatsApp depende.
+  > Corrigido em `dashboard.js`: removidas as classes `phoneDisabledAttr` e `phoneDisabledClass` do botão "Copiar texto". Somente o botão "Convidar" (envio por WhatsApp) continua dependendo do telefone. Implementado em 23/05/2026.
+
+- [x] **F5 — Premium aparece como Free ao abrir a aba Convites pela primeira vez**
+  Condição de corrida: `loadGrupos()` era chamado antes de `fetchUserProfile()` terminar, então `state.userProfile` era `null` e a tabela renderizava com restrições de plano Free. Após criar ou editar um grupo, o perfil já estava no cache e funcionava corretamente.
+  > Corrigido em `dashboard.js`: adicionado `if (!state.userProfile) await fetchUserProfile()` antes de calcular `isFreePlan` em `loadGrupos()`. Implementado em 23/05/2026.
+
 ---
 
 ## Funcionalidades novas
@@ -71,6 +79,14 @@
 - [x] **N7 — Redesign da galeria para formato retrato (mobile-first)**
   A galeria atual usa cards quadrados. Precisamos redesenhar para proporção de foto em retrato (mais comum em celulares), com redimensionamento responsivo e boa composição visual no desktop e no mobile.
   > Corrigido em `layout.css`: `.gallery-track` alterado de `aspect-ratio:4/3` para `3/4` em todos os breakpoints. Verificado via preview: mobile 343×457px (ratio 0.750), desktop 396×528px (ratio 0.750).
+
+- [x] **N8 — Botões da topbar de Convites quebram texto no mobile**
+  Os três botões ("Novo grupo", "Criar convite individual", "Copiar link do convite") ficavam espremidos lado a lado em telas pequenas, quebrando ou cortando o texto.
+  > Corrigido em `dashboard.html` (CSS ≤560px): `flex-direction:column` no `.topbar-actions`, cada botão com `width:100%` e label completo visível. No desktop permanecem lado a lado. Implementado em 23/05/2026.
+
+- [x] **N9 — Feedback visual excessivo no botão "Copiar link do convite"**
+  O botão grande da topbar mostrava um checkmark SVG e mudava cor/borda ao copiar, igual aos ícones pequenos da tabela — visual pesado para um botão de destaque.
+  > Corrigido em `dashboard.js`: `copyGeneralInviteLink` agora troca apenas o texto do span `.btn-label` para "Link copiado" por 2 segundos e restaura o original. Sem ícone, sem mudança de cor. Implementado em 23/05/2026.
 
 ---
 
@@ -103,11 +119,12 @@
 - [x] **D1 — Comportamento do áudio ao retornar para a página principal**
   > Decisão: retoma automaticamente ao voltar (via bfcache ou visibilitychange), somente se a pausa foi causada pela navegação — pausa manual do usuário é preservada
 
+---
 
-Usuario free não cria nem convite individual : Falha ao criar grtupo: 403 erro de requisição - Grupos de convidados estão dísponiveis apenas no plano premium
+## Próximos pontos de melhoria
 
-Se não coloca o telefone ao criar convite o botão de compartilhar e o botão de copiar mensagem com link não aparecem, sendo que deveria aparecer o de copiar o link. 
+- [x] **P1 — Verificar limite de 50 confirmações no Free**
+  O limite de 50 confirmações para contas Free estava implementado corretamente na API (`api/submissions.js`: `checkRsvpLimit()`, HTTP 429, `code: 'RSVP_LIMIT_REACHED'`), mas o frontend não tratava esse código — o convidado via a mensagem genérica de erro de rede em vez de uma mensagem clara.
+  > Corrigido em `assets/js/rsvp.js`: adicionada constante `RSVP_LIMIT_REACHED_CODE` e bloco de tratamento específico no fluxo de submit. Quando o limite é atingido, o convidado vê "Confirmações encerradas. Este evento já atingiu o limite de confirmações disponíveis. Entre em contato com os noivos para mais informações." Implementado em 23/05/2026.
 
-Podemos deixar convites individuais e grupos apenas para premium. Criar um terceiro botão de copiar link do convite, dessa forma a pessoa só copia e cola para os convidados, mas eles poderão compartilhar os links entre eles 
 
-Máximo de 50 confirmações no free está funcionando?
