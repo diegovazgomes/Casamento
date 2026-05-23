@@ -38,6 +38,10 @@
   A marca d'água aparecia apenas na página principal.
   > Corrigido: elemento `#devaziWatermark` adicionado ao footer de todas as páginas extras.
 
+- [x] **F3 — Convites (grupo/individual) bloqueados no Free + botão copiar link geral**
+  No Free, criar grupo e criar convite individual ainda geravam fluxo inconsistente (UI parcial + erro 403). Também faltava uma ação simples para copiar apenas o link do convite e colar manualmente para convidados.
+  > Corrigido em `dashboard.js` e `dashboard.html`: bloqueio com CTA de upgrade para **Novo grupo** e **Criar convite individual**, tabela de convites em modo somente leitura no Free para grupos legados, tratamento amigável de `upgrade_required` e novo botão de topo **Copiar link do convite** (sem `?g=token`). Implementado em 23/05/2026.
+
 ---
 
 ## Funcionalidades novas

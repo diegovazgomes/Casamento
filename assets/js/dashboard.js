@@ -294,6 +294,9 @@ function bindUiEvents() {
   // Modais
   document.getElementById('btnNewGroup').addEventListener('click', () => openGroupModal('group'));
   document.getElementById('btnNewSingleInvite')?.addEventListener('click', () => openGroupModal('individual'));
+  document.getElementById('btnCopyGeneralInvite')?.addEventListener('click', function () {
+    copyGeneralInviteLink(this);
+  });
   document.getElementById('btnDownloadCsv').addEventListener('click', handleDownloadCsv);
   document.getElementById('btnRefresh')?.addEventListener('click', () => {
     refreshActiveTab();
@@ -761,8 +764,18 @@ function applyPlanRestrictions(profile) {
   if (btnGrupo && !btnGrupo.dataset.planLocked) {
     btnGrupo.dataset.planLocked = 'true';
     btnGrupo.title = 'Disponível no plano Premium';
-    btnGrupo.removeEventListener('click', btnGrupo._groupHandler);
     btnGrupo.addEventListener('click', function (e) {
+      e.stopImmediatePropagation();
+      handleUpgrade();
+    }, true);
+  }
+
+  // ── Seção 5: Botão "Criar convite individual" — bloquear para free
+  const btnSingleInvite = document.getElementById('btnNewSingleInvite');
+  if (btnSingleInvite && !btnSingleInvite.dataset.planLocked) {
+    btnSingleInvite.dataset.planLocked = 'true';
+    btnSingleInvite.title = 'Disponível no plano Premium';
+    btnSingleInvite.addEventListener('click', function (e) {
       e.stopImmediatePropagation();
       handleUpgrade();
     }, true);
@@ -1144,6 +1157,9 @@ function syncTabActions(tabName) {
   const btnNewSingleInvite = document.getElementById('btnNewSingleInvite');
   if (btnNewSingleInvite) btnNewSingleInvite.hidden = tabName !== 'grupos';
 
+  const btnCopyGeneralInvite = document.getElementById('btnCopyGeneralInvite');
+  if (btnCopyGeneralInvite) btnCopyGeneralInvite.hidden = tabName !== 'grupos';
+
   const btnRefresh = document.getElementById('btnRefresh');
   if (btnRefresh) btnRefresh.hidden = tabName === 'editar';
 }
@@ -1236,12 +1252,41 @@ async function getApiErrorMessage(response) {
   }
 }
 
+async function getApiErrorDetails(response) {
+  const fallback = `${response.status} ${response.statusText || 'Erro de requisição'}`.trim();
+
+  try {
+    const payload = await response.json();
+    const detail = String(payload?.error || payload?.message || '').trim();
+    return {
+      detail: detail ? `${fallback} - ${detail}` : fallback,
+      upgradeRequired: Boolean(payload?.upgrade_required),
+    };
+  } catch {
+    try {
+      const text = String(await response.text() || '').trim();
+      return {
+        detail: text ? `${fallback} - ${text}` : fallback,
+        upgradeRequired: false,
+      };
+    } catch {
+      return {
+        detail: fallback,
+        upgradeRequired: false,
+      };
+    }
+  }
+}
+
 async function throwIfApiNotOk(response, contextLabel) {
   if (response.ok) {
     return;
   }
 
-  const detail = await getApiErrorMessage(response);
+  const { detail, upgradeRequired } = await getApiErrorDetails(response);
+  if (upgradeRequired || response.status === 403) {
+    throw new Error('Recurso disponível apenas no plano Premium. Faça upgrade para continuar.');
+  }
   throw new Error(`${contextLabel}: ${detail}`);
 }
 
@@ -1270,10 +1315,13 @@ async function loadGrupos() {
     }
 
     // Renderizar tabela
+    const isFreePlan = !isPremiumPlan(state.userProfile?.plan);
     body.innerHTML = state.grupos.map(grupo => {
       const hasPhone = !!grupo.phone;
       const phoneDisabledAttr = hasPhone ? '' : ' disabled title="Telefone não cadastrado"';
       const phoneDisabledClass = hasPhone ? '' : ' style="opacity:0.35;cursor:not-allowed"';
+      const readOnlyPlanBadge = '<span class="cell-sub" style="display:inline-block;margin-right:8px">Somente leitura (Free)</span>';
+      const premiumActionDisabledAttr = ' disabled title="Disponível no plano Premium" style="opacity:0.35;cursor:not-allowed"';
       return `
       <tr>
         <td>
@@ -1289,22 +1337,23 @@ async function loadGrupos() {
         <td><span class="cell-sub">${escapeHtml(grupo.notes || '—')}</span></td>
         <td>
           <div class="row-actions">
-            <button class="icon-btn"${phoneDisabledAttr}${phoneDisabledClass} onclick="${hasPhone ? `sendInviteWhatsApp('${escapeHtmlAttribute(grupo.id)}')` : ''}" aria-label="Enviar convite para ${escapeHtml(grupo.group_name)}" title="${hasPhone ? 'Enviar convite por WhatsApp' : 'Telefone não cadastrado'}">
+            <button class="icon-btn"${isFreePlan ? premiumActionDisabledAttr : `${phoneDisabledAttr}${phoneDisabledClass}`} onclick="${(!isFreePlan && hasPhone) ? `sendInviteWhatsApp('${escapeHtmlAttribute(grupo.id)}')` : ''}" aria-label="Enviar convite para ${escapeHtml(grupo.group_name)}" title="${isFreePlan ? 'Disponível no plano Premium' : (hasPhone ? 'Enviar convite por WhatsApp' : 'Telefone não cadastrado')}">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4 20-7z"/><path d="M22 2 11 13"/></svg>
               <span class="icon-btn-label">Convidar</span>
             </button>
-            <button class="icon-btn"${phoneDisabledAttr}${phoneDisabledClass} onclick="${hasPhone ? `copyInviteWhatsAppMessage('${escapeHtmlAttribute(grupo.id)}', this)` : ''}" aria-label="Copiar texto do convite de ${escapeHtml(grupo.group_name)}" title="${hasPhone ? 'Copiar texto do convite' : 'Telefone não cadastrado'}">
+            <button class="icon-btn"${isFreePlan ? premiumActionDisabledAttr : `${phoneDisabledAttr}${phoneDisabledClass}`} onclick="${(!isFreePlan && hasPhone) ? `copyInviteWhatsAppMessage('${escapeHtmlAttribute(grupo.id)}', this)` : ''}" aria-label="Copiar texto do convite de ${escapeHtml(grupo.group_name)}" title="${isFreePlan ? 'Disponível no plano Premium' : (hasPhone ? 'Copiar texto do convite' : 'Telefone não cadastrado')}">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
               <span class="icon-btn-label">Copiar texto</span>
             </button>
-            <button class="icon-btn" onclick="editGrupo('${grupo.id}')" aria-label="Editar grupo ${escapeHtml(grupo.group_name)}" title="Editar">
+            <button class="icon-btn"${isFreePlan ? premiumActionDisabledAttr : ''} onclick="${isFreePlan ? '' : `editGrupo('${escapeHtmlAttribute(grupo.id)}')`}" aria-label="Editar grupo ${escapeHtml(grupo.group_name)}" title="${isFreePlan ? 'Disponível no plano Premium' : 'Editar'}">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 1 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
               <span class="icon-btn-label">Editar</span>
             </button>
-            <button class="icon-btn danger" onclick="deleteGrupo('${grupo.id}')" aria-label="Excluir grupo ${escapeHtml(grupo.group_name)}" title="Excluir">
+            <button class="icon-btn danger"${isFreePlan ? premiumActionDisabledAttr : ''} onclick="${isFreePlan ? '' : `deleteGrupo('${escapeHtmlAttribute(grupo.id)}')`}" aria-label="Excluir grupo ${escapeHtml(grupo.group_name)}" title="${isFreePlan ? 'Disponível no plano Premium' : 'Excluir'}">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
               <span class="icon-btn-label">Excluir</span>
             </button>
+            ${isFreePlan ? readOnlyPlanBadge : ''}
           </div>
         </td>
       </tr>
@@ -1950,6 +1999,15 @@ function buildGuestInviteLink(token, explicitLink = '') {
   return `${window.location.origin}/index.html?g=${encodedToken}`;
 }
 
+function buildGeneralInviteLink(explicitSlug = '') {
+  const normalizedSlug = String(explicitSlug || state.eventSlug || '').trim();
+  if (normalizedSlug) {
+    return `${window.location.origin}/${encodeURIComponent(normalizedSlug)}`;
+  }
+
+  return `${window.location.origin}/index.html`;
+}
+
 function syncPreviewInviteLink(slug) {
   syncDashboardEventSlug(slug);
 }
@@ -2059,6 +2117,17 @@ async function copyInviteLink(token) {
     document.execCommand('copy');
     document.body.removeChild(ta);
     showCopyFeedback(token);
+  }
+}
+
+async function copyGeneralInviteLink(triggerButton = null) {
+  const link = buildGeneralInviteLink();
+  try {
+    await copyTextToClipboard(link);
+    showCopyFeedback('', triggerButton);
+  } catch (error) {
+    console.error('[copyGeneralInviteLink]', error);
+    alert('Não foi possível copiar o link do convite.');
   }
 }
 

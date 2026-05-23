@@ -939,9 +939,9 @@ input[type="date"].field-input{width:100%;min-width:0;box-sizing:border-box;-web
   .topbar-actions{width:100%;flex-shrink:1;min-width:0;justify-content:flex-end}
   .topbar-actions .btn-label{display:none}
   .topbar-actions .btn{padding:10px 14px}
-  #btnNewGroup .btn-label-mobile,#btnNewSingleInvite .btn-label-mobile{display:inline}
-  #btnNewGroup svg,#btnNewSingleInvite svg{display:none}
-  #btnNewGroup,#btnNewSingleInvite{flex:1 1 0;max-width:160px;padding:8px 6px;font-size:12px;min-width:0;justify-content:center}
+  #btnNewGroup .btn-label-mobile,#btnNewSingleInvite .btn-label-mobile,#btnCopyGeneralInvite .btn-label-mobile{display:inline}
+  #btnNewGroup svg,#btnNewSingleInvite svg,#btnCopyGeneralInvite svg{display:none}
+  #btnNewGroup,#btnNewSingleInvite,#btnCopyGeneralInvite{flex:1 1 0;max-width:160px;padding:8px 6px;font-size:12px;min-width:0;justify-content:center}
   #btnNewSingleInvite .btn-label-mobile{font-size:10px;letter-spacing:0.15em}
   .topbar-left{overflow:hidden}
   .topbar-title{font-size:19px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -1479,8 +1479,8 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
 }
 .premium-lock-banner span{flex:1;min-width:160px}
 .premium-lock-banner .btn{padding:5px 14px;font-size:10px}
-#btnNewGroup[data-plan-locked]{opacity:0.45;cursor:not-allowed}
-#btnNewGroup[data-plan-locked]:hover::before{transform:scaleX(0)}
+#btnNewGroup[data-plan-locked],#btnNewSingleInvite[data-plan-locked]{opacity:0.45;cursor:not-allowed}
+#btnNewGroup[data-plan-locked]:hover::before,#btnNewSingleInvite[data-plan-locked]:hover::before{transform:scaleX(0)}
 .faq-item-header{
   display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;
 }
@@ -2123,6 +2123,11 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
           <span class="btn-label">Criar convite individual</span>
           <span class="btn-label-mobile">+ Convite individual</span>
+        </button>
+        <button class="btn btn-subtle top-action-btn" id="btnCopyGeneralInvite" hidden title="Copiar link do convite">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          <span class="btn-label">Copiar link do convite</span>
+          <span class="btn-label-mobile">Copiar link</span>
         </button>
       </div>
     </header>
