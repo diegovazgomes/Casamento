@@ -1597,6 +1597,11 @@ const LAYOUT_DEFINITIONS = [
     name: 'Modern',
     description: 'Hero dividido com foto à direita, títulos à esquerda, minimalista e sans-serif.',
   },
+  {
+    key: 'minimal',
+    name: 'Minimal',
+    description: 'Foto portrait ao lado do texto, fundo visível, sem overlay. Countdown sem cards, details como lista com régua.',
+  },
 ];
 
 const THEME_COLOR_SECTIONS = [

@@ -2328,8 +2328,9 @@ const PALETTE_LIST = [
 
 // Mantido para retrocompat com código legado que ainda referencie LAYOUT_THEMES
 const LAYOUT_THEMES = {
-  classic: PALETTE_LIST,
-  modern:  PALETTE_LIST,
+  classic:  PALETTE_LIST,
+  modern:   PALETTE_LIST,
+  minimal:  PALETTE_LIST,
 };
 
 function resolveDashboardThemePath(activeTheme) {
