@@ -3534,6 +3534,8 @@ window.__DASHBOARD_BOOTSTRAP_PROMISE__ = (async function loadTheme() {
     const families = theme.typography?.families || {};
     const root = document.documentElement;
  
+    // Aplica apenas tokens de cor do tema — fontes são fixas no dashboard (Jost + Cormorant)
+    // e não devem ser sobrescritas pelo layout do convite (ex: DM Mono no layout minimal).
     const map = {
       '--bg':            colors.background,
       '--surface':       colors.surface,
@@ -3547,8 +3549,6 @@ window.__DASHBOARD_BOOTSTRAP_PROMISE__ = (async function loadTheme() {
       '--border':        colors.border,
       '--border-strong': colors.borderStrong || colors.border,
       '--primary-glow':  colors.primaryGlow,
-      '--font-display':  fonts.serif || families.serif,
-      '--font-sans':     fonts.primary || families.body || families.primary,
     };
  
     Object.entries(map).forEach(([key, value]) => {
