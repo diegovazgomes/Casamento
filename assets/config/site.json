@@ -1,5 +1,5 @@
 {
-  "activeLayout": "classic",
+  "activeLayout": "minimal",
   "rsvp": {
     "eventId": "siannah-diego-2026",
     "supabaseEnabled": true

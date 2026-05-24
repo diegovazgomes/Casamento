@@ -593,6 +593,12 @@ img {
     transform: rotate(45deg);
 }
 
+/* ─── Nav bar — oculta por padrão; ativada por layouts que definem .site-nav ── */
+
+.site-nav {
+    display: none;
+}
+
 /* ─── Footer (shared) ────────────────────────────────────────────────────── */
 
 footer {

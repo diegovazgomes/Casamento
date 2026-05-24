@@ -1,93 +1,93 @@
 {
   "typography": {
     "fonts": {
-      "primary": "'Jost', sans-serif",
+      "primary": "'DM Mono', monospace",
       "serif":   "'Cormorant Garamond', serif",
       "accent":  "'Cormorant Garamond', serif"
     },
     "sizes": {
-      "base":             "13px",
+      "base":             "17px",
       "heroLabel":        "10px",
       "heroDate":         "10px",
-      "heroNames":        { "min": "42px", "fluid": "6.5vw", "max": "80px" },
+      "heroNames":        { "min": "72px", "fluid": "14vw", "max": "200px" },
       "scrollHint":       "9px",
       "sectionTag":       "10px",
-      "sectionTitle":     { "min": "28px", "fluid": "5vw", "max": "44px" },
-      "sectionBody":      "13px",
+      "sectionTitle":     { "min": "36px", "fluid": "5vw", "max": "60px" },
+      "sectionBody":      "17px",
       "countdownNumber":  "52px",
       "countdownLabel":   "9px",
       "countdownFinished":"26px",
-      "detailIcon":       "16px",
+      "detailIcon":       "0px",
       "detailTitle":      "9px",
-      "detailValue":      "18px",
-      "detailSub":        "10px",
-      "rsvpTitle":        "36px",
-      "rsvpSubtitle":     "12px",
-      "rsvpInput":        "13px",
+      "detailValue":      "28px",
+      "detailSub":        "14px",
+      "rsvpTitle":        "0px",
+      "rsvpSubtitle":     "0px",
+      "rsvpInput":        "18px",
       "rsvpChoice":       "10px",
       "rsvpSubmit":       "10px",
       "rsvpSuccessText":  "26px",
-      "rsvpSuccessSub":   "11px",
+      "rsvpSuccessSub":   "10px",
       "footerNames":      "28px",
       "footerNote":       "10px"
     },
     "roles": {
       "heroTitle": {
         "family":     "cormorant_garamond",
-        "size":       { "min": "42px", "fluid": "6.5vw", "max": "80px" },
+        "size":       { "min": "72px", "fluid": "14vw", "max": "200px" },
         "weight":     300,
-        "lineHeight": 1.1,
-        "style":      "normal"
+        "lineHeight": 0.92,
+        "style":      "italic"
       },
       "heroSubtitle": {
-        "family":     "jost",
+        "family":     "dm_mono",
         "size":       "10px",
-        "weight":     300,
+        "weight":     400,
         "lineHeight": 1.4,
         "style":      "normal"
       },
       "eyebrow": {
-        "family":        "jost",
+        "family":        "dm_mono",
         "size":          "10px",
-        "weight":        300,
+        "weight":        400,
         "textTransform": "uppercase",
-        "letterSpacing": "0.35em",
+        "letterSpacing": "0.32em",
         "lineHeight":    1.2,
         "style":         "normal"
       },
       "sectionTitle": {
         "family":     "cormorant_garamond",
-        "size":       { "min": "28px", "fluid": "5vw", "max": "44px" },
+        "size":       { "min": "36px", "fluid": "5vw", "max": "60px" },
         "weight":     300,
-        "lineHeight": 1.2,
-        "style":      "normal"
+        "lineHeight": 1.05,
+        "style":      "italic"
       },
       "sectionSubtitle": {
-        "family":     "jost",
-        "size":       "13px",
-        "weight":     300,
-        "lineHeight": 1.5,
-        "style":      "normal"
+        "family":     "cormorant_garamond",
+        "size":       "17px",
+        "weight":     400,
+        "lineHeight": 1.6,
+        "style":      "italic"
       },
       "body": {
-        "family":     "jost",
-        "size":       "13px",
-        "weight":     300,
-        "lineHeight": 1.65,
+        "family":     "cormorant_garamond",
+        "size":       "17px",
+        "weight":     400,
+        "lineHeight": 1.7,
         "style":      "normal"
       },
       "formLabel": {
-        "family":     "jost",
-        "size":       "10px",
-        "weight":     300,
+        "family":     "dm_mono",
+        "size":       "9px",
+        "weight":     400,
         "lineHeight": 1.4,
         "style":      "normal"
       },
       "button": {
-        "family":        "jost",
+        "family":        "dm_mono",
         "size":          "10px",
         "weight":        400,
-        "letterSpacing": "0.12em",
+        "letterSpacing": "0.3em",
         "lineHeight":    1.2,
         "style":         "normal"
       },
@@ -109,64 +109,64 @@
   },
 
   "spacing": {
-    "containerWidth":          "880px",
-    "cardPadding":             "24px",
-    "sectionPaddingTop":       "96px",
-    "sectionPaddingInline":    "48px",
-    "detailsSectionPaddingTop":"96px",
-    "sectionTagGap":           "24px",
-    "sectionTitleGap":         "20px",
-    "heroLabelGap":            "40px",
+    "containerWidth":          "1400px",
+    "cardPadding":             "36px",
+    "sectionPaddingTop":       "88px",
+    "sectionPaddingInline":    "clamp(24px, 5vw, 64px)",
+    "detailsSectionPaddingTop":"88px",
+    "sectionTagGap":           "28px",
+    "sectionTitleGap":         "32px",
+    "heroLabelGap":            "0px",
     "heroDateGap":             "28px",
     "scrollHintBottom":        "28px",
-    "scrollHintGap":           "8px",
-    "dividerMarginTop":        "80px",
+    "scrollHintGap":           "12px",
+    "dividerMarginTop":        "0px",
     "countdownMarginTop":      "48px",
     "countdownGap":            "0px",
     "detailsMarginTop":        "48px",
     "detailsGridGap":          "0px",
-    "detailCardPaddingBlock":  "22px",
-    "detailCardPaddingInline": "0px",
-    "rsvpShellPaddingBottom":  "96px",
-    "rsvpCardMarginTop":       "40px",
-    "rsvpCardPaddingBlock":    "56px",
-    "rsvpCardPaddingInline":   "48px",
-    "rsvpSubtitleGap":         "32px",
-    "rsvpFormGap":             "16px",
-    "rsvpChoiceGap":           "8px",
-    "rsvpSubmitMarginTop":     "8px",
-    "footerPaddingBottom":     "64px"
+    "detailCardPaddingBlock":  "32px",
+    "detailCardPaddingInline": "28px",
+    "rsvpShellPaddingBottom":  "88px",
+    "rsvpCardMarginTop":       "0px",
+    "rsvpCardPaddingBlock":    "0px",
+    "rsvpCardPaddingInline":   "0px",
+    "rsvpSubtitleGap":         "0px",
+    "rsvpFormGap":             "0px",
+    "rsvpChoiceGap":           "4px",
+    "rsvpSubmitMarginTop":     "32px",
+    "footerPaddingBottom":     "48px"
   },
 
   "layout": {
-    "heroHeight":              "100svh",
+    "heroHeight":              "100dvh",
     "heroPadding":             "0",
     "heroContentWidth":        "100%",
-    "heroContentPaddingBottom":"0",
-    "heroFadeOffset":          "24px",
-    "contentMaxWidth":         "880px"
+    "heroContentPaddingBottom":"clamp(48px, 8vh, 80px)",
+    "heroFadeOffset":          "20px",
+    "contentMaxWidth":         "1400px"
   },
 
   "components": {
-    "dividerWidth":           "0px",
-    "dividerDiamond":         "0px",
-    "scrollArrowWidth":       "12px",
-    "scrollArrowHeight":      "44px",
-    "scrollArrowStemHeight":  "32px",
-    "scrollArrowHeadSize":    "7px",
-    "countdownCardPaddingTop":"0px",
-    "countdownCardPaddingInline":"0px",
-    "countdownCardPaddingBottom":"0px",
-    "rsvpInputPaddingBlock":  "14px",
-    "rsvpInputPaddingInline": "18px",
-    "rsvpChoiceMinHeight":    "48px",
-    "rsvpChoicePadding":      "12px",
-    "rsvpSubmitPaddingBlock": "16px",
-    "rsvpSubmitPaddingInline":"32px",
-    "rsvpSuccessIcon":        "28px",
-    "cardLineHeight":         "0px",
-    "cardLineHeightExtras":   "0px",
-    "cardLineZIndex":         0
+    "dividerWidth":              "0px",
+    "dividerDiamond":            "0px",
+    "scrollArrowWidth":          "40px",
+    "scrollArrowHeight":         "1px",
+    "scrollArrowStemHeight":     "1px",
+    "scrollArrowHeadSize":       "0px",
+    "countdownCardPaddingTop":   "32px",
+    "countdownCardPaddingInline":"8px",
+    "countdownCardPaddingBottom":"32px",
+    "rsvpInputPaddingBlock":     "20px",
+    "rsvpInputPaddingInline":    "0px",
+    "rsvpChoiceMinHeight":       "44px",
+    "rsvpChoicePadding":         "10px 20px",
+    "rsvpSubmitPaddingBlock":    "0px",
+    "rsvpSubmitPaddingInline":   "0px",
+    "rsvpSuccessIcon":           "28px",
+    "cardLineHeight":            "0px",
+    "cardLineHeightExtras":      "0px",
+    "cardLineZIndex":            0
   },
 
   "radius": {
@@ -175,14 +175,14 @@
   },
 
   "effects": {
-    "transition":         "all 0.22s ease",
+    "transition":         "all 0.35s cubic-bezier(0.16, 1, 0.3, 1)",
     "cardLineTransition": "none"
   },
 
   "animation": {
-    "fadeDuration":       "0.7s",
-    "staggerDelay":       "0.08s",
-    "heroFadeDuration":   "1.2s",
+    "fadeDuration":       "1s",
+    "staggerDelay":       "0.15s",
+    "heroFadeDuration":   "1s",
     "heroRevealDelayMs":  300,
     "cardLineTransition": "none"
   },
@@ -195,10 +195,10 @@
   "responsive": {
     "mobile": {
       "spacing": {
-        "sectionPaddingTop":        "64px",
+        "sectionPaddingTop":        "72px",
         "sectionPaddingInline":     "24px",
-        "detailsSectionPaddingTop": "64px",
-        "dividerMarginTop":         "56px"
+        "detailsSectionPaddingTop": "72px",
+        "dividerMarginTop":         "0px"
       },
       "layout": {
         "heroHeight":         "auto",
@@ -207,8 +207,8 @@
         "contentMaxWidth":    "100%"
       },
       "animation": {
-        "heroFadeDuration":    "1.6s",
-        "heroRevealDelayMs":   600
+        "heroFadeDuration":   "1s",
+        "heroRevealDelayMs":  300
       }
     }
   }

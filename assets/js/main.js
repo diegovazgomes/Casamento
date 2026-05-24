@@ -8,6 +8,7 @@ export class WeddingApp {
         this.setupHeroPhoto();
         this.setupScrollHint();
         this.setupRevealOnScroll();
+        this.setupSiteNav();
     }
 
     setupHeroContentReveal() {
@@ -78,5 +79,30 @@ export class WeddingApp {
         });
 
         revealTargets.forEach((element) => observer.observe(element));
+    }
+
+    setupSiteNav() {
+        const nav = document.getElementById('siteNav');
+
+        if (!nav) {
+            return;
+        }
+
+        // Popula o brand com os nomes já inseridos no DOM pelo script.js
+        const navBrand = document.getElementById('navBrand');
+
+        if (navBrand) {
+            const name1 = document.getElementById('heroName1')?.textContent?.trim();
+            const name2 = document.getElementById('heroName2')?.textContent?.trim();
+
+            if (name1 && name2) {
+                navBrand.textContent = `${name1} & ${name2}`;
+            }
+        }
+
+        // Adiciona classe .is-scrolled ao rolar a página
+        window.addEventListener('scroll', () => {
+            nav.classList.toggle('is-scrolled', window.scrollY > 40);
+        }, { passive: true });
     }
 }
