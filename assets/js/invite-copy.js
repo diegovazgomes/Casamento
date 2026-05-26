@@ -17,13 +17,13 @@
       : '';
 
     return (
-      `${coupleLabel} — Convite de Casamento\n\n` +
       `Olá! Você foi convidado(a) para o casamento de ${coupleLabel} ${WHITE_HEART}\n\n` +
       `${groupLine}` +
-      `Acesse o link abaixo para:\n\n` +
+      `Antes de abrir o link, leia as informações abaixo:\n\n` +
+      `No convite você vai encontrar:\n` +
       `${deadlineLine}\n` +
-      `🎁 Ver a lista de presentes\n` +
-      `📍 Detalhes do evento, traje e informações\n\n` +
+      `🎁 Lista de presentes\n` +
+      `📍 Detalhes do evento, traje e FAQ\n\n` +
       `👉 ${inviteLink}\n\n` +
       `Aguardamos você com muito carinho!`
     );
