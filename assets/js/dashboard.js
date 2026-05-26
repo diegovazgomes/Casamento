@@ -2017,23 +2017,28 @@ function syncPreviewInviteLink(slug) {
 
 function getInviteMessageBuilder() {
   return window.buildInviteWhatsAppMessage || ((options) => {
-    const inviteLink = String(options?.link || '').trim();
+    const inviteLink      = String(options?.link || '').trim();
     const inviteCoupleNames = String(options?.coupleNames || 'os noivos').trim() || 'os noivos';
+    const deadlineText    = String(options?.deadline || '').trim();
 
-    if (options?.isIndividual) {
-      return (
-        `Olá! Você foi convidado(a) para o casamento de ${inviteCoupleNames}! 🎊\n\n` +
-        `Seu convite é exclusivo. Acesse o link abaixo para confirmar sua presença:\n\n` +
-        `${inviteLink}\n\n` +
-        `Aguardamos você com muito carinho! 🤍`
-      );
-    }
+    const deadlineLine = deadlineText
+      ? `✅ Confirmar sua presença (necessário até ${deadlineText})`
+      : `✅ Confirmar sua presença`;
+
+    const groupLine = !options?.isIndividual
+      ? `Seu convite é para ${options?.groupSizeLabel || 'vários convidados'} — compartilhe com o seu grupo.\n\n`
+      : '';
 
     return (
-      `Olá! Você está sendo convidado(a) para o casamento de ${inviteCoupleNames}! 🎊\n\n` +
-      `Seu convite é para ${options?.groupSizeLabel || 'vários convidados'}. Acesse o link abaixo para confirmar sua presença e compartilhe com os demais convidados do seu grupo:\n\n` +
-      `${inviteLink}\n\n` +
-      `Aguardamos você com muito carinho! 🤍`
+      `${inviteCoupleNames} — Convite de Casamento\n\n` +
+      `Olá! Você foi convidado(a) para o casamento de ${inviteCoupleNames} 🤍\n\n` +
+      `${groupLine}` +
+      `Acesse o link abaixo para:\n\n` +
+      `${deadlineLine}\n` +
+      `🎁 Ver a lista de presentes\n` +
+      `📍 Detalhes do evento, traje e informações\n\n` +
+      `👉 ${inviteLink}\n\n` +
+      `Aguardamos você com muito carinho!`
     );
   });
 }
@@ -2042,14 +2047,16 @@ function buildInviteMessageForGroup(grupo) {
   if (!grupo) return '';
 
   const coupleNames = window.__SITE_CONFIG__?.couple?.names || 'os noivos';
-  const link = buildGuestInviteLink(grupo.token, grupo.inviteLink);
-  const vagas = grupo.max_confirmations;
-  const vagasTexto = vagas === 1 ? '1 pessoa' : `${vagas} pessoas`;
+  const deadline    = window.__SITE_CONFIG__?.whatsapp?.inviteDeadline || '';
+  const link        = buildGuestInviteLink(grupo.token, grupo.inviteLink);
+  const vagas       = grupo.max_confirmations;
+  const vagasTexto  = vagas === 1 ? '1 pessoa' : `${vagas} pessoas`;
   const isIndividualInvite = Number(vagas) === 1;
 
   return getInviteMessageBuilder()({
     coupleNames,
     link,
+    deadline,
     isIndividual: isIndividualInvite,
     groupSizeLabel: vagasTexto,
   });
@@ -2466,6 +2473,7 @@ function loadEditorTab() {
   // WhatsApp & RSVP
   setVal('edWaPhone',           config.whatsapp?.destinationPhone   ?? '');
   setVal('edWaRecipient',       config.whatsapp?.recipientName      ?? '');
+  setVal('edWaInviteDeadline',  config.whatsapp?.inviteDeadline     ?? '');
   setVal('edWaMsgAttending',    config.whatsapp?.messages?.attending    ?? '');
   setVal('edWaMsgNotAttending', config.whatsapp?.messages?.notAttending ?? '');
   setChk('edRsvpSupabase', !!config.rsvp?.supabaseEnabled);
@@ -4896,8 +4904,9 @@ function collectEditorValues() {
 
   // WhatsApp & RSVP
   if (!config.whatsapp) config.whatsapp = {};
-  config.whatsapp.destinationPhone = document.getElementById('edWaPhone')?.value.trim()     || '';
-  config.whatsapp.recipientName    = document.getElementById('edWaRecipient')?.value.trim() || '';
+  config.whatsapp.destinationPhone = document.getElementById('edWaPhone')?.value.trim()          || '';
+  config.whatsapp.recipientName    = document.getElementById('edWaRecipient')?.value.trim()      || '';
+  config.whatsapp.inviteDeadline   = document.getElementById('edWaInviteDeadline')?.value.trim() || '';
   if (!config.whatsapp.messages) config.whatsapp.messages = {};
   config.whatsapp.messages.attending    = document.getElementById('edWaMsgAttending')?.value    || '';
   config.whatsapp.messages.notAttending = document.getElementById('edWaMsgNotAttending')?.value || '';

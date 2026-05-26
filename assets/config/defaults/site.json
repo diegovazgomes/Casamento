@@ -240,6 +240,7 @@
   "whatsapp": {
     "destinationPhone": "5511914772174",
     "recipientName": "Noiva",
+    "inviteDeadline": "",
     "redirectDelayMs": 5000,
     "messages": {
       "attending": "Olá, {recipientName}!\n\nAqui é {name}.\nMeu WhatsApp para contato é {phone}.\nEstou passando para confirmar minha presença no casamento.\n\nNos vemos em breve.",

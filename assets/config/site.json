@@ -629,6 +629,7 @@
   "whatsapp": {
     "destinationPhone": "5511949606377",
     "recipientName": "Noiva",
+    "inviteDeadline": "06 de agosto de 2026",
     "redirectDelayMs": 5000,
     "messages": {
       "attending": "Olá, {recipientName}!\n\nAqui é {name}.\nMeu WhatsApp para contato é {phone}.\nEstou passando para confirmar minha presença no casamento.\n\nNos vemos em breve.",
