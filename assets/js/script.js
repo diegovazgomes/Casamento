@@ -1232,9 +1232,6 @@ class InvitationExperience {
         setText('detailsTitle', this.config.texts?.detailsTitle);
         setText('detailsIntro', this.config.texts?.detailsIntro);
 
-        setText('highlightRsvpDesc', this.config.texts?.highlightRsvpDesc);
-        setText('highlightGiftDesc', this.config.texts?.highlightGiftDesc);
-
         setText('rsvpTag', this.config.texts?.rsvpTag);
         setText('rsvpSectionTitle', this.config.texts?.rsvpTitle);
         setText('rsvpSectionBody', this.config.texts?.rsvpSubtitle);
