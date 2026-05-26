@@ -340,5 +340,44 @@
     </button>
 
     <script type="module" src="assets/js/script.js"></script>
+
+    <!-- BARRA MOBILE FIXA — aparece após scroll, some ao chegar no RSVP -->
+    <div class="mobile-bar" id="mobileBar" aria-label="Ações rápidas" role="navigation">
+        <a href="#rsvp" class="mobile-bar-btn mobile-bar-btn--primary">
+            ✓ Confirmar presença
+        </a>
+        <a href="presente.html" class="mobile-bar-btn mobile-bar-btn--secondary">
+            Presentes
+        </a>
+    </div>
+
+    <script>
+    (function () {
+        const bar = document.getElementById('mobileBar');
+        if (!bar || window.innerWidth > 768) return;
+
+        const SCROLL_THRESHOLD = 300;
+        const anchorIds = ['rsvp'];
+
+        function updateBar() {
+            const scrolled = window.scrollY > SCROLL_THRESHOLD;
+            let nearSection = false;
+
+            anchorIds.forEach(function (id) {
+                const el = document.getElementById(id);
+                if (!el) return;
+                const rect = el.getBoundingClientRect();
+                if (rect.top < window.innerHeight * 0.75 && rect.bottom > 0) {
+                    nearSection = true;
+                }
+            });
+
+            bar.classList.toggle('is-visible', scrolled && !nearSection);
+        }
+
+        window.addEventListener('scroll', updateBar, { passive: true });
+        updateBar();
+    })();
+    </script>
 </body>
 </html>
