@@ -10,7 +10,7 @@
 <title>Devazi — A forma mais elegante de criar o site do seu casamento</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500;1,600&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500;1,600&family=Inter:wght@300;400;500&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
 
 /* ══════════════════════════════════════════════════════════════════════════
@@ -33,6 +33,7 @@
   --line-soft:   rgba(26,23,20,0.06);
   --ease:        cubic-bezier(0.16, 1, 0.3, 1);
   --serif:       'Cormorant Garamond', Georgia, serif;
+  --sans:        'Inter', system-ui, sans-serif;
   --mono:        'DM Mono', 'Courier New', monospace;
 }
 
@@ -251,7 +252,7 @@ a { color: inherit; text-decoration: none; }
   .aplicacao-desc,
   .step-desc,
   .plan-features li,
-  .plan-pitch { font-size: 16px; }
+  .plan-pitch { font-size: 14px; }
   .phone-place,
   .phone-date,
   .depoimento-data,
@@ -342,12 +343,11 @@ a { color: inherit; text-decoration: none; }
 }
 
 .hero-sub {
-  font-family: var(--serif);
-  font-size: clamp(17px, 1.4vw, 20px);
-  line-height: 1.7;
+  font-family: var(--sans);
+  font-size: clamp(15px, 1.2vw, 17px);
+  line-height: 1.65;
   color: var(--tinta-soft);
-  font-weight: 400;
-  font-style: italic;
+  font-weight: 300;
   max-width: 480px;
   margin-bottom: 48px;
   opacity: 0;
@@ -627,12 +627,11 @@ a { color: inherit; text-decoration: none; }
 }
 .section-title em { font-style: italic; color: var(--ouro-velho); }
 .section-sub {
-  font-family: var(--serif);
-  font-style: italic;
-  font-size: clamp(17px, 1.4vw, 19px);
-  line-height: 1.65;
+  font-family: var(--sans);
+  font-size: clamp(14px, 1.1vw, 16px);
+  line-height: 1.7;
   color: var(--tinta-soft);
-  font-weight: 400;
+  font-weight: 300;
   max-width: 580px;
 }
 
@@ -753,11 +752,11 @@ a { color: inherit; text-decoration: none; }
   .oficio-grid { grid-template-columns: 1fr; gap: 48px; }
 }
 .oficio-text {
-  font-family: var(--serif);
-  font-size: 17px;
-  line-height: 1.8;
+  font-family: var(--sans);
+  font-size: 15px;
+  line-height: 1.75;
   color: var(--tinta-soft);
-  font-weight: 400;
+  font-weight: 300;
 }
 .oficio-text + .oficio-text { margin-top: 24px; }
 .oficio-text em { font-style: italic; color: var(--carvao); }
@@ -825,8 +824,9 @@ a { color: inherit; text-decoration: none; }
   margin-bottom: 6px;
 }
 .experience-text-desc {
-  font-family: var(--serif);
-  font-size: 15px;
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 300;
   color: rgba(240,235,225,0.65);
   line-height: 1.65;
 }
@@ -947,12 +947,12 @@ a { color: inherit; text-decoration: none; }
   display: block;
 }
 .depoimento-texto {
-  font-family: var(--serif);
+  font-family: var(--sans);
   font-style: italic;
-  font-size: 18px;
+  font-size: 14px;
+  font-weight: 300;
   line-height: 1.7;
   color: var(--tinta);
-  font-weight: 400;
   margin-bottom: 32px;
 }
 .depoimento-casal {
@@ -1026,8 +1026,9 @@ a { color: inherit; text-decoration: none; }
   line-height: 1.15;
 }
 .aplicacao-desc {
-  font-family: var(--serif);
-  font-size: 15px;
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 300;
   line-height: 1.75;
   color: var(--tinta-soft);
 }
@@ -1103,8 +1104,9 @@ a { color: inherit; text-decoration: none; }
   line-height: 1.2;
 }
 .step-desc {
-  font-family: var(--serif);
-  font-size: 14px;
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 300;
   line-height: 1.7;
   color: var(--tinta-soft);
   max-width: 280px;
@@ -1203,12 +1205,12 @@ a { color: inherit; text-decoration: none; }
   margin-bottom: 12px;
 }
 .plan-pitch {
-  font-family: var(--serif);
-  font-size: 15px;
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 300;
   color: var(--tinta-mid);
   margin-bottom: 36px;
   line-height: 1.65;
-  font-style: italic;
 }
 .plan-price-row {
   display: flex;
@@ -1249,8 +1251,9 @@ a { color: inherit; text-decoration: none; }
   margin-bottom: 32px;
 }
 .plan-features li {
-  font-family: var(--serif);
-  font-size: 15px;
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 300;
   color: var(--tinta-soft);
   padding: 14px 0;
   border-bottom: 1px solid var(--line-soft);
@@ -1395,8 +1398,9 @@ details.faq-item[open] .faq-icon {
 }
 .faq-answer {
   padding: 0 0 36px;
-  font-family: var(--serif);
-  font-size: 17px;
+  font-family: var(--sans);
+  font-size: 14px;
+  font-weight: 300;
   line-height: 1.75;
   color: var(--tinta-soft);
   max-width: 800px;
@@ -1606,7 +1610,7 @@ footer {
     <a href="landing.html" class="nav-brand">Devazi</a>
     <div class="nav-links">
       <a href="#como-funciona">Como funciona</a>
-      <a href="#aplicacoes">Modelos</a>
+      <a href="#aplicacoes">Recursos</a>
       <a href="#encomendas">Planos</a>
       <a href="#faq">FAQ</a>
       <a href="dashboard.html" class="nav-login">Entrar</a>
@@ -1621,7 +1625,7 @@ footer {
 <!-- Drawer mobile -->
 <div class="nav-drawer" id="navDrawer">
   <a href="#como-funciona">Como funciona</a>
-  <a href="#aplicacoes">Modelos</a>
+  <a href="#aplicacoes">Recursos</a>
   <a href="#encomendas">Planos</a>
   <a href="#faq">FAQ</a>
   <a href="dashboard.html">Entrar</a>
@@ -1698,17 +1702,18 @@ footer {
       </h1>
 
       <p class="hero-sub">
-        Site de casamento sofisticado, RSVP, gestão de convidados
-        e presentes — em minutos, sem esforço técnico.
+        Crie uma experiência digital sofisticada para sua celebração,
+        com RSVP, convidados, presentes e pagamentos em uma plataforma
+        simples, editorial e premium.
       </p>
 
       <div class="hero-ctas">
-        <a href="/thais-rafael-demonstracao" class="btn btn-primary" target="_blank" rel="noopener noreferrer">
-          <span>Ver exemplo real</span>
+        <a href="signup.html" class="btn btn-primary">
+          <span>Criar meu site</span>
           <span class="arrow">→</span>
         </a>
-        <a href="signup.html" class="btn btn-ghost">
-          <span>Criar meu site</span>
+        <a href="/thais-rafael-demonstracao" class="btn btn-ghost" target="_blank" rel="noopener noreferrer">
+          Ver exemplo real
         </a>
       </div>
 
@@ -1754,7 +1759,7 @@ footer {
 <!-- ══ MANIFESTO ══════════════════════════════════════════════════════════ -->
 <section class="section manifesto">
   <div class="manifesto-inner reveal">
-    <div class="section-num">— Manifesto</div>
+    <div class="section-num">01 — Manifesto</div>
     <p class="manifesto-text">
       Um casamento não começa no altar.
       <span>Começa</span> no convite, na expectativa,
@@ -1765,27 +1770,26 @@ footer {
 </section>
 
 <!-- ══ OFÍCIO ══════════════════════════════════════════════════════════════ -->
-<section class="section oficio" id="oficio" hidden>
+<section class="section oficio" id="oficio">
   <div class="section-inner">
     <div class="oficio-grid">
       <div class="reveal">
-        <div class="section-num">01 — O ofício</div>
+        <div class="section-num">02 — O que é</div>
         <h2 class="section-title">
-          Desenhamos a <em>primeira página</em><br>
-          do livro que começa no sim.
+          Mais do que um site.<br>
+          Uma presença digital <em>à altura do seu casamento.</em>
         </h2>
       </div>
       <div class="reveal reveal-delay-1">
         <p class="oficio-text">
-          A Devazi é um estúdio dedicado inteiramente ao território digital
-          do casamento. Convites interativos, sites de cerimônia, RSVPs —
-          cada peça pensada como um objeto editorial,
-          <em>não como um formulário preenchido às pressas.</em>
+          A Devazi é uma plataforma editorial para criar sites de casamento
+          sofisticados — com RSVP, gestão de convidados, presentes e pagamentos
+          em uma experiência visualmente refinada, sem esforço técnico.
         </p>
         <p class="oficio-text">
-          Acreditamos que a tecnologia pode carregar emoção. Por isso cada
-          detalhe é escolhido com cuidado — a fonte, o tempo da animação,
-          a música que toca quando o convite abre. <em>Nada é aleatório.</em>
+          O casal não deve sentir que está configurando um sistema.
+          Deve sentir que está construindo, com facilidade,
+          uma experiência elegante para o seu casamento.
         </p>
       </div>
     </div>
@@ -1796,7 +1800,7 @@ footer {
 <section class="section experiencia" id="experiencia">
   <div class="section-inner">
     <div class="reveal">
-      <div class="section-num">01 — A experiência</div>
+      <div class="section-num">03 — A experiência</div>
       <h2 class="section-title">
         Um site de casamento que parece <em>direção de arte.</em>
       </h2>
@@ -1862,7 +1866,7 @@ footer {
 <section class="section aplicacoes" id="aplicacoes">
   <div class="section-inner">
     <div class="reveal">
-      <div class="section-num">03 — As peças</div>
+      <div class="section-num">04 — O que inclui</div>
       <h2 class="section-title">
         Tudo que o seu casamento <em>precisa.</em>
       </h2>
@@ -1922,7 +1926,7 @@ footer {
 <section class="section como-funciona" id="como-funciona">
   <div class="section-inner">
     <div class="reveal">
-      <div class="section-num">04 — Como funciona</div>
+      <div class="section-num">05 — Como funciona</div>
       <h2 class="section-title">
         Pronto em menos de <em>dez minutos.</em>
       </h2>
@@ -2012,7 +2016,7 @@ footer {
 <!-- ══ ENCOMENDAS ══════════════════════════════════════════════════════════ -->
 <section class="encomendas" id="encomendas">
   <div class="encomendas-head reveal">
-    <div class="section-num">05 — Planos</div>
+    <div class="section-num">06 — Planos</div>
     <h2 class="section-title">Comece gratuitamente, <em>cresça quando quiser.</em></h2>
     <p class="section-sub">
       Comece gratuitamente. Desbloqueie recursos completos com o plano Premium por R$&nbsp;187, pagamento único.
@@ -2073,7 +2077,7 @@ footer {
 <section class="section faq" id="faq">
   <div class="section-inner">
     <div class="reveal">
-      <div class="section-num">06 — Dúvidas frequentes</div>
+      <div class="section-num">07 — Dúvidas frequentes</div>
       <h2 class="section-title">
         Tudo que você <em>precisa saber.</em>
       </h2>
