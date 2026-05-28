@@ -1927,18 +1927,34 @@ footer {
     }
 
     .hero {
-        padding-top: 64px;
+        display: grid;
+        grid-template-columns: minmax(0, 720px) clamp(260px, 24vw, 340px);
+        align-items: center;
+        justify-content: center;
+        column-gap: clamp(32px, 4vw, 56px);
+        min-height: 100svh;
+        padding-top: calc(68px + env(safe-area-inset-top));
+        padding-bottom: 72px;
     }
 
     .hero-photo {
-        top: 78px;
-        right: clamp(72px, 10vw, 156px);
+        position: relative;
+        grid-column: 2;
+        grid-row: 1;
+        top: auto;
+        right: auto;
         width: clamp(260px, 24vw, 340px);
+        margin: 0;
+        justify-self: start;
+        align-self: center;
     }
 
     .hero-content {
-        max-width: min(760px, calc(100% - 420px));
-        padding-bottom: clamp(102px, 12vh, 132px);
+        grid-column: 1;
+        grid-row: 1;
+        max-width: 100%;
+        padding-bottom: 0;
+        align-self: center;
     }
 
     .hero-names {
@@ -1949,6 +1965,14 @@ footer {
 
     .hero-ampersand {
         margin: 14px 0 8px;
+    }
+
+    .hero-date {
+        margin-bottom: 0;
+    }
+
+    .scroll-hint {
+        left: max(var(--section-padding-inline), calc((100vw - min(100%, 1120px)) / 2));
     }
 
     .rsvp-shell {
