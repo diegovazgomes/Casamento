@@ -1632,6 +1632,11 @@ const LAYOUT_DEFINITIONS = [
   },
   // layout minimal oculto temporariamente
   // { key: 'minimal', name: 'Minimal', description: 'Foto portrait ao lado do texto, fundo visível, sem overlay. Countdown sem cards, details como lista com régua.' },
+  {
+    key: 'minimal',
+    name: 'Minimal',
+    description: 'Foto portrait ao lado do texto, fundo visivel, sem overlay. Countdown sem cards, details como lista com regua.',
+  },
 ];
 
 const THEME_COLOR_SECTIONS = [
