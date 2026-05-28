@@ -1894,3 +1894,75 @@ footer {
         opacity: 0.75;
     }
 }
+
+@media (min-width: 901px) {
+    .intro-card,
+    .intro-screen__content {
+        width: min(92vw, 520px);
+        max-width: 520px;
+        padding: 56px 44px;
+    }
+
+    .intro-couple {
+        width: 100%;
+    }
+
+    .couple-names {
+        width: 100%;
+        max-width: 100%;
+        font-size: clamp(32px, 4.4vw, 48px);
+        line-height: 1.08;
+        text-align: center;
+        overflow-wrap: anywhere;
+    }
+
+    .hero {
+        padding-top: 64px;
+    }
+
+    .hero-photo {
+        top: 72px;
+        width: clamp(240px, 22vw, 320px);
+    }
+
+    .hero-content {
+        max-width: min(820px, calc(100% - 380px));
+        padding-bottom: clamp(96px, 11vh, 126px);
+    }
+
+    .hero-names {
+        font-size: clamp(88px, 10.4vw, 166px);
+        line-height: 0.9;
+        margin-bottom: 30px;
+    }
+
+    .hero-ampersand {
+        margin: 16px 0 10px;
+    }
+
+    .rsvp-shell {
+        grid-template-columns: minmax(0, 560px) minmax(0, 1fr);
+        grid-template-areas:
+            "tag ."
+            "title ."
+            "intro ."
+            "form .";
+        column-gap: clamp(48px, 7vw, 120px);
+        align-items: start;
+    }
+
+    .rsvp-shell .section-title,
+    .rsvp-shell .section-body,
+    .rsvp-shell .rsvp-section {
+        max-width: 560px;
+    }
+
+    .rsvp-shell .section-body {
+        padding-right: 0;
+        margin-bottom: 18px;
+    }
+
+    .rsvp-form {
+        gap: 0;
+    }
+}
