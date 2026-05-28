@@ -87,3 +87,7 @@ Esta refatoracao de teste vai:
 - layouts continuam responsaveis pela tipografia
 - configs antigas continuam funcionando
 - novas edicoes passam a convergir para buckets de override canonicos
+
+## Nota
+
+- documento mantido como referencia do fluxo de refatoracao de layout e tema
