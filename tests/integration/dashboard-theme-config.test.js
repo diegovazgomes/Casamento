@@ -4,7 +4,13 @@ beforeEach(() => {
   vi.resetModules();
   vi.restoreAllMocks();
   vi.spyOn(console, 'warn').mockImplementation(() => {});
-  window.matchMedia = vi.fn().mockReturnValue({ matches: false });
+  global.window = {
+    location: {
+      pathname: '/',
+      href: 'https://example.com/',
+    },
+    matchMedia: vi.fn().mockReturnValue({ matches: false }),
+  };
 });
 
 describe('dashboard theme/config bootstrap', () => {
@@ -26,10 +32,12 @@ describe('dashboard theme/config bootstrap', () => {
           couple: { names: 'Noiva & Noivo' },
           rsvp: { eventId: 'noiva-noivo-2026' },
         },
-        'assets/layouts/classic/themes/classic-silver.json': {
-          meta: { name: 'Classic Silver' },
-          colors: { primary: '#c0c0c0', text: '#f8f8f8' },
+        'assets/layouts/classic/defaults.json': {
           typography: { fonts: { serif: "'Cormorant Garamond', serif" } },
+        },
+        'assets/themes/silver.json': {
+          meta: { name: 'Silver' },
+          colors: { primary: '#c0c0c0', text: '#f8f8f8' },
         },
         'assets/config/typography.json': {
           typography: {
@@ -55,7 +63,7 @@ describe('dashboard theme/config bootstrap', () => {
 
     expect(result.config.couple.names).toBe('Noiva & Noivo');
     expect(result.config.rsvp.eventId).toBe('noiva-noivo-2026');
-    expect(result.themePath).toBe('assets/layouts/classic/themes/classic-silver.json');
+    expect(result.themePath).toBe('assets/themes/silver.json');
     expect(result.theme.colors.background).toBe('#101010');
     expect(result.theme.colors.primary).toBe('#c0c0c0');
     expect(result.theme.typography.families.body).toBe("'Jost', sans-serif");
@@ -84,9 +92,12 @@ describe('dashboard theme/config bootstrap', () => {
             },
           },
         },
-        'assets/layouts/classic/themes/classic-purple.json': {
-          colors: { primary: '#4b3fb8', text: '#ffffff' },
+        'assets/layouts/classic/defaults.json': {
           typography: { fonts: { primary: "'Jost', sans-serif" } },
+          responsive: {},
+        },
+        'assets/themes/purple.json': {
+          colors: { primary: '#4b3fb8', text: '#ffffff' },
           responsive: {},
         },
         'assets/config/typography.json': {
@@ -107,7 +118,7 @@ describe('dashboard theme/config bootstrap', () => {
     const { loadDashboardThemeConfig } = await import('../../assets/js/dashboard-theme-config.js');
     const result = await loadDashboardThemeConfig();
 
-    expect(result.themePath).toBe('assets/layouts/classic/themes/classic-purple.json');
+    expect(result.themePath).toBe('assets/themes/purple.json');
     expect(result.theme.colors.primary).toBe('#6d5ce8');
   });
 });

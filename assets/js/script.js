@@ -4,7 +4,13 @@ import { RSVP } from './rsvp.js';
 import { PresentPage } from './presente.js';
 import { AudioController } from './audio.js';
 import { cloneDeep, mergeDeep, setInputPlaceholder, setText } from './utils.js';
-import { getEventSlugFromPath, resolveSiteConfigSource, resolveThemePath, resolveLayoutDefaultsPath } from './config-source.js';
+import {
+    getEventSlugFromPath,
+    getThemeOverrideBucketKeys,
+    resolveSiteConfigSource,
+    resolveThemePath,
+    resolveLayoutDefaultsPath
+} from './config-source.js';
 import { markBootstrapComplete, hideLoadingScreen, applyThemeToLoadingScreen, applyEventDataToLoadingScreen, showFreeInviteButton, showPremiumInviteCard } from './loading-screen.js';
 import { onConfigLoaded } from './debug-badge.js';
 
@@ -585,19 +591,16 @@ function mergeThemeWithGlobalTypography(theme, typographyConfig) {
 }
 
 export function getThemeOverrideKey(themePath) {
-    if (!themePath) return '';
-    const normalized = String(themePath).replace(/\\/g, '/');
-    const fileName = normalized.split('/').pop() || '';
-    return fileName.replace(/\.json$/i, '');
+    return getThemeOverrideBucketKeys(themePath)[0] || '';
 }
 
 function getThemeOverridesForActiveTheme(siteConfig, activeThemePath) {
     const byTheme = siteConfig?.themeOverridesByTheme;
-    const themeKey = getThemeOverrideKey(activeThemePath);
-    const scoped = themeKey ? byTheme?.[themeKey] : null;
-
-    if (scoped && typeof scoped === 'object') {
-        return scoped;
+    for (const themeKey of getThemeOverrideBucketKeys(activeThemePath)) {
+        const scoped = byTheme?.[themeKey];
+        if (scoped && typeof scoped === 'object') {
+            return scoped;
+        }
     }
 
     const legacy = siteConfig?.themeOverrides;

@@ -1,4 +1,5 @@
 import { cloneDeep, mergeDeep } from './utils.js';
+import { getThemeOverrideBucketKeys, resolveThemePath } from './config-source.js';
 
 const SITE_CONFIG_URL = 'assets/config/site.json';
 const TYPOGRAPHY_CONFIG_URL = 'assets/config/typography.json';
@@ -101,19 +102,16 @@ function mergeThemeWithGlobalTypography(theme, typographyConfig) {
 }
 
 function getThemeOverrideKey(themePath) {
-  if (!themePath) return '';
-  const normalized = String(themePath).replace(/\\/g, '/');
-  const fileName = normalized.split('/').pop() || '';
-  return fileName.replace(/\.json$/i, '');
+  return getThemeOverrideBucketKeys(themePath)[0] || '';
 }
 
 function getThemeOverridesForActiveTheme(siteConfig, activeThemePath) {
   const byTheme = siteConfig?.themeOverridesByTheme;
-  const themeKey = getThemeOverrideKey(activeThemePath);
-  const scoped = themeKey ? byTheme?.[themeKey] : null;
-
-  if (scoped && typeof scoped === 'object') {
-    return scoped;
+  for (const themeKey of getThemeOverrideBucketKeys(activeThemePath)) {
+    const scoped = byTheme?.[themeKey];
+    if (scoped && typeof scoped === 'object') {
+      return scoped;
+    }
   }
 
   const legacy = siteConfig?.themeOverrides;
@@ -131,20 +129,6 @@ function applySiteThemeOverrides(theme, siteConfig, activeThemePath) {
   }
 
   return mergeDeep(theme, overrides);
-}
-
-function resolveThemePath(activeTheme, layoutKey) {
-  if (!activeTheme) return null;
-  if (activeTheme.startsWith('assets/')) return activeTheme;
-
-  // Chave legada com prefixo de layout (retrocompat)
-  const layoutPrefixes = ['classic-', 'black-'];
-  if (layoutPrefixes.some((prefix) => activeTheme.startsWith(prefix))) {
-    return `assets/layouts/${layoutKey}/themes/${activeTheme}.json`;
-  }
-
-  // Chave simples → paleta compartilhada
-  return `assets/themes/${activeTheme}.json`;
 }
 
 async function loadLayoutDefaults(layoutKey, themeDefaults) {

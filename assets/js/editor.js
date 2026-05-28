@@ -15,6 +15,7 @@ import {
   removePath as rawRemovePath,
   setPath as rawSetPath,
 } from './utils.js';
+import { getThemeOverrideBucketKeys } from './config-source.js';
 
 // ── State ─────────────────────────────────────────────────────────────────────
 
@@ -26,17 +27,24 @@ const THEME_OVERRIDES_PREFIX = 'themeOverrides.';
 const THEME_OVERRIDES_BY_THEME_ROOT = 'themeOverridesByTheme';
 
 function getThemeOverrideKey(themePath) {
-  if (!themePath) return '';
-  const normalized = String(themePath).replace(/\\/g, '/');
-  const fileName = normalized.split('/').pop() || '';
-  return fileName.replace(/\.json$/i, '');
+  return getThemeOverrideBucketKeys(themePath)[0] || '';
+}
+
+function getThemeOverrideScopedPaths(path, themeValue = config?.activeTheme) {
+  if (!path?.startsWith(THEME_OVERRIDES_PREFIX)) {
+    return [path];
+  }
+
+  const suffix = path.slice(THEME_OVERRIDES_PREFIX.length);
+  const themeKeys = getThemeOverrideBucketKeys(themeValue);
+  if (themeKeys.length === 0) {
+    return [path];
+  }
+
+  return themeKeys.map((themeKey) => `${THEME_OVERRIDES_BY_THEME_ROOT}.${themeKey}.${suffix}`);
 }
 
 function resolveThemeOverrideScopedPath(path) {
-  if (!path?.startsWith(THEME_OVERRIDES_PREFIX)) {
-    return path;
-  }
-
   const themeKey = getThemeOverrideKey(config?.activeTheme);
   if (!themeKey) {
     return path;
@@ -46,8 +54,11 @@ function resolveThemeOverrideScopedPath(path) {
 }
 
 function getPath(root, path) {
-  const scopedPath = resolveThemeOverrideScopedPath(path);
-  if (scopedPath !== path) {
+  for (const scopedPath of getThemeOverrideScopedPaths(path)) {
+    if (scopedPath === path) {
+      continue;
+    }
+
     const scopedValue = rawGetPath(root, scopedPath);
     if (scopedValue !== undefined) {
       return scopedValue;
@@ -76,7 +87,29 @@ function ensureActiveThemeOverrideBucket(root) {
   }
 }
 
+function migrateLegacyThemeOverrideBuckets(root) {
+  const byTheme = rawGetPath(root, THEME_OVERRIDES_BY_THEME_ROOT);
+  if (!byTheme || typeof byTheme !== 'object' || Array.isArray(byTheme)) {
+    return;
+  }
+
+  const migrated = {};
+
+  Object.entries(byTheme).forEach(([themeKey, bucketValue]) => {
+    if (!bucketValue || typeof bucketValue !== 'object' || Array.isArray(bucketValue)) {
+      return;
+    }
+
+    const canonicalKey = getThemeOverrideBucketKeys(themeKey)[0] || themeKey;
+    const existing = migrated[canonicalKey] || {};
+    migrated[canonicalKey] = mergeDeep(existing, bucketValue);
+  });
+
+  rawSetPath(root, THEME_OVERRIDES_BY_THEME_ROOT, migrated);
+}
+
 function migrateLegacyThemeOverrides(root) {
+  migrateLegacyThemeOverrideBuckets(root);
   ensureActiveThemeOverrideBucket(root);
 
   const legacy = rawGetPath(root, 'themeOverrides');
@@ -1633,7 +1666,7 @@ let themeCatalog = [];  // [{ key, path, name, description, allColors, colors }]
 
 // Extrai a chave simples de um caminho de tema (ex: "gold" de "assets/themes/gold.json")
 function extractThemeKey(themePathOrKey) {
-  if (!themePathOrKey) return '';
+  return getThemeOverrideBucketKeys(themePathOrKey)[0] || '';
   // Se já é uma chave simples (sem "/" e sem ".json")
   if (!themePathOrKey.includes('/')) return themePathOrKey.replace('.json', '');
   // Extrai o filename sem extensão

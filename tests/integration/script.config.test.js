@@ -4,6 +4,13 @@ beforeEach(() => {
   vi.resetModules();
   vi.restoreAllMocks();
   vi.spyOn(console, 'warn').mockImplementation(() => {});
+  global.window = {
+    location: {
+      pathname: '/',
+      href: 'https://example.com/',
+    },
+    matchMedia: vi.fn().mockReturnValue({ matches: false }),
+  };
 });
 
 describe('script config/theme loaders', () => {
@@ -266,8 +273,16 @@ describe('script config/theme loaders', () => {
   it('extracts theme override key from theme path', async () => {
     const { getThemeOverrideKey } = await import('../../assets/js/script.js');
 
-    expect(getThemeOverrideKey('assets/config/themes/classic-gold-light.json')).toBe('classic-gold-light');
-    expect(getThemeOverrideKey('classic-purple.json')).toBe('classic-purple');
+    expect(getThemeOverrideKey('assets/config/themes/classic-gold-light.json')).toBe('gold-light');
+    expect(getThemeOverrideKey('classic-purple.json')).toBe('purple');
     expect(getThemeOverrideKey('')).toBe('');
+  });
+
+  it('resolves legacy theme names to shared theme files', async () => {
+    const { resolveThemePath } = await import('../../assets/js/config-source.js');
+
+    expect(resolveThemePath('classic-gold')).toBe('assets/themes/gold.json');
+    expect(resolveThemePath('assets/layouts/modern/themes/black-silver.json')).toBe('assets/themes/silver.json');
+    expect(resolveThemePath('purple')).toBe('assets/themes/purple.json');
   });
 });

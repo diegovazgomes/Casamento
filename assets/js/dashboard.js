@@ -2340,18 +2340,39 @@ const LAYOUT_THEMES = {
   minimal:  PALETTE_LIST,
 };
 
-function resolveDashboardThemePath(activeTheme) {
+const LEGACY_THEME_KEY_MAP = {
+  'classic-gold': 'gold',
+  'classic-gold-light': 'gold-light',
+  'classic-silver': 'silver',
+  'classic-silver-light': 'silver-light',
+  'classic-purple': 'purple',
+  'classic-blue': 'blue',
+  'classic-green-light': 'green-light',
+  'black-silver': 'silver',
+};
+
+function normalizeDashboardThemeKey(activeTheme) {
   const themeValue = String(activeTheme || '').trim();
   if (!themeValue) return '';
 
+  const match = themeValue.match(/\/themes\/([^/]+)\.json$/i);
+  const rawKey = (match ? match[1] : themeValue).replace(/\.json$/i, '');
+
+  return LEGACY_THEME_KEY_MAP[rawKey] || rawKey;
+}
+
+function resolveDashboardThemePath(activeTheme) {
+  const themeKey = normalizeDashboardThemeKey(activeTheme);
+  if (!themeKey) return '';
+
   // Caminho completo legado — compatibilidade retroativa
-  if (themeValue.startsWith('assets/')) return themeValue;
+  return `assets/themes/${themeKey}.json`;
 
   // Chave simples nova (ex: "gold") → nova paleta compartilhada
-  return `assets/themes/${themeValue}.json`;
 }
 
 function extractDashboardThemeKey(activeThemePath) {
+  return normalizeDashboardThemeKey(activeThemePath);
   const themePath = String(activeThemePath || '').trim();
   if (!themePath) return '';
 
