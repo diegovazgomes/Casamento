@@ -1903,17 +1903,27 @@ footer {
         padding: 56px 44px;
     }
 
-    .intro-couple {
-        width: 100%;
-    }
-
-    .couple-names {
+    .intro-screen__names {
         width: 100%;
         max-width: 100%;
-        font-size: clamp(32px, 4.4vw, 48px);
-        line-height: 1.08;
+        font-family: var(--font-serif);
+        font-size: clamp(40px, 5vw, 64px);
+        font-weight: 300;
+        font-style: italic;
+        letter-spacing: -0.025em;
+        line-height: 1;
         text-align: center;
+        text-transform: none;
+        white-space: normal;
         overflow-wrap: anywhere;
+        text-wrap: balance;
+    }
+
+    .intro-screen__names span {
+        display: block;
+        margin: 10px 0 8px;
+        font-size: 0.42em;
+        letter-spacing: 0.18em;
     }
 
     .hero {
@@ -1921,27 +1931,28 @@ footer {
     }
 
     .hero-photo {
-        top: 72px;
-        width: clamp(240px, 22vw, 320px);
+        top: 78px;
+        right: clamp(72px, 10vw, 156px);
+        width: clamp(260px, 24vw, 340px);
     }
 
     .hero-content {
-        max-width: min(820px, calc(100% - 380px));
-        padding-bottom: clamp(96px, 11vh, 126px);
+        max-width: min(760px, calc(100% - 420px));
+        padding-bottom: clamp(102px, 12vh, 132px);
     }
 
     .hero-names {
-        font-size: clamp(88px, 10.4vw, 166px);
-        line-height: 0.9;
-        margin-bottom: 30px;
+        font-size: clamp(82px, 8.8vw, 146px);
+        line-height: 0.88;
+        margin-bottom: 26px;
     }
 
     .hero-ampersand {
-        margin: 16px 0 10px;
+        margin: 14px 0 8px;
     }
 
     .rsvp-shell {
-        grid-template-columns: minmax(0, 560px) minmax(0, 1fr);
+        grid-template-columns: minmax(0, 540px) minmax(0, 1fr);
         grid-template-areas:
             "tag ."
             "title ."
@@ -1954,12 +1965,16 @@ footer {
     .rsvp-shell .section-title,
     .rsvp-shell .section-body,
     .rsvp-shell .rsvp-section {
-        max-width: 560px;
+        max-width: 540px;
     }
 
     .rsvp-shell .section-body {
         padding-right: 0;
-        margin-bottom: 18px;
+        margin-bottom: 20px;
+    }
+
+    .rsvp-shell .rsvp-section {
+        width: 100%;
     }
 
     .rsvp-form {
