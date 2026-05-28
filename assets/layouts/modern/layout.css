@@ -1760,13 +1760,20 @@
     }
 
     .scroll-hint {
-        left: 50%;
+        left: 0;
+        right: 0;
         bottom: 12px;
-        transform: translateX(-50%);
+        width: max-content;
+        margin: 0 auto;
+        transform: none;
     }
 
     .scroll-hint:hover,
     .scroll-hint:focus-visible {
-        transform: translateX(-50%) translateY(-1px);
+        transform: translateY(-1px);
+    }
+
+    .detail-card-gift {
+        grid-column: span 6;
     }
 }
