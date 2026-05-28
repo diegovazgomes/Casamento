@@ -267,6 +267,35 @@ Após gerar os arquivos, informe ao usuário:
 2. Como testar: alterar `"activeLayout": "{nome}"` em `assets/config/site.json`
 3. Possíveis ajustes esperados após ver no browser (é normal precisar de refinamentos)
 
+### Passo 6 — Validação obrigatória do layout antes de encerrar
+
+Antes de considerar o layout "pronto", valide estes pontos no browser:
+
+**Home**
+- Hero ocupa a primeira dobra corretamente no mobile, sem vazamento do countdown
+- Foto, nomes, data e `scroll-hint` formam um bloco coeso
+- A seta do `scroll-hint` está centralizada em relação ao texto, não apenas alinhada à esquerda do container
+- O CTA de RSVP parece botão de verdade
+
+**Navegação**
+- O link `Presentes` do cabeçalho usa o mesmo fluxo interno da aplicação e mantém contexto do casal/convidado
+- O botão de presentes da mobile bar e o card de presentes em detalhes apontam para o mesmo destino interno
+- Nenhum link do layout deve depender de fallback estático se já existir `buildInternalUrl(...)` no projeto
+
+**Extras**
+- A seção `Tem mais para você` mostra cards visíveis, não apenas áreas clicáveis
+- Se o layout usar `.reveal { opacity: 0; ... }`, garantir que cada página que não usa `initExtraPage(...)` também receba `.visible`
+- Validar `historia`, `faq`, `hospedagem`, `mensagem`, `musica`, `traje` e `presente`
+
+**Página de presentes**
+- A lista de presentes deve aparecer visualmente em todos os layouts, não apenas responder ao clique
+- Não refatorar `presente.html` ou a lógica compartilhada de presentes só para "encaixar" um layout novo, a menos que o usuário peça explicitamente
+- O layout novo deve estilizar a gift page por CSS próprio, preservando o comportamento compartilhado da página
+
+**Regra de segurança**
+- Nunca assumir que um componente funciona só porque está clicável; confirmar visibilidade, hierarquia visual e conteúdo renderizado
+- Se uma correção tocar arquivo compartilhado entre layouts, validar `classic`, `modern` e o novo layout antes de encerrar
+
 ---
 
 ## Checklist antes de finalizar
@@ -279,3 +308,6 @@ Após gerar os arquivos, informe ao usuário:
 - [ ] `assets/js/dashboard.js` — `LAYOUT_THEMES` atualizado
 - [ ] Novas fontes Google adicionadas em `typography.json` e `fonts.css` se necessário
 - [ ] `melhorias.md` atualizado com entrada do novo layout
+- [ ] Link `Presentes` do cabeçalho, mobile bar e card de detalhes mantêm o contexto correto do casal/convidado
+- [ ] Cards da seção extras aparecem visualmente e ficam clicáveis
+- [ ] Página `presente.html` foi validada no novo layout sem quebrar `classic` e `modern`

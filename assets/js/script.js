@@ -1363,6 +1363,11 @@ class InvitationExperience {
             detailGiftLink.setAttribute('href', buildInternalUrl('presente.html', this.guestToken));
         }
 
+        const siteNavGiftLink = document.getElementById('siteNavGiftLink');
+        if (siteNavGiftLink) {
+            siteNavGiftLink.setAttribute('href', buildInternalUrl('presente.html', this.guestToken));
+        }
+
         const mobileBarGiftBtn = document.getElementById('mobileBarGiftBtn');
         if (mobileBarGiftBtn) {
             mobileBarGiftBtn.setAttribute('href', buildInternalUrl('presente.html', this.guestToken));
