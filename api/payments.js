@@ -128,6 +128,7 @@ async function handleCheckout(req, res, rawBody) {
     mode: 'payment',
     customer: stripeCustomerId,
     line_items: [{ price: priceId, quantity: 1 }],
+    allow_promotion_codes: true,
     success_url: `${appUrl}/dashboard.html?payment=success`,
     cancel_url: `${appUrl}/dashboard.html?payment=cancelled`,
     metadata: {
