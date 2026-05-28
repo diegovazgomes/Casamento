@@ -1600,6 +1600,185 @@ footer {
 }
 .footer-bottom a:hover { color: var(--ouro-velho); }
 
+/* ══ DIREÇÕES VISUAIS ════════════════════════════════════════════════════ */
+.direcoes-visuais { background: var(--marfim); }
+
+.direcoes-showcase {
+  margin-top: 64px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 28px;
+}
+
+/* Linha: seta esq · phone · seta dir */
+.direcoes-carousel-row {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  width: 100%;
+  justify-content: center;
+}
+
+.direcoes-nav {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  color: var(--tinta-mid);
+  font-size: 18px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: border-color 0.3s var(--ease), color 0.3s var(--ease), transform 0.3s var(--ease);
+  outline: none;
+}
+.direcoes-nav:hover  { border-color: var(--ouro-velho); color: var(--ouro-velho); }
+.direcoes-nav:focus-visible { outline: 2px solid var(--ouro-soft); outline-offset: 3px; }
+
+/* Phone */
+.direcoes-phone-wrap {
+  max-width: 300px;
+  width: 100%;
+}
+
+/* Override: background e padding geridos pelos .direcao-screen */
+.direcoes-phone-wrap .phone-screen {
+  background: transparent;
+  padding: 0;
+}
+
+.direcao-screen {
+  display: none;
+  width: 100%;
+  height: 100%;
+  border-radius: 32px;
+  overflow: hidden;
+  position: relative;
+  /* Cor de fundo visível enquanto o vídeo carrega */
+}
+.direcao-screen.is-active { display: block; }
+/* Notch do celular — aparece acima do vídeo */
+.direcao-screen::before {
+  content: '';
+  position: absolute;
+  top: 12px; left: 50%;
+  transform: translateX(-50%);
+  width: 100px; height: 24px;
+  background: #1a1714;
+  border-radius: 0 0 16px 16px;
+  z-index: 1;
+}
+
+.direcao-screen--classico { background: var(--marfim); }
+.direcao-screen--minimal  { background: #fefefe; }
+.direcao-screen--moderno  { background: var(--carvao); }
+
+.direcao-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Dots */
+.direcoes-dots {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.direcao-dot {
+  width: 20px;
+  height: 1px;
+  background: var(--tinta-faint);
+  transition: background 0.3s, width 0.3s var(--ease);
+  cursor: pointer;
+  padding: 6px 0;
+  background-clip: content-box;
+}
+.direcao-dot.is-active {
+  width: 32px;
+  background: var(--ouro-velho);
+  background-clip: content-box;
+}
+
+/* Painel de info abaixo do phone */
+.direcoes-info {
+  text-align: center;
+  max-width: 480px;
+  min-height: 120px;
+  position: relative;
+}
+
+.direcao-info {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  animation: fadeUpInfo 0.45s var(--ease) forwards;
+}
+.direcao-info.is-active { display: flex; }
+
+@keyframes fadeUpInfo {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.direcao-info-num {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 12px;
+  color: var(--tinta-faint);
+}
+
+.direcao-info-name {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: var(--carvao);
+}
+
+.direcao-info-desc {
+  font-family: var(--sans);
+  font-size: 14px;
+  font-weight: 300;
+  line-height: 1.65;
+  color: var(--tinta-soft);
+}
+
+.direcao-info-tags {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.direcao-tag {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--tinta-faint);
+  border: 1px solid var(--line);
+  padding: 4px 10px;
+}
+
+.direcoes-cta {
+  margin-top: 72px;
+  text-align: center;
+}
+
+@media (max-width: 768px) {
+  .direcoes-carousel-row { gap: 20px; }
+  .direcoes-nav { width: 40px; height: 40px; font-size: 16px; }
+  .direcoes-phone-wrap { max-width: 240px; }
+  .direcoes-cta { margin-top: 48px; }
+}
+
 </style>
 </head>
 <body>
@@ -1952,6 +2131,112 @@ footer {
   </div>
 </section>
 
+<!-- ══ DIREÇÕES VISUAIS ══════════════════════════════════════════════════ -->
+<section class="section direcoes-visuais" id="direcoes-visuais">
+  <div class="section-inner">
+
+    <div class="reveal">
+      <div class="section-num">— Direções visuais</div>
+      <h2 class="section-title">
+        Três formas de criar uma presença digital <em>elegante.</em>
+      </h2>
+      <p class="section-sub">
+        Explore direções visuais criadas para diferentes estilos de celebração — todas com
+        estética editorial, experiência mobile-first e gestão simples para o casal.
+      </p>
+    </div>
+
+    <div class="direcoes-showcase reveal reveal-delay-1">
+
+      <!-- Seta + phone + seta -->
+      <div class="direcoes-carousel-row">
+        <button class="direcoes-nav direcoes-prev" aria-label="Ver direção anterior" type="button">&#8592;</button>
+
+        <div class="direcoes-phone-wrap">
+          <div class="phone-frame">
+            <div class="phone-screen">
+
+              <div class="direcao-screen direcao-screen--classico is-active" id="screen-classico">
+                <video class="direcao-video" autoplay loop muted playsinline>
+                  <source src="assets/videos/classico.mp4" type="video/mp4">
+                </video>
+              </div>
+
+              <div class="direcao-screen direcao-screen--minimal" id="screen-minimal">
+                <video class="direcao-video" autoplay loop muted playsinline>
+                  <source src="assets/videos/minimalista.mp4" type="video/mp4">
+                </video>
+              </div>
+
+              <div class="direcao-screen direcao-screen--moderno" id="screen-moderno">
+                <video class="direcao-video" autoplay loop muted playsinline>
+                  <source src="assets/videos/moderno.mp4" type="video/mp4">
+                </video>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+        <button class="direcoes-nav direcoes-next" aria-label="Ver próxima direção" type="button">&#8594;</button>
+      </div>
+
+      <!-- Dots -->
+      <div class="direcoes-dots" role="tablist" aria-label="Direções visuais">
+        <span class="direcao-dot is-active" role="tab" aria-selected="true"  aria-label="Clássico" tabindex="0"></span>
+        <span class="direcao-dot"           role="tab" aria-selected="false" aria-label="Minimalista" tabindex="0"></span>
+        <span class="direcao-dot"           role="tab" aria-selected="false" aria-label="Moderno" tabindex="0"></span>
+      </div>
+
+      <!-- Info abaixo do phone -->
+      <div class="direcoes-info">
+
+        <div class="direcao-info is-active" id="info-classico">
+          <span class="direcao-info-num">i</span>
+          <h3 class="direcao-info-name">Clássico</h3>
+          <p class="direcao-info-desc">Tipografia script no hero, serifas nas seções e ornamentos delicados no detalhe. Uma composição inspirada em papelaria de alta cerimonial.</p>
+          <div class="direcao-info-tags">
+            <span class="direcao-tag">Atemporal</span>
+            <span class="direcao-tag">Romântico</span>
+            <span class="direcao-tag">Ornamental</span>
+          </div>
+        </div>
+
+        <div class="direcao-info" id="info-minimal">
+          <span class="direcao-info-num">ii</span>
+          <h3 class="direcao-info-name">Minimalista</h3>
+          <p class="direcao-info-desc">Tipografia monospace como identidade principal. Composição vertical, respirada e de grande rigor formal.</p>
+          <div class="direcao-info-tags">
+            <span class="direcao-tag">Tipográfico</span>
+            <span class="direcao-tag">Silencioso</span>
+            <span class="direcao-tag">Limpo</span>
+          </div>
+        </div>
+
+        <div class="direcao-info" id="info-moderno">
+          <span class="direcao-info-num">iii</span>
+          <h3 class="direcao-info-name">Moderno</h3>
+          <p class="direcao-info-desc">Sans-serif em peso máximo no hero, ritmo assimétrico e hierarquia tipográfica de forte presença editorial.</p>
+          <div class="direcao-info-tags">
+            <span class="direcao-tag">Editorial</span>
+            <span class="direcao-tag">Ousado</span>
+            <span class="direcao-tag">Contemporâneo</span>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <div class="direcoes-cta reveal reveal-delay-2">
+      <a href="signup.html" class="btn btn-primary">
+        <span>Criar meu site</span>
+      </a>
+    </div>
+
+  </div>
+</section>
+
 <!-- ══ NÚMEROS ════════════════════════════════════════════════════════════ -->
 <section class="numeros" id="numeros" hidden>
   <div class="numeros-inner reveal">
@@ -2299,6 +2584,62 @@ const countObserver = new IntersectionObserver(entries => {
 }, { threshold: 0.3 });
 const numerosSection = document.getElementById('numeros');
 if (numerosSection) countObserver.observe(numerosSection);
+
+// ── Showcase de direções visuais
+(function () {
+  const screens  = document.querySelectorAll('.direcao-screen');
+  const infos    = document.querySelectorAll('.direcao-info');
+  const dots     = document.querySelectorAll('.direcao-dot');
+  const prevBtn  = document.querySelector('.direcoes-prev');
+  const nextBtn  = document.querySelector('.direcoes-next');
+  const phoneWrap = document.querySelector('.direcoes-phone-wrap');
+  const total    = screens.length;
+  if (!total) return;
+
+  let current = 0;
+
+  function showSlide(index) {
+    current = ((index % total) + total) % total;
+    screens.forEach((s, i) => s.classList.toggle('is-active', i === current));
+    infos.forEach((info, i)   => info.classList.toggle('is-active', i === current));
+    dots.forEach((d, i) => {
+      d.classList.toggle('is-active', i === current);
+      d.setAttribute('aria-selected', String(i === current));
+    });
+  }
+
+  if (prevBtn) prevBtn.addEventListener('click', () => showSlide(current - 1));
+  if (nextBtn) nextBtn.addEventListener('click', () => showSlide(current + 1));
+
+  dots.forEach((dot, i) => {
+    dot.addEventListener('click', () => showSlide(i));
+    dot.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); showSlide(i); }
+    });
+  });
+
+  // Swipe no phone
+  if (phoneWrap) {
+    const sw = { startX: 0, startY: 0, tracking: false };
+    const THRESHOLD = 48;
+    phoneWrap.addEventListener('touchstart', (e) => {
+      if (e.touches.length !== 1) return;
+      sw.startX = e.touches[0].clientX;
+      sw.startY = e.touches[0].clientY;
+      sw.tracking = true;
+    }, { passive: true });
+    phoneWrap.addEventListener('touchend', (e) => {
+      if (!sw.tracking) return;
+      sw.tracking = false;
+      const dx = e.changedTouches[0].clientX - sw.startX;
+      const dy = e.changedTouches[0].clientY - sw.startY;
+      if (Math.abs(dx) >= THRESHOLD && Math.abs(dx) > Math.abs(dy)) {
+        showSlide(dx < 0 ? current + 1 : current - 1);
+      }
+    }, { passive: true });
+    phoneWrap.addEventListener('touchcancel', () => { sw.tracking = false; }, { passive: true });
+  }
+})();
 
 // ── Detecção de sessão ativa — redireciona CTAs para o dashboard se autenticado
 (function () {

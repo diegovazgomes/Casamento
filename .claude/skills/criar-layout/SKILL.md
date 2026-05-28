@@ -250,6 +250,79 @@ Adapte todos os valores conforme os tokens aprovados.
 {nome}: PALETTE_LIST,
 ```
 
+#### 4d. Adicionar à seção "Direções visuais" da landing page
+
+A `landing.html` tem uma seção de carrossel de mockups mobile entre "Como funciona" e "Planos". **Todo layout novo deve aparecer nessa seção.**
+
+**Passo a passo:**
+
+1. **Adicionar CSS do phone screen** — inserir antes de `/* Dots */` no bloco de estilos da seção `DIREÇÕES VISUAIS`:
+
+```css
+/* Screen N — {Nome} */
+.direcao-screen--{nome} { background: {cor-de-fundo}; }
+.ds-{nome}-tag {
+  font-family: var(--mono);
+  font-size: 8px;
+  letter-spacing: 0.38em;
+  text-transform: uppercase;
+  color: {cor-do-acento};
+  margin-bottom: 20px;
+  text-align: center;
+}
+/* Adicionar .ds-{nome}-names, .ds-{nome}-date, .ds-{nome}-place
+   com a tipografia e cores características do layout */
+```
+
+   Defina o visual do phone screen com a personalidade do layout:
+   - **Fundo**: cor que traduz a essência (marfim, branco, carvão, blush, etc.)
+   - **Fonte dos nomes**: a mesma `heroTitle` do layout (script/serif/sans bold)
+   - **Acento**: cor de destaque correspondente ao tema do layout
+
+2. **Adicionar o `<div class="direcao-screen">` dentro do `phone-screen`** — logo antes do `</div>` que fecha o grupo de screens:
+
+```html
+<div class="direcao-screen direcao-screen--{nome}" id="screen-{nome}">
+  <span class="ds-{nome}-tag">— {tag curta} —</span>
+  <!-- linha ornamental ou barra conforme o estilo -->
+  <h3 class="ds-{nome}-names">
+    {Nome1}
+    <span class="ds-{nome}-amp">&amp;</span>
+    {Nome2}
+  </h3>
+  <p class="ds-{nome}-date">12 · IV · MMXXVI</p>
+  <p class="ds-{nome}-place">{Local de exemplo}</p>
+</div>
+```
+
+3. **Adicionar dot de navegação** — dentro de `.direcoes-dots`:
+
+```html
+<span class="direcao-dot" role="tab" aria-selected="false" aria-label="{Nome}" tabindex="0"></span>
+```
+
+4. **Adicionar painel de info** — dentro de `.direcoes-info`:
+
+```html
+<div class="direcao-info" id="info-{nome}">
+  <span class="direcao-info-num">{numeral romano}</span>
+  <h3 class="direcao-info-name">{Nome do layout}</h3>
+  <p class="direcao-info-desc">{Descrição em 1–2 frases com a personalidade visual do layout.}</p>
+  <div class="direcao-info-tags">
+    <span class="direcao-tag">{Tag 1}</span>
+    <span class="direcao-tag">{Tag 2}</span>
+    <span class="direcao-tag">{Tag 3}</span>
+  </div>
+</div>
+```
+
+**Nenhuma alteração no JS é necessária** — o carrossel usa `querySelectorAll` e detecta os elementos automaticamente.
+
+**Referência de estilos existentes no arquivo `landing.html`:**
+- `direcao-screen--classico` → fundo marfim, Cormorant itálico, gold (clássico/romântico)
+- `direcao-screen--minimal` → fundo branco, DM Mono, linhas finas cinza (minimalista/tipográfico)
+- `direcao-screen--moderno` → fundo carvão, Jost 800, contraste alto (bold/contemporâneo)
+
 #### 4d. Se adicionou novas fontes Google
 
 Se as fontes sugeridas não existem em `assets/config/typography.json`, adicione-as:
@@ -308,6 +381,10 @@ Antes de considerar o layout "pronto", valide estes pontos no browser:
 - [ ] `assets/js/dashboard.js` — `LAYOUT_THEMES` atualizado
 - [ ] Novas fontes Google adicionadas em `typography.json` e `fonts.css` se necessário
 - [ ] `melhorias.md` atualizado com entrada do novo layout
+- [ ] `landing.html` — CSS do `direcao-screen--{nome}` adicionado na seção DIREÇÕES VISUAIS
+- [ ] `landing.html` — `<div class="direcao-screen direcao-screen--{nome}">` adicionado dentro do `.phone-screen`
+- [ ] `landing.html` — dot adicionado em `.direcoes-dots`
+- [ ] `landing.html` — painel `.direcao-info` adicionado em `.direcoes-info`
 - [ ] Link `Presentes` do cabeçalho, mobile bar e card de detalhes mantêm o contexto correto do casal/convidado
 - [ ] Cards da seção extras aparecem visualmente e ficam clicáveis
 - [ ] Página `presente.html` foi validada no novo layout sem quebrar `classic` e `modern`
