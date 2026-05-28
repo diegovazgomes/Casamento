@@ -1689,8 +1689,9 @@
 @media (min-width: 901px) {
     .hero {
         min-height: 100svh;
-        place-items: center;
-        padding: calc(82px + env(safe-area-inset-top)) 24px 48px;
+        justify-items: center;
+        align-content: start;
+        padding: calc(18px + env(safe-area-inset-top)) 24px 34px;
         background:
             linear-gradient(180deg, var(--color-surface) 0%, var(--color-bg) 100%);
     }
@@ -1712,11 +1713,11 @@
     .hero-photo {
         position: relative;
         inset: auto;
-        width: min(100%, 560px);
-        height: clamp(620px, 78vh, 780px);
+        width: min(100%, 540px);
+        height: clamp(700px, 86vh, 860px);
         margin: 0;
         border: var(--modern-outline);
-        object-position: center 18%;
+        object-position: center 14%;
         transform: none;
         filter: saturate(0.88) contrast(1.08) brightness(0.72);
         box-shadow: var(--modern-shadow);
@@ -1725,8 +1726,8 @@
     .hero-overlay {
         position: relative;
         inset: auto;
-        width: min(100%, 560px);
-        height: clamp(620px, 78vh, 780px);
+        width: min(100%, 540px);
+        height: clamp(700px, 86vh, 860px);
         background:
             linear-gradient(180deg, rgba(0, 0, 0, 0.04) 0%, rgba(0, 0, 0, 0.12) 30%, rgba(0, 0, 0, 0.52) 100%),
             radial-gradient(circle at 74% 16%, var(--color-primary-glow), transparent 30%);
@@ -1737,24 +1738,30 @@
     .hero-content {
         align-self: end;
         justify-self: center;
-        width: min(calc(100% - 56px), 470px);
-        margin: 0 0 64px;
-        padding: 22px 18px;
+        width: min(calc(100% - 48px), 392px);
+        margin: 0 0 30px;
+        padding: 18px 16px;
         backdrop-filter: blur(10px);
+    }
+
+    .hero-label {
+        font-size: clamp(9px, 0.8vw, 11px);
+        letter-spacing: 0.16em;
     }
 
     .hero-names {
         max-width: 100%;
-        font-size: clamp(52px, 7.2vw, 86px);
+        font-size: clamp(46px, 6vw, 74px);
     }
 
     .hero-date {
-        font-size: 10px;
+        margin-top: 8px;
+        font-size: 9px;
     }
 
     .scroll-hint {
         left: 50%;
-        bottom: 20px;
+        bottom: 12px;
         transform: translateX(-50%);
     }
 
