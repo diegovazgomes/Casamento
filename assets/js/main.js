@@ -59,7 +59,7 @@ export class WeddingApp {
 
     setupRevealOnScroll() {
         const revealTargets = document.querySelectorAll(
-            '.section-tag, .section-title, .section-body, .divider, .countdown-wrap, .details-grid, .rsvp-section'
+            '.section-tag, .section-title, .section-body, .divider, .countdown-wrap, .details-grid, .extras-grid, .rsvp-section'
         );
 
         if (!revealTargets.length) {

@@ -1401,8 +1401,12 @@ class InvitationExperience {
         }
 
         extrasSection.hidden = false;
+        extrasSection.querySelectorAll('.reveal').forEach((element) => {
+            element.classList.add('visible');
+        });
         if (extrasDivider) {
             extrasDivider.hidden = false;
+            extrasDivider.classList.add('visible');
         }
 
         grid.innerHTML = enabledPages.map((key) => {
@@ -1413,6 +1417,7 @@ class InvitationExperience {
                 <span class="extras-card-hint">${page.cardHint ?? ''}</span>
             </a>`;
         }).join('');
+        grid.classList.add('visible');
     }
 }
 
