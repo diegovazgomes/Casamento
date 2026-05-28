@@ -230,6 +230,7 @@ a {
     justify-content: flex-end;
     overflow: hidden;
     background: var(--color-bg);
+    margin-bottom: 0;
 }
 
 /* Foto do casal — acento no canto superior direito */
@@ -259,7 +260,7 @@ a {
 .hero-content {
     position: relative;
     z-index: 2;
-    padding-bottom: clamp(48px, 8vh, 80px);
+    padding-bottom: clamp(88px, 12vh, 132px);
     opacity: 0;
     transform: translateY(var(--hero-fade-offset, 20px));
     transition: opacity var(--fade-duration, 1s) cubic-bezier(0.16, 1, 0.3, 1),
@@ -348,8 +349,8 @@ a {
     z-index: 3;
     display: flex;
     flex-direction: column;  /* texto acima, seta abaixo */
-    align-items: flex-start;
-    gap: 8px;
+    align-items: center;
+    gap: 10px;
     background: transparent;
     border: none;
     cursor: pointer;
@@ -373,6 +374,8 @@ a {
     text-transform: uppercase;
     color: var(--color-text-muted);
     animation: scrollHintPulse 2.5s ease-in-out infinite;
+    text-align: center;
+    white-space: nowrap;
 }
 
 /* Linha vertical + ponta apontando para baixo */
@@ -380,9 +383,10 @@ a {
     display: block;
     position: relative;
     width: 1px;
-    height: 36px;
+    height: 28px;
     background: var(--color-text-muted);
     animation: arrowBounce 2s ease-in-out infinite;
+    margin-right: 0;
 }
 
 /* Sem ::before necessário — o próprio elemento é a linha */
@@ -422,7 +426,7 @@ a {
 /* ── 5. COUNTDOWN ──────────────────────────────────────────── */
 
 .countdown-section {
-    padding-top: var(--section-padding-top);
+    padding-top: clamp(24px, 4vw, 40px);
     padding-inline: var(--section-padding-inline);
     max-width: var(--content-max-width);
     margin-inline: auto;
@@ -432,7 +436,7 @@ a {
 .countdown-wrap {
     display: flex;
     align-items: stretch;
-    margin-top: var(--countdown-margin-top);
+    margin-top: clamp(28px, 5vw, 40px);
     border: 1px solid var(--color-border-soft);
 }
 
@@ -638,6 +642,7 @@ a {
     flex-direction: column;
     margin-top: 32px;
     border-top: 1px solid var(--color-border-soft);
+    min-height: 0;
 }
 
 .extras-card {
@@ -650,6 +655,8 @@ a {
     color: inherit;
     transition: var(--transition-standard);
     background: transparent;
+    gap: 16px;
+    min-height: 72px;
 }
 
 .extras-card:focus-visible {
@@ -663,7 +670,8 @@ a {
     flex-shrink: 0;
 }
 
-.extras-card-title {
+.extras-card-title,
+.extras-card-label {
     font-family: var(--font-primary);
     font-size: 11px;
     font-weight: 400;
@@ -671,7 +679,8 @@ a {
     text-transform: uppercase;
     color: var(--color-text);
     flex: 1;
-    padding-inline: 16px;
+    padding-inline: 0 16px;
+    line-height: 1.5;
 }
 
 .extras-card-hint {
@@ -680,6 +689,8 @@ a {
     font-weight: 400;
     color: var(--color-text-muted);
     flex-shrink: 0;
+    text-align: right;
+    white-space: nowrap;
 }
 
 /* ── 10. PRESENTE ──────────────────────────────────────────── */
@@ -912,39 +923,40 @@ a {
 .rsvp-submit {
     display: inline-flex;
     align-items: center;
-    gap: 20px;
+    justify-content: center;
+    gap: 0;
     margin-top: var(--rsvp-submit-margin-top, 32px);
-    background: none;
-    border: none;
-    color: var(--color-text);
+    background: var(--color-text);
+    border: 1px solid var(--color-text);
+    color: var(--color-bg);
     font-family: var(--font-primary);
     font-size: 10px;
     font-weight: 400;
-    letter-spacing: 0.3em;
+    letter-spacing: 0.22em;
     text-transform: uppercase;
     cursor: pointer;
-    padding: 0;
-    transition: gap 0.4s cubic-bezier(0.16, 1, 0.3, 1), color 0.3s ease;
+    padding: 16px 20px;
+    min-height: 52px;
+    width: 100%;
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, transform 0.3s ease;
     outline: none;
     text-decoration: none;
 }
 
 .rsvp-submit::after {
-    content: '';
-    height: 1px;
-    width: 40px;
-    background: currentColor;
-    transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-    flex-shrink: 0;
+    display: none;
+    content: none;
 }
 
 .rsvp-submit:hover {
-    gap: 28px;
     color: var(--color-primary);
+    background: transparent;
+    border-color: var(--color-primary);
+    transform: translateY(-1px);
 }
 
 .rsvp-submit:hover::after {
-    width: 56px;
+    display: none;
 }
 
 .rsvp-submit:focus-visible {
@@ -1635,8 +1647,8 @@ footer {
     .hero {
         padding-top: 80px;
         justify-content: flex-start;
-        padding-bottom: 60px;
-        min-height: 100svh;
+        padding-bottom: 44px;
+        min-height: auto;
     }
 
     /* Foto volta para o fluxo normal — posicionada acima do texto */
@@ -1672,9 +1684,10 @@ footer {
         position: relative;
         bottom: auto;
         left: auto;
-        margin-top: 32px;
+        margin-top: 22px;
         animation: editorialFadeIn 0.6s ease 2s forwards;
         opacity: 0;
+        align-items: flex-start;
     }
 }
 
@@ -1682,12 +1695,47 @@ footer {
 @media (max-width: 767px) {
     .hero {
         padding-top: 72px;
-        padding-bottom: 40px;
+        padding-bottom: 28px;
+        min-height: auto;
     }
 
     .hero-photo {
         width: min(55vw, 200px);
-        margin-bottom: 28px;
+        margin-bottom: 20px;
+    }
+
+    .hero-content {
+        padding-bottom: 0;
+    }
+
+    .hero-names {
+        margin-bottom: 24px;
+    }
+
+    .hero-date {
+        margin-bottom: 0;
+    }
+
+    .scroll-hint {
+        margin-top: 18px;
+        gap: 8px;
+        align-items: flex-start;
+    }
+
+    .scroll-hint span:not(.scroll-arrow) {
+        text-align: left;
+    }
+
+    .scroll-arrow {
+        height: 24px;
+    }
+
+    .countdown-section {
+        padding-top: 12px;
+    }
+
+    .countdown-wrap {
+        margin-top: 22px;
     }
 
     /* Details: 1 coluna */
@@ -1750,6 +1798,31 @@ footer {
 
     .countdown-num {
         font-size: clamp(28px, 8vw, 42px);
+    }
+
+    .extras-grid {
+        margin-top: 22px;
+    }
+
+    .extras-card {
+        min-height: 64px;
+        padding: 18px 0;
+    }
+
+    .extras-card-label,
+    .extras-card-title {
+        font-size: 10px;
+        letter-spacing: 0.18em;
+    }
+
+    .extras-card-hint {
+        font-size: 9px;
+        letter-spacing: 0.12em;
+    }
+
+    .rsvp-submit {
+        margin-top: 24px;
+        padding: 15px 18px;
     }
 }
 
