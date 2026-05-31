@@ -1662,7 +1662,7 @@ async function loadAudiencia(page = 1, searchTerm = '', pagePath = '') {
   if (pagination) pagination.innerHTML = '';
 
   try {
-    let url = `/api/dashboard/confirmations?eventId=${encodeURIComponent(state.eventId)}&mode=audience&page=${page}&pageSize=12`;
+    let url = `/api/dashboard/confirmations?eventId=${encodeURIComponent(state.eventId)}&mode=audience&page=${page}&pageSize=25`;
     if (searchTerm) {
       url += `&search=${encodeURIComponent(searchTerm)}`;
     }

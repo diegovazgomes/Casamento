@@ -328,7 +328,7 @@ function buildAudienceSummary(visitors = [], pageOptions = [], eventSlug = '') {
 async function handleAudience(req, res) {
   const {
     page = '1',
-    pageSize = '20',
+    pageSize = '25',
     search = '',
     pagePath = '',
   } = req.query;
@@ -418,7 +418,7 @@ async function handleAudience(req, res) {
  *   - pageSize: default 50
  */
 async function handleListConfirmations(req, res) {
-  const { status, groupId, page = '1', pageSize = '50' } = req.query;
+  const { status, groupId, page = '1', pageSize = '25' } = req.query;
 
   try {
     const ownedEvent = await requireOwnedEvent(req, {
