@@ -2617,6 +2617,7 @@ if (numerosSection) countObserver.observe(numerosSection);
 
 // ── Showcase de direções visuais
 (function () {
+  const showcaseSection = document.getElementById('direcoes-visuais');
   const screens  = document.querySelectorAll('.direcao-screen');
   const infos    = document.querySelectorAll('.direcao-info');
   const dots     = document.querySelectorAll('.direcao-dot');
@@ -2628,10 +2629,32 @@ if (numerosSection) countObserver.observe(numerosSection);
   if (!total) return;
 
   let current = 0;
+  let showcaseVisible = false;
+
+  function primeVideo(video) {
+    video.muted = true;
+    video.defaultMuted = true;
+    video.playsInline = true;
+    video.preload = 'auto';
+    video.setAttribute('muted', '');
+    video.setAttribute('playsinline', '');
+    video.setAttribute('webkit-playsinline', '');
+    video.load();
+  }
+
+  videos.forEach((video, index) => {
+    primeVideo(video);
+    video.addEventListener('loadeddata', () => {
+      if (index === current && showcaseVisible) syncVideos();
+    });
+    video.addEventListener('canplay', () => {
+      if (index === current && showcaseVisible) syncVideos();
+    });
+  });
 
   function syncVideos() {
     videos.forEach((video, i) => {
-      if (i === current) {
+      if (i === current && showcaseVisible && !document.hidden) {
         const playPromise = video.play();
         if (playPromise && typeof playPromise.catch === 'function') {
           playPromise.catch(() => {});
@@ -2687,6 +2710,24 @@ if (numerosSection) countObserver.observe(numerosSection);
     phoneWrap.addEventListener('touchcancel', () => { sw.tracking = false; }, { passive: true });
   }
 
+  if (showcaseSection) {
+    const showcaseObserver = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        showcaseVisible = entry.isIntersecting;
+        syncVideos();
+      });
+    }, {
+      threshold: 0.2,
+      rootMargin: '0px 0px -10% 0px'
+    });
+
+    showcaseObserver.observe(showcaseSection);
+  } else {
+    showcaseVisible = true;
+  }
+
+  document.addEventListener('visibilitychange', syncVideos);
+  window.addEventListener('pageshow', syncVideos);
   syncVideos();
 })();
 
