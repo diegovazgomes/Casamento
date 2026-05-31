@@ -724,7 +724,6 @@ class InvitationExperience {
         }
 
         this.openInviteButton.addEventListener('click', () => {
-            this.guestViewTracker?.flush('intro-open');
             const audioPromise = this.isAudioEnabled()
                 ? this.audio.startFromGesture(this.getInitialAudioContext())
                 : null;
@@ -849,6 +848,9 @@ class InvitationExperience {
         this.applyStartedState({ skipIntro });
 
         this.initializeMainSite();
+        if (this.guestViewTracker?.getPagePath?.() === 'index.html') {
+            this.guestViewTracker.scheduleFlush('immediate', 1200);
+        }
 
         if (shouldNavigate) {
             this.navigateWithinInvitation({ targetSection, forceTop });

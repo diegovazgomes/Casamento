@@ -105,7 +105,7 @@ describe('guest analytics tracker', () => {
     vi.useRealTimers();
   });
 
-  it('nao duplica a mesma visita quando a home ja foi persistida no clique de abertura', async () => {
+  it('nao duplica a mesma visita quando a home ja foi persistida enquanto a pagina segue aberta', async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date('2026-05-31T18:00:00.000Z'));
 
@@ -121,8 +121,34 @@ describe('guest analytics tracker', () => {
 
     tracker.start();
     vi.setSystemTime(new Date('2026-05-31T18:00:05.000Z'));
-    tracker.flush('intro-open');
+    tracker.scheduleFlush('immediate', 1200);
+    vi.advanceTimersByTime(1200);
     vi.setSystemTime(new Date('2026-05-31T18:00:12.000Z'));
+    tracker.flush('pagehide');
+
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+    expect(window.navigator.sendBeacon).not.toHaveBeenCalled();
+
+    vi.useRealTimers();
+  });
+
+  it('mantem o pagehide como fallback se o usuario sair antes do agendamento', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-05-31T18:00:00.000Z'));
+
+    const { GuestViewTracker } = await import('../../assets/js/guest-analytics.js');
+    const tracker = new GuestViewTracker({
+      config: {
+        analytics: { enabled: true, requireGuestToken: true, trackPageDuration: true },
+        rsvp: { eventId: 'siannah-diego-2026' },
+      },
+      guestTokenData: { token_id: 'token-1' },
+      currentUrl: 'https://example.com/index.html?g=abc',
+    });
+
+    tracker.start();
+    tracker.scheduleFlush('immediate', 1200);
+    vi.setSystemTime(new Date('2026-05-31T18:00:01.000Z'));
     tracker.flush('pagehide');
 
     expect(window.navigator.sendBeacon).toHaveBeenCalledTimes(1);

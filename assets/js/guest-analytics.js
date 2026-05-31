@@ -154,6 +154,7 @@ export class GuestViewTracker {
         this.currentUrl = currentUrl;
         this.startedAt = null;
         this.sent = false;
+        this.scheduledFlushTimer = null;
         this.boundFlushOnPageHide = () => this.flush('pagehide');
         this.boundFlushOnBeforeUnload = () => this.flush('beforeunload');
     }
@@ -176,6 +177,10 @@ export class GuestViewTracker {
 
     getTokenId() {
         return this.guestTokenData?.token_id || null;
+    }
+
+    getPagePath() {
+        return normalizePagePath(this.currentUrl, this.getEventId());
     }
 
     shouldTrack() {
@@ -214,8 +219,29 @@ export class GuestViewTracker {
     }
 
     stop() {
+        if (this.scheduledFlushTimer) {
+            window.clearTimeout(this.scheduledFlushTimer);
+            this.scheduledFlushTimer = null;
+        }
         window.removeEventListener('pagehide', this.boundFlushOnPageHide);
         window.removeEventListener('beforeunload', this.boundFlushOnBeforeUnload);
+    }
+
+    scheduleFlush(reason = 'immediate', delayMs = 1200) {
+        if (this.sent || !this.shouldTrack()) {
+            return false;
+        }
+
+        if (this.scheduledFlushTimer) {
+            window.clearTimeout(this.scheduledFlushTimer);
+        }
+
+        this.scheduledFlushTimer = window.setTimeout(() => {
+            this.scheduledFlushTimer = null;
+            this.flush(reason);
+        }, delayMs);
+
+        return true;
     }
 
     buildPayload() {
