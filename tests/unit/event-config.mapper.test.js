@@ -88,4 +88,20 @@ describe('buildEventConfigResponse', () => {
     expect(result.event.displayDate).toBe('07 de maio de 2026');
     expect(result.event.weekday).toBe('Quinta-feira');
   });
+
+  it('normalizes analytics defaults for dynamic event configs', () => {
+    const result = buildEventConfigResponse({
+      slug: 'ana-leo-2026',
+      config: {
+        rsvp: { supabaseEnabled: true },
+      },
+      event_gifts: [],
+    });
+
+    expect(result.analytics).toEqual({
+      enabled: true,
+      requireGuestToken: true,
+      trackPageDuration: true,
+    });
+  });
 });

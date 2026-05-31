@@ -196,6 +196,30 @@ function normalizeWhatsappConfig(whatsappConfig = {}) {
   return nextWhatsapp;
 }
 
+function normalizeAnalyticsConfig(analyticsConfig = {}) {
+  const nextAnalytics = isPlainObject(analyticsConfig) ? cloneValue(analyticsConfig) : {};
+
+  const normalizedEnabled = firstDefined(nextAnalytics.enabled, nextAnalytics.is_enabled);
+  const normalizedRequireGuestToken = firstDefined(nextAnalytics.requireGuestToken, nextAnalytics.require_guest_token);
+  const normalizedTrackPageDuration = firstDefined(nextAnalytics.trackPageDuration, nextAnalytics.track_page_duration);
+
+  nextAnalytics.enabled = normalizedEnabled === undefined ? true : Boolean(normalizedEnabled);
+  nextAnalytics.requireGuestToken = normalizedRequireGuestToken === undefined ? true : Boolean(normalizedRequireGuestToken);
+  nextAnalytics.trackPageDuration = normalizedTrackPageDuration === undefined ? true : Boolean(normalizedTrackPageDuration);
+
+  if ('is_enabled' in nextAnalytics) {
+    delete nextAnalytics.is_enabled;
+  }
+  if ('require_guest_token' in nextAnalytics) {
+    delete nextAnalytics.require_guest_token;
+  }
+  if ('track_page_duration' in nextAnalytics) {
+    delete nextAnalytics.track_page_duration;
+  }
+
+  return nextAnalytics;
+}
+
 function resolveCatalogKey(config, index) {
   const rawKey = config?.key || config?.id || config?.slug || config?.title || `catalog-${index + 1}`;
 
@@ -438,6 +462,7 @@ export function buildEventConfigResponse(eventRecord) {
 
   nextConfig.rsvp = normalizeRsvpConfig(nextConfig.rsvp, eventRecord?.slug);
   nextConfig.whatsapp = normalizeWhatsappConfig(nextConfig.whatsapp);
+  nextConfig.analytics = normalizeAnalyticsConfig(nextConfig.analytics);
 
   nextConfig.gift = mapGiftConfig(eventRecord?.event_gifts, nextConfig.gift);
 

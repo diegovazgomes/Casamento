@@ -223,6 +223,11 @@ function buildInitialEventConfig({ coupleName, slug, whatsapp }) {
       eventId: slug,
       supabaseEnabled: true,
     },
+    analytics: {
+      enabled: true,
+      requireGuestToken: true,
+      trackPageDuration: true,
+    },
     whatsapp: {
       destinationPhone: whatsapp || '',
     },

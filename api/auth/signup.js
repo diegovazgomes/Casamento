@@ -230,6 +230,11 @@ function buildInitialEventConfig({ coupleName, brideName, groomName, slug, whats
       eventId: slug,
       supabaseEnabled: true,
     },
+    analytics: {
+      enabled: true,
+      requireGuestToken: true,
+      trackPageDuration: true,
+    },
     whatsapp: {
       destinationPhone: whatsapp || '',
     },
