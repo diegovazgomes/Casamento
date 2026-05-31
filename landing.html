@@ -937,7 +937,8 @@ a { color: inherit; text-decoration: none; }
   width: 100%;
   max-width: 340px;
   margin: 0 auto;
-  aspect-ratio: 674 / 1280;
+  /* Compensa a moldura externa para manter a área útil próxima do vídeo 674x1280 */
+  aspect-ratio: 702 / 1308;
   background: linear-gradient(165deg, #2a2520, #1a1714);
   border-radius: 44px;
   padding: 14px;
@@ -2072,19 +2073,19 @@ footer {
             <div class="phone-screen">
 
               <div class="direcao-screen direcao-screen--classico is-active" id="screen-classico">
-                <video class="direcao-video" autoplay loop muted playsinline>
+                <video class="direcao-video" autoplay loop muted playsinline preload="auto">
                   <source src="assets/videos/classico.mp4" type="video/mp4">
                 </video>
               </div>
 
               <div class="direcao-screen direcao-screen--minimal" id="screen-minimal">
-                <video class="direcao-video" autoplay loop muted playsinline>
+                <video class="direcao-video" autoplay loop muted playsinline preload="auto">
                   <source src="assets/videos/minimalista.mp4" type="video/mp4">
                 </video>
               </div>
 
               <div class="direcao-screen direcao-screen--moderno" id="screen-moderno">
-                <video class="direcao-video" autoplay loop muted playsinline>
+                <video class="direcao-video" autoplay loop muted playsinline preload="auto">
                   <source src="assets/videos/moderno.mp4" type="video/mp4">
                 </video>
               </div>
@@ -2622,10 +2623,26 @@ if (numerosSection) countObserver.observe(numerosSection);
   const prevBtn  = document.querySelector('.direcoes-prev');
   const nextBtn  = document.querySelector('.direcoes-next');
   const phoneWrap = document.querySelector('.direcoes-phone-wrap');
+  const videos   = document.querySelectorAll('.direcao-video');
   const total    = screens.length;
   if (!total) return;
 
   let current = 0;
+
+  function syncVideos() {
+    videos.forEach((video, i) => {
+      if (i === current) {
+        const playPromise = video.play();
+        if (playPromise && typeof playPromise.catch === 'function') {
+          playPromise.catch(() => {});
+        }
+        return;
+      }
+
+      video.pause();
+      video.currentTime = 0;
+    });
+  }
 
   function showSlide(index) {
     current = ((index % total) + total) % total;
@@ -2635,6 +2652,7 @@ if (numerosSection) countObserver.observe(numerosSection);
       d.classList.toggle('is-active', i === current);
       d.setAttribute('aria-selected', String(i === current));
     });
+    syncVideos();
   }
 
   if (prevBtn) prevBtn.addEventListener('click', () => showSlide(current - 1));
@@ -2668,6 +2686,8 @@ if (numerosSection) countObserver.observe(numerosSection);
     }, { passive: true });
     phoneWrap.addEventListener('touchcancel', () => { sw.tracking = false; }, { passive: true });
   }
+
+  syncVideos();
 })();
 
 // ── Detecção de sessão ativa — redireciona CTAs para o dashboard se autenticado
