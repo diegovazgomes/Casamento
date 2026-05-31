@@ -724,6 +724,7 @@ class InvitationExperience {
         }
 
         this.openInviteButton.addEventListener('click', () => {
+            this.guestViewTracker?.flush('immediate');
             const audioPromise = this.isAudioEnabled()
                 ? this.audio.startFromGesture(this.getInitialAudioContext())
                 : null;
