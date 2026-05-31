@@ -86,6 +86,27 @@ function postGuestView(payload, useBeacon = false) {
         payload,
     });
 
+    if (useBeacon && typeof navigator.sendBeacon === 'function') {
+        try {
+            const blob = new Blob([body], { type: 'application/json' });
+            const sent = navigator.sendBeacon(GUEST_VIEWS_ENDPOINT, blob);
+            if (sent) {
+                return true;
+            }
+
+            console.warn('[guest-analytics] navigator.sendBeacon recusou o envio de audiencia. Tentando fetch keepalive.', {
+                pagePath: payload?.page_path || null,
+                tokenId: payload?.token_id || null,
+            });
+        } catch (beaconError) {
+            console.warn('[guest-analytics] Falha ao usar navigator.sendBeacon. Tentando fetch keepalive.', {
+                message: beaconError?.message || 'beacon error',
+                pagePath: payload?.page_path || null,
+                tokenId: payload?.token_id || null,
+            });
+        }
+    }
+
     const request = fetch(GUEST_VIEWS_ENDPOINT, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -115,22 +136,10 @@ function postGuestView(payload, useBeacon = false) {
         });
 
         if (useBeacon && typeof navigator.sendBeacon === 'function') {
-            try {
-                const blob = new Blob([body], { type: 'application/json' });
-                const sent = navigator.sendBeacon(GUEST_VIEWS_ENDPOINT, blob);
-                if (!sent) {
-                    console.warn('[guest-analytics] navigator.sendBeacon tambem falhou ao enviar audiencia.', {
-                        pagePath: payload?.page_path || null,
-                        tokenId: payload?.token_id || null,
-                    });
-                }
-            } catch (beaconError) {
-                console.warn('[guest-analytics] Falha ao usar navigator.sendBeacon como fallback.', {
-                    message: beaconError?.message || 'beacon error',
-                    pagePath: payload?.page_path || null,
-                    tokenId: payload?.token_id || null,
-                });
-            }
+            console.warn('[guest-analytics] Falha de rede mesmo apos tentativa de sendBeacon.', {
+                pagePath: payload?.page_path || null,
+                tokenId: payload?.token_id || null,
+            });
         }
     });
 
