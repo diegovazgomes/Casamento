@@ -200,10 +200,46 @@ a { color: inherit; text-decoration: none; }
   letter-spacing: 0.2em;
   text-transform: uppercase;
 }
+.nav-example { display: none; }
+
 @media (max-width: 860px) {
-  .nav-links a:not(.nav-cta):not(.nav-login) { display: none; }
-  .nav-hamburger { display: flex; }
-  .nav-drawer { display: flex; }
+  .nav-inner { flex-wrap: nowrap; align-items: center; gap: 8px; }
+  .nav-brand  { font-size: 22px; letter-spacing: -0.02em; flex-shrink: 0; }
+  .nav-links  { flex: 1; justify-content: flex-end; gap: 6px; }
+  .nav-links a:not(.nav-cta):not(.nav-login):not(.nav-example) { display: none; }
+  .nav-login,
+  .nav-example,
+  .nav-cta {
+    flex: 1;
+    justify-content: center;
+    text-align: center;
+    padding: 0 4px !important;
+    font-size: 8px !important;
+    letter-spacing: 0.08em !important;
+    height: 40px !important;
+    min-height: unset !important;
+    line-height: 1.3;
+    white-space: normal;
+  }
+  .nav-cta { flex: 1.5; }
+  .nav-example {
+    display: inline-flex !important;
+    align-items: center;
+    border: 1px solid var(--line);
+    color: var(--tinta-soft);
+    font-size: 0 !important;
+    transition: border-color 0.3s, color 0.3s;
+  }
+  .nav-example::before {
+    content: "Exemplo";
+    font-family: var(--mono);
+    font-size: 8px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    line-height: 1.3;
+  }
+  .nav-example:hover { border-color: var(--ouro-velho); color: var(--ouro-velho); }
+  .nav-hamburger { display: none; }
 }
 @media (max-width: 768px) {
   .nav {
@@ -295,15 +331,63 @@ a { color: inherit; text-decoration: none; }
   max-width: 1320px;
   margin: 0 auto;
   display: grid;
-  grid-template-columns: 1fr;
-  gap: 0;
+  grid-template-columns: 1fr 1fr;
+  gap: 64px;
   align-items: center;
   width: 100%;
   position: relative;
   z-index: 1;
 }
 @media (max-width: 960px) {
-  .hero-grid { gap: 0; }
+  .hero-grid { grid-template-columns: 1fr; gap: 0; }
+}
+
+.hero-visual {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  align-self: flex-start;
+  opacity: 0;
+  animation: fadeUp 1.2s var(--ease) 0.85s forwards;
+}
+
+.hero-visual .phone-frame {
+  max-width: 260px;
+  width: 100%;
+}
+
+.hero-visual .phone-screen {
+  background: transparent;
+  padding: 0;
+}
+
+.hero-visual-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  border-radius: 32px;
+}
+
+@media (max-width: 960px) {
+  .hero {
+    align-items: start;
+    padding-top: 96px;
+    padding-bottom: 0;
+  }
+}
+
+@media (max-width: 860px) {
+  .hero-visual { display: none; }
+  .hero {
+    min-height: auto;
+    padding-top: 104px;
+    padding-bottom: 0;
+  }
+  .marquee-strip { display: none; }
+  .direcoes-visuais.section { padding-top: 0 !important; }
 }
 
 .hero-eyebrow-row {
@@ -548,6 +632,23 @@ a { color: inherit; text-decoration: none; }
   to   { opacity: 1; transform: none; }
 }
 @keyframes fadeIn { to { opacity: 1; } }
+
+@media (max-width: 860px) {
+  .hero-eyebrow-row,
+  .hero-sub,
+  .hero-ctas,
+  .hero-meta { display: none; }
+
+  .hero-title {
+    font-size: clamp(26px, 7vw, 32px);
+    line-height: 1.08;
+    margin-bottom: 0;
+  }
+
+  .hero-title br { display: none; }
+
+  .hero-title-tail { white-space: normal; }
+}
 
 /* ══ MARQUEE STRIP ═══════════════════════════════════════════════════════ */
 .marquee-strip {
@@ -1779,6 +1880,14 @@ footer {
   .direcoes-cta { margin-top: 48px; }
 }
 
+@media (max-width: 860px) {
+  .direcoes-visuais .section-num,
+  .direcoes-visuais .section-title,
+  .direcoes-info { display: none; }
+  .direcoes-visuais { padding-top: 0; padding-bottom: 48px; }
+  .direcoes-showcase { margin-top: 8px; }
+}
+
 </style>
 </head>
 <body>
@@ -1793,6 +1902,7 @@ footer {
       <a href="#encomendas">Planos</a>
       <a href="#faq">FAQ</a>
       <a href="dashboard.html" class="nav-login">Entrar</a>
+      <a href="/thais-rafael-demonstracao" class="nav-example" target="_blank" rel="noopener noreferrer">Ver exemplo real</a>
       <a href="#cta-final" class="nav-cta">Criar meu site</a>
     </div>
     <button class="nav-hamburger" id="hamburger" aria-label="Menu">
@@ -1906,6 +2016,14 @@ footer {
         <div class="hero-meta-item">
           <span class="hero-meta-label">Suporte</span>
           <span class="hero-meta-value">Via WhatsApp</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="hero-visual" aria-hidden="true">
+      <div class="phone-frame">
+        <div class="phone-screen">
+          <img class="hero-visual-video" src="assets/images/landing-couple.jpeg" alt="Casal — Devazi">
         </div>
       </div>
     </div>
