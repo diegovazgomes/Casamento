@@ -1878,6 +1878,19 @@ footer {
   .direcoes-carousel-row { gap: 20px; }
   .direcoes-nav { width: 40px; height: 40px; font-size: 16px; }
   .direcoes-phone-wrap { max-width: 240px; }
+  .direcoes-phone-wrap .phone-frame {
+    border-radius: 34px;
+    padding: 10px;
+  }
+  .direcoes-phone-wrap .phone-screen,
+  .direcoes-phone-wrap .direcao-screen {
+    border-radius: 24px;
+  }
+  .direcoes-phone-wrap .direcao-screen::before {
+    top: 10px;
+    width: 84px;
+    height: 20px;
+  }
   .direcoes-cta { margin-top: 48px; }
 }
 
@@ -2630,6 +2643,7 @@ if (numerosSection) countObserver.observe(numerosSection);
 
   let current = 0;
   let showcaseVisible = false;
+  let interactionUnlocked = false;
 
   function primeVideo(video) {
     video.muted = true;
@@ -2665,6 +2679,12 @@ if (numerosSection) countObserver.observe(numerosSection);
       video.pause();
       video.currentTime = 0;
     });
+  }
+
+  function unlockPlayback() {
+    if (interactionUnlocked) return;
+    interactionUnlocked = true;
+    syncVideos();
   }
 
   function showSlide(index) {
@@ -2728,6 +2748,9 @@ if (numerosSection) countObserver.observe(numerosSection);
 
   document.addEventListener('visibilitychange', syncVideos);
   window.addEventListener('pageshow', syncVideos);
+  window.addEventListener('touchstart', unlockPlayback, { passive: true, once: true });
+  window.addEventListener('pointerdown', unlockPlayback, { passive: true, once: true });
+  window.addEventListener('scroll', unlockPlayback, { passive: true, once: true });
   syncVideos();
 })();
 
