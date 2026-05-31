@@ -1690,29 +1690,14 @@ async function loadAudiencia(page = 1, searchTerm = '', pagePath = '') {
     }
 
     body.innerHTML = state.audiencia.map((visitor) => {
-      const pagePreview = visitor.pages.slice(0, 3).map((pageItem) => `
-        <span class="audience-chip" title="${escapeHtmlAttribute(pageItem.pagePath)}">
-          ${escapeHtml(pageItem.pageLabel || formatAudiencePageLabel(pageItem.pagePath))}
-        </span>
-      `).join('');
-      const moreCount = Math.max(visitor.pages.length - 3, 0);
-
       return `
       <tr>
         <td>
           <div class="cell-name">${escapeHtml(visitor.groupName)}</div>
-          <span class="cell-sub">${visitor.totalViews} abertura(s) registradas</span>
         </td>
         <td>${formatAudienceDateTime(visitor.latestActivityAt)}</td>
         <td>
-          <div class="audience-chip-list">
-            ${pagePreview || '<span class="cell-sub">Sem páginas registradas</span>'}
-            ${moreCount > 0 ? `<span class="audience-chip audience-chip-muted">+${moreCount}</span>` : ''}
-          </div>
-        </td>
-        <td>
-          <div class="audience-metric">${visitor.uniquePageCount} página(s)</div>
-          <span class="cell-sub">${visitor.sessionCount} sessão(ões)</span>
+          <div class="audience-metric">${visitor.uniquePageCount} página(s) acessada(s)</div>
         </td>
         <td>${formatAudienceDuration(visitor.totalDurationSeconds)}</td>
         <td style="text-align:right">
@@ -1738,28 +1723,28 @@ function renderAudienceSummary(summary, meta = null) {
   const metaRoot = document.getElementById('audienciaMeta');
   if (!summaryRoot) return;
 
-  const mostVisitedLabel = summary?.mostVisitedPage?.pageLabel
-    || formatAudiencePageLabel(summary?.mostVisitedPage?.pagePath)
-    || '—';
+  const mostVisitedLabel = summary?.mostVisitedPage
+    ? (summary.mostVisitedPage.pageLabel || formatAudiencePageLabel(summary.mostVisitedPage.pagePath))
+    : '—';
   const mostVisitedHint = summary?.mostVisitedPage?.viewCount
     ? `${summary.mostVisitedPage.viewCount} abertura(s)`
-    : 'Sem dados ainda';
+    : 'Sem páginas secundárias ainda';
 
   summaryRoot.innerHTML = `
     <div class="stat">
-      <div class="stat-label">Convidados com atividade</div>
-      <div class="stat-value">${Number(summary?.uniqueVisitors || 0)}</div>
-      <div class="stat-hint">Tokens com pelo menos uma página aberta</div>
+      <div class="stat-label">Média de aberturas por convidado</div>
+      <div class="stat-value">${formatAudienceAverage(summary?.averageViewsPerVisitor || 0)}</div>
+      <div class="stat-hint">${Number(summary?.uniqueVisitors || 0)} convidado(s) com atividade</div>
     </div>
     <div class="stat">
-      <div class="stat-label">Aberturas registradas</div>
-      <div class="stat-value">${Number(summary?.totalViews || 0)}</div>
-      <div class="stat-hint">Uma linha por página visitada</div>
+      <div class="stat-label">Média de páginas acessadas</div>
+      <div class="stat-value">${formatAudienceAverage(summary?.averageUniquePagesPerVisitor || 0)}</div>
+      <div class="stat-hint">Páginas únicas por convidado</div>
     </div>
     <div class="stat">
-      <div class="stat-label">Tempo total</div>
-      <div class="stat-value">${escapeHtml(formatAudienceDuration(summary?.totalDurationSeconds || 0))}</div>
-      <div class="stat-hint">Tempo aproximado somado</div>
+      <div class="stat-label">Média de tempo por convidado</div>
+      <div class="stat-value">${escapeHtml(formatAudienceDuration(summary?.averageDurationPerVisitorSeconds || 0))}</div>
+      <div class="stat-hint">Tempo aproximado médio</div>
     </div>
     <div class="stat">
       <div class="stat-label">Página mais vista</div>
@@ -1872,7 +1857,7 @@ function openAudienceModal(tokenId) {
         <div class="audience-page-card-head">
           <div>
             <div class="audience-page-card-title">${escapeHtml(pageItem.pageLabel || formatAudiencePageLabel(pageItem.pagePath))}</div>
-            <div class="audience-page-card-path">${escapeHtml(pageItem.pagePath)}</div>
+            ${shouldShowAudiencePagePath(pageItem.pagePath) ? `<div class="audience-page-card-path">${escapeHtml(pageItem.pagePath)}</div>` : ''}
           </div>
           <span class="badge badge-neutral">${pageItem.viewCount} abertura(s)</span>
         </div>
@@ -1908,6 +1893,11 @@ function formatAudienceDuration(totalSeconds) {
   const hours = Math.floor(minutes / 60);
   const remainingMinutes = minutes % 60;
   return `${hours}h${remainingMinutes ? `${String(remainingMinutes).padStart(2, '0')}m` : ''}`;
+}
+
+function formatAudienceAverage(value) {
+  const safeValue = Number(value) || 0;
+  return Number.isInteger(safeValue) ? String(safeValue) : safeValue.toFixed(1);
 }
 
 function formatAudienceDateTime(value) {
@@ -1955,6 +1945,17 @@ function formatAudiencePageLabel(pagePath) {
     .filter(Boolean)
     .map((chunk) => chunk.charAt(0).toUpperCase() + chunk.slice(1))
     .join(' ');
+}
+
+function shouldShowAudiencePagePath(pagePath) {
+  const rawPath = String(pagePath || '').trim();
+  if (!rawPath || rawPath === '/' || rawPath === '/index.html') {
+    return false;
+  }
+
+  const normalizedPath = rawPath.split('#')[0] || '/';
+  const currentSlug = String(state.eventSlug || '').trim();
+  return !(currentSlug && normalizedPath === `/${currentSlug}`);
 }
 
 // ============================================================

@@ -56,6 +56,15 @@ describe('GET /api/dashboard/confirmations?mode=audience', () => {
     const guestViewsBuilder = createGuestViewsBuilder({
       data: [
         {
+          id: 'view-0',
+          token_id: 'token-1',
+          opened_at: '2026-05-31T17:58:00.000Z',
+          duration_seconds: 15,
+          page_path: '/siannah-diego-convida',
+          session_id: 'session-a',
+          guest_tokens: { id: 'token-1', group_name: 'FamÃ­lia Souza', token: 'abc123' },
+        },
+        {
           id: 'view-1',
           token_id: 'token-1',
           opened_at: '2026-05-31T18:00:00.000Z',
@@ -83,7 +92,7 @@ describe('GET /api/dashboard/confirmations?mode=audience', () => {
           guest_tokens: { id: 'token-2', group_name: 'Diego', token: 'xyz789' },
         },
       ],
-      count: 3,
+      count: 4,
       error: null,
     });
 
@@ -112,10 +121,12 @@ describe('GET /api/dashboard/confirmations?mode=audience', () => {
     expect(res.statusCode).toBe(200);
     expect(guestViewsBuilder.eq).toHaveBeenCalledWith('event_id', 'siannah-diego-convida');
     expect(res.body.summary).toMatchObject({
-      totalViews: 3,
+      totalViews: 4,
       uniqueVisitors: 2,
-      totalDurationSeconds: 53,
-      averageDurationSeconds: 18,
+      totalDurationSeconds: 68,
+      averageViewsPerVisitor: 2,
+      averageUniquePagesPerVisitor: 1.5,
+      averageDurationPerVisitorSeconds: 34,
       mostVisitedPage: {
         pagePath: '/presente.html',
         pageLabel: 'Presentes',
@@ -124,10 +135,10 @@ describe('GET /api/dashboard/confirmations?mode=audience', () => {
     });
     expect(res.body.data[0]).toMatchObject({
       tokenId: 'token-1',
-      groupName: 'Família Souza',
-      totalViews: 2,
-      totalDurationSeconds: 45,
-      uniquePageCount: 1,
+      groupName: 'FamÃ­lia Souza',
+      totalViews: 3,
+      totalDurationSeconds: 60,
+      uniquePageCount: 2,
       sessionCount: 1,
     });
     expect(res.body.data[0].pages[0]).toMatchObject({

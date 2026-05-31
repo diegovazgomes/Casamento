@@ -121,6 +121,14 @@ function buildAudiencePageLabel(pagePath, eventSlug = '') {
   return titleCaseLabel(fallbackToken.replace(/[-_]+/g, ' '));
 }
 
+function isPrimaryAudiencePage(pagePath, eventSlug = '') {
+  const normalizedPath = normalizeAudiencePagePath(pagePath);
+  const cleanSlug = String(eventSlug || '').trim();
+  return normalizedPath === '/'
+    || normalizedPath === '/index.html'
+    || (cleanSlug ? normalizedPath === `/${cleanSlug}` : false);
+}
+
 function aggregateAudienceViews(rows = [], eventSlug = '') {
   const visitors = new Map();
   const pageTotals = new Map();
@@ -266,9 +274,11 @@ function filterAudienceVisitors(visitors = [], searchTerm = '', pagePath = '') {
   });
 }
 
-function buildAudienceSummary(visitors = [], pageOptions = []) {
+function buildAudienceSummary(visitors = [], pageOptions = [], eventSlug = '') {
   const totalViews = visitors.reduce((sum, visitor) => sum + visitor.totalViews, 0);
   const totalDurationSeconds = visitors.reduce((sum, visitor) => sum + visitor.totalDurationSeconds, 0);
+  const totalUniquePages = visitors.reduce((sum, visitor) => sum + visitor.uniquePageCount, 0);
+  const uniqueVisitors = visitors.length;
   const latestActivityAt = visitors.reduce((latest, visitor) => {
     const candidate = visitor.latestActivityAt || '';
     return !latest || candidate > latest ? candidate : latest;
@@ -287,15 +297,19 @@ function buildAudienceSummary(visitors = [], pageOptions = []) {
     });
   });
 
-  const mostVisitedPage = Array.from(pageCounter.values()).sort((left, right) => right.viewCount - left.viewCount)[0]
-    || pageOptions[0]
-    || null;
+  const nonPrimaryPages = Array.from(pageCounter.values())
+    .filter((page) => !isPrimaryAudiencePage(page.pagePath, eventSlug))
+    .sort((left, right) => right.viewCount - left.viewCount);
+  const fallbackNonPrimaryPage = pageOptions.find((page) => !isPrimaryAudiencePage(page.pagePath, eventSlug)) || null;
+  const mostVisitedPage = nonPrimaryPages[0] || fallbackNonPrimaryPage || null;
 
   return {
     totalViews,
-    uniqueVisitors: visitors.length,
+    uniqueVisitors,
     totalDurationSeconds,
-    averageDurationSeconds: totalViews > 0 ? Math.round(totalDurationSeconds / totalViews) : 0,
+    averageViewsPerVisitor: uniqueVisitors > 0 ? Number((totalViews / uniqueVisitors).toFixed(1)) : 0,
+    averageUniquePagesPerVisitor: uniqueVisitors > 0 ? Number((totalUniquePages / uniqueVisitors).toFixed(1)) : 0,
+    averageDurationPerVisitorSeconds: uniqueVisitors > 0 ? Math.round(totalDurationSeconds / uniqueVisitors) : 0,
     latestActivityAt: latestActivityAt || null,
     mostVisitedPage: mostVisitedPage
       ? {
@@ -361,7 +375,7 @@ async function handleAudience(req, res) {
 
     const aggregated = aggregateAudienceViews(views || [], ownedEvent.event.slug);
     const filteredVisitors = filterAudienceVisitors(aggregated.visitors, search, pagePath);
-    const summary = buildAudienceSummary(filteredVisitors, aggregated.pageOptions);
+    const summary = buildAudienceSummary(filteredVisitors, aggregated.pageOptions, ownedEvent.event.slug);
     const total = filteredVisitors.length;
     const pagedVisitors = filteredVisitors.slice(offset, offset + size);
 
