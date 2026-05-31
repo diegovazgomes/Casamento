@@ -146,7 +146,7 @@ function firstDefined(...values) {
 function normalizeRsvpConfig(rsvpConfig = {}, eventSlug = '') {
   const nextRsvp = isPlainObject(rsvpConfig) ? cloneValue(rsvpConfig) : {};
 
-  const normalizedEventId = firstDefined(nextRsvp.eventId, nextRsvp.event_id, eventSlug);
+  const normalizedEventId = firstDefined(eventSlug, nextRsvp.eventId, nextRsvp.event_id);
   const normalizedSupabaseEnabled = firstDefined(nextRsvp.supabaseEnabled, nextRsvp.supabase_enabled);
 
   setIfDefined(nextRsvp, 'eventId', normalizedEventId);

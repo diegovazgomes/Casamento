@@ -104,4 +104,22 @@ describe('buildEventConfigResponse', () => {
       trackPageDuration: true,
     });
   });
+
+  it('forces rsvp.eventId to the current event slug when config carries a stale copied value', () => {
+    const result = buildEventConfigResponse({
+      slug: 'siannah-diego-convida',
+      config: {
+        rsvp: {
+          eventId: 'thais-rafael-demonstracao',
+          supabaseEnabled: true,
+        },
+      },
+      event_gifts: [],
+    });
+
+    expect(result.rsvp).toEqual({
+      eventId: 'siannah-diego-convida',
+      supabaseEnabled: true,
+    });
+  });
 });
