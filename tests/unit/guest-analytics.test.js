@@ -120,15 +120,15 @@ describe('guest analytics tracker', () => {
     });
 
     tracker.start();
-    tracker.flush('intro-open', { includeDuration: false });
+    tracker.flush('intro-open', { includeDuration: false, preferBeacon: false });
     vi.setSystemTime(new Date('2026-05-31T18:00:12.000Z'));
     tracker.flush('pagehide');
 
-    expect(window.navigator.sendBeacon).toHaveBeenCalledTimes(1);
-    expect(global.fetch).not.toHaveBeenCalled();
-    const beaconBody = JSON.parse(await window.navigator.sendBeacon.mock.calls[0][1].text());
-    expect(beaconBody.payload.duration_seconds).toBeNull();
-    expect(beaconBody.payload.left_at).toBeNull();
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+    expect(window.navigator.sendBeacon).not.toHaveBeenCalled();
+    const requestBody = JSON.parse(global.fetch.mock.calls[0][1].body);
+    expect(requestBody.payload.duration_seconds).toBeNull();
+    expect(requestBody.payload.left_at).toBeNull();
 
     vi.useRealTimers();
   });

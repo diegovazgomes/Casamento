@@ -276,7 +276,9 @@ export class GuestViewTracker {
 
         this.sent = true;
         this.stop();
-        const shouldPreferBeacon = reason !== 'immediate';
+        const shouldPreferBeacon = typeof options.preferBeacon === 'boolean'
+            ? options.preferBeacon
+            : reason !== 'immediate';
         return postGuestView(this.buildPayload(options), shouldPreferBeacon);
     }
 }
