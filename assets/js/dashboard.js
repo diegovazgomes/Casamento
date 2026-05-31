@@ -1697,7 +1697,7 @@ async function loadAudiencia(page = 1, searchTerm = '', pagePath = '') {
         </td>
         <td>${formatAudienceDateTime(visitor.latestActivityAt)}</td>
         <td>
-          <div class="audience-metric">${visitor.uniquePageCount} página(s) acessada(s)</div>
+          <div class="audience-metric">${visitor.uniquePageCount}</div>
         </td>
         <td>${formatAudienceDuration(visitor.totalDurationSeconds)}</td>
         <td style="text-align:right">
