@@ -126,9 +126,19 @@ function getBootstrapNavigationState() {
 async function loadGuestTokenData(token) {
     try {
         const res = await fetch(`${GUEST_TOKEN_API_URL}?token=${encodeURIComponent(token)}`);
-        if (!res.ok) return null;
+        if (!res.ok) {
+            console.warn('[guest-token] Nao foi possivel resolver o token do convidado.', {
+                token,
+                status: res.status,
+            });
+            return null;
+        }
         return await res.json();
-    } catch {
+    } catch (error) {
+        console.warn('[guest-token] Falha de rede ao buscar dados do token do convidado.', {
+            token,
+            message: error?.message || 'network error',
+        });
         return null;
     }
 }

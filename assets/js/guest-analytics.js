@@ -102,8 +102,28 @@ function postGuestView(payload, useBeacon = false) {
         headers: { 'Content-Type': 'application/json' },
         body,
         keepalive: true,
-    }).catch(() => {
-        // Falha silenciosa: analytics nao deve bloquear a experiencia do convite.
+    }).then(async (response) => {
+        if (!response.ok) {
+            let details = '';
+            try {
+                details = await response.text();
+            } catch {
+                details = '';
+            }
+
+            console.warn('[guest-analytics] O backend rejeitou o registro de audiencia.', {
+                status: response.status,
+                details,
+                pagePath: payload?.page_path || null,
+                tokenId: payload?.token_id || null,
+            });
+        }
+    }).catch((error) => {
+        console.warn('[guest-analytics] Falha de rede ao enviar audiencia.', {
+            message: error?.message || 'network error',
+            pagePath: payload?.page_path || null,
+            tokenId: payload?.token_id || null,
+        });
     });
 
     return true;
@@ -142,14 +162,17 @@ export class GuestViewTracker {
 
     shouldTrack() {
         if (!this.isEnabled()) {
+            console.warn('[guest-analytics] Rastreamento desativado no config do evento.');
             return false;
         }
 
         if (!this.getEventId()) {
+            console.warn('[guest-analytics] eventId ausente. Nao foi possivel identificar o evento para salvar audiencia.');
             return false;
         }
 
         if (this.shouldRequireGuestToken() && !this.getTokenId()) {
+            console.warn('[guest-analytics] guestTokenData.token_id ausente. O convite foi aberto sem token valido ou o token nao foi encontrado no backend.');
             return false;
         }
 
