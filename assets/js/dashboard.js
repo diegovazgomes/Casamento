@@ -14,6 +14,10 @@ const state = {
   allConfirmacoes: [],
   mensagens: [],
   musicas: [],
+  audiencia: [],
+  audienciaSummary: null,
+  audienciaPages: [],
+  audienciaMeta: null,
   currentPage: 1,
   editingGrupoId: null,
   grupoModalMode: 'group',
@@ -51,6 +55,10 @@ function resetDashboardRuntimeContext() {
   state.allConfirmacoes = [];
   state.mensagens = [];
   state.musicas = [];
+  state.audiencia = [];
+  state.audienciaSummary = null;
+  state.audienciaPages = [];
+  state.audienciaMeta = null;
   state.currentPage = 1;
   state.editingGrupoId = null;
   state.grupoModalMode = 'group';
@@ -114,11 +122,26 @@ const TAB_LABELS = {
   overview: { tag: 'Visão Geral', title: 'Painel de controle' },
   grupos: { tag: 'Convites', title: 'Gestão de convites' },
   confirmacoes: { tag: 'Confirmações', title: 'Respostas recebidas' },
+  audiencia: { tag: 'Audiência', title: 'Jornada dos convidados' },
   mensagens: { tag: 'Mensagens', title: 'Recados dos convidados' },
   musicas: { tag: 'Músicas', title: 'Sugestões recebidas' },
   relatorios: { tag: 'Relatórios', title: 'Estatísticas por grupo' },
   export: { tag: 'Exportação', title: 'Baixar seus dados' },
   editar: { tag: 'Configurações', title: 'Editar evento' },
+};
+
+const AUDIENCE_PAGE_LABELS = {
+  confirm: 'Confirmação de presença',
+  faq: 'Perguntas frequentes',
+  historia: 'Nossa história',
+  hospedagem: 'Hospedagem',
+  landing: 'Tela de abertura',
+  mensagem: 'Mensagem ao casal',
+  musica: 'Sugestão de música',
+  presente: 'Presentes',
+  privacy: 'Privacidade',
+  terms: 'Termos',
+  traje: 'Traje',
 };
 
 // DOM Elements
@@ -315,6 +338,16 @@ function bindUiEvents() {
   const filterMusicaSearch = document.getElementById('filterMusicaSearch');
   if (filterMusicaSearch) {
     filterMusicaSearch.addEventListener('input', debounce(reloadMusicas, 350));
+  }
+
+  const filterAudienceSearch = document.getElementById('filterAudienceSearch');
+  if (filterAudienceSearch) {
+    filterAudienceSearch.addEventListener('input', debounce(reloadAudiencia, 350));
+  }
+
+  const filterAudiencePage = document.getElementById('filterAudiencePage');
+  if (filterAudiencePage) {
+    filterAudiencePage.addEventListener('change', reloadAudiencia);
   }
 }
 
@@ -1049,6 +1082,11 @@ async function runPostLoginUiSync() {
       return;
     }
 
+    if (activeTab === 'audiencia') {
+      await reloadAudiencia();
+      return;
+    }
+
     if (activeTab === 'mensagens') {
       await reloadMensagens();
       return;
@@ -1092,6 +1130,8 @@ function handleTabSwitch(event) {
   // Carregar dados específicos se necessário
   if (tabName === 'confirmacoes') {
     reloadConfirmacoes();
+  } else if (tabName === 'audiencia') {
+    reloadAudiencia();
   } else if (tabName === 'mensagens') {
     reloadMensagens();
   } else if (tabName === 'musicas') {
@@ -1107,6 +1147,11 @@ function refreshActiveTab() {
   const activeTab = document.querySelector('.nav-item.is-active')?.dataset.tab || 'overview';
   if (activeTab === 'confirmacoes') {
     reloadConfirmacoes();
+    return;
+  }
+
+  if (activeTab === 'audiencia') {
+    reloadAudiencia();
     return;
   }
 
@@ -1587,6 +1632,329 @@ function clearFilters() {
   const filterSearch = document.getElementById('filterSearch');
   if (filterSearch) filterSearch.value = '';
   reloadConfirmacoes();
+}
+
+// ============================================================
+// AUDIENCIA
+// ============================================================
+
+async function reloadAudiencia() {
+  const searchTerm = document.getElementById('filterAudienceSearch')?.value.trim() || '';
+  const pagePath = document.getElementById('filterAudiencePage')?.value || '';
+  await loadAudiencia(1, searchTerm, pagePath);
+}
+
+async function loadAudiencia(page = 1, searchTerm = '', pagePath = '') {
+  const container = document.getElementById('audienciaTable');
+  const loading = document.getElementById('audienciaLoading');
+  const empty = document.getElementById('audienciaEmpty');
+  const body = document.getElementById('audienciaBody');
+  const pagination = document.getElementById('audienciaPaginacao');
+
+  if (!container || !loading || !empty || !body) {
+    return;
+  }
+
+  loading.style.display = 'flex';
+  container.hidden = true;
+  empty.hidden = true;
+  body.innerHTML = '';
+  if (pagination) pagination.innerHTML = '';
+
+  try {
+    let url = `/api/dashboard/confirmations?eventId=${encodeURIComponent(state.eventId)}&mode=audience&page=${page}&pageSize=12`;
+    if (searchTerm) {
+      url += `&search=${encodeURIComponent(searchTerm)}`;
+    }
+    if (pagePath) {
+      url += `&pagePath=${encodeURIComponent(pagePath)}`;
+    }
+
+    const response = await fetchWithAuth(url);
+    if (!response.ok) throw new Error(response.statusText);
+
+    const data = await response.json();
+    state.audiencia = data.data || [];
+    state.audienciaSummary = data.summary || null;
+    state.audienciaPages = data.filters?.pages || [];
+    state.audienciaMeta = data.meta || null;
+
+    renderAudienceSummary(state.audienciaSummary, state.audienciaMeta);
+    populateAudiencePageFilter(state.audienciaPages, pagePath);
+
+    if (state.audiencia.length === 0) {
+      empty.hidden = false;
+      loading.style.display = 'none';
+      renderAudiencePagination(data.pagination, page, searchTerm, pagePath);
+      return;
+    }
+
+    body.innerHTML = state.audiencia.map((visitor) => {
+      const pagePreview = visitor.pages.slice(0, 3).map((pageItem) => `
+        <span class="audience-chip" title="${escapeHtmlAttribute(pageItem.pagePath)}">
+          ${escapeHtml(pageItem.pageLabel || formatAudiencePageLabel(pageItem.pagePath))}
+        </span>
+      `).join('');
+      const moreCount = Math.max(visitor.pages.length - 3, 0);
+
+      return `
+      <tr>
+        <td>
+          <div class="cell-name">${escapeHtml(visitor.groupName)}</div>
+          <span class="cell-sub">${visitor.totalViews} abertura(s) registradas</span>
+        </td>
+        <td>${formatAudienceDateTime(visitor.latestActivityAt)}</td>
+        <td>
+          <div class="audience-chip-list">
+            ${pagePreview || '<span class="cell-sub">Sem páginas registradas</span>'}
+            ${moreCount > 0 ? `<span class="audience-chip audience-chip-muted">+${moreCount}</span>` : ''}
+          </div>
+        </td>
+        <td>
+          <div class="audience-metric">${visitor.uniquePageCount} página(s)</div>
+          <span class="cell-sub">${visitor.sessionCount} sessão(ões)</span>
+        </td>
+        <td>${formatAudienceDuration(visitor.totalDurationSeconds)}</td>
+        <td style="text-align:right">
+          <button class="btn btn-subtle" type="button" onclick="openAudienceModal('${escapeHtmlAttribute(visitor.tokenId)}')">
+            <span>Ver jornada</span>
+          </button>
+        </td>
+      </tr>
+    `;
+    }).join('');
+
+    renderAudiencePagination(data.pagination, page, searchTerm, pagePath);
+    loading.style.display = 'none';
+    container.hidden = false;
+  } catch (error) {
+    console.error('[loadAudiencia]', error);
+    loading.innerHTML = '<p style="color: #c33;">Erro ao carregar audiência</p>';
+  }
+}
+
+function renderAudienceSummary(summary, meta = null) {
+  const summaryRoot = document.getElementById('audienciaStats');
+  const metaRoot = document.getElementById('audienciaMeta');
+  if (!summaryRoot) return;
+
+  const mostVisitedLabel = summary?.mostVisitedPage?.pageLabel
+    || formatAudiencePageLabel(summary?.mostVisitedPage?.pagePath)
+    || '—';
+  const mostVisitedHint = summary?.mostVisitedPage?.viewCount
+    ? `${summary.mostVisitedPage.viewCount} abertura(s)`
+    : 'Sem dados ainda';
+
+  summaryRoot.innerHTML = `
+    <div class="stat">
+      <div class="stat-label">Convidados com atividade</div>
+      <div class="stat-value">${Number(summary?.uniqueVisitors || 0)}</div>
+      <div class="stat-hint">Tokens com pelo menos uma página aberta</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Aberturas registradas</div>
+      <div class="stat-value">${Number(summary?.totalViews || 0)}</div>
+      <div class="stat-hint">Uma linha por página visitada</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Tempo total</div>
+      <div class="stat-value">${escapeHtml(formatAudienceDuration(summary?.totalDurationSeconds || 0))}</div>
+      <div class="stat-hint">Tempo aproximado somado</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Página mais vista</div>
+      <div class="stat-value stat-value-tight">${escapeHtml(mostVisitedLabel)}</div>
+      <div class="stat-hint">${escapeHtml(mostVisitedHint)}</div>
+    </div>
+  `;
+
+  if (metaRoot) {
+    const latestText = summary?.latestActivityAt
+      ? `Última atividade: ${formatAudienceDateTime(summary.latestActivityAt)}`
+      : 'Ainda não há atividade registrada.';
+    const truncatedText = meta?.truncated
+      ? ' Exibindo a janela mais recente de atividade para manter o painel rápido.'
+      : '';
+    metaRoot.textContent = `${latestText}${truncatedText}`;
+  }
+}
+
+function populateAudiencePageFilter(pages = [], selectedPagePath = '') {
+  const select = document.getElementById('filterAudiencePage');
+  if (!select) return;
+
+  const previousValue = selectedPagePath || select.value || '';
+  select.innerHTML = '<option value="">Todas as páginas</option>';
+
+  pages.forEach((pageItem) => {
+    const option = document.createElement('option');
+    option.value = pageItem.pagePath;
+    option.textContent = `${pageItem.pageLabel || formatAudiencePageLabel(pageItem.pagePath)} (${pageItem.viewCount})`;
+    if (pageItem.pagePath === previousValue) {
+      option.selected = true;
+    }
+    select.appendChild(option);
+  });
+}
+
+function renderAudiencePagination(pagination, currentPage, searchTerm = '', pagePath = '') {
+  const paginacao = document.getElementById('audienciaPaginacao');
+  if (!paginacao) return;
+
+  if (!pagination || pagination.totalPages <= 1) {
+    paginacao.innerHTML = '';
+    return;
+  }
+
+  const safeSearch = escapeHtmlAttribute(searchTerm || '');
+  const safePagePath = escapeHtmlAttribute(pagePath || '');
+  let html = '<div style="display: flex; gap: 0.5rem; justify-content: center; align-items: center;">';
+
+  if (currentPage > 1) {
+    html += `<button class="page-btn" onclick="loadAudiencia(${currentPage - 1}, '${safeSearch}', '${safePagePath}')">←</button>`;
+  }
+
+  html += `<span style="padding: 0.5rem 1rem; border: 1px solid var(--border); color: var(--text-dim);">Página ${currentPage} de ${pagination.totalPages}</span>`;
+
+  if (currentPage < pagination.totalPages) {
+    html += `<button class="page-btn" onclick="loadAudiencia(${currentPage + 1}, '${safeSearch}', '${safePagePath}')">→</button>`;
+  }
+
+  html += '</div>';
+  paginacao.innerHTML = html;
+}
+
+function clearAudienceFilters() {
+  const searchField = document.getElementById('filterAudienceSearch');
+  const pageField = document.getElementById('filterAudiencePage');
+  if (searchField) searchField.value = '';
+  if (pageField) pageField.value = '';
+  reloadAudiencia();
+}
+
+function openAudienceModal(tokenId) {
+  const visitor = state.audiencia.find((item) => item.tokenId === tokenId);
+  if (!visitor) {
+    return;
+  }
+
+  const titleEl = document.getElementById('modalAudienciaTitle');
+  const tagEl = document.getElementById('modalAudienciaTag');
+  const summaryEl = document.getElementById('modalAudienciaSummary');
+  const bodyEl = document.getElementById('modalAudienciaBody');
+
+  if (titleEl) titleEl.textContent = visitor.groupName;
+  if (tagEl) tagEl.textContent = 'Audiência por convidado';
+  if (summaryEl) {
+    summaryEl.innerHTML = `
+      <div class="audience-modal-stat">
+        <span class="audience-modal-stat-label">Última atividade</span>
+        <strong>${escapeHtml(formatAudienceDateTime(visitor.latestActivityAt))}</strong>
+      </div>
+      <div class="audience-modal-stat">
+        <span class="audience-modal-stat-label">Páginas abertas</span>
+        <strong>${visitor.uniquePageCount}</strong>
+      </div>
+      <div class="audience-modal-stat">
+        <span class="audience-modal-stat-label">Sessões</span>
+        <strong>${visitor.sessionCount}</strong>
+      </div>
+      <div class="audience-modal-stat">
+        <span class="audience-modal-stat-label">Tempo total</span>
+        <strong>${escapeHtml(formatAudienceDuration(visitor.totalDurationSeconds))}</strong>
+      </div>
+    `;
+  }
+
+  if (bodyEl) {
+    bodyEl.innerHTML = visitor.pages.map((pageItem) => `
+      <div class="audience-page-card">
+        <div class="audience-page-card-head">
+          <div>
+            <div class="audience-page-card-title">${escapeHtml(pageItem.pageLabel || formatAudiencePageLabel(pageItem.pagePath))}</div>
+            <div class="audience-page-card-path">${escapeHtml(pageItem.pagePath)}</div>
+          </div>
+          <span class="badge badge-neutral">${pageItem.viewCount} abertura(s)</span>
+        </div>
+        <div class="audience-page-card-grid">
+          <div>
+            <span class="audience-page-card-label">Tempo total</span>
+            <strong>${escapeHtml(formatAudienceDuration(pageItem.totalDurationSeconds))}</strong>
+          </div>
+          <div>
+            <span class="audience-page-card-label">Última visita</span>
+            <strong>${escapeHtml(formatAudienceDateTime(pageItem.latestOpenedAt))}</strong>
+          </div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  openModal('modalAudiencia');
+}
+
+function formatAudienceDuration(totalSeconds) {
+  const safeSeconds = Math.max(0, Number(totalSeconds) || 0);
+  if (safeSeconds < 60) {
+    return `${Math.round(safeSeconds)}s`;
+  }
+
+  const minutes = Math.floor(safeSeconds / 60);
+  const seconds = Math.round(safeSeconds % 60);
+  if (minutes < 60) {
+    return `${minutes}m${seconds ? `${String(seconds).padStart(2, '0')}s` : ''}`;
+  }
+
+  const hours = Math.floor(minutes / 60);
+  const remainingMinutes = minutes % 60;
+  return `${hours}h${remainingMinutes ? `${String(remainingMinutes).padStart(2, '0')}m` : ''}`;
+}
+
+function formatAudienceDateTime(value) {
+  if (!value) {
+    return '—';
+  }
+
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) {
+    return '—';
+  }
+
+  return parsed.toLocaleString('pt-BR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
+function formatAudiencePageLabel(pagePath) {
+  const rawPath = String(pagePath || '').trim();
+  if (!rawPath || rawPath === '/' || rawPath === '/index.html') {
+    return 'Página inicial';
+  }
+
+  const [pathWithoutHash] = rawPath.split('#');
+  const normalizedPath = pathWithoutHash || '/';
+  const currentSlug = String(state.eventSlug || '').trim();
+  if (currentSlug && normalizedPath === `/${currentSlug}`) {
+    return 'Página inicial';
+  }
+
+  const segments = normalizedPath.split('/').filter(Boolean);
+  const lastSegment = (segments[segments.length - 1] || '').replace(/\.html$/, '').toLowerCase();
+
+  if (AUDIENCE_PAGE_LABELS[lastSegment]) {
+    return AUDIENCE_PAGE_LABELS[lastSegment];
+  }
+
+  const fallback = lastSegment || normalizedPath.replace(/^\//, '') || 'pagina';
+  return fallback
+    .split(/[-_]+/)
+    .filter(Boolean)
+    .map((chunk) => chunk.charAt(0).toUpperCase() + chunk.slice(1))
+    .join(' ');
 }
 
 // ============================================================

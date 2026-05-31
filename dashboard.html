@@ -890,6 +890,112 @@ input[type="date"].field-input{width:100%;min-width:0;box-sizing:border-box;-web
   color:var(--text-dim);
   white-space:nowrap;flex-shrink:0;
 }
+.stat-value-tight{
+  font-size:24px;
+  line-height:1.2;
+}
+.audience-meta{
+  margin:-14px 0 24px;
+  font-size:11px;
+  letter-spacing:0.04em;
+  color:var(--text-dim);
+  line-height:1.7;
+}
+.audience-chip-list{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+}
+.audience-chip{
+  display:inline-flex;
+  align-items:center;
+  padding:6px 10px;
+  border:1px solid var(--border);
+  background:rgba(255,255,255,0.03);
+  color:var(--text-soft);
+  font-size:10px;
+  letter-spacing:0.08em;
+  text-transform:uppercase;
+}
+.audience-chip-muted{
+  color:var(--text-dim);
+}
+.audience-metric{
+  font-size:12px;
+  letter-spacing:0.08em;
+  text-transform:uppercase;
+  color:var(--text-soft);
+}
+.modal-dialog-wide{
+  max-width:760px;
+}
+.audience-modal-summary{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:12px;
+  margin-bottom:18px;
+}
+.audience-modal-stat{
+  padding:14px 16px;
+  border:1px solid var(--border);
+  background:rgba(255,255,255,0.02);
+}
+.audience-modal-stat-label{
+  display:block;
+  margin-bottom:8px;
+  font-size:9px;
+  letter-spacing:0.2em;
+  text-transform:uppercase;
+  color:var(--text-dim);
+}
+.audience-modal-stat strong{
+  font-size:14px;
+  color:var(--text);
+  font-weight:500;
+}
+.audience-page-list{
+  display:grid;
+  gap:12px;
+}
+.audience-page-card{
+  border:1px solid var(--border);
+  background:rgba(255,255,255,0.02);
+  padding:18px 20px;
+}
+.audience-page-card-head{
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  align-items:flex-start;
+  margin-bottom:16px;
+}
+.audience-page-card-title{
+  font-family:var(--font-display);
+  font-size:22px;
+  font-style:italic;
+  color:var(--text);
+  line-height:1.1;
+}
+.audience-page-card-path{
+  margin-top:6px;
+  font-size:11px;
+  letter-spacing:0.04em;
+  color:var(--text-dim);
+  word-break:break-word;
+}
+.audience-page-card-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:14px;
+}
+.audience-page-card-label{
+  display:block;
+  margin-bottom:6px;
+  font-size:9px;
+  letter-spacing:0.18em;
+  text-transform:uppercase;
+  color:var(--text-dim);
+}
 
 /* ══ RESPONSIVE ══════════════════════════════════════════════════════════ */
 @media (max-width:960px){
@@ -931,6 +1037,7 @@ input[type="date"].field-input{width:100%;min-width:0;box-sizing:border-box;-web
   .msg-text{font-size:15px;line-height:1.7}
   .msg-author{font-size:14px}
   .msg-date{font-size:11px}
+  .audience-modal-summary{grid-template-columns:1fr 1fr}
 }
 @media (max-width:560px){
   .stats{grid-template-columns:1fr}
@@ -952,6 +1059,10 @@ input[type="date"].field-input{width:100%;min-width:0;box-sizing:border-box;-web
   .messages-mural{padding:0}
   .msg-card{padding:20px 20px 18px;gap:14px}
   .msg-text{font-size:15px}
+  .audience-page-card-head,
+  .audience-page-card-grid{grid-template-columns:1fr}
+  .audience-page-card-head{display:grid}
+  .audience-modal-summary{grid-template-columns:1fr}
 }
  
 /* Focus accessibility */
@@ -2058,6 +2169,12 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
         </span>
         <span>Confirmações</span>
       </button>
+      <button class="nav-item" data-tab="audiencia" role="tab">
+        <span class="nav-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20h18"/><path d="M7 16v-5"/><path d="M12 16V8"/><path d="M17 16v-9"/></svg>
+        </span>
+        <span>Audiência</span>
+      </button>
       <button class="nav-item" data-tab="mensagens" role="tab">
         <span class="nav-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
@@ -2274,7 +2391,82 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
           </div>
         </section>
       </div>
- 
+
+      <!-- TAB: AUDIÊNCIA -->
+      <div class="tab-content" id="tab-audiencia" role="tabpanel">
+        <div class="stats" id="audienciaStats">
+          <div class="stat">
+            <div class="stat-label">Convidados com atividade</div>
+            <div class="stat-value">0</div>
+            <div class="stat-hint">Tokens com pelo menos uma página aberta</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">Aberturas registradas</div>
+            <div class="stat-value">0</div>
+            <div class="stat-hint">Uma linha por página visitada</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">Tempo total</div>
+            <div class="stat-value">0s</div>
+            <div class="stat-hint">Tempo aproximado somado</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">Página mais vista</div>
+            <div class="stat-value stat-value-tight">—</div>
+            <div class="stat-hint">Sem dados ainda</div>
+          </div>
+        </div>
+        <p class="audience-meta" id="audienciaMeta">A audiência será exibida assim que os convidados começarem a navegar pelo convite.</p>
+
+        <section class="section">
+          <div class="section-head">
+            <div>
+              <h2 class="section-title">Jornada por convidado</h2>
+              <p class="section-sub">Veja quais páginas cada convite abriu e quanto tempo aproximado ficou em cada etapa.</p>
+            </div>
+          </div>
+
+          <div class="filters">
+            <div class="filter">
+              <label class="filter-label" for="filterAudienceSearch">Buscar</label>
+              <input class="filter-control" id="filterAudienceSearch" type="search" placeholder="Nome do convidado ou página">
+            </div>
+            <div class="filter">
+              <label class="filter-label" for="filterAudiencePage">Página</label>
+              <select class="filter-control" id="filterAudiencePage">
+                <option value="">Todas as páginas</option>
+              </select>
+            </div>
+            <div class="filter filter-actions">
+              <button class="btn btn-subtle btn-full" onclick="clearAudienceFilters()">Limpar</button>
+            </div>
+          </div>
+
+          <div class="table-wrap">
+            <div class="loading" id="audienciaLoading"><div class="spinner"></div>Carregando audiência...</div>
+            <table class="table" id="audienciaTable" hidden>
+              <thead>
+                <tr>
+                  <th>Convidado</th>
+                  <th>Última atividade</th>
+                  <th>Páginas abertas</th>
+                  <th>Resumo</th>
+                  <th>Tempo total</th>
+                  <th style="text-align:right">Ações</th>
+                </tr>
+              </thead>
+              <tbody id="audienciaBody"></tbody>
+            </table>
+            <div class="pagination" id="audienciaPaginacao"></div>
+            <div class="empty" id="audienciaEmpty" hidden>
+              <div class="empty-icon">✧</div>
+              <div class="empty-title">Nenhuma atividade encontrada</div>
+              <p class="empty-text">Abra o convite com um link de convidado e navegue entre as páginas para começar a visualizar a audiência aqui.</p>
+            </div>
+          </div>
+        </section>
+      </div>
+
       <!-- TAB: MENSAGENS -->
       <div class="tab-content" id="tab-mensagens" role="tabpanel">
         <section class="section">
@@ -3496,6 +3688,28 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
         </button>
       </div>
     </form>
+  </div>
+</div>
+ 
+<!-- ══ MODAL: AUDIÊNCIA ═══════════════════════════════════════════════════ -->
+<div class="modal" id="modalAudiencia" role="dialog" aria-labelledby="modalAudienciaTitle">
+  <div class="modal-dialog modal-dialog-wide">
+    <div class="modal-head">
+      <div>
+        <div class="modal-tag" id="modalAudienciaTag">Audiência por convidado</div>
+        <h3 class="modal-title" id="modalAudienciaTitle">Jornada do convidado</h3>
+      </div>
+      <button class="modal-close" onclick="closeModal('modalAudiencia')" aria-label="Fechar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="audience-modal-summary" id="modalAudienciaSummary"></div>
+      <div class="audience-page-list" id="modalAudienciaBody"></div>
+    </div>
+    <div class="modal-foot">
+      <button type="button" class="btn btn-subtle" onclick="closeModal('modalAudiencia')"><span>Fechar</span></button>
+    </div>
   </div>
 </div>
  
