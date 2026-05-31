@@ -225,6 +225,35 @@ function parseJsonBody(body) {
   return {};
 }
 
+async function readJsonBody(req) {
+  const parsedInline = parseJsonBody(req?.body);
+  if (Object.keys(parsedInline).length > 0) {
+    return parsedInline;
+  }
+
+  if (!req || typeof req.on !== 'function') {
+    return parsedInline;
+  }
+
+  const chunks = [];
+
+  try {
+    const rawBody = await new Promise((resolve, reject) => {
+      req.on('data', (chunk) => {
+        chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(String(chunk)));
+      });
+      req.on('end', () => {
+        resolve(Buffer.concat(chunks).toString('utf8'));
+      });
+      req.on('error', reject);
+    });
+
+    return parseJsonBody(rawBody);
+  } catch {
+    return {};
+  }
+}
+
 function sanitizeRsvpPayload(payload) {
   const hasGroupName = Object.prototype.hasOwnProperty.call(payload || {}, 'group_name');
   const hasGroupMax = Object.prototype.hasOwnProperty.call(payload || {}, 'group_max_confirmations');
@@ -371,7 +400,7 @@ export default async function handler(req, res) {
     return res.status(503).json({ error: 'Supabase server configuration missing' });
   }
 
-  const body = parseJsonBody(req.body);
+  const body = await readJsonBody(req);
   const table = String(body?.table || '').trim();
 
   if (!ALLOWED_TABLES.has(table)) {
