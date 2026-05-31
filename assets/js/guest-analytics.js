@@ -227,7 +227,7 @@ export class GuestViewTracker {
         window.removeEventListener('beforeunload', this.boundFlushOnBeforeUnload);
     }
 
-    scheduleFlush(reason = 'immediate', delayMs = 1200) {
+    scheduleFlush(reason = 'immediate', delayMs = 1200, options = {}) {
         if (this.sent || !this.shouldTrack()) {
             return false;
         }
@@ -238,18 +238,18 @@ export class GuestViewTracker {
 
         this.scheduledFlushTimer = window.setTimeout(() => {
             this.scheduledFlushTimer = null;
-            this.flush(reason);
+            this.flush(reason, options);
         }, delayMs);
 
         return true;
     }
 
-    buildPayload() {
+    buildPayload({ includeDuration = true } = {}) {
         const openedAt = this.startedAt || new Date();
         const leftAt = new Date();
         const viewportWidth = getViewportDimension(window.innerWidth);
         const viewportHeight = getViewportDimension(window.innerHeight);
-        const durationSeconds = this.shouldTrackDuration()
+        const durationSeconds = includeDuration && this.shouldTrackDuration()
             ? Math.max(0, Math.round((leftAt.getTime() - openedAt.getTime()) / 1000))
             : null;
 
@@ -257,7 +257,7 @@ export class GuestViewTracker {
             event_id: this.getEventId(),
             token_id: this.getTokenId(),
             opened_at: openedAt.toISOString(),
-            left_at: this.shouldTrackDuration() ? leftAt.toISOString() : null,
+            left_at: includeDuration && this.shouldTrackDuration() ? leftAt.toISOString() : null,
             duration_seconds: durationSeconds,
             user_agent: String(navigator.userAgent || '').slice(0, 200) || null,
             viewport_width: viewportWidth,
@@ -269,7 +269,7 @@ export class GuestViewTracker {
         };
     }
 
-    flush(reason = 'pagehide') {
+    flush(reason = 'pagehide', options = {}) {
         if (this.sent || !this.shouldTrack()) {
             return false;
         }
@@ -277,7 +277,7 @@ export class GuestViewTracker {
         this.sent = true;
         this.stop();
         const shouldPreferBeacon = reason !== 'immediate';
-        return postGuestView(this.buildPayload(), shouldPreferBeacon);
+        return postGuestView(this.buildPayload(options), shouldPreferBeacon);
     }
 }
 
