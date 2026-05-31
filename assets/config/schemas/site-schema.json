@@ -35,6 +35,24 @@
         }
       }
     },
+    "analytics": {
+      "type": "object",
+      "description": "Configuracoes de audiencia e rastreamento do convite",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Ativa o envio de visualizacoes de pagina para o backend"
+        },
+        "requireGuestToken": {
+          "type": "boolean",
+          "description": "Quando true, registra apenas acessos com token unico de convidado"
+        },
+        "trackPageDuration": {
+          "type": "boolean",
+          "description": "Quando true, envia duracao aproximada da pagina ao sair"
+        }
+      }
+    },
     "event": {
       "type": "object",
       "description": "Dados do evento",

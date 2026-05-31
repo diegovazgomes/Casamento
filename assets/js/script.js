@@ -3,6 +3,7 @@ import { Countdown } from './countdown.js';
 import { RSVP } from './rsvp.js';
 import { PresentPage } from './presente.js';
 import { AudioController } from './audio.js';
+import { GuestViewTracker } from './guest-analytics.js';
 import { cloneDeep, mergeDeep, setInputPlaceholder, setText } from './utils.js';
 import {
     getEventSlugFromPath,
@@ -42,7 +43,8 @@ let DEFAULT_SITE_CONTENT = {
     couple: {}, event: {}, texts: {}, gift: {},
     media: { tracks: { main: {}, gift: {} } },
     whatsapp: { messages: {}, feedback: {} }, pages: {},
-    rsvp: { eventId: 'wedding-event', supabaseEnabled: false }
+    rsvp: { eventId: 'wedding-event', supabaseEnabled: false },
+    analytics: { enabled: false, requireGuestToken: true, trackPageDuration: true }
 };
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -630,6 +632,7 @@ class InvitationExperience {
         this.weddingApp = null;
         this.countdown = null;
         this.rsvp = null;
+        this.guestViewTracker = null;
         this.presentPage = new PresentPage();
         this.audio = new AudioController(this.getAudioTracks());
         if (this.wasAudioPaused()) {
@@ -669,6 +672,12 @@ class InvitationExperience {
         if (this.guestToken) {
             this.guestTokenData = await loadGuestTokenData(this.guestToken);
         }
+
+        this.guestViewTracker = new GuestViewTracker({
+            config: this.config,
+            guestTokenData: this.guestTokenData,
+        });
+        this.guestViewTracker.start();
 
         this.setMeta();
         this.setHero();

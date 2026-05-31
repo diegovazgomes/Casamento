@@ -4,6 +4,11 @@
     "eventId": "siannah-diego-2026",
     "supabaseEnabled": true
   },
+  "analytics": {
+    "enabled": true,
+    "requireGuestToken": true,
+    "trackPageDuration": true
+  },
   "activeTheme": "gold",
   "couple": {
     "names": "Noiva & Noivo",

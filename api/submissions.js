@@ -25,9 +25,11 @@ function isRateLimited(ip) {
 const FREE_RSVP_LIMIT = 50;
 const RSVP_TABLE = 'rsvp_confirmations';
 const GUEST_TABLE = 'guest_submissions';
-const ALLOWED_TABLES = new Set([RSVP_TABLE, GUEST_TABLE]);
+const GUEST_VIEWS_TABLE = 'guest_views';
+const ALLOWED_TABLES = new Set([RSVP_TABLE, GUEST_TABLE, GUEST_VIEWS_TABLE]);
 const RSVP_ATTENDANCE = new Set(['yes', 'no']);
 const GUEST_TYPES = new Set(['message', 'song']);
+const DEVICE_TYPES = new Set(['mobile', 'tablet', 'desktop']);
 const DEMO_SUBMISSIONS_BLOCKED_CODE = 'DEMO_PUBLIC_SUBMISSIONS_BLOCKED';
 const DEMO_SUBMISSIONS_BLOCKED_MESSAGE = 'Este convite e demonstrativo. RSVP, mensagens e musicas estao desativados no exemplo.';
 
@@ -102,6 +104,29 @@ function stripOptionalRsvpColumns(payload) {
   return nextPayload;
 }
 
+function isUnsupportedGuestViewColumnError(error) {
+  const haystack = [error?.message, error?.details, error?.hint]
+    .filter(Boolean)
+    .join(' ')
+    .toLowerCase();
+
+  return haystack.includes('page_path')
+    || haystack.includes('session_id')
+    || haystack.includes('left_at')
+    || haystack.includes('duration_seconds')
+    || haystack.includes('referrer_page');
+}
+
+function stripOptionalGuestViewColumns(payload) {
+  const nextPayload = { ...payload };
+  delete nextPayload.page_path;
+  delete nextPayload.session_id;
+  delete nextPayload.left_at;
+  delete nextPayload.duration_seconds;
+  delete nextPayload.referrer_page;
+  return nextPayload;
+}
+
 async function checkRsvpLimit(supabase, eventId) {
   try {
     const { data: event } = await supabase
@@ -157,6 +182,20 @@ async function insertSubmission(supabase, table, payload) {
 
     if (!fallbackResult.error) {
       console.warn('[api/submissions] RSVP salvo sem colunas opcionais de grupo por compatibilidade de schema.');
+      return { ok: true, error: null };
+    }
+
+    return { ok: false, error: fallbackResult.error };
+  }
+
+  if (table === GUEST_VIEWS_TABLE && isUnsupportedGuestViewColumnError(error)) {
+    const fallbackPayload = stripOptionalGuestViewColumns(payload);
+    const fallbackResult = await supabase
+      .from(table)
+      .insert(fallbackPayload);
+
+    if (!fallbackResult.error) {
+      console.warn('[api/submissions] guest_views salvo sem colunas opcionais por compatibilidade de schema.');
       return { ok: true, error: null };
     }
 
@@ -247,6 +286,62 @@ function sanitizeGuestPayload(payload) {
   return next;
 }
 
+function normalizeOptionalInteger(value) {
+  if (value === null || value === undefined || value === '') {
+    return null;
+  }
+
+  const parsed = Number.parseInt(value, 10);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function normalizeOptionalTimestamp(value) {
+  const normalized = String(value || '').trim();
+  if (!normalized) {
+    return null;
+  }
+
+  const parsed = new Date(normalized);
+  if (Number.isNaN(parsed.getTime())) {
+    return null;
+  }
+
+  return parsed.toISOString();
+}
+
+function sanitizeGuestViewPayload(payload) {
+  const next = {
+    event_id: String(payload?.event_id || '').trim(),
+    token_id: payload?.token_id || null,
+    opened_at: normalizeOptionalTimestamp(payload?.opened_at) || new Date().toISOString(),
+    left_at: normalizeOptionalTimestamp(payload?.left_at),
+    duration_seconds: normalizeOptionalInteger(payload?.duration_seconds),
+    user_agent: payload?.user_agent ? String(payload.user_agent).slice(0, 200) : null,
+    viewport_width: normalizeOptionalInteger(payload?.viewport_width),
+    viewport_height: normalizeOptionalInteger(payload?.viewport_height),
+    device_type: payload?.device_type ? String(payload.device_type).trim().toLowerCase() : null,
+    country_code: payload?.country_code ? String(payload.country_code).trim().slice(0, 2).toUpperCase() : null,
+    city: payload?.city ? String(payload.city).trim().slice(0, 120) : null,
+    page_path: payload?.page_path ? String(payload.page_path).trim().slice(0, 160) : null,
+    session_id: payload?.session_id ? String(payload.session_id).trim().slice(0, 120) : null,
+    referrer_page: payload?.referrer_page ? String(payload.referrer_page).trim().slice(0, 160) : null,
+  };
+
+  if (!next.event_id) {
+    return null;
+  }
+
+  if (next.device_type && !DEVICE_TYPES.has(next.device_type)) {
+    return null;
+  }
+
+  if (next.duration_seconds !== null && next.duration_seconds < 0) {
+    return null;
+  }
+
+  return next;
+}
+
 function setCors(res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -283,9 +378,15 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Invalid table' });
   }
 
-  const payload = table === RSVP_TABLE
-    ? sanitizeRsvpPayload(body?.payload)
-    : sanitizeGuestPayload(body?.payload);
+  let payload = null;
+
+  if (table === RSVP_TABLE) {
+    payload = sanitizeRsvpPayload(body?.payload);
+  } else if (table === GUEST_TABLE) {
+    payload = sanitizeGuestPayload(body?.payload);
+  } else if (table === GUEST_VIEWS_TABLE) {
+    payload = sanitizeGuestViewPayload(body?.payload);
+  }
 
   if (!payload) {
     return res.status(400).json({

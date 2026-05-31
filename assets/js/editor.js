@@ -1393,6 +1393,10 @@ function renderCasal() {
   `) + group('Local', `
     ${fieldInput({ label: 'Nome do local', path: 'event.locationName', placeholder: 'Mansão Ilha de Capri' })}
     ${fieldInput({ label: 'Cidade', path: 'event.locationCity', placeholder: 'São Bernardo do Campo' })}
+  `) + group('Audiência do convite', `
+    ${fieldInput({ label: 'Rastreamento de audiência habilitado (true/false)', path: 'analytics.enabled', placeholder: 'false', cast: 'boolean', hint: 'Quando true, o convite registra visualizações de página no backend.' })}
+    ${fieldInput({ label: 'Exigir token único do convidado (true/false)', path: 'analytics.requireGuestToken', placeholder: 'true', cast: 'boolean', hint: 'Quando true, só salva acessos vindos de links com ?g=token.' })}
+    ${fieldInput({ label: 'Medir tempo aproximado na página (true/false)', path: 'analytics.trackPageDuration', placeholder: 'true', cast: 'boolean', hint: 'Quando true, salva duração estimada ao sair da página.' })}
   `);
 }
 
@@ -1937,6 +1941,7 @@ function getActiveTabPreviewHtml() {
         <p class="ed-preview-text">${esc(getPath(config, 'couple.subtitle') || '')}</p>
         <p class="ed-preview-meta">${esc(getPath(config, 'event.displayDate') || '')} • ${esc(getPath(config, 'event.time') || '')}</p>
         <p class="ed-preview-meta">${esc(getPath(config, 'event.locationName') || '')} — ${esc(getPath(config, 'event.locationCity') || '')}</p>
+        <p class="ed-preview-meta">Audiência: ${getPath(config, 'analytics.enabled') === true ? 'habilitada' : 'desabilitada'}</p>
       `;
     case 'textos':
       return `
