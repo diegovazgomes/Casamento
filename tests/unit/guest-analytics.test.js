@@ -121,12 +121,12 @@ describe('guest analytics tracker', () => {
 
     tracker.start();
     vi.setSystemTime(new Date('2026-05-31T18:00:05.000Z'));
-    tracker.flush('immediate');
+    tracker.flush('intro-open');
     vi.setSystemTime(new Date('2026-05-31T18:00:12.000Z'));
     tracker.flush('pagehide');
 
-    expect(global.fetch).toHaveBeenCalledTimes(1);
-    expect(window.navigator.sendBeacon).not.toHaveBeenCalled();
+    expect(window.navigator.sendBeacon).toHaveBeenCalledTimes(1);
+    expect(global.fetch).not.toHaveBeenCalled();
 
     vi.useRealTimers();
   });

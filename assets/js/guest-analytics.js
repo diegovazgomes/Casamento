@@ -250,7 +250,8 @@ export class GuestViewTracker {
 
         this.sent = true;
         this.stop();
-        return postGuestView(this.buildPayload(), reason !== 'immediate');
+        const shouldPreferBeacon = reason !== 'immediate';
+        return postGuestView(this.buildPayload(), shouldPreferBeacon);
     }
 }
 
