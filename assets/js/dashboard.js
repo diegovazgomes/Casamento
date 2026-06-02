@@ -122,7 +122,7 @@ const TAB_LABELS = {
   overview: { tag: 'Visão Geral', title: 'Painel de controle' },
   grupos: { tag: 'Convites', title: 'Gestão de convites' },
   confirmacoes: { tag: 'Confirmações', title: 'Respostas recebidas' },
-  audiencia: { tag: 'Audiência', title: 'Jornada dos convidados' },
+  audiencia: { tag: 'Audiência', title: 'Métricas agregadas do convite' },
   mensagens: { tag: 'Mensagens', title: 'Recados dos convidados' },
   musicas: { tag: 'Músicas', title: 'Sugestões recebidas' },
   relatorios: { tag: 'Relatórios', title: 'Estatísticas por grupo' },
@@ -1689,22 +1689,14 @@ async function loadAudiencia(page = 1, searchTerm = '', pagePath = '') {
       return;
     }
 
-    body.innerHTML = state.audiencia.map((visitor) => {
+    body.innerHTML = state.audiencia.map((pageItem) => {
       return `
       <tr>
-        <td>
-          <div class="cell-name">${escapeHtml(visitor.groupName)}</div>
-        </td>
-        <td>${formatAudienceDateTime(visitor.latestActivityAt)}</td>
-        <td>
-          <div class="audience-metric">${visitor.uniquePageCount}</div>
-        </td>
-        <td>${formatAudienceDuration(visitor.totalDurationSeconds)}</td>
-        <td style="text-align:right">
-          <button class="btn btn-subtle" type="button" onclick="openAudienceModal('${escapeHtmlAttribute(visitor.tokenId)}')">
-            <span>Ver jornada</span>
-          </button>
-        </td>
+        <td>${escapeHtml(pageItem.pageLabel || formatAudiencePageLabel(pageItem.pagePath))}</td>
+        <td>${pageItem.viewCount}</td>
+        <td>${formatAudienceDuration(pageItem.averageDurationSeconds)}</td>
+        <td>${formatAudienceDuration(pageItem.totalDurationSeconds)}</td>
+        <td>${shouldShowAudiencePagePath(pageItem.pagePath) ? escapeHtml(pageItem.pagePath) : 'Página inicial'}</td>
       </tr>
     `;
     }).join('');
@@ -1732,19 +1724,19 @@ function renderAudienceSummary(summary, meta = null) {
 
   summaryRoot.innerHTML = `
     <div class="stat">
-      <div class="stat-label">Média de aberturas por convidado</div>
-      <div class="stat-value">${formatAudienceAverage(summary?.averageViewsPerVisitor || 0)}</div>
-      <div class="stat-hint">${Number(summary?.uniqueVisitors || 0)} convidado(s) com atividade</div>
+      <div class="stat-label">Acessos registrados</div>
+      <div class="stat-value">${formatAudienceAverage(summary?.totalViews || 0)}</div>
+      <div class="stat-hint">${Number(summary?.activeInviteCount || 0)} convite(s) com atividade</div>
     </div>
     <div class="stat">
-      <div class="stat-label">Média de páginas acessadas</div>
-      <div class="stat-value">${formatAudienceAverage(summary?.averageUniquePagesPerVisitor || 0)}</div>
-      <div class="stat-hint">Páginas únicas por convidado</div>
+      <div class="stat-label">Páginas monitoradas</div>
+      <div class="stat-value">${formatAudienceAverage(summary?.uniquePages || 0)}</div>
+      <div class="stat-hint">Páginas com pelo menos uma visita</div>
     </div>
     <div class="stat">
-      <div class="stat-label">Média de tempo por convidado</div>
-      <div class="stat-value">${escapeHtml(formatAudienceDuration(summary?.averageDurationPerVisitorSeconds || 0))}</div>
-      <div class="stat-hint">Tempo aproximado médio</div>
+      <div class="stat-label">Tempo médio por acesso</div>
+      <div class="stat-value">${escapeHtml(formatAudienceDuration(summary?.averageDurationPerViewSeconds || 0))}</div>
+      <div class="stat-hint">Média aproximada entre todas as visitas</div>
     </div>
     <div class="stat">
       <div class="stat-label">Página mais vista</div>
@@ -1815,67 +1807,6 @@ function clearAudienceFilters() {
   if (searchField) searchField.value = '';
   if (pageField) pageField.value = '';
   reloadAudiencia();
-}
-
-function openAudienceModal(tokenId) {
-  const visitor = state.audiencia.find((item) => item.tokenId === tokenId);
-  if (!visitor) {
-    return;
-  }
-
-  const titleEl = document.getElementById('modalAudienciaTitle');
-  const tagEl = document.getElementById('modalAudienciaTag');
-  const summaryEl = document.getElementById('modalAudienciaSummary');
-  const bodyEl = document.getElementById('modalAudienciaBody');
-
-  if (titleEl) titleEl.textContent = visitor.groupName;
-  if (tagEl) tagEl.textContent = 'Audiência por convidado';
-  if (summaryEl) {
-    summaryEl.innerHTML = `
-      <div class="audience-modal-stat">
-        <span class="audience-modal-stat-label">Última atividade</span>
-        <strong>${escapeHtml(formatAudienceDateTime(visitor.latestActivityAt))}</strong>
-      </div>
-      <div class="audience-modal-stat">
-        <span class="audience-modal-stat-label">Páginas abertas</span>
-        <strong>${visitor.uniquePageCount}</strong>
-      </div>
-      <div class="audience-modal-stat">
-        <span class="audience-modal-stat-label">Sessões</span>
-        <strong>${visitor.sessionCount}</strong>
-      </div>
-      <div class="audience-modal-stat">
-        <span class="audience-modal-stat-label">Tempo total</span>
-        <strong>${escapeHtml(formatAudienceDuration(visitor.totalDurationSeconds))}</strong>
-      </div>
-    `;
-  }
-
-  if (bodyEl) {
-    bodyEl.innerHTML = visitor.pages.map((pageItem) => `
-      <div class="audience-page-card">
-        <div class="audience-page-card-head">
-          <div>
-            <div class="audience-page-card-title">${escapeHtml(pageItem.pageLabel || formatAudiencePageLabel(pageItem.pagePath))}</div>
-            ${shouldShowAudiencePagePath(pageItem.pagePath) ? `<div class="audience-page-card-path">${escapeHtml(pageItem.pagePath)}</div>` : ''}
-          </div>
-          <span class="badge badge-neutral">${pageItem.viewCount} abertura(s)</span>
-        </div>
-        <div class="audience-page-card-grid">
-          <div>
-            <span class="audience-page-card-label">Tempo total</span>
-            <strong>${escapeHtml(formatAudienceDuration(pageItem.totalDurationSeconds))}</strong>
-          </div>
-          <div>
-            <span class="audience-page-card-label">Última visita</span>
-            <strong>${escapeHtml(formatAudienceDateTime(pageItem.latestOpenedAt))}</strong>
-          </div>
-        </div>
-      </div>
-    `).join('');
-  }
-
-  openModal('modalAudiencia');
 }
 
 function formatAudienceDuration(totalSeconds) {

@@ -52,7 +52,7 @@ describe('GET /api/dashboard/confirmations?mode=audience', () => {
     process.env.SUPABASE_SERVICE_ROLE_KEY = 'service-role-key';
   });
 
-  it('agrega guest_views por convidado e retorna resumo de audiência', async () => {
+  it('agrega guest_views por pagina e retorna resumo sem jornada individual', async () => {
     const guestViewsBuilder = createGuestViewsBuilder({
       data: [
         {
@@ -61,8 +61,6 @@ describe('GET /api/dashboard/confirmations?mode=audience', () => {
           opened_at: '2026-05-31T17:58:00.000Z',
           duration_seconds: 15,
           page_path: '/siannah-diego-convida',
-          session_id: 'session-a',
-          guest_tokens: { id: 'token-1', group_name: 'FamÃ­lia Souza', token: 'abc123' },
         },
         {
           id: 'view-1',
@@ -70,8 +68,6 @@ describe('GET /api/dashboard/confirmations?mode=audience', () => {
           opened_at: '2026-05-31T18:00:00.000Z',
           duration_seconds: 20,
           page_path: 'presente.html',
-          session_id: 'session-a',
-          guest_tokens: { id: 'token-1', group_name: 'Família Souza', token: 'abc123' },
         },
         {
           id: 'view-2',
@@ -79,8 +75,6 @@ describe('GET /api/dashboard/confirmations?mode=audience', () => {
           opened_at: '2026-05-31T18:05:00.000Z',
           duration_seconds: 25,
           page_path: 'presente.html',
-          session_id: 'session-a',
-          guest_tokens: { id: 'token-1', group_name: 'Família Souza', token: 'abc123' },
         },
         {
           id: 'view-3',
@@ -88,8 +82,6 @@ describe('GET /api/dashboard/confirmations?mode=audience', () => {
           opened_at: '2026-05-31T17:30:00.000Z',
           duration_seconds: 8,
           page_path: 'traje.html',
-          session_id: 'session-b',
-          guest_tokens: { id: 'token-2', group_name: 'Diego', token: 'xyz789' },
         },
       ],
       count: 4,
@@ -122,11 +114,10 @@ describe('GET /api/dashboard/confirmations?mode=audience', () => {
     expect(guestViewsBuilder.eq).toHaveBeenCalledWith('event_id', 'siannah-diego-convida');
     expect(res.body.summary).toMatchObject({
       totalViews: 4,
-      uniqueVisitors: 2,
+      activeInviteCount: 2,
+      uniquePages: 3,
       totalDurationSeconds: 68,
-      averageViewsPerVisitor: 2,
-      averageUniquePagesPerVisitor: 1.5,
-      averageDurationPerVisitorSeconds: 34,
+      averageDurationPerViewSeconds: 17,
       mostVisitedPage: {
         pagePath: '/presente.html',
         pageLabel: 'Presentes',
@@ -134,19 +125,13 @@ describe('GET /api/dashboard/confirmations?mode=audience', () => {
       },
     });
     expect(res.body.data[0]).toMatchObject({
-      tokenId: 'token-1',
-      groupName: 'FamÃ­lia Souza',
-      totalViews: 3,
-      totalDurationSeconds: 60,
-      uniquePageCount: 2,
-      sessionCount: 1,
-    });
-    expect(res.body.data[0].pages[0]).toMatchObject({
       pagePath: '/presente.html',
       pageLabel: 'Presentes',
       viewCount: 2,
       totalDurationSeconds: 45,
+      averageDurationSeconds: 23,
     });
+    expect(res.body.data[0]).not.toHaveProperty('tokenId');
     expect(res.body.filters.pages[0]).toMatchObject({
       pagePath: '/presente.html',
       pageLabel: 'Presentes',
@@ -154,7 +139,7 @@ describe('GET /api/dashboard/confirmations?mode=audience', () => {
     });
   });
 
-  it('filtra a audiência por busca e página', async () => {
+  it('filtra a audiencia agregada por busca e pagina', async () => {
     const guestViewsBuilder = createGuestViewsBuilder({
       data: [
         {
@@ -163,8 +148,6 @@ describe('GET /api/dashboard/confirmations?mode=audience', () => {
           opened_at: '2026-05-31T18:00:00.000Z',
           duration_seconds: 10,
           page_path: 'presente.html',
-          session_id: 'session-a',
-          guest_tokens: { id: 'token-1', group_name: 'Família Souza', token: 'abc123' },
         },
         {
           id: 'view-2',
@@ -172,8 +155,6 @@ describe('GET /api/dashboard/confirmations?mode=audience', () => {
           opened_at: '2026-05-31T18:10:00.000Z',
           duration_seconds: 12,
           page_path: 'traje.html',
-          session_id: 'session-b',
-          guest_tokens: { id: 'token-2', group_name: 'Diego', token: 'xyz789' },
         },
       ],
       count: 2,
@@ -193,11 +174,11 @@ describe('GET /api/dashboard/confirmations?mode=audience', () => {
 
     await handler({
       method: 'GET',
-      url: '/api/dashboard/confirmations?eventId=event-1&mode=audience&search=diego&pagePath=traje.html',
+      url: '/api/dashboard/confirmations?eventId=event-1&mode=audience&search=traje&pagePath=traje.html',
       query: {
         eventId: 'event-1',
         mode: 'audience',
-        search: 'diego',
+        search: 'traje',
         pagePath: 'traje.html',
         page: '1',
         pageSize: '10',
@@ -206,14 +187,15 @@ describe('GET /api/dashboard/confirmations?mode=audience', () => {
 
     expect(res.statusCode).toBe(200);
     expect(res.body.summary).toMatchObject({
-      totalViews: 1,
-      uniqueVisitors: 1,
-      totalDurationSeconds: 12,
+      totalViews: 2,
+      activeInviteCount: 2,
+      totalDurationSeconds: 22,
     });
     expect(res.body.data).toHaveLength(1);
     expect(res.body.data[0]).toMatchObject({
-      tokenId: 'token-2',
-      groupName: 'Diego',
+      pagePath: '/traje.html',
+      pageLabel: 'Traje',
+      viewCount: 1,
     });
   });
 });

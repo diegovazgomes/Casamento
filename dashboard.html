@@ -2396,19 +2396,19 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
       <div class="tab-content" id="tab-audiencia" role="tabpanel">
         <div class="stats" id="audienciaStats">
           <div class="stat">
-            <div class="stat-label">Média de aberturas por convidado</div>
+            <div class="stat-label">Acessos registrados</div>
             <div class="stat-value">0</div>
-            <div class="stat-hint">0 convidado(s) com atividade</div>
+            <div class="stat-hint">0 convite(s) com atividade</div>
           </div>
           <div class="stat">
-            <div class="stat-label">Média de páginas acessadas</div>
+            <div class="stat-label">Páginas monitoradas</div>
             <div class="stat-value">0</div>
-            <div class="stat-hint">Páginas únicas por convidado</div>
+            <div class="stat-hint">Páginas com pelo menos uma visita</div>
           </div>
           <div class="stat">
-            <div class="stat-label">Média de tempo por convidado</div>
+            <div class="stat-label">Tempo médio por acesso</div>
             <div class="stat-value">0s</div>
-            <div class="stat-hint">Tempo aproximado médio</div>
+            <div class="stat-hint">Média aproximada entre as visitas</div>
           </div>
           <div class="stat">
             <div class="stat-label">Página mais vista</div>
@@ -2421,15 +2421,15 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
         <section class="section">
           <div class="section-head">
             <div>
-              <h2 class="section-title">Jornada por convidado</h2>
-              <p class="section-sub">Veja quais páginas cada convite abriu e quanto tempo aproximado ficou em cada etapa.</p>
+              <h2 class="section-title">Desempenho por página</h2>
+              <p class="section-sub">Acompanhe o interesse geral no convite com métricas agregadas, sem expor a navegação individual dos convidados.</p>
             </div>
           </div>
 
           <div class="filters">
             <div class="filter">
               <label class="filter-label" for="filterAudienceSearch">Buscar</label>
-              <input class="filter-control" id="filterAudienceSearch" type="search" placeholder="Nome do convidado ou página">
+              <input class="filter-control" id="filterAudienceSearch" type="search" placeholder="Nome ou caminho da página">
             </div>
             <div class="filter">
               <label class="filter-label" for="filterAudiencePage">Página</label>
@@ -2447,11 +2447,11 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
             <table class="table" id="audienciaTable" hidden>
               <thead>
                 <tr>
-                  <th>Convidado</th>
-                  <th>Última atividade</th>
-                  <th>Páginas visitadas</th>
+                  <th>Página</th>
+                  <th>Acessos</th>
+                  <th>Tempo médio</th>
                   <th>Tempo total</th>
-                  <th style="text-align:right">Ações</th>
+                  <th>Caminho</th>
                 </tr>
               </thead>
               <tbody id="audienciaBody"></tbody>
@@ -2460,7 +2460,7 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
             <div class="empty" id="audienciaEmpty" hidden>
               <div class="empty-icon">✧</div>
               <div class="empty-title">Nenhuma atividade encontrada</div>
-              <p class="empty-text">Abra o convite com um link de convidado e navegue entre as páginas para começar a visualizar a audiência aqui.</p>
+              <p class="empty-text">Abra o convite e navegue entre as páginas para começar a visualizar as métricas agregadas aqui.</p>
             </div>
           </div>
         </section>
@@ -3687,28 +3687,6 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
         </button>
       </div>
     </form>
-  </div>
-</div>
- 
-<!-- ══ MODAL: AUDIÊNCIA ═══════════════════════════════════════════════════ -->
-<div class="modal" id="modalAudiencia" role="dialog" aria-labelledby="modalAudienciaTitle">
-  <div class="modal-dialog modal-dialog-wide">
-    <div class="modal-head">
-      <div>
-        <div class="modal-tag" id="modalAudienciaTag">Audiência por convidado</div>
-        <h3 class="modal-title" id="modalAudienciaTitle">Jornada do convidado</h3>
-      </div>
-      <button class="modal-close" onclick="closeModal('modalAudiencia')" aria-label="Fechar">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-      </button>
-    </div>
-    <div class="modal-body">
-      <div class="audience-modal-summary" id="modalAudienciaSummary"></div>
-      <div class="audience-page-list" id="modalAudienciaBody"></div>
-    </div>
-    <div class="modal-foot">
-      <button type="button" class="btn btn-subtle" onclick="closeModal('modalAudiencia')"><span>Fechar</span></button>
-    </div>
   </div>
 </div>
  
