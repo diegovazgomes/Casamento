@@ -52,7 +52,7 @@ body {
 }
 
 .doc-back:hover { color: var(--primary-soft); }
-.doc-back::before { content: '←'; }
+.doc-back::before { content: '<-'; }
 
 .doc-header { margin-bottom: 2.5rem; }
 
@@ -131,7 +131,7 @@ a:hover { border-color: var(--primary-soft); }
   <header class="doc-header">
     <span class="doc-eyebrow">Legal</span>
     <h1 class="doc-title">Política de Privacidade</h1>
-    <p class="doc-meta">Última atualização: maio de 2026</p>
+    <p class="doc-meta">Última atualização: junho de 2026</p>
   </header>
 
   <hr>
@@ -151,57 +151,60 @@ a:hover { border-color: var(--primary-soft); }
     <li>Nome do casal</li>
     <li>Endereço de e-mail</li>
     <li>Número de WhatsApp</li>
-    <li>Informações do evento (data, local, preferências visuais)</li>
+    <li>Informações do evento, como data, local e preferências visuais</li>
   </ul>
 
-  <p><strong>Dados dos convidados (voluntários ao confirmar presença):</strong></p>
+  <p><strong>Dados dos convidados (fornecidos voluntariamente):</strong></p>
   <ul>
     <li>Nome</li>
     <li>Número de WhatsApp</li>
-    <li>Confirmação de presença (sim/não)</li>
+    <li>Confirmação de presença</li>
     <li>Mensagens e sugestões musicais enviadas pelo convidado</li>
   </ul>
 
-  <p><strong>Dados técnicos (coletados automaticamente):</strong></p>
+  <p><strong>Dados técnicos e métricas básicas de acesso (coletados automaticamente):</strong></p>
   <ul>
-    <li>Endereço IP (registrado no momento do aceite dos termos, para fins de auditoria LGPD)</li>
-    <li>Data e hora de acesso</li>
+    <li>Identificador do evento e, quando aplicável, identificador técnico do link do convidado</li>
+    <li>Página acessada dentro do convite</li>
+    <li>Data e horário de acesso</li>
+    <li>Duração aproximada da visita</li>
+    <li>Tipo de dispositivo utilizado, como celular, tablet ou desktop</li>
   </ul>
 
   <h2>2. Como usamos os dados</h2>
 
   <ul>
-    <li>Criar e exibir o convite digital do casal</li>
-    <li>Enviar confirmações de presença ao casal via dashboard</li>
-    <li>Permitir que o casal gerencie a lista de convidados</li>
-    <li>Enviar comunicações transacionais (confirmação de cadastro, alertas de conta)</li>
-    <li>Registrar o consentimento LGPD para fins de auditoria</li>
+    <li>Criar, publicar e exibir o convite digital do casal</li>
+    <li>Registrar confirmações de presença, mensagens e sugestões enviadas pelos convidados</li>
+    <li>Permitir que o casal acompanhe o evento e gerencie sua lista de convidados</li>
+    <li>Medir o funcionamento do convite, identificar falhas técnicas e acompanhar métricas agregadas de uso</li>
+    <li>Enviar comunicações transacionais, como confirmação de cadastro e alertas de conta</li>
   </ul>
 
   <div class="highlight">
-    Não vendemos, alugamos nem compartilhamos dados pessoais com terceiros
-    para fins de marketing ou publicidade.
+    Não vendemos, alugamos nem compartilhamos dados pessoais de convidados
+    para fins de marketing, publicidade, remarketing ou prospecção comercial.
   </div>
 
   <h2>3. Base legal para o tratamento</h2>
 
   <p>
-    O tratamento de dados é realizado com base no <strong>consentimento livre e informado</strong>
-    do titular (art. 7º, I da LGPD), obtido no momento do cadastro ou da confirmação de presença.
-    Dados técnicos são tratados com base no <strong>legítimo interesse</strong> (art. 7º, IX) para
-    garantir a segurança e o funcionamento do serviço.
+    Os dados necessários para criação, publicação e manutenção do convite são tratados com base na
+    <strong>execução do contrato</strong>. Já as métricas técnicas e de navegação usadas para
+    funcionamento, segurança, prevenção de abuso e melhoria do serviço são tratadas com base no
+    <strong>legítimo interesse</strong>, sempre de forma proporcional e sem uso para marketing de convidados.
   </p>
 
   <h2>4. Com quem compartilhamos os dados</h2>
 
   <ul>
-    <li><strong>Supabase</strong> — infraestrutura de banco de dados e autenticação (dados armazenados em servidores seguros)</li>
+    <li><strong>Supabase</strong> — infraestrutura de banco de dados e autenticação</li>
     <li><strong>Vercel</strong> — hospedagem da plataforma</li>
     <li><strong>Resend</strong> — envio de e-mails transacionais</li>
   </ul>
 
   <p>
-    Todos os fornecedores acima operam sob acordos de proteção de dados compatíveis com a LGPD/GDPR.
+    Esses fornecedores podem tratar dados necessários para a operação do serviço, sempre dentro da finalidade do convite e do painel do casal.
   </p>
 
   <h2>5. Prazo de retenção</h2>
@@ -209,7 +212,8 @@ a:hover { border-color: var(--primary-soft); }
   <p>
     Os dados do casal são mantidos enquanto a conta estiver ativa. Após o encerramento da conta,
     os dados são removidos em até <strong>90 dias</strong>, salvo obrigação legal em contrário.
-    Dados de convidados são mantidos por até <strong>12 meses</strong> após a data do evento.
+    Dados operacionais de convidados podem ser mantidos pelo período necessário ao evento e à operação do serviço.
+    Métricas de acesso individualizadas, quando existirem tecnicamente nos registros internos, devem ter retenção curta e uso restrito a finalidades operacionais e agregadas.
   </p>
 
   <h2>6. Seus direitos (art. 18 da LGPD)</h2>
@@ -219,38 +223,38 @@ a:hover { border-color: var(--primary-soft); }
     <li>Confirmar a existência do tratamento dos seus dados</li>
     <li>Acessar os dados que armazenamos sobre você</li>
     <li>Corrigir dados incompletos ou desatualizados</li>
-    <li>Solicitar a anonimização, bloqueio ou eliminação dos seus dados</li>
-    <li>Revogar o consentimento a qualquer momento</li>
-    <li>Portabilidade dos dados para outro fornecedor de serviço</li>
+    <li>Solicitar anonimização, bloqueio ou eliminação de dados, quando cabível</li>
+    <li>Revogar o consentimento quando essa for a base legal aplicável</li>
+    <li>Solicitar informações sobre compartilhamento e tratamento dos dados</li>
   </ul>
 
   <p>
     Para exercer seus direitos, entre em contato pelo e-mail indicado na seção de contato abaixo.
-    Responderemos em até <strong>15 dias úteis</strong>.
+    Responderemos em prazo razoável, observadas as exigências legais aplicáveis.
   </p>
 
   <h2>7. Segurança</h2>
 
   <p>
     Adotamos medidas técnicas e organizacionais para proteger seus dados, incluindo
-    criptografia em trânsito (HTTPS), controle de acesso por autenticação (Supabase Auth) e
-    políticas de segurança em nível de banco de dados (Row Level Security).
+    criptografia em trânsito (HTTPS), controle de acesso por autenticação e
+    políticas de segurança em nível de banco de dados.
   </p>
 
-  <h2>8. Cookies</h2>
+  <h2>8. Cookies e tecnologias similares</h2>
 
   <p>
-    A plataforma utiliza <strong>sessionStorage</strong> (armazenamento de sessão local) para
-    manter o estado de autenticação do casal. Nenhum cookie de rastreamento ou publicidade
-    é utilizado.
+    O convite pode utilizar apenas recursos técnicos locais e métricas internas básicas de acesso,
+    sem pixel de marketing ou publicidade nas páginas dos convidados. Atualmente, não utilizamos
+    cookies de rastreamento para marketing dos convidados.
   </p>
 
   <h2>9. Alterações nesta política</h2>
 
   <p>
     Podemos atualizar esta política periodicamente. Alterações relevantes serão comunicadas
-    por e-mail ao casal titular da conta. A versão mais recente estará sempre disponível
-    nesta página, com a data da última atualização indicada no topo.
+    ao casal titular da conta. A versão mais recente estará sempre disponível nesta página,
+    com a data da última atualização indicada no topo.
   </p>
 
   <h2>10. Contato</h2>

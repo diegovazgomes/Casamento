@@ -625,6 +625,28 @@ footer {
     line-height: 1.6;
 }
 
+.footer-privacy-note {
+    max-width: 620px;
+    margin: 18px auto 0;
+    color: var(--color-text-faint);
+    font-family: var(--typo-body-family);
+    font-size: 12px;
+    font-weight: 300;
+    line-height: 1.7;
+}
+
+.footer-privacy-note a {
+    color: var(--color-text);
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+    transition: border-color var(--motion-duration-md) ease;
+}
+
+.footer-privacy-note a:hover,
+.footer-privacy-note a:focus-visible {
+    border-color: currentColor;
+}
+
 /* ─── Responsive: shared components ─────────────────────────────────────── */
 
 @media (max-width: 640px) {
@@ -671,6 +693,10 @@ footer {
         min-height: 38px;
         padding: 9px 12px;
         gap: 8px;
+    }
+
+    .footer-privacy-note {
+        font-size: 11px;
     }
 }
 
