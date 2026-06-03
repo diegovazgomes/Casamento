@@ -1696,7 +1696,6 @@ async function loadAudiencia(page = 1, searchTerm = '', pagePath = '') {
         <td>${pageItem.viewCount}</td>
         <td>${formatAudienceDuration(pageItem.averageDurationSeconds)}</td>
         <td>${formatAudienceDuration(pageItem.totalDurationSeconds)}</td>
-        <td>${shouldShowAudiencePagePath(pageItem.pagePath) ? escapeHtml(pageItem.pagePath) : 'Página inicial'}</td>
       </tr>
     `;
     }).join('');
@@ -1724,12 +1723,12 @@ function renderAudienceSummary(summary, meta = null) {
 
   summaryRoot.innerHTML = `
     <div class="stat">
-      <div class="stat-label">Acessos registrados</div>
+      <div class="stat-label">Visitas ao site</div>
       <div class="stat-value">${formatAudienceAverage(summary?.totalViews || 0)}</div>
       <div class="stat-hint">${Number(summary?.activeInviteCount || 0)} convite(s) com atividade</div>
     </div>
     <div class="stat">
-      <div class="stat-label">Páginas monitoradas</div>
+      <div class="stat-label">Páginas acessadas</div>
       <div class="stat-value">${formatAudienceAverage(summary?.uniquePages || 0)}</div>
       <div class="stat-hint">Páginas com pelo menos uma visita</div>
     </div>
@@ -1876,17 +1875,6 @@ function formatAudiencePageLabel(pagePath) {
     .filter(Boolean)
     .map((chunk) => chunk.charAt(0).toUpperCase() + chunk.slice(1))
     .join(' ');
-}
-
-function shouldShowAudiencePagePath(pagePath) {
-  const rawPath = String(pagePath || '').trim();
-  if (!rawPath || rawPath === '/' || rawPath === '/index.html') {
-    return false;
-  }
-
-  const normalizedPath = rawPath.split('#')[0] || '/';
-  const currentSlug = String(state.eventSlug || '').trim();
-  return !(currentSlug && normalizedPath === `/${currentSlug}`);
 }
 
 // ============================================================
