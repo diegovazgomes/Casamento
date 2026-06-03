@@ -165,17 +165,9 @@ create table guest_views (
   event_id text not null,
   token_id uuid references guest_tokens(id) on delete cascade,
   opened_at timestamp with time zone default now(),
-  left_at timestamp with time zone,
   duration_seconds int,
-  user_agent text,
-  viewport_width int,
-  viewport_height int,
   device_type varchar(20),
-  country_code varchar(2),
-  city text,
   page_path text,
-  session_id text,
-  referrer_page text,
   created_at timestamp with time zone default now()
 );
 
@@ -183,7 +175,6 @@ create index idx_views_token_id on guest_views(token_id);
 create index idx_views_event_id on guest_views(event_id);
 create index idx_views_opened_at on guest_views(opened_at desc);
 create index idx_views_page_path on guest_views(page_path);
-create index idx_views_session_id on guest_views(session_id);
 
 -- RLS: leitura apenas com service role (dashboard)
 alter table guest_views enable row level security;
@@ -198,14 +189,11 @@ create policy "Service role can read views"
 
 -- Se guest_views ja existe em um projeto antigo, aplique:
 -- alter table guest_views
---   add column if not exists left_at timestamp with time zone,
 --   add column if not exists duration_seconds int,
---   add column if not exists page_path text,
---   add column if not exists session_id text,
---   add column if not exists referrer_page text;
+--   add column if not exists device_type varchar(20),
+--   add column if not exists page_path text;
 --
 -- create index if not exists idx_views_page_path on guest_views(page_path);
--- create index if not exists idx_views_session_id on guest_views(session_id);
 
 create table reminder_logs (
   id uuid default gen_random_uuid() primary key,

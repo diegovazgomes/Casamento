@@ -1,28 +1,4 @@
 const GUEST_VIEWS_ENDPOINT = '/api/submissions';
-const SESSION_STORAGE_KEY = 'guest-analytics-session-id';
-
-function createSessionId() {
-    if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
-        return crypto.randomUUID();
-    }
-
-    return `session-${Date.now()}-${Math.random().toString(16).slice(2, 10)}`;
-}
-
-function getOrCreateSessionId() {
-    try {
-        const existing = window.sessionStorage.getItem(SESSION_STORAGE_KEY);
-        if (existing) {
-            return existing;
-        }
-
-        const nextId = createSessionId();
-        window.sessionStorage.setItem(SESSION_STORAGE_KEY, nextId);
-        return nextId;
-    } catch {
-        return createSessionId();
-    }
-}
 
 function normalizePagePath(urlLike, eventId = '') {
     try {
@@ -48,20 +24,6 @@ function normalizePagePath(urlLike, eventId = '') {
     } catch {
         return 'index.html';
     }
-}
-
-function getReferrerPage(eventId = '') {
-    const referrer = String(document.referrer || '').trim();
-    if (!referrer) {
-        return null;
-    }
-
-    return normalizePagePath(referrer, eventId);
-}
-
-function getViewportDimension(value) {
-    const parsed = Number.parseInt(value, 10);
-    return Number.isFinite(parsed) ? parsed : null;
 }
 
 function getDeviceType(width) {
@@ -247,8 +209,9 @@ export class GuestViewTracker {
     buildPayload({ includeDuration = true } = {}) {
         const openedAt = this.startedAt || new Date();
         const leftAt = new Date();
-        const viewportWidth = getViewportDimension(window.innerWidth);
-        const viewportHeight = getViewportDimension(window.innerHeight);
+        const viewportWidth = Number.isFinite(window.innerWidth)
+            ? window.innerWidth
+            : null;
         const durationSeconds = includeDuration && this.shouldTrackDuration()
             ? Math.max(0, Math.round((leftAt.getTime() - openedAt.getTime()) / 1000))
             : null;
@@ -257,15 +220,9 @@ export class GuestViewTracker {
             event_id: this.getEventId(),
             token_id: this.getTokenId(),
             opened_at: openedAt.toISOString(),
-            left_at: includeDuration && this.shouldTrackDuration() ? leftAt.toISOString() : null,
             duration_seconds: durationSeconds,
-            user_agent: String(navigator.userAgent || '').slice(0, 200) || null,
-            viewport_width: viewportWidth,
-            viewport_height: viewportHeight,
             device_type: getDeviceType(viewportWidth),
             page_path: normalizePagePath(this.currentUrl, this.getEventId()),
-            session_id: getOrCreateSessionId(),
-            referrer_page: getReferrerPage(this.getEventId()),
         };
     }
 
@@ -284,10 +241,7 @@ export class GuestViewTracker {
 }
 
 export const guestAnalyticsInternals = {
-    createSessionId,
     getDeviceType,
-    getOrCreateSessionId,
-    getReferrerPage,
     normalizePagePath,
     postGuestView,
 };

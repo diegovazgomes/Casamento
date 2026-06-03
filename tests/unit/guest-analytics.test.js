@@ -5,7 +5,6 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 beforeEach(() => {
   vi.resetModules();
   vi.restoreAllMocks();
-  window.sessionStorage.clear();
   global.fetch = vi.fn().mockResolvedValue({ ok: true, status: 201 });
   Object.defineProperty(window.navigator, 'sendBeacon', {
     configurable: true,
@@ -14,18 +13,6 @@ beforeEach(() => {
   Object.defineProperty(window, 'innerWidth', {
     configurable: true,
     value: 390,
-  });
-  Object.defineProperty(window, 'innerHeight', {
-    configurable: true,
-    value: 844,
-  });
-  Object.defineProperty(window.navigator, 'userAgent', {
-    configurable: true,
-    value: 'Mozilla/5.0 Test',
-  });
-  Object.defineProperty(document, 'referrer', {
-    configurable: true,
-    value: 'https://example.com/index.html',
   });
 });
 
@@ -47,7 +34,7 @@ describe('guest analytics tracker', () => {
     expect(global.fetch).not.toHaveBeenCalled();
   });
 
-  it('envia guest_views com pagina, sessao e duracao aproximada', async () => {
+  it('envia guest_views com pagina e duracao aproximada', async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date('2026-05-31T18:00:00.000Z'));
 
@@ -72,11 +59,9 @@ describe('guest analytics tracker', () => {
       event_id: 'siannah-diego-2026',
       token_id: 'token-1',
       page_path: 'presente.html',
-      referrer_page: 'index.html',
       device_type: 'mobile',
       duration_seconds: 12,
     });
-    expect(requestBody.payload.session_id).toBeTruthy();
 
     vi.useRealTimers();
   });
@@ -128,7 +113,6 @@ describe('guest analytics tracker', () => {
     expect(window.navigator.sendBeacon).not.toHaveBeenCalled();
     const requestBody = JSON.parse(global.fetch.mock.calls[0][1].body);
     expect(requestBody.payload.duration_seconds).toBeNull();
-    expect(requestBody.payload.left_at).toBeNull();
 
     vi.useRealTimers();
   });

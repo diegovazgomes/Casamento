@@ -111,19 +111,15 @@ function isUnsupportedGuestViewColumnError(error) {
     .toLowerCase();
 
   return haystack.includes('page_path')
-    || haystack.includes('session_id')
-    || haystack.includes('left_at')
     || haystack.includes('duration_seconds')
-    || haystack.includes('referrer_page');
+    || haystack.includes('device_type');
 }
 
 function stripOptionalGuestViewColumns(payload) {
   const nextPayload = { ...payload };
   delete nextPayload.page_path;
-  delete nextPayload.session_id;
-  delete nextPayload.left_at;
   delete nextPayload.duration_seconds;
-  delete nextPayload.referrer_page;
+  delete nextPayload.device_type;
   return nextPayload;
 }
 
@@ -343,17 +339,9 @@ function sanitizeGuestViewPayload(payload) {
     event_id: String(payload?.event_id || '').trim(),
     token_id: payload?.token_id || null,
     opened_at: normalizeOptionalTimestamp(payload?.opened_at) || new Date().toISOString(),
-    left_at: normalizeOptionalTimestamp(payload?.left_at),
     duration_seconds: normalizeOptionalInteger(payload?.duration_seconds),
-    user_agent: payload?.user_agent ? String(payload.user_agent).slice(0, 200) : null,
-    viewport_width: normalizeOptionalInteger(payload?.viewport_width),
-    viewport_height: normalizeOptionalInteger(payload?.viewport_height),
     device_type: payload?.device_type ? String(payload.device_type).trim().toLowerCase() : null,
-    country_code: payload?.country_code ? String(payload.country_code).trim().slice(0, 2).toUpperCase() : null,
-    city: payload?.city ? String(payload.city).trim().slice(0, 120) : null,
     page_path: payload?.page_path ? String(payload.page_path).trim().slice(0, 160) : null,
-    session_id: payload?.session_id ? String(payload.session_id).trim().slice(0, 120) : null,
-    referrer_page: payload?.referrer_page ? String(payload.referrer_page).trim().slice(0, 160) : null,
   };
 
   if (!next.event_id) {
