@@ -2853,12 +2853,6 @@ function loadEditorTab() {
   setVal('edWaPhone',           config.whatsapp?.destinationPhone   ?? '');
   setVal('edWaRecipient',       config.whatsapp?.recipientName      ?? '');
   setVal('edWaInviteDeadline',  config.whatsapp?.inviteDeadline     ?? '');
-  setChk('edWaInviteGroupUseDefault', config.whatsapp?.inviteCopy?.useDefaultGroupNotice !== false);
-  setChk('edWaInviteIndividualUseDefault', config.whatsapp?.inviteCopy?.useDefaultIndividualNotice !== false);
-  setVal('edWaInviteGroupNotice', config.whatsapp?.inviteCopy?.groupNoticeText ?? DEFAULT_INVITE_GROUP_NOTICE);
-  setVal('edWaInviteIndividualNotice', config.whatsapp?.inviteCopy?.individualNoticeText ?? DEFAULT_INVITE_INDIVIDUAL_NOTICE);
-  syncInviteCopyEditorField('group');
-  syncInviteCopyEditorField('individual');
   setVal('edWaMsgAttending',    config.whatsapp?.messages?.attending    ?? '');
   setVal('edWaMsgNotAttending', config.whatsapp?.messages?.notAttending ?? '');
   setChk('edRsvpSupabase', !!config.rsvp?.supabaseEnabled);
@@ -5292,11 +5286,6 @@ function collectEditorValues() {
   config.whatsapp.destinationPhone = document.getElementById('edWaPhone')?.value.trim()          || '';
   config.whatsapp.recipientName    = document.getElementById('edWaRecipient')?.value.trim()      || '';
   config.whatsapp.inviteDeadline   = document.getElementById('edWaInviteDeadline')?.value.trim() || '';
-  if (!config.whatsapp.inviteCopy) config.whatsapp.inviteCopy = {};
-  config.whatsapp.inviteCopy.useDefaultGroupNotice = document.getElementById('edWaInviteGroupUseDefault')?.checked ?? true;
-  config.whatsapp.inviteCopy.useDefaultIndividualNotice = document.getElementById('edWaInviteIndividualUseDefault')?.checked ?? true;
-  config.whatsapp.inviteCopy.groupNoticeText = document.getElementById('edWaInviteGroupNotice')?.value.trim() || '';
-  config.whatsapp.inviteCopy.individualNoticeText = document.getElementById('edWaInviteIndividualNotice')?.value.trim() || '';
   if (!config.whatsapp.messages) config.whatsapp.messages = {};
   config.whatsapp.messages.attending    = document.getElementById('edWaMsgAttending')?.value    || '';
   config.whatsapp.messages.notAttending = document.getElementById('edWaMsgNotAttending')?.value || '';

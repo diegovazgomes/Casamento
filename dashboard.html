@@ -2859,27 +2859,7 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
             <div class="field" style="margin-top: 16px;">
               <label class="field-label" for="edWaInviteDeadline">Prazo de confirmação do convite</label>
               <input type="text" class="field-input sm" id="edWaInviteDeadline" placeholder="Ex: 06 de agosto de 2026" oninput="markEditorDirty()">
-              <div class="field-hint">Aparece na mensagem de convite enviada pelo WhatsApp. Deixe em branco para omitir.</div>
-            </div>
-
-            <div class="field" style="margin-top: 16px;">
-              <label class="field-label" for="edWaInviteIndividualNotice">Texto do convite individual</label>
-              <label class="field-checkbox" style="margin: 10px 0 8px;">
-                <input type="checkbox" id="edWaInviteIndividualUseDefault" onchange="handleInviteCopyDefaultToggle('individual')">
-                <span>Usar texto padrão</span>
-              </label>
-              <textarea class="field-input" id="edWaInviteIndividualNotice" rows="10" placeholder="Mensagem do convite individual" oninput="markEditorDirty()"></textarea>
-              <div class="field-hint">Se marcar o texto padrão, o editor restaura a mensagem original. Você pode usar <code>{coupleNames}</code>, <code>{deadlineLine}</code> e <code>{link}</code>.</div>
-            </div>
-
-            <div class="field" style="margin-top: 16px;">
-              <label class="field-label" for="edWaInviteGroupNotice">Texto do convite em grupo</label>
-              <label class="field-checkbox" style="margin: 10px 0 8px;">
-                <input type="checkbox" id="edWaInviteGroupUseDefault" onchange="handleInviteCopyDefaultToggle('group')">
-                <span>Usar texto padrão</span>
-              </label>
-              <textarea class="field-input" id="edWaInviteGroupNotice" rows="10" placeholder="Mensagem do convite em grupo" oninput="markEditorDirty()"></textarea>
-              <div class="field-hint">Se marcar o texto padrão, o editor restaura a mensagem original. A quantidade de pessoas do convite sempre será exibida ao final como observação.</div>
+              <div class="field-hint">Aparece na mensagem de convite enviada pelo WhatsApp. A quantidade de pessoas do convite continua sendo exibida automaticamente ao final da mensagem.</div>
             </div>
 
             <div class="editor-section-footer" id="footer-edSectionWhatsApp">
