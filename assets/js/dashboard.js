@@ -2318,32 +2318,58 @@ function getInviteMessageBuilder() {
       ? `✅ Confirmar sua presença (necessário até ${deadlineText})`
       : '✅ Confirmar sua presença';
 
-    const inviteNotice = options?.isIndividual
-      ? (useDefaultIndividualNotice ? 'Este convite foi enviado especialmente para você.' : individualNoticeText)
-      : (useDefaultGroupNotice ? 'Compartilhe este convite com as demais pessoas do seu grupo.' : groupNoticeText);
+    const resolveTemplate = (template, values = {}) => String(template || '').replace(/\{(\w+)\}/g, (_, key) => {
+      const value = values[key];
+      return value == null ? '' : String(value);
+    }).trim();
 
-    const inviteNoticeBlock = inviteNotice ? `${inviteNotice}\n\n` : '';
+    const inviteNotice = options?.isIndividual
+      ? resolveTemplate(
+          useDefaultIndividualNotice ? DEFAULT_INVITE_INDIVIDUAL_NOTICE : individualNoticeText,
+          { coupleNames: inviteCoupleNames, deadlineLine, link: inviteLink }
+        )
+      : resolveTemplate(
+          useDefaultGroupNotice ? DEFAULT_INVITE_GROUP_NOTICE : groupNoticeText,
+          { coupleNames: inviteCoupleNames, deadlineLine, link: inviteLink }
+        );
     const inviteObservation = options?.isIndividual
       ? 'Observação: este convite é individual.'
       : `Observação: este convite é para ${groupSizeLabel}.`;
 
-    return (
-      `Olá! Você foi convidado(a) para o casamento de ${inviteCoupleNames} 🤍\n\n` +
-      `${inviteNoticeBlock}` +
-      'Antes de abrir o link, leia as informações abaixo:\n\n' +
-      'No convite você vai encontrar:\n' +
-      `${deadlineLine}\n` +
-      '🎁 Lista de presentes\n' +
-      '📍 Detalhes do evento, traje e FAQ\n\n' +
-      `👉 ${inviteLink}\n\n` +
-      `${inviteObservation}\n\n` +
-      'Aguardamos você com muito carinho!'
-    );
+    return inviteNotice
+      ? `${inviteNotice}\n\n${inviteObservation}`
+      : inviteObservation;
   });
 }
 
-const DEFAULT_INVITE_GROUP_NOTICE = 'Compartilhe este convite com as demais pessoas do seu grupo.';
-const DEFAULT_INVITE_INDIVIDUAL_NOTICE = 'Este convite foi enviado especialmente para você.';
+const DEFAULT_INVITE_GROUP_NOTICE = `Olá! Você foi convidado(a) para o casamento de {coupleNames} 🤍
+
+Compartilhe este convite com as demais pessoas do seu grupo.
+
+Antes de abrir o link, leia as informações abaixo:
+
+No convite você vai encontrar:
+{deadlineLine}
+🎁 Lista de presentes
+📍 Detalhes do evento, traje e FAQ
+
+👉 {link}
+
+Aguardamos você com muito carinho!`;
+const DEFAULT_INVITE_INDIVIDUAL_NOTICE = `Olá! Você foi convidado(a) para o casamento de {coupleNames} 🤍
+
+Este convite é individual.
+
+Antes de abrir o link, leia as informações abaixo:
+
+No convite você vai encontrar:
+{deadlineLine}
+🎁 Lista de presentes
+📍 Detalhes do evento, traje e FAQ
+
+👉 {link}
+
+Aguardamos você com muito carinho!`;
 
 function syncInviteCopyEditorField(kind) {
   const isIndividual = kind === 'individual';

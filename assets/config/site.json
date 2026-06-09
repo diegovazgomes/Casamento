@@ -637,8 +637,8 @@
     "inviteCopy": {
       "useDefaultGroupNotice": true,
       "useDefaultIndividualNotice": true,
-      "groupNoticeText": "Compartilhe este convite com as demais pessoas do seu grupo.",
-      "individualNoticeText": "Este convite foi enviado especialmente para você."
+      "groupNoticeText": "Olá! Você foi convidado(a) para o casamento de {coupleNames} 🤍\n\nCompartilhe este convite com as demais pessoas do seu grupo.\n\nAntes de abrir o link, leia as informações abaixo:\n\nNo convite você vai encontrar:\n{deadlineLine}\n🎁 Lista de presentes\n📍 Detalhes do evento, traje e FAQ\n\n👉 {link}\n\nAguardamos você com muito carinho!",
+      "individualNoticeText": "Olá! Você foi convidado(a) para o casamento de {coupleNames} 🤍\n\nEste convite é individual.\n\nAntes de abrir o link, leia as informações abaixo:\n\nNo convite você vai encontrar:\n{deadlineLine}\n🎁 Lista de presentes\n📍 Detalhes do evento, traje e FAQ\n\n👉 {link}\n\nAguardamos você com muito carinho!"
     },
     "messages": {
       "attending": "Olá, {recipientName}!\n\nAqui é {name}.\nMeu WhatsApp para contato é {phone}.\nEstou passando para confirmar minha presença no casamento.\n\nNos vemos em breve.",

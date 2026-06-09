@@ -8,11 +8,13 @@ describe('invite copy helper', () => {
       coupleNames: 'Ana & Leo',
       link: 'https://example.com/ana-leo-2026?g=token',
       groupSizeLabel: '2 pessoas',
-      groupNoticeText: 'Compartilhe este convite com as demais pessoas do seu grupo.',
+      groupNoticeText: 'Mensagem customizada para {coupleNames}.\n\nAcesse aqui: {link}\n\n{deadlineLine}',
       useDefaultGroupNotice: false,
     });
 
-    expect(message).toContain('pode ser compartilhado com as demais pessoas do seu grupo');
+    expect(message).toContain('Mensagem customizada para Ana & Leo.');
+    expect(message).toContain('Acesse aqui: https://example.com/ana-leo-2026?g=token');
+    expect(message).toContain('✅ Confirmar sua presença');
     expect(message).toContain('Observação: este convite é para 2 pessoas.');
   });
 
@@ -21,11 +23,11 @@ describe('invite copy helper', () => {
       coupleNames: 'Ana & Leo',
       link: 'https://example.com/ana-leo-2026?g=token',
       isIndividual: true,
-      individualNoticeText: 'Este convite foi enviado especialmente para você.',
+      individualNoticeText: 'Convite especial para {coupleNames}.',
       useDefaultIndividualNotice: false,
     });
 
-    expect(message).toContain('Este convite foi enviado especialmente para você.');
+    expect(message).toContain('Convite especial para Ana & Leo.');
     expect(message).toContain('Observação: este convite é individual.');
     expect(message).not.toContain('demais pessoas do seu grupo');
   });

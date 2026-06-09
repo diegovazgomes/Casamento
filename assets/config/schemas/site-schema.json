@@ -670,11 +670,11 @@
             },
             "groupNoticeText": {
               "type": "string",
-              "description": "Texto livre para convites em grupo"
+              "description": "Mensagem completa do convite em grupo"
             },
             "individualNoticeText": {
               "type": "string",
-              "description": "Texto livre para convites individuais"
+              "description": "Mensagem completa do convite individual"
             }
           }
         },
