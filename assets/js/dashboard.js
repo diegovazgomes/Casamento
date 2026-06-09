@@ -2401,7 +2401,6 @@ function buildInviteMessageForGroup(grupo) {
 
   const coupleNames = window.__SITE_CONFIG__?.couple?.names || 'os noivos';
   const deadline    = window.__SITE_CONFIG__?.whatsapp?.inviteDeadline || '';
-  const inviteCopy  = window.__SITE_CONFIG__?.whatsapp?.inviteCopy || {};
   const link        = buildGuestInviteLink(grupo.token, grupo.inviteLink);
   const vagas       = grupo.max_confirmations;
   const vagasTexto  = vagas === 1 ? '1 pessoa' : `${vagas} pessoas`;
@@ -2413,10 +2412,8 @@ function buildInviteMessageForGroup(grupo) {
     deadline,
     isIndividual: isIndividualInvite,
     groupSizeLabel: vagasTexto,
-    groupNoticeText: inviteCopy.groupNoticeText,
-    individualNoticeText: inviteCopy.individualNoticeText,
-    useDefaultGroupNotice: inviteCopy.useDefaultGroupNotice,
-    useDefaultIndividualNotice: inviteCopy.useDefaultIndividualNotice,
+    useDefaultGroupNotice: true,
+    useDefaultIndividualNotice: true,
   });
 }
 
