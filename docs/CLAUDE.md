@@ -16,11 +16,13 @@ Este nao e apenas um resumo conceitual. O objetivo aqui e documentar o comportam
 
 Para reduzir duplicidade de manutencao entre documentos:
 
-- `ROADMAP.md`: backlog, prioridades e status de execucao.
+- `melhorias.md`: registro pratico de melhorias, correcoes e pendencias encontradas.
+- `docs/seguranca.md`: checklist e pendencias de seguranca e operacao.
+- `docs/E2E.md`: roteiro de teste ponta a ponta para execucao pontual.
 - `cursorrules`: padroes de implementacao, qualidade e seguranca de mudancas.
 - `CLAUDE.md`: referencia tecnica estavel de arquitetura, modulos, contratos e fluxos.
 
-Mudancas de status devem ficar no `ROADMAP.md`. Este arquivo deve registrar apenas o estado tecnico atual.
+Mudancas de status e pendencias devem ficar nos documentos operacionais relevantes. Este arquivo deve registrar apenas o estado tecnico atual.
 
 ---
 

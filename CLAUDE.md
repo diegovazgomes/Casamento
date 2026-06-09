@@ -14,7 +14,7 @@ Arquivos centrais:
 - `assets/config/themes/*.json` → definição visual por tema
 - `assets/config/typography.json` → famílias tipográficas disponíveis
 - `editor.html` + `assets/js/editor.js` → painel de edição visual do site.json
-- `ROADMAP.md` → checklist de progresso do projeto
+- `melhorias.md` → registro prático de melhorias, correções e pendências encontradas
 
 ---
 
@@ -123,10 +123,10 @@ Este é um ponto crítico. Erros de espaçamento destroem a experiência premium
 
 ## 8. APÓS CADA IMPLEMENTAÇÃO — OBRIGATÓRIO
 
-1. Atualizar `ROADMAP.md`:
-   - Marcar item como `[x]` se concluído
-   - Adicionar nota com o que foi feito e data
-   - Se surgiram novos itens durante a implementação, adicionar em "Descobertas"
+1. Atualizar a documentação operacional relevante quando a mudança justificar:
+   - Usar `melhorias.md` para correções, ajustes e novas pendências descobertas
+   - Usar `docs/seguranca.md` para pendências e verificações de segurança
+   - Usar `docs/E2E.md` apenas como roteiro de teste ponta a ponta, sem obrigação de preenchimento contínuo
 
 2. Verificar:
    - O `site.json` tem o novo campo com valor padrão?
