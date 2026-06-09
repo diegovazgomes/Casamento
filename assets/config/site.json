@@ -635,8 +635,10 @@
     "inviteDeadline": "06 de agosto de 2026",
     "redirectDelayMs": 5000,
     "inviteCopy": {
-      "groupNoticeTemplate": "Seu convite é para {groupSizeLabel} e pode ser compartilhado com as demais pessoas do seu grupo.",
-      "individualNotice": "Seu convite é individual."
+      "useDefaultGroupNotice": true,
+      "useDefaultIndividualNotice": true,
+      "groupNoticeText": "Compartilhe este convite com as demais pessoas do seu grupo.",
+      "individualNoticeText": "Este convite foi enviado especialmente para você."
     },
     "messages": {
       "attending": "Olá, {recipientName}!\n\nAqui é {name}.\nMeu WhatsApp para contato é {phone}.\nEstou passando para confirmar minha presença no casamento.\n\nNos vemos em breve.",

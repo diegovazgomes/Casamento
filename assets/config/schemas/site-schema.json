@@ -658,15 +658,23 @@
         "inviteCopy": {
           "type": "object",
           "description": "Textos usados na mensagem do convite enviada por WhatsApp",
-          "required": ["groupNoticeTemplate", "individualNotice"],
+          "required": ["useDefaultGroupNotice", "useDefaultIndividualNotice", "groupNoticeText", "individualNoticeText"],
           "properties": {
-            "groupNoticeTemplate": {
-              "type": "string",
-              "description": "Texto para convites em grupo. Use {groupSizeLabel} para inserir a quantidade de pessoas."
+            "useDefaultGroupNotice": {
+              "type": "boolean",
+              "description": "Quando ativo, restaura e usa o texto padrao do convite em grupo"
             },
-            "individualNotice": {
+            "useDefaultIndividualNotice": {
+              "type": "boolean",
+              "description": "Quando ativo, restaura e usa o texto padrao do convite individual"
+            },
+            "groupNoticeText": {
               "type": "string",
-              "description": "Texto exibido quando o convite for individual"
+              "description": "Texto livre para convites em grupo"
+            },
+            "individualNoticeText": {
+              "type": "string",
+              "description": "Texto livre para convites individuais"
             }
           }
         },

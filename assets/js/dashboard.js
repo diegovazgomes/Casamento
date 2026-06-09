@@ -2309,19 +2309,23 @@ function getInviteMessageBuilder() {
     const inviteCoupleNames = String(options?.coupleNames || 'os noivos').trim() || 'os noivos';
     const deadlineText = String(options?.deadline || '').trim();
     const groupSizeLabel = String(options?.groupSizeLabel || 'vários convidados').trim();
-    const groupNoticeTemplate = String(options?.groupNoticeTemplate || '').trim();
-    const individualNotice = String(options?.individualNotice || '').trim();
+    const groupNoticeText = String(options?.groupNoticeText || '').trim();
+    const individualNoticeText = String(options?.individualNoticeText || '').trim();
+    const useDefaultGroupNotice = options?.useDefaultGroupNotice !== false;
+    const useDefaultIndividualNotice = options?.useDefaultIndividualNotice !== false;
 
     const deadlineLine = deadlineText
       ? `✅ Confirmar sua presença (necessário até ${deadlineText})`
       : '✅ Confirmar sua presença';
 
     const inviteNotice = options?.isIndividual
-      ? (individualNotice || 'Seu convite é individual.')
-      : (groupNoticeTemplate || 'Seu convite é para {groupSizeLabel} e pode ser compartilhado com as demais pessoas do seu grupo.')
-          .replace('{groupSizeLabel}', groupSizeLabel);
+      ? (useDefaultIndividualNotice ? 'Este convite foi enviado especialmente para você.' : individualNoticeText)
+      : (useDefaultGroupNotice ? 'Compartilhe este convite com as demais pessoas do seu grupo.' : groupNoticeText);
 
     const inviteNoticeBlock = inviteNotice ? `${inviteNotice}\n\n` : '';
+    const inviteObservation = options?.isIndividual
+      ? 'Observação: este convite é individual.'
+      : `Observação: este convite é para ${groupSizeLabel}.`;
 
     return (
       `Olá! Você foi convidado(a) para o casamento de ${inviteCoupleNames} 🤍\n\n` +
@@ -2332,10 +2336,39 @@ function getInviteMessageBuilder() {
       '🎁 Lista de presentes\n' +
       '📍 Detalhes do evento, traje e FAQ\n\n' +
       `👉 ${inviteLink}\n\n` +
+      `${inviteObservation}\n\n` +
       'Aguardamos você com muito carinho!'
     );
   });
 }
+
+const DEFAULT_INVITE_GROUP_NOTICE = 'Compartilhe este convite com as demais pessoas do seu grupo.';
+const DEFAULT_INVITE_INDIVIDUAL_NOTICE = 'Este convite foi enviado especialmente para você.';
+
+function syncInviteCopyEditorField(kind) {
+  const isIndividual = kind === 'individual';
+  const checkbox = document.getElementById(isIndividual ? 'edWaInviteIndividualUseDefault' : 'edWaInviteGroupUseDefault');
+  const input = document.getElementById(isIndividual ? 'edWaInviteIndividualNotice' : 'edWaInviteGroupNotice');
+  const defaultText = isIndividual ? DEFAULT_INVITE_INDIVIDUAL_NOTICE : DEFAULT_INVITE_GROUP_NOTICE;
+
+  if (!checkbox || !input) return;
+
+  if (checkbox.checked) {
+    input.value = defaultText;
+    input.readOnly = true;
+    input.setAttribute('aria-readonly', 'true');
+  } else {
+    input.readOnly = false;
+    input.removeAttribute('aria-readonly');
+  }
+}
+
+function handleInviteCopyDefaultToggle(kind) {
+  syncInviteCopyEditorField(kind);
+  markEditorDirty();
+}
+
+window.handleInviteCopyDefaultToggle = handleInviteCopyDefaultToggle;
 
 function buildInviteMessageForGroup(grupo) {
   if (!grupo) return '';
@@ -2354,8 +2387,10 @@ function buildInviteMessageForGroup(grupo) {
     deadline,
     isIndividual: isIndividualInvite,
     groupSizeLabel: vagasTexto,
-    groupNoticeTemplate: inviteCopy.groupNoticeTemplate,
-    individualNotice: inviteCopy.individualNotice,
+    groupNoticeText: inviteCopy.groupNoticeText,
+    individualNoticeText: inviteCopy.individualNoticeText,
+    useDefaultGroupNotice: inviteCopy.useDefaultGroupNotice,
+    useDefaultIndividualNotice: inviteCopy.useDefaultIndividualNotice,
   });
 }
 
@@ -2792,8 +2827,12 @@ function loadEditorTab() {
   setVal('edWaPhone',           config.whatsapp?.destinationPhone   ?? '');
   setVal('edWaRecipient',       config.whatsapp?.recipientName      ?? '');
   setVal('edWaInviteDeadline',  config.whatsapp?.inviteDeadline     ?? '');
-  setVal('edWaInviteGroupNotice', config.whatsapp?.inviteCopy?.groupNoticeTemplate ?? '');
-  setVal('edWaInviteIndividualNotice', config.whatsapp?.inviteCopy?.individualNotice ?? '');
+  setChk('edWaInviteGroupUseDefault', config.whatsapp?.inviteCopy?.useDefaultGroupNotice !== false);
+  setChk('edWaInviteIndividualUseDefault', config.whatsapp?.inviteCopy?.useDefaultIndividualNotice !== false);
+  setVal('edWaInviteGroupNotice', config.whatsapp?.inviteCopy?.groupNoticeText ?? DEFAULT_INVITE_GROUP_NOTICE);
+  setVal('edWaInviteIndividualNotice', config.whatsapp?.inviteCopy?.individualNoticeText ?? DEFAULT_INVITE_INDIVIDUAL_NOTICE);
+  syncInviteCopyEditorField('group');
+  syncInviteCopyEditorField('individual');
   setVal('edWaMsgAttending',    config.whatsapp?.messages?.attending    ?? '');
   setVal('edWaMsgNotAttending', config.whatsapp?.messages?.notAttending ?? '');
   setChk('edRsvpSupabase', !!config.rsvp?.supabaseEnabled);
@@ -5228,8 +5267,10 @@ function collectEditorValues() {
   config.whatsapp.recipientName    = document.getElementById('edWaRecipient')?.value.trim()      || '';
   config.whatsapp.inviteDeadline   = document.getElementById('edWaInviteDeadline')?.value.trim() || '';
   if (!config.whatsapp.inviteCopy) config.whatsapp.inviteCopy = {};
-  config.whatsapp.inviteCopy.groupNoticeTemplate = document.getElementById('edWaInviteGroupNotice')?.value.trim() || '';
-  config.whatsapp.inviteCopy.individualNotice = document.getElementById('edWaInviteIndividualNotice')?.value.trim() || '';
+  config.whatsapp.inviteCopy.useDefaultGroupNotice = document.getElementById('edWaInviteGroupUseDefault')?.checked ?? true;
+  config.whatsapp.inviteCopy.useDefaultIndividualNotice = document.getElementById('edWaInviteIndividualUseDefault')?.checked ?? true;
+  config.whatsapp.inviteCopy.groupNoticeText = document.getElementById('edWaInviteGroupNotice')?.value.trim() || '';
+  config.whatsapp.inviteCopy.individualNoticeText = document.getElementById('edWaInviteIndividualNotice')?.value.trim() || '';
   if (!config.whatsapp.messages) config.whatsapp.messages = {};
   config.whatsapp.messages.attending    = document.getElementById('edWaMsgAttending')?.value    || '';
   config.whatsapp.messages.notAttending = document.getElementById('edWaMsgNotAttending')?.value || '';

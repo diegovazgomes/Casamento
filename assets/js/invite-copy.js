@@ -1,7 +1,7 @@
 (function () {
   const WHITE_HEART = String.fromCodePoint(0x1F90D);
-  const DEFAULT_GROUP_NOTICE = 'Seu convite é para {groupSizeLabel} e pode ser compartilhado com as demais pessoas do seu grupo.';
-  const DEFAULT_INDIVIDUAL_NOTICE = 'Seu convite é individual.';
+  const DEFAULT_GROUP_NOTICE = 'Compartilhe este convite com as demais pessoas do seu grupo.';
+  const DEFAULT_INDIVIDUAL_NOTICE = 'Este convite foi enviado especialmente para você.';
 
   function resolveInviteNotice(template, fallback, values = {}) {
     const source = String(template || fallback || '').trim();
@@ -18,8 +18,10 @@
     deadline = '',
     isIndividual = false,
     groupSizeLabel = '',
-    groupNoticeTemplate = '',
-    individualNotice = '',
+    groupNoticeText = '',
+    individualNoticeText = '',
+    useDefaultGroupNotice = true,
+    useDefaultIndividualNotice = true,
   } = {}) {
     const coupleLabel = String(coupleNames || 'os noivos').trim() || 'os noivos';
     const inviteLink = String(link || '').trim();
@@ -32,12 +34,22 @@
       : '✅ Confirmar sua presença';
 
     const inviteNotice = isIndividual
-      ? resolveInviteNotice(individualNotice, DEFAULT_INDIVIDUAL_NOTICE)
-      : resolveInviteNotice(groupNoticeTemplate, DEFAULT_GROUP_NOTICE, {
-          groupSizeLabel: String(groupSizeLabel || 'vários convidados').trim(),
-        });
+      ? (
+          useDefaultIndividualNotice
+            ? resolveInviteNotice(DEFAULT_INDIVIDUAL_NOTICE, DEFAULT_INDIVIDUAL_NOTICE)
+            : String(individualNoticeText || '').trim()
+        )
+      : (
+          useDefaultGroupNotice
+            ? resolveInviteNotice(DEFAULT_GROUP_NOTICE, DEFAULT_GROUP_NOTICE)
+            : String(groupNoticeText || '').trim()
+        );
 
     const inviteNoticeBlock = inviteNotice ? `${inviteNotice}\n\n` : '';
+    const groupLabel = String(groupSizeLabel || 'vários convidados').trim();
+    const inviteObservation = isIndividual
+      ? 'Observação: este convite é individual.'
+      : `Observação: este convite é para ${groupLabel}.`;
 
     return (
       `Olá! Você foi convidado(a) para o casamento de ${coupleLabel} ${WHITE_HEART}\n\n` +
@@ -48,6 +60,7 @@
       '🎁 Lista de presentes\n' +
       '📍 Detalhes do evento, traje e FAQ\n\n' +
       `👉 ${inviteLink}\n\n` +
+      `${inviteObservation}\n\n` +
       'Aguardamos você com muito carinho!'
     );
   }

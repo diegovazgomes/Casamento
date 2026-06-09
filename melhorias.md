@@ -142,3 +142,5 @@
   > Corrigido em `assets/js/rsvp.js`: adicionada constante `RSVP_LIMIT_REACHED_CODE` e bloco de tratamento específico no fluxo de submit. Quando o limite é atingido, o convidado vê "Confirmações encerradas. Este evento já atingiu o limite de confirmações disponíveis. Entre em contato com os noivos para mais informações." Implementado em 23/05/2026.
 
 
+- [x] **B7 — Texto padrão opcional no convite de WhatsApp**
+  O painel agora permite restaurar o texto padrão dos convites individual e em grupo com um checkbox, e a quantidade de pessoas passou a aparecer sempre como observação fixa no final da mensagem.
