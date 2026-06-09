@@ -31,4 +31,16 @@ describe('invite copy helper', () => {
     expect(message).toContain('Observação: este convite é individual.');
     expect(message).not.toContain('demais pessoas do seu grupo');
   });
+
+  it('keeps the individual information only in the final observation when using the default text', () => {
+    const message = globalThis.buildInviteWhatsAppMessage({
+      coupleNames: 'Ana & Leo',
+      link: 'https://example.com/ana-leo-2026?g=token',
+      isIndividual: true,
+      useDefaultIndividualNotice: true,
+    });
+
+    expect(message).toContain('Observação: este convite é individual.');
+    expect(message.match(/convite é individual/gi)?.length ?? 0).toBe(1);
+  });
 });

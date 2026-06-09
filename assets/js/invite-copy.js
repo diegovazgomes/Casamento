@@ -16,8 +16,6 @@ No convite você vai encontrar:
 Aguardamos você com muito carinho!`;
   const DEFAULT_INDIVIDUAL_NOTICE = `Olá! Você foi convidado(a) para o casamento de {coupleNames} ${WHITE_HEART}
 
-Este convite é individual.
-
 Antes de abrir o link, leia as informações abaixo:
 
 No convite você vai encontrar:
