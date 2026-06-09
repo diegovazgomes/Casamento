@@ -2862,6 +2862,18 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
               <div class="field-hint">Aparece na mensagem de convite enviada pelo WhatsApp. Deixe em branco para omitir.</div>
             </div>
 
+            <div class="field" style="margin-top: 16px;">
+              <label class="field-label" for="edWaInviteIndividualNotice">Texto do convite individual</label>
+              <input type="text" class="field-input sm" id="edWaInviteIndividualNotice" placeholder="Seu convite é individual." oninput="markEditorDirty()">
+              <div class="field-hint">Mensagem exibida quando o convite tiver apenas 1 confirmação disponível.</div>
+            </div>
+
+            <div class="field" style="margin-top: 16px;">
+              <label class="field-label" for="edWaInviteGroupNotice">Texto do convite em grupo</label>
+              <input type="text" class="field-input sm" id="edWaInviteGroupNotice" placeholder="Seu convite é para {groupSizeLabel} e pode ser compartilhado com as demais pessoas do seu grupo." oninput="markEditorDirty()">
+              <div class="field-hint">Use <code>{groupSizeLabel}</code> para mostrar a quantidade de pessoas desse convite.</div>
+            </div>
+
             <div class="editor-section-footer" id="footer-edSectionWhatsApp">
               <span class="footer-warning-msg">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>

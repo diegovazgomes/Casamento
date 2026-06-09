@@ -245,6 +245,10 @@
     "recipientName": "Noiva",
     "inviteDeadline": "",
     "redirectDelayMs": 5000,
+    "inviteCopy": {
+      "groupNoticeTemplate": "Seu convite é para {groupSizeLabel} e pode ser compartilhado com as demais pessoas do seu grupo.",
+      "individualNotice": "Seu convite é individual."
+    },
     "messages": {
       "attending": "Olá, {recipientName}!\n\nAqui é {name}.\nMeu WhatsApp para contato é {phone}.\nEstou passando para confirmar minha presença no casamento.\n\nNos vemos em breve.",
       "notAttending": "Olá, {recipientName}!\n\nAqui é {name}.\nMeu WhatsApp para contato é {phone}.\nInfelizmente, não poderei estar presente no casamento.\n\nAgradeço muito pelo convite e desejo um dia lindo para vocês."

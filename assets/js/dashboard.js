@@ -2305,28 +2305,34 @@ function syncPreviewInviteLink(slug) {
 
 function getInviteMessageBuilder() {
   return window.buildInviteWhatsAppMessage || ((options) => {
-    const inviteLink        = String(options?.link || '').trim();
+    const inviteLink = String(options?.link || '').trim();
     const inviteCoupleNames = String(options?.coupleNames || 'os noivos').trim() || 'os noivos';
-    const deadlineText      = String(options?.deadline || '').trim();
+    const deadlineText = String(options?.deadline || '').trim();
+    const groupSizeLabel = String(options?.groupSizeLabel || 'vários convidados').trim();
+    const groupNoticeTemplate = String(options?.groupNoticeTemplate || '').trim();
+    const individualNotice = String(options?.individualNotice || '').trim();
 
     const deadlineLine = deadlineText
       ? `✅ Confirmar sua presença (necessário até ${deadlineText})`
-      : `✅ Confirmar sua presença`;
+      : '✅ Confirmar sua presença';
 
-    const groupLine = !options?.isIndividual
-      ? `Seu convite é para ${options?.groupSizeLabel || 'vários convidados'} — compartilhe com o seu grupo.\n\n`
-      : '';
+    const inviteNotice = options?.isIndividual
+      ? (individualNotice || 'Seu convite é individual.')
+      : (groupNoticeTemplate || 'Seu convite é para {groupSizeLabel} e pode ser compartilhado com as demais pessoas do seu grupo.')
+          .replace('{groupSizeLabel}', groupSizeLabel);
+
+    const inviteNoticeBlock = inviteNotice ? `${inviteNotice}\n\n` : '';
 
     return (
       `Olá! Você foi convidado(a) para o casamento de ${inviteCoupleNames} 🤍\n\n` +
-      `${groupLine}` +
-      `Antes de abrir o link, leia as informações abaixo:\n\n` +
-      `No convite você vai encontrar:\n` +
+      `${inviteNoticeBlock}` +
+      'Antes de abrir o link, leia as informações abaixo:\n\n' +
+      'No convite você vai encontrar:\n' +
       `${deadlineLine}\n` +
-      `🎁 Lista de presentes\n` +
-      `📍 Detalhes do evento, traje e FAQ\n\n` +
+      '🎁 Lista de presentes\n' +
+      '📍 Detalhes do evento, traje e FAQ\n\n' +
       `👉 ${inviteLink}\n\n` +
-      `Aguardamos você com muito carinho!`
+      'Aguardamos você com muito carinho!'
     );
   });
 }
@@ -2336,6 +2342,7 @@ function buildInviteMessageForGroup(grupo) {
 
   const coupleNames = window.__SITE_CONFIG__?.couple?.names || 'os noivos';
   const deadline    = window.__SITE_CONFIG__?.whatsapp?.inviteDeadline || '';
+  const inviteCopy  = window.__SITE_CONFIG__?.whatsapp?.inviteCopy || {};
   const link        = buildGuestInviteLink(grupo.token, grupo.inviteLink);
   const vagas       = grupo.max_confirmations;
   const vagasTexto  = vagas === 1 ? '1 pessoa' : `${vagas} pessoas`;
@@ -2347,6 +2354,8 @@ function buildInviteMessageForGroup(grupo) {
     deadline,
     isIndividual: isIndividualInvite,
     groupSizeLabel: vagasTexto,
+    groupNoticeTemplate: inviteCopy.groupNoticeTemplate,
+    individualNotice: inviteCopy.individualNotice,
   });
 }
 
@@ -2783,6 +2792,8 @@ function loadEditorTab() {
   setVal('edWaPhone',           config.whatsapp?.destinationPhone   ?? '');
   setVal('edWaRecipient',       config.whatsapp?.recipientName      ?? '');
   setVal('edWaInviteDeadline',  config.whatsapp?.inviteDeadline     ?? '');
+  setVal('edWaInviteGroupNotice', config.whatsapp?.inviteCopy?.groupNoticeTemplate ?? '');
+  setVal('edWaInviteIndividualNotice', config.whatsapp?.inviteCopy?.individualNotice ?? '');
   setVal('edWaMsgAttending',    config.whatsapp?.messages?.attending    ?? '');
   setVal('edWaMsgNotAttending', config.whatsapp?.messages?.notAttending ?? '');
   setChk('edRsvpSupabase', !!config.rsvp?.supabaseEnabled);
@@ -5216,6 +5227,9 @@ function collectEditorValues() {
   config.whatsapp.destinationPhone = document.getElementById('edWaPhone')?.value.trim()          || '';
   config.whatsapp.recipientName    = document.getElementById('edWaRecipient')?.value.trim()      || '';
   config.whatsapp.inviteDeadline   = document.getElementById('edWaInviteDeadline')?.value.trim() || '';
+  if (!config.whatsapp.inviteCopy) config.whatsapp.inviteCopy = {};
+  config.whatsapp.inviteCopy.groupNoticeTemplate = document.getElementById('edWaInviteGroupNotice')?.value.trim() || '';
+  config.whatsapp.inviteCopy.individualNotice = document.getElementById('edWaInviteIndividualNotice')?.value.trim() || '';
   if (!config.whatsapp.messages) config.whatsapp.messages = {};
   config.whatsapp.messages.attending    = document.getElementById('edWaMsgAttending')?.value    || '';
   config.whatsapp.messages.notAttending = document.getElementById('edWaMsgNotAttending')?.value || '';
@@ -6132,3 +6146,4 @@ async function _saveWizard() {
     if (backBtn) backBtn.disabled = false;
   }
 }
+

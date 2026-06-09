@@ -655,6 +655,21 @@
           "minimum": 0,
           "description": "Delay em milissegundos antes de redirecionar"
         },
+        "inviteCopy": {
+          "type": "object",
+          "description": "Textos usados na mensagem do convite enviada por WhatsApp",
+          "required": ["groupNoticeTemplate", "individualNotice"],
+          "properties": {
+            "groupNoticeTemplate": {
+              "type": "string",
+              "description": "Texto para convites em grupo. Use {groupSizeLabel} para inserir a quantidade de pessoas."
+            },
+            "individualNotice": {
+              "type": "string",
+              "description": "Texto exibido quando o convite for individual"
+            }
+          }
+        },
         "messages": {
           "type": "object",
           "required": ["attending", "notAttending"],
