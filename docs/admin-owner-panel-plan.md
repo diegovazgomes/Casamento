@@ -48,6 +48,8 @@ Para manter o MVP seguro e viavel, ficam fora da primeira entrega:
 - O painel nao deve depender do `site.json`; ele deve consultar dados globais do banco.
 - As metricas devem ser calculadas no backend, nunca diretamente no frontend com chaves sensiveis.
 - O design deve ser próximo do dashboard que já existe para o casal organizador do evento (dashboard.html)
+- Nao criar novas Vercel Serverless Functions. O projeto ja esta no limite de 12 functions.
+- Novas acoes admin devem reutilizar functions existentes com roteamento por `action`.
 
 ## Dados Existentes que Podem Ser Usados
 
@@ -224,20 +226,23 @@ CREATE TABLE IF NOT EXISTS public.admin_users (
 
 Regras:
 
-- Apenas usuarios presentes em `admin_users` podem acessar as APIs `/api/admin/*`.
+- Apenas usuarios presentes em `admin_users` podem acessar as acoes admin.
 - O frontend do painel nunca acessa o Supabase diretamente com permissao ampla.
 - Todas as consultas globais rodam em endpoints serverless usando service role.
 - As APIs devem retornar apenas os campos necessarios para a tela.
 - Dados sensiveis devem ser mascarados quando exibidos em listas.
 
-### Endpoints sugeridos
+### Endpoints e actions sugeridos
 
-- `GET /api/admin/overview`
-- `GET /api/admin/accounts`
-- `GET /api/admin/events`
-- `GET /api/admin/revenue`
-- `GET /api/admin/acquisition`
-- `GET /api/admin/product-usage`
+Nao criar arquivos novos em `api/` para nao aumentar a contagem de functions na Vercel.
+
+- `GET /api/dashboard/profile?action=admin-overview`
+- `GET /api/dashboard/profile?action=admin-accounts`
+- `GET /api/dashboard/profile?action=admin-events`
+- `GET /api/dashboard/profile?action=admin-revenue`
+- `GET /api/dashboard/profile?action=admin-acquisition`
+- `GET /api/dashboard/profile?action=admin-product-usage`
+- `POST /api/submissions` com `table: "platform_events"` para coleta de eventos da landing/funil.
 
 Cada endpoint deve:
 
@@ -255,12 +260,9 @@ Arquivos novos sugeridos:
 - `assets/js/admin.js`
 - `assets/js/admin-api.js`
 - `assets/js/admin-charts.js`, se houver graficos sem biblioteca externa
-- `api/admin/overview.js`
-- `api/admin/accounts.js`
-- `api/admin/events.js`
-- `api/admin/revenue.js`
-- `api/admin/acquisition.js`
-- `api/admin/product-usage.js`
+- Nenhum novo arquivo em `api/` para nao criar function adicional na Vercel.
+- Reutilizar `api/dashboard/profile.js` para consultas admin.
+- Reutilizar `api/submissions.js` para coleta de analytics da plataforma.
 - `docs/migrations/010_admin_users.sql`
 - `docs/migrations/011_platform_events.sql`
 
@@ -457,7 +459,7 @@ Entrega:
 - Criar `assets/js/admin.js`.
 - Criar autenticacao de admin.
 - Criar tabela `admin_users`.
-- Criar endpoint `/api/admin/overview`.
+- Criar action `admin-overview` em `/api/dashboard/profile`.
 - Exibir resumo com:
   - total de contas;
   - contas Free;
@@ -481,11 +483,11 @@ Criterios de aceite:
 Entrega:
 
 - Criar tabela `platform_events`.
-- Criar endpoint de coleta de eventos.
+- Reutilizar `/api/submissions` para coleta de eventos.
 - Instrumentar `landing.html`.
 - Instrumentar `signup.html`.
 - Instrumentar checkout iniciado.
-- Consolidar `/api/admin/acquisition`.
+- Consolidar action `admin-acquisition` em `/api/dashboard/profile`.
 
 Criterios de aceite:
 
