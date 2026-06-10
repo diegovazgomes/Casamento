@@ -26,10 +26,23 @@ const FREE_RSVP_LIMIT = 50;
 const RSVP_TABLE = 'rsvp_confirmations';
 const GUEST_TABLE = 'guest_submissions';
 const GUEST_VIEWS_TABLE = 'guest_views';
-const ALLOWED_TABLES = new Set([RSVP_TABLE, GUEST_TABLE, GUEST_VIEWS_TABLE]);
+const PLATFORM_EVENTS_TABLE = 'platform_events';
+const ALLOWED_TABLES = new Set([RSVP_TABLE, GUEST_TABLE, GUEST_VIEWS_TABLE, PLATFORM_EVENTS_TABLE]);
 const RSVP_ATTENDANCE = new Set(['yes', 'no']);
 const GUEST_TYPES = new Set(['message', 'song']);
 const DEVICE_TYPES = new Set(['mobile', 'tablet', 'desktop']);
+const PLATFORM_EVENT_NAMES = new Set([
+  'landing_view',
+  'landing_cta_click',
+  'example_invite_view',
+  'signup_started',
+  'signup_completed',
+  'login_started',
+  'login_completed',
+  'checkout_started',
+  'checkout_completed',
+  'dashboard_opened',
+]);
 const DEMO_SUBMISSIONS_BLOCKED_CODE = 'DEMO_PUBLIC_SUBMISSIONS_BLOCKED';
 const DEMO_SUBMISSIONS_BLOCKED_MESSAGE = 'Este convite e demonstrativo. RSVP, mensagens e musicas estao desativados no exemplo.';
 
@@ -359,6 +372,51 @@ function sanitizeGuestViewPayload(payload) {
   return next;
 }
 
+function sanitizeMetadata(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return {};
+  }
+
+  return Object.fromEntries(
+    Object.entries(value)
+      .slice(0, 24)
+      .map(([key, entryValue]) => [
+        String(key).slice(0, 48),
+        typeof entryValue === 'string'
+          ? entryValue.slice(0, 180)
+          : entryValue,
+      ])
+  );
+}
+
+function sanitizePlatformEventPayload(payload) {
+  const eventName = String(payload?.event_name || '').trim();
+  const deviceType = payload?.device_type ? String(payload.device_type).trim().toLowerCase() : null;
+
+  const next = {
+    event_name: eventName,
+    session_id: payload?.session_id ? String(payload.session_id).trim().slice(0, 120) : null,
+    user_id: payload?.user_id || null,
+    page_path: payload?.page_path ? String(payload.page_path).trim().slice(0, 180) : null,
+    referrer: payload?.referrer ? String(payload.referrer).trim().slice(0, 260) : null,
+    utm_source: payload?.utm_source ? String(payload.utm_source).trim().slice(0, 120) : null,
+    utm_medium: payload?.utm_medium ? String(payload.utm_medium).trim().slice(0, 120) : null,
+    utm_campaign: payload?.utm_campaign ? String(payload.utm_campaign).trim().slice(0, 160) : null,
+    device_type: deviceType,
+    metadata: sanitizeMetadata(payload?.metadata),
+  };
+
+  if (!PLATFORM_EVENT_NAMES.has(next.event_name)) {
+    return null;
+  }
+
+  if (next.device_type && !DEVICE_TYPES.has(next.device_type)) {
+    return null;
+  }
+
+  return next;
+}
+
 function setCors(res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -403,6 +461,8 @@ export default async function handler(req, res) {
     payload = sanitizeGuestPayload(body?.payload);
   } else if (table === GUEST_VIEWS_TABLE) {
     payload = sanitizeGuestViewPayload(body?.payload);
+  } else if (table === PLATFORM_EVENTS_TABLE) {
+    payload = sanitizePlatformEventPayload(body?.payload);
   }
 
   if (!payload) {
@@ -415,7 +475,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const submissionEvent = await findSubmissionEvent(supabase, payload.event_id);
+    const submissionEvent = table === PLATFORM_EVENTS_TABLE ? null : await findSubmissionEvent(supabase, payload.event_id);
     if (isDemoPublicShowcaseEvent(submissionEvent)) {
       return res.status(403).json({
         code: DEMO_SUBMISSIONS_BLOCKED_CODE,

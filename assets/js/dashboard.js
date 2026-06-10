@@ -953,6 +953,8 @@ async function handleUpgrade() {
     const token = state.authToken;
     if (!token) throw new Error('Sessão expirada.');
 
+    window.DevaziPlatformAnalytics?.track('checkout_started', { source: 'dashboard_upgrade' });
+
     const res = await fetch('/api/payments?action=checkout', {
       method: 'POST',
       headers: { 'Authorization': `Bearer ${token}` },

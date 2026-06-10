@@ -463,6 +463,7 @@ body {
   </div>
 </div>
 
+<script src="assets/js/platform-analytics.js"></script>
 <script>
 (function () {
   const EMAIL_RE    = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -610,6 +611,8 @@ body {
 
     if (!validate(data)) return;
 
+    window.DevaziPlatformAnalytics?.track('signup_started', { source: 'form_submit' });
+
     submitBtn.disabled = true;
     submitBtn.textContent = 'Criando conta…';
 
@@ -638,6 +641,7 @@ body {
       }
 
       // Sucesso — redirecionar para página de confirmação
+      window.DevaziPlatformAnalytics?.track('signup_completed', { source: 'signup_form' });
       const emailParam = encodeURIComponent(data.email);
       window.location.href = `confirm.html?step=check-email&email=${emailParam}`;
 
