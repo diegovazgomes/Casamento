@@ -4,8 +4,11 @@
     'a[href="signup.html"]',
     'a[href="/signup.html"]',
     'a[href*="signup.html"]',
+    'a[href*="demonstracao"]',
     '[data-platform-event]',
   ].join(',');
+  const pageStartTime = Date.now();
+  let engagementSent = false;
 
   function getSessionId() {
     try {
@@ -68,6 +71,16 @@
     }).catch(() => {});
   }
 
+  function getPageKind() {
+    const path = window.location.pathname.replace(/\/+$/, '') || '/';
+    const fileName = path.split('/').pop() || 'landing.html';
+
+    if (fileName === 'landing.html' || path === '/') return 'landing';
+    if (fileName === 'signup.html') return 'signup';
+    if (fileName === 'dashboard.html') return 'dashboard';
+    return 'other';
+  }
+
   function autoTrackPageView() {
     const path = window.location.pathname.replace(/\/+$/, '') || '/';
     const fileName = path.split('/').pop() || 'landing.html';
@@ -88,12 +101,34 @@
       if (!target) return;
 
       const explicitEvent = target.dataset.platformEvent;
-      const eventName = explicitEvent || 'landing_cta_click';
+      const href = target.getAttribute('href') || '';
+      let eventName = explicitEvent || 'landing_cta_click';
+
+      if (!explicitEvent && href.includes('demonstracao')) {
+        eventName = 'example_invite_view';
+      }
+
       postEvent(eventName, {
         text: target.textContent?.trim().slice(0, 120) || '',
-        href: target.getAttribute('href') || '',
+        href,
       });
     }, { capture: true });
+  }
+
+  function sendEngagement() {
+    if (engagementSent) return;
+    engagementSent = true;
+
+    const pageKind = getPageKind();
+    if (pageKind !== 'landing' && pageKind !== 'signup') {
+      return;
+    }
+
+    const durationSeconds = Math.max(1, Math.round((Date.now() - pageStartTime) / 1000));
+    postEvent('page_engaged', {
+      page_kind: pageKind,
+      duration_seconds: durationSeconds,
+    });
   }
 
   window.DevaziPlatformAnalytics = {
@@ -110,4 +145,7 @@
     autoTrackPageView();
     bindClickTracking();
   }
+
+  window.addEventListener('pagehide', sendEngagement, { once: true });
+  window.addEventListener('beforeunload', sendEngagement, { once: true });
 })();

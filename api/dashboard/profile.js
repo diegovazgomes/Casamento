@@ -117,6 +117,27 @@ function topCounts(rows = [], key, limit = 6) {
     .slice(0, limit);
 }
 
+function getMetadataNumber(row, key) {
+  const value = row?.metadata?.[key];
+  return Number.isFinite(Number(value)) ? Number(value) : 0;
+}
+
+function averageFromRows(rows = [], key) {
+  if (!rows.length) return 0;
+  const total = rows.reduce((sum, row) => sum + getMetadataNumber(row, key), 0);
+  return total > 0 ? Math.round(total / rows.length) : 0;
+}
+
+function countByEventName(rows = []) {
+  const counts = new Map();
+  rows.forEach((row) => {
+    const eventName = String(row?.event_name || '').trim();
+    if (!eventName) return;
+    counts.set(eventName, (counts.get(eventName) || 0) + 1);
+  });
+  return counts;
+}
+
 async function getAdminUser(auth) {
   const { data, error } = await auth.supabase
     .from('admin_users')
@@ -310,17 +331,39 @@ async function buildAdminAcquisition(supabase) {
   const since30 = toIsoDateDaysAgo(30);
   const { data: events = [] } = await safeQuery(
     'admin acquisition',
-    supabase.from('platform_events').select('event_name,utm_source,utm_campaign,device_type,created_at').gte('created_at', since30).limit(10000),
+    supabase.from('platform_events').select('event_name,page_path,utm_source,utm_campaign,device_type,created_at,metadata').gte('created_at', since30).limit(10000),
     { data: [] },
   );
 
+  const counts = countByEventName(events);
   const byEvent = topCounts(events, 'event_name', 20);
   const bySource = topCounts(events, 'utm_source', 10);
   const byDevice = topCounts(events, 'device_type', 10);
+  const landingEngagement = events.filter((event) => event?.event_name === 'page_engaged' && event?.metadata?.page_kind === 'landing');
+  const signupEngagement = events.filter((event) => event?.event_name === 'page_engaged' && event?.metadata?.page_kind === 'signup');
+
+  const landingViews = counts.get('landing_view') || 0;
+  const landingClicks = counts.get('landing_cta_click') || 0;
+  const exampleViews = counts.get('example_invite_view') || 0;
+  const signupStarts = counts.get('signup_started') || 0;
+  const signupCompleted = counts.get('signup_completed') || 0;
+  const checkoutStarts = counts.get('checkout_started') || 0;
 
   return {
     periodDays: 30,
     totalEvents: events.length,
+    summary: {
+      landingViews,
+      landingClicks,
+      exampleViews,
+      signupStarts,
+      signupCompleted,
+      checkoutStarts,
+      landingAverageDurationSeconds: averageFromRows(landingEngagement, 'duration_seconds'),
+      signupAverageDurationSeconds: averageFromRows(signupEngagement, 'duration_seconds'),
+      clickThroughRate: landingViews > 0 ? Math.round((landingClicks / landingViews) * 1000) / 10 : 0,
+      signupCompletionRate: signupStarts > 0 ? Math.round((signupCompleted / signupStarts) * 1000) / 10 : 0,
+    },
     byEvent,
     bySource,
     byDevice,

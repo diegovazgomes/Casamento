@@ -274,11 +274,51 @@ button { cursor: pointer; border: 0; color: inherit; background: transparent; }
   grid-template-columns: 1fr 1fr;
   gap: 14px;
 }
+.grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
 .panel {
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: rgba(255,255,255,.025);
   overflow: hidden;
+}
+.stack {
+  display: grid;
+  gap: 14px;
+}
+.mini-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+.mini-stat {
+  border: 1px solid rgba(212,184,120,.12);
+  background: rgba(0,0,0,.12);
+  padding: 16px;
+}
+.mini-stat-value {
+  margin-top: 10px;
+  font-family: var(--font-display);
+  font-size: 28px;
+  line-height: 1;
+}
+.bar-table td:last-child,
+.bar-table th:last-child {
+  width: 45%;
+}
+.bar-track {
+  width: 100%;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.08);
+  overflow: hidden;
+}
+.bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), #e3c985);
 }
 .table {
   width: 100%;
@@ -333,6 +373,8 @@ button { cursor: pointer; border: 0; color: inherit; background: transparent; }
   .nav { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .grid-2 { grid-template-columns: 1fr; }
+  .grid-3,
+  .mini-stats { grid-template-columns: 1fr; }
 }
 @media (max-width: 620px) {
   .main { padding-inline: 16px; }
@@ -426,25 +468,46 @@ button { cursor: pointer; border: 0; color: inherit; background: transparent; }
       </div>
       <div class="stats">
         <article class="stat">
-          <div class="stat-label">Eventos capturados</div>
-          <div class="stat-value" id="statAcquisitionEvents">0</div>
-          <div class="stat-hint">Landing, cadastro e checkout</div>
+          <div class="stat-label">Views da landing</div>
+          <div class="stat-value" id="statLandingViews">0</div>
+          <div class="stat-hint" id="statLandingViewsHint">0% clicaram no CTA principal</div>
         </article>
         <article class="stat">
-          <div class="stat-label">Views dos convites</div>
-          <div class="stat-value" id="statInviteViews">0</div>
-          <div class="stat-hint">Audiência agregada</div>
+          <div class="stat-label">Tempo médio na landing</div>
+          <div class="stat-value" id="statLandingDuration">0s</div>
+          <div class="stat-hint" id="statLandingDurationHint">Média de permanência capturada</div>
         </article>
         <article class="stat">
-          <div class="stat-label">Contas Free</div>
-          <div class="stat-value" id="statFree">0</div>
-          <div class="stat-hint">Base gratuita atual</div>
+          <div class="stat-label">Cadastros iniciados</div>
+          <div class="stat-value" id="statSignupStarted">0</div>
+          <div class="stat-hint" id="statSignupStartedHint">0 concluíram o cadastro</div>
         </article>
         <article class="stat">
-          <div class="stat-label">Contas demo</div>
-          <div class="stat-value" id="statDemo">0</div>
-          <div class="stat-hint">Marcadas como demonstração</div>
+          <div class="stat-label">Checkout iniciado</div>
+          <div class="stat-value" id="statCheckoutStarted">0</div>
+          <div class="stat-hint" id="statCheckoutStartedHint">Tentativas de upgrade detectadas</div>
         </article>
+      </div>
+    </section>
+
+    <section class="band grid-3">
+      <div class="panel">
+        <table class="table">
+          <thead><tr><th>Etapa</th><th>Volume</th><th>Conversão</th></tr></thead>
+          <tbody id="funnelBody"></tbody>
+        </table>
+      </div>
+      <div class="panel">
+        <table class="table bar-table">
+          <thead><tr><th>Origem</th><th>Eventos</th><th>Distribuição</th></tr></thead>
+          <tbody id="sourceBody"></tbody>
+        </table>
+      </div>
+      <div class="panel">
+        <table class="table bar-table">
+          <thead><tr><th>Dispositivo</th><th>Eventos</th><th>Distribuição</th></tr></thead>
+          <tbody id="deviceBody"></tbody>
+        </table>
       </div>
     </section>
 
@@ -520,11 +583,30 @@ button { cursor: pointer; border: 0; color: inherit; background: transparent; }
             <h3 class="section-title">Recursos configurados</h3>
           </div>
         </div>
-        <div class="panel">
-          <table class="table">
-            <thead><tr><th>Recurso</th><th>Eventos</th></tr></thead>
-            <tbody id="featuresBody"></tbody>
-          </table>
+        <div class="stack">
+          <div class="mini-stats" aria-label="Indicadores complementares">
+            <article class="mini-stat">
+              <div class="stat-label">Views dos convites</div>
+              <div class="mini-stat-value" id="statInviteViews">0</div>
+              <div class="stat-hint">Audiência agregada</div>
+            </article>
+            <article class="mini-stat">
+              <div class="stat-label">Contas Free</div>
+              <div class="mini-stat-value" id="statFree">0</div>
+              <div class="stat-hint">Base gratuita atual</div>
+            </article>
+            <article class="mini-stat">
+              <div class="stat-label">Contas demo</div>
+              <div class="mini-stat-value" id="statDemo">0</div>
+              <div class="stat-hint">Marcadas como demonstração</div>
+            </article>
+          </div>
+          <div class="panel">
+            <table class="table">
+              <thead><tr><th>Recurso</th><th>Eventos</th></tr></thead>
+              <tbody id="featuresBody"></tbody>
+            </table>
+          </div>
         </div>
       </div>
     </section>

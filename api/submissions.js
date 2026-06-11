@@ -36,6 +36,7 @@ const PLATFORM_EVENT_NAMES = new Set([
   'landing_view',
   'landing_cta_click',
   'example_invite_view',
+  'page_engaged',
   'signup_started',
   'signup_completed',
   'login_started',

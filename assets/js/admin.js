@@ -231,7 +231,44 @@ function renderOverview(data) {
 
 function renderAcquisition(overview, acquisition) {
   void overview;
-  setText('statAcquisitionEvents', formatNumber(acquisition?.totalEvents || 0));
+  const summary = acquisition?.summary || {};
+  const landingViews = Number(summary.landingViews || 0);
+  const landingClicks = Number(summary.landingClicks || 0);
+  const signupStarts = Number(summary.signupStarts || 0);
+  const signupCompleted = Number(summary.signupCompleted || 0);
+  const checkoutStarts = Number(summary.checkoutStarts || 0);
+  const exampleViews = Number(summary.exampleViews || 0);
+
+  setText('statLandingViews', formatNumber(landingViews));
+  setText('statLandingViewsHint', `${formatNumber(landingClicks)} CTA clicks`);
+  setText('statLandingDuration', formatDuration(summary.landingAverageDurationSeconds || 0));
+  setText('statLandingDurationHint', `${formatDuration(summary.signupAverageDurationSeconds || 0)} no signup`);
+  setText('statSignupStarted', formatNumber(signupStarts));
+  setText('statSignupStartedHint', `${formatNumber(signupCompleted)} concluidos`);
+  setText('statCheckoutStarted', formatNumber(checkoutStarts));
+  setText('statCheckoutStartedHint', `${formatNumber(exampleViews)} visitas ao exemplo`);
+
+  const funnelRows = [
+    { label: 'Landing views', count: landingViews, conversion: 100 },
+    { label: 'CTA clicks', count: landingClicks, conversion: summary.clickThroughRate || 0 },
+    { label: 'Signup started', count: signupStarts, conversion: landingViews > 0 ? roundPercent(signupStarts / landingViews) : 0 },
+    { label: 'Signup completed', count: signupCompleted, conversion: summary.signupCompletionRate || 0 },
+    { label: 'Checkout started', count: checkoutStarts, conversion: signupCompleted > 0 ? roundPercent(checkoutStarts / signupCompleted) : 0 },
+  ];
+
+  const funnelBody = document.getElementById('funnelBody');
+  if (funnelBody) {
+    funnelBody.innerHTML = funnelRows.map((row) => `
+      <tr>
+        <td>${escapeHtml(row.label)}</td>
+        <td><span class="strong">${formatNumber(row.count)}</span></td>
+        <td>${formatPercent(row.conversion)}</td>
+      </tr>
+    `).join('');
+  }
+
+  renderBarRows('sourceBody', acquisition?.bySource || []);
+  renderBarRows('deviceBody', acquisition?.byDevice || []);
 }
 
 function renderProductUsage(data) {
@@ -269,6 +306,27 @@ function renderSimpleMetricRows(bodyId, rows, labelKey, valueKey) {
       </tr>
     `).join('')
     : '<tr><td colspan="2">Nenhum dado encontrado.</td></tr>';
+}
+
+function renderBarRows(bodyId, rows) {
+  const body = document.getElementById(bodyId);
+  if (!body) return;
+
+  const total = rows.reduce((sum, row) => sum + (Number(row.count) || 0), 0);
+  body.innerHTML = rows.length
+    ? rows.map((row) => {
+      const share = total > 0 ? (Number(row.count) / total) * 100 : 0;
+      return `
+        <tr>
+          <td>${escapeHtml(row.value)}</td>
+          <td><span class="strong">${formatNumber(row.count)}</span></td>
+          <td>
+            <div class="bar-track"><div class="bar-fill" style="width:${Math.max(4, share)}%"></div></div>
+          </td>
+        </tr>
+      `;
+    }).join('')
+    : '<tr><td colspan="3">Nenhum dado encontrado.</td></tr>';
 }
 
 function renderRows(bodyId, emptyId, rows = [], renderRow) {
@@ -330,6 +388,23 @@ function formatDateTime(value) {
     dateStyle: 'short',
     timeStyle: 'short',
   }).format(date);
+}
+
+function formatDuration(seconds) {
+  const value = Number(seconds) || 0;
+  if (value < 60) return `${value}s`;
+  const minutes = Math.floor(value / 60);
+  const rest = value % 60;
+  if (!rest) return `${minutes}min`;
+  return `${minutes}min ${rest}s`;
+}
+
+function roundPercent(value) {
+  return Math.round((Number(value) || 0) * 1000) / 10;
+}
+
+function formatPercent(value) {
+  return `${formatNumber(value)}%`;
 }
 
 function escapeHtml(value) {
