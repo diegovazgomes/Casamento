@@ -238,11 +238,12 @@ function renderAcquisition(overview, acquisition) {
   const signupCompleted = Number(summary.signupCompleted || 0);
   const checkoutStarts = Number(summary.checkoutStarts || 0);
   const exampleViews = Number(summary.exampleViews || 0);
+  const landingEngagementCount = Number(summary.landingEngagementCount || 0);
 
   setText('statLandingViews', formatNumber(landingViews));
   setText('statLandingViewsHint', `${formatNumber(landingClicks)} CTA clicks`);
   setText('statLandingDuration', formatDuration(summary.landingAverageDurationSeconds || 0));
-  setText('statLandingDurationHint', `${formatDuration(summary.signupAverageDurationSeconds || 0)} no signup`);
+  setText('statLandingDurationHint', `${formatNumber(landingEngagementCount)} visitas com permanencia medida`);
   setText('statSignupStarted', formatNumber(signupStarts));
   setText('statSignupStartedHint', `${formatNumber(signupCompleted)} concluidos`);
   setText('statCheckoutStarted', formatNumber(checkoutStarts));

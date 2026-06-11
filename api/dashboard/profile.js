@@ -359,6 +359,8 @@ async function buildAdminAcquisition(supabase) {
       signupStarts,
       signupCompleted,
       checkoutStarts,
+      landingEngagementCount: landingEngagement.length,
+      signupEngagementCount: signupEngagement.length,
       landingAverageDurationSeconds: averageFromRows(landingEngagement, 'duration_seconds'),
       signupAverageDurationSeconds: averageFromRows(signupEngagement, 'duration_seconds'),
       clickThroughRate: landingViews > 0 ? Math.round((landingClicks / landingViews) * 1000) / 10 : 0,

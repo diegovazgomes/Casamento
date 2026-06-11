@@ -100,12 +100,17 @@
       const target = event.target?.closest?.(TRACKED_CTA_SELECTOR);
       if (!target) return;
 
+      const pageKind = getPageKind();
       const explicitEvent = target.dataset.platformEvent;
       const href = target.getAttribute('href') || '';
       let eventName = explicitEvent || 'landing_cta_click';
 
       if (!explicitEvent && href.includes('demonstracao')) {
         eventName = 'example_invite_view';
+      }
+
+      if (pageKind === 'landing' && (href.includes('signup.html') || href.includes('demonstracao') || eventName === 'landing_cta_click')) {
+        sendEngagement();
       }
 
       postEvent(eventName, {
@@ -148,4 +153,9 @@
 
   window.addEventListener('pagehide', sendEngagement, { once: true });
   window.addEventListener('beforeunload', sendEngagement, { once: true });
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') {
+      sendEngagement();
+    }
+  });
 })();
