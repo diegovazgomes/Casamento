@@ -256,7 +256,7 @@ Cada endpoint deve:
 
 Arquivos novos sugeridos:
 
-- `admin.html`
+- `sisi.html`
 - `assets/js/admin.js`
 - `assets/js/admin-api.js`
 - `assets/js/admin-charts.js`, se houver graficos sem biblioteca externa
@@ -266,7 +266,7 @@ Arquivos novos sugeridos:
 - `docs/migrations/010_admin_users.sql`
 - `docs/migrations/011_platform_events.sql`
 
-Observacao: se o painel crescer muito, o ideal e separar o CSS em `assets/css/admin.css` em vez de deixar tudo inline no `admin.html`.
+Observacao: se o painel crescer muito, o ideal e separar o CSS em `assets/css/admin.css` em vez de deixar tudo inline no `sisi.html`.
 
 ## Navegacao do Painel
 
@@ -455,7 +455,7 @@ Cuidados:
 
 Entrega:
 
-- Criar `admin.html`.
+- Criar `sisi.html`.
 - Criar `assets/js/admin.js`.
 - Criar autenticacao de admin.
 - Criar tabela `admin_users`.
@@ -532,7 +532,7 @@ Para a landing page e funil comercial, os dados sao da propria plataforma e pode
 
 ## Decisoes Pendentes
 
-- O painel admin tera URL publica protegida, como `/admin.html`, ou ficara atras de uma rota menos obvia? Rota menos óbvia possivel
+- O painel admin tera URL publica protegida, como `/sisi.html`, ou ficara atras de uma rota menos obvia? Rota menos óbvia possivel
 - O primeiro admin sera criado manualmente no Supabase? Teremos apenas um admin que será eu
 - Vamos usar uma tabela `admin_users` ou adicionar `role` em `profiles`? Me ajude a decidir
 - O painel precisa permitir acao manual em contas ou sera somente leitura no MVP? Somente leitura
