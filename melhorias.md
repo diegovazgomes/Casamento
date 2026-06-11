@@ -29,6 +29,10 @@
   A página de presentes mantinha a cópia "Em breve, esta opção estará disponível." mesmo quando o cartão estava habilitado e com link válido, porque o texto vinha de fallback antigo e a regra de exibição estava diferente da home.
   > Corrigido em `assets/js/script.js`, `presente.html` e `assets/config/defaults/site.json`: o cartão agora só aparece com `cardPaymentEnabled === true` e URL HTTP/HTTPS válida, e o corpo do bloco troca automaticamente para uma mensagem compatível com a opção ativa.
 
+- [x] **B7 — Modal da lista de presentes quebrava o link de cartão com 404**
+  O link salvo no dashboard estava sendo reescrito na página de presentes com um parâmetro `amount`, o que podia invalidar URLs prontas do provedor de pagamento.
+  > Corrigido em `presente.html`: a modal agora abre exatamente a URL cadastrada em `gift.cardPaymentLink`, sem alterar query string; o valor sugerido continua aparecendo apenas como texto de apoio.
+
 - [x] **B5 — Corrigir paletas do noivo e da noiva em Traje**
   Após o ajuste dos círculos de padrinhos e madrinhas (mobile), os círculos das paletas do **noivo** e da **noiva** ficaram visualmente bugados. É necessário padronizar para círculos perfeitos (sem deformação elíptica), mantendo consistência entre todos os blocos de paleta.
   > Corrigido em `layout.css`: `.traje-color-item .traje-swatch` recebia `width:56px` da media query mas mantinha `height:44px` — `aspect-ratio:1/1` não tem efeito com duas dimensões explícitas. Adicionado `height:auto` para que o aspect-ratio compute a altura a partir da largura. Confirmado 56×56px no mobile via preview.

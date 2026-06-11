@@ -860,14 +860,6 @@ function formatBRL(amount) {
   return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
 
-function formatAmountForMercadoPagoParam(amount) {
-  const value = Number(amount);
-  if (!Number.isFinite(value)) {
-    return '0,00';
-  }
-  return value.toFixed(2).replace('.', ',');
-}
-
 function sanitizeCatalogItems(items = [], fallbackCategory = 'Lua de Mel') {
   return items
     .filter((item) => item && item.enabled !== false)
@@ -922,20 +914,17 @@ function resolveActiveCatalog(giftConfig = {}) {
   return { catalog: DEFAULT_CATALOGS.honeymoon, catalogKey: 'honeymoon' };
 }
 
-function buildMercadoPagoUrl(baseUrl, amount) {
+function resolveCardPaymentUrl(baseUrl) {
   const fallbackUrl = '#';
   if (!baseUrl) return fallbackUrl;
 
   try {
-    // Se a URL não tem protocolo, adicionar https://
     let urlToProcess = baseUrl;
     if (!baseUrl.startsWith('http://') && !baseUrl.startsWith('https://')) {
       urlToProcess = 'https://' + baseUrl;
     }
-    
-    const url = new URL(urlToProcess);
-    url.searchParams.set('amount', formatAmountForMercadoPagoParam(amount));
-    return url.toString();
+
+    return new URL(urlToProcess).toString();
   } catch {
     return fallbackUrl;
   }
@@ -1006,7 +995,7 @@ function openModal(itemId, pixKey, qrSrc, paymentBaseUrl) {
     document.getElementById('giftOptLinkHint').textContent  = 'Indisponível';
   } else {
     linkBtn.classList.remove('is-locked');
-    const paymentUrl = buildMercadoPagoUrl(paymentBaseUrl, item.amount);
+    const paymentUrl = resolveCardPaymentUrl(paymentBaseUrl);
     if (paymentUrl !== '#') {
       linkBtn.style.display = '';
       linkBtn.href = paymentUrl;
