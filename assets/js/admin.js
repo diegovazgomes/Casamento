@@ -12,10 +12,20 @@ const authForm = document.getElementById('authForm');
 const authError = document.getElementById('authError');
 const statusText = document.getElementById('statusText');
 
+const ADMIN_VIEW_LABELS = {
+  resumo: 'Painel admin',
+  aquisicao: 'Aquisição',
+  contas: 'Contas',
+  eventos: 'Eventos',
+  receita: 'Receita',
+  uso: 'Uso do produto',
+};
+
 document.addEventListener('DOMContentLoaded', () => {
   authForm?.addEventListener('submit', handleLogin);
   document.getElementById('logoutButton')?.addEventListener('click', handleLogout);
   document.getElementById('refreshButton')?.addEventListener('click', loadAdminData);
+  setupAdminNavigation();
   initializeAdmin();
 });
 
@@ -187,6 +197,95 @@ async function loadAdminData() {
   }
 }
 
+function setupAdminNavigation() {
+  const navLinks = [...document.querySelectorAll('.nav a[href^="#"]')];
+  navLinks.forEach((link) => {
+    link.addEventListener('click', (event) => {
+      event.preventDefault();
+      const viewId = link.getAttribute('href')?.replace('#', '') || 'resumo';
+      showAdminView(viewId, { updateHash: true });
+    });
+  });
+
+  const initialView = normalizeAdminView(window.location.hash.replace('#', ''));
+  showAdminView(initialView);
+
+  window.addEventListener('hashchange', () => {
+    showAdminView(window.location.hash.replace('#', ''));
+  });
+}
+
+function showAdminView(viewId, options = {}) {
+  const activeView = normalizeAdminView(viewId);
+  const resumoSection = document.getElementById('resumo');
+  const acquisitionSection = document.getElementById('aquisicao');
+  const acquisitionDetailsSection = acquisitionSection?.nextElementSibling;
+  const accountsPanel = document.getElementById('contas');
+  const revenuePanel = document.getElementById('receita');
+  const accountsRevenueSection = accountsPanel?.closest('section');
+  const eventsSection = document.getElementById('eventos');
+  const usageSection = document.getElementById('uso');
+
+  [
+    resumoSection,
+    acquisitionSection,
+    acquisitionDetailsSection,
+    accountsRevenueSection,
+    eventsSection,
+    usageSection,
+  ].forEach((element) => {
+    if (element) element.hidden = true;
+  });
+
+  accountsRevenueSection?.classList.remove('is-single-view');
+  if (accountsPanel) accountsPanel.hidden = true;
+  if (revenuePanel) revenuePanel.hidden = true;
+
+  if (activeView === 'resumo' && resumoSection) {
+    resumoSection.hidden = false;
+  }
+
+  if (activeView === 'aquisicao') {
+    if (acquisitionSection) acquisitionSection.hidden = false;
+    if (acquisitionDetailsSection) acquisitionDetailsSection.hidden = false;
+  }
+
+  if (activeView === 'contas' || activeView === 'receita') {
+    if (accountsRevenueSection) accountsRevenueSection.hidden = false;
+    accountsRevenueSection?.classList.add('is-single-view');
+    if (accountsPanel) accountsPanel.hidden = activeView !== 'contas';
+    if (revenuePanel) revenuePanel.hidden = activeView !== 'receita';
+  }
+
+  if (activeView === 'eventos' && eventsSection) {
+    eventsSection.hidden = false;
+  }
+
+  if (activeView === 'uso' && usageSection) {
+    usageSection.hidden = false;
+  }
+
+  document.querySelectorAll('.nav a[href^="#"]').forEach((link) => {
+    const isActive = link.getAttribute('href') === `#${activeView}`;
+    link.classList.toggle('is-active', isActive);
+    if (isActive) {
+      link.setAttribute('aria-current', 'page');
+    } else {
+      link.removeAttribute('aria-current');
+    }
+  });
+
+  setPageTitle(ADMIN_VIEW_LABELS[activeView] || ADMIN_VIEW_LABELS.resumo);
+
+  if (options.updateHash) {
+    history.replaceState(null, '', `#${activeView}`);
+  }
+}
+
+function normalizeAdminView(viewId) {
+  return Object.prototype.hasOwnProperty.call(ADMIN_VIEW_LABELS, viewId) ? viewId : 'resumo';
+}
+
 function renderOverview(data) {
   const summary = data?.summary || {};
   setText('statAccounts', formatNumber(summary.totalAccounts));
@@ -356,6 +455,11 @@ function setAuthError(message) {
 
 function setStatus(message) {
   if (statusText) statusText.textContent = message;
+}
+
+function setPageTitle(message) {
+  const title = document.querySelector('.page-title');
+  if (title) title.textContent = message;
 }
 
 function setText(id, value) {
