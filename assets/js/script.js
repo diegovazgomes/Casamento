@@ -1293,12 +1293,14 @@ class InvitationExperience {
         setText('giftPixCopyLabel', this.config.texts?.giftPixCopyLabel);
         setText('giftCardTag', this.config.texts?.giftCardTag);
         setText('giftCardTitle', this.config.texts?.giftCardTitle);
-        setText('giftCardBody', this.config.texts?.giftCardBody);
 
         const pixCode = this.config.gift?.pixKey;
         const pixImage = this.config.gift?.pixQrImage;
         const cardEnabled = this.config.gift?.cardPaymentEnabled === true;
         const cardLink = String(this.config.gift?.cardPaymentLink ?? '').trim();
+        const defaultDisabledCardBody = 'Em breve, esta opção estará disponível.';
+        const defaultEnabledCardBody = 'Se preferir, você pode nos presentear através do Cartão de crédito (possibilidade de parcelamento).';
+        const configuredCardBody = String(this.config.texts?.giftCardBody ?? '').trim();
 
         if (pixCode) {
             document.querySelectorAll('#pixCode').forEach((element) => {
@@ -1336,6 +1338,17 @@ class InvitationExperience {
                 return false;
             }
         })();
+        const resolvedCardBody = (() => {
+            if (configuredCardBody && configuredCardBody !== defaultDisabledCardBody) {
+                return configuredCardBody;
+            }
+
+            if (cardEnabled && hasValidCardLink) {
+                return defaultEnabledCardBody;
+            }
+
+            return configuredCardBody || defaultDisabledCardBody;
+        })();
 
         if (!cardEnabled || !hasValidCardLink) {
             cardPanel.hidden = true;
@@ -1343,8 +1356,8 @@ class InvitationExperience {
         }
 
         cardPanel.hidden = false;
-        if (cardBody && !cardBody.textContent?.trim()) {
-            cardBody.textContent = this.config.texts?.giftCardBody || '';
+        if (cardBody) {
+            cardBody.textContent = resolvedCardBody;
         }
 
         const linkLabel = this.config.texts?.giftCardPlaceholder || 'Pagar com cartão';

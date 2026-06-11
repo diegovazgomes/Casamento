@@ -1076,6 +1076,32 @@ function normalizeUrl(url) {
   } catch { return '#'; }
 }
 
+function hasValidHttpUrl(url) {
+  if (!url) return false;
+  try {
+    const parsed = new URL(url, window.location.href);
+    return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+  } catch {
+    return false;
+  }
+}
+
+function resolveGiftCardBodyText(text, hasActiveCardLink) {
+  const defaultDisabledCardBody = 'Em breve, esta opção estará disponível.';
+  const defaultEnabledCardBody = 'Se preferir, você pode nos presentear através do Cartão de crédito (possibilidade de parcelamento).';
+  const configuredText = String(text || '').trim();
+
+  if (configuredText && configuredText !== defaultDisabledCardBody) {
+    return configuredText;
+  }
+
+  if (hasActiveCardLink) {
+    return defaultEnabledCardBody;
+  }
+
+  return configuredText || defaultDisabledCardBody;
+}
+
 function revealGiftPageContent() {
   document.querySelectorAll('.reveal').forEach((element) => {
     element.classList.add('visible');
@@ -1088,9 +1114,11 @@ window.addEventListener('app:ready', ({ detail: { config } }) => {
 
   const pixKey = config?.gift?.pixKey || '';
   const qrSrc  = config?.gift?.pixQrImage || 'assets/images/icons/pix-placeholder.svg';
-  const cardLink = config?.gift?.cardPaymentLink || '';
-  const cardEnabled = config?.gift?.cardPaymentEnabled !== false;
-  CARD_ENABLED = cardEnabled;
+  const cardLink = String(config?.gift?.cardPaymentLink || '').trim();
+  const cardEnabled = config?.gift?.cardPaymentEnabled === true;
+  const hasValidCardLink = hasValidHttpUrl(cardLink);
+  const shouldShowCard = cardEnabled && hasValidCardLink;
+  CARD_ENABLED = shouldShowCard;
   const { catalog: activeCatalog, catalogKey } = resolveActiveCatalog(config?.gift || {});
   const categoryFallback = DEFAULT_CATALOGS[catalogKey]?.items?.[0]?.category || 'Presente';
   const normalizedCatalog = sanitizeCatalogItems(activeCatalog?.items, categoryFallback);
@@ -1114,7 +1142,7 @@ window.addEventListener('app:ready', ({ detail: { config } }) => {
   setText('giftPixDescription', config?.texts?.giftPixDescription);
   setText('giftPixCopyLabel',   config?.texts?.giftPixCopyLabel);
   setText('giftCardTitle',      config?.texts?.giftCardTitle);
-  setText('giftCardBody',       config?.texts?.giftCardBody);
+  setText('giftCardBody',       resolveGiftCardBodyText(config?.texts?.giftCardBody, shouldShowCard));
   setText('giftCardPlaceholder', config?.texts?.giftCardPlaceholder);
   setText('mainFooterNames',    config?.couple?.names);
   setText('mainFooterNote',     config?.texts?.footerNote);
@@ -1133,8 +1161,8 @@ window.addEventListener('app:ready', ({ detail: { config } }) => {
 
   /* Cartão */
   const cardLinkEl = document.getElementById('giftCardLink');
-  if (cardLinkEl && cardLink) cardLinkEl.href = cardLink;
-  if (!cardEnabled) {
+  if (cardLinkEl && shouldShowCard) cardLinkEl.href = cardLink;
+  if (!shouldShowCard) {
     const cardTab = document.querySelector('[data-panel="cartao"]');
     if (cardTab) cardTab.hidden = true;
     const cardPanel = document.getElementById('panel-cartao');

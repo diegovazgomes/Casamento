@@ -25,6 +25,10 @@
   Quando o pagamento por cartão não está habilitado, o modal ainda mostra a opção e redireciona para URL aleatória. A opção deve aparecer com **cadeado visual** e sem link clicável.
   > Corrigido em `presente.html`: variável `CARD_ENABLED` sincronizada com `cardPaymentEnabled`; botão exibe 🔒, sem `href` e `pointer-events: none`.
 
+- [x] **B6 — Texto de indisponibilidade do cartão aparecia mesmo com link configurado**
+  A página de presentes mantinha a cópia "Em breve, esta opção estará disponível." mesmo quando o cartão estava habilitado e com link válido, porque o texto vinha de fallback antigo e a regra de exibição estava diferente da home.
+  > Corrigido em `assets/js/script.js`, `presente.html` e `assets/config/defaults/site.json`: o cartão agora só aparece com `cardPaymentEnabled === true` e URL HTTP/HTTPS válida, e o corpo do bloco troca automaticamente para uma mensagem compatível com a opção ativa.
+
 - [x] **B5 — Corrigir paletas do noivo e da noiva em Traje**
   Após o ajuste dos círculos de padrinhos e madrinhas (mobile), os círculos das paletas do **noivo** e da **noiva** ficaram visualmente bugados. É necessário padronizar para círculos perfeitos (sem deformação elíptica), mantendo consistência entre todos os blocos de paleta.
   > Corrigido em `layout.css`: `.traje-color-item .traje-swatch` recebia `width:56px` da media query mas mantinha `height:44px` — `aspect-ratio:1/1` não tem efeito com duas dimensões explícitas. Adicionado `height:auto` para que o aspect-ratio compute a altura a partir da largura. Confirmado 56×56px no mobile via preview.
