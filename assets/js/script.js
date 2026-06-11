@@ -1298,6 +1298,19 @@ class InvitationExperience {
         const pixImage = this.config.gift?.pixQrImage;
         const cardEnabled = this.config.gift?.cardPaymentEnabled === true;
         const cardLink = String(this.config.gift?.cardPaymentLink ?? '').trim();
+        const normalizeCardLink = (value) => {
+            if (!value) return '';
+            const candidate = /^https?:\/\//i.test(value) ? value : `https://${value}`;
+            try {
+                const parsed = new URL(candidate);
+                return parsed.protocol === 'http:' || parsed.protocol === 'https:'
+                    ? parsed.toString()
+                    : '';
+            } catch {
+                return '';
+            }
+        };
+        const normalizedCardLink = normalizeCardLink(cardLink);
         const defaultDisabledCardBody = 'Em breve, esta opção estará disponível.';
         const defaultEnabledCardBody = 'Se preferir, você pode nos presentear através do Cartão de crédito (possibilidade de parcelamento).';
         const configuredCardBody = String(this.config.texts?.giftCardBody ?? '').trim();
@@ -1329,15 +1342,7 @@ class InvitationExperience {
             return;
         }
 
-        const hasValidCardLink = (() => {
-            if (!cardLink) return false;
-            try {
-                const parsed = new URL(cardLink, window.location.href);
-                return parsed.protocol === 'http:' || parsed.protocol === 'https:';
-            } catch {
-                return false;
-            }
-        })();
+        const hasValidCardLink = Boolean(normalizedCardLink);
         const resolvedCardBody = (() => {
             if (configuredCardBody && configuredCardBody !== defaultDisabledCardBody) {
                 return configuredCardBody;
@@ -1360,10 +1365,10 @@ class InvitationExperience {
             cardBody.textContent = resolvedCardBody;
         }
 
-        const linkLabel = this.config.texts?.giftCardPlaceholder || 'Pagar com cartão';
+        const linkLabel = this.config.texts?.giftCardPlaceholder || 'Presentear com cartão';
 
         if (cardLinkElement) {
-            cardLinkElement.href = cardLink;
+            cardLinkElement.href = normalizedCardLink;
             cardLinkElement.setAttribute('aria-label', `${linkLabel} em nova aba`);
             cardPlaceholder.textContent = linkLabel;
             return;
@@ -1372,7 +1377,7 @@ class InvitationExperience {
         cardPlaceholder.innerHTML = '';
         const cardAnchor = document.createElement('a');
         cardAnchor.className = 'gift-card-link';
-        cardAnchor.href = cardLink;
+        cardAnchor.href = normalizedCardLink;
         cardAnchor.target = '_blank';
         cardAnchor.rel = 'noopener noreferrer';
         cardAnchor.textContent = linkLabel;

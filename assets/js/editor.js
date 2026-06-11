@@ -1546,13 +1546,13 @@ function renderPresente() {
     ${fieldInput({ label: 'Imagem QR Code do Pix', path: 'gift.pixQrImage', placeholder: 'assets/images/icons/pix-placeholder.svg' })}
     ${fieldInput({ label: 'Label Pix (copia e cola)', path: 'texts.giftPixCopyLabel', placeholder: 'Pix copia e cola' })}
     ${fieldInput({ label: 'Texto botão copiar Pix', path: 'texts.giftPixCopyButton', placeholder: 'Copiar código Pix' })}
-  `) + group('Pagamento por cartão', `
+  `) + group('Presentear por cartão', `
     ${fieldInput({ label: 'Cartão habilitado (true/false)', path: 'gift.cardPaymentEnabled', placeholder: 'false', cast: 'boolean', hint: 'Quando false, o bloco de cartão fica oculto no site.' })}
     ${fieldInput({ label: 'Link de pagamento', path: 'gift.cardPaymentLink', placeholder: 'https://pagamento.exemplo.com/link-do-casal', inputType: 'url', hint: 'Aceita apenas URL válida (http/https).' })}
-    ${fieldInput({ label: 'Tag do bloco', path: 'texts.giftCardTag', placeholder: 'Pagamento por cartão' })}
-    ${fieldInput({ label: 'Título do bloco', path: 'texts.giftCardTitle', placeholder: 'Pagamento por cartão' })}
+    ${fieldInput({ label: 'Tag do bloco', path: 'texts.giftCardTag', placeholder: 'Presentear por cartão' })}
+    ${fieldInput({ label: 'Título do bloco', path: 'texts.giftCardTitle', placeholder: 'Presentear com cartão' })}
     ${fieldTextarea({ label: 'Descrição do bloco', path: 'texts.giftCardBody', placeholder: 'Escolha a melhor forma para nos presentear com carinho.' })}
-    ${fieldInput({ label: 'Texto do botão de cartão', path: 'texts.giftCardPlaceholder', placeholder: 'Pagar com cartão', hint: 'Esse texto vira o botão clicável quando o cartão estiver habilitado.' })}
+    ${fieldInput({ label: 'Texto do botão de cartão', path: 'texts.giftCardPlaceholder', placeholder: 'Presentear com cartão', hint: 'Esse texto vira o botão clicável quando o cartão estiver habilitado.' })}
   `);
 }
 
@@ -2005,7 +2005,7 @@ function getActiveTabPreviewHtml() {
     }
     case 'presente': {
       const cardEnabled = Boolean(getPath(config, 'gift.cardPaymentEnabled'));
-      const cardLabel = getPath(config, 'texts.giftCardPlaceholder') || 'Pagar com cartão';
+      const cardLabel = getPath(config, 'texts.giftCardPlaceholder') || 'Presentear com cartão';
       const cardLink = getPath(config, 'gift.cardPaymentLink') || '';
       return `
         <h3 class="ed-preview-title">${esc(getPath(config, 'texts.giftTitle') || 'Para nos presentear')}</h3>

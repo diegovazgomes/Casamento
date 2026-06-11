@@ -606,7 +606,7 @@
         <a class="gift-payment-opt" id="giftOptLink" href="#" target="_blank" rel="noopener noreferrer" style="display:none">
           <span class="gift-payment-opt-icon">🛒</span>
           <span class="gift-payment-opt-text">
-            <span class="gift-payment-opt-label" id="giftOptLinkLabel">Ver na loja</span>
+            <span class="gift-payment-opt-label" id="giftOptLinkLabel">Presentear com cartão</span>
             <span class="gift-payment-opt-hint" id="giftOptLinkHint">Parcelável no cartão</span>
           </span>
           <span class="gift-payment-opt-arrow">→</span>
@@ -708,11 +708,11 @@
     <div class="gift-tab-panel" id="panel-cartao" role="tabpanel">
       <div class="gift-card-panel-wrap">
         <div class="gift-card-box reveal" id="giftCardPanel">
-          <span class="gift-card-box-tag" id="giftCardTag">Cartão de crédito · Parcelável</span>
-          <h2 class="gift-card-box-title" id="giftCardTitle">Pagamento por cartão</h2>
+          <span class="gift-card-box-tag" id="giftCardTag">Presentear por cartão · Parcelável</span>
+          <h2 class="gift-card-box-title" id="giftCardTitle">Presentear com cartão</h2>
           <p class="gift-card-box-desc" id="giftCardBody">
             Presenteie pelo cartão de crédito com possibilidade de parcelamento.
-            Você será redirecionado para nossa página de pagamento seguro.
+            Você será redirecionado para um link seguro para nos presentear.
           </p>
           <a
             class="gift-card-link-btn"
@@ -721,7 +721,7 @@
             target="_blank"
             rel="noopener noreferrer"
           >
-            <span id="giftCardPlaceholder">Ir para pagamento por cartão →</span>
+            <span id="giftCardPlaceholder">Ir para presentear com cartão →</span>
           </a>
         </div>
       </div>
@@ -985,21 +985,21 @@ function openModal(itemId, pixKey, qrSrc, paymentBaseUrl) {
   document.getElementById('giftModalPixKey').textContent    = pixKey || 'Chave Pix não configurada';
   document.getElementById('giftModalQrImg').src = qrSrc || 'assets/images/icons/pix-placeholder.svg';
 
-  /* Link de pagamento (Mercado Pago ou similar) */
+  /* Link para presentear com cartão */
   const linkBtn = document.getElementById('giftOptLink');
   if (!CARD_ENABLED) {
     linkBtn.style.display = '';
     linkBtn.removeAttribute('href');
     linkBtn.classList.add('is-locked');
-    document.getElementById('giftOptLinkLabel').textContent = '🔒 Link de pagamento';
-    document.getElementById('giftOptLinkHint').textContent  = 'Indisponível';
+    document.getElementById('giftOptLinkLabel').textContent = '🔒 Presentear com cartão';
+    document.getElementById('giftOptLinkHint').textContent  = 'Indisponível no momento';
   } else {
     linkBtn.classList.remove('is-locked');
     const paymentUrl = resolveCardPaymentUrl(paymentBaseUrl);
     if (paymentUrl !== '#') {
       linkBtn.style.display = '';
       linkBtn.href = paymentUrl;
-      document.getElementById('giftOptLinkLabel').textContent = 'Pagar com link de pagamento';
+      document.getElementById('giftOptLinkLabel').textContent = 'Presentear com cartão';
       document.getElementById('giftOptLinkHint').textContent  = `Valor sugerido: ${item.price || formatBRL(item.amount)}`;
     } else {
       linkBtn.style.display = 'none';
@@ -1068,10 +1068,22 @@ function normalizeUrl(url) {
 function hasValidHttpUrl(url) {
   if (!url) return false;
   try {
-    const parsed = new URL(url, window.location.href);
+    const normalized = /^https?:\/\//i.test(url) ? url : `https://${url}`;
+    const parsed = new URL(normalized);
     return parsed.protocol === 'http:' || parsed.protocol === 'https:';
   } catch {
     return false;
+  }
+}
+
+function normalizeHttpUrl(url) {
+  if (!url) return '';
+  try {
+    const normalized = /^https?:\/\//i.test(url) ? url : `https://${url}`;
+    const parsed = new URL(normalized);
+    return parsed.protocol === 'http:' || parsed.protocol === 'https:' ? parsed.toString() : '';
+  } catch {
+    return '';
   }
 }
 
@@ -1104,8 +1116,9 @@ window.addEventListener('app:ready', ({ detail: { config } }) => {
   const pixKey = config?.gift?.pixKey || '';
   const qrSrc  = config?.gift?.pixQrImage || 'assets/images/icons/pix-placeholder.svg';
   const cardLink = String(config?.gift?.cardPaymentLink || '').trim();
+  const normalizedCardLink = normalizeHttpUrl(cardLink);
   const cardEnabled = config?.gift?.cardPaymentEnabled === true;
-  const hasValidCardLink = hasValidHttpUrl(cardLink);
+  const hasValidCardLink = Boolean(normalizedCardLink);
   const shouldShowCard = cardEnabled && hasValidCardLink;
   CARD_ENABLED = shouldShowCard;
   const { catalog: activeCatalog, catalogKey } = resolveActiveCatalog(config?.gift || {});
@@ -1150,7 +1163,7 @@ window.addEventListener('app:ready', ({ detail: { config } }) => {
 
   /* Cartão */
   const cardLinkEl = document.getElementById('giftCardLink');
-  if (cardLinkEl && shouldShowCard) cardLinkEl.href = cardLink;
+  if (cardLinkEl && shouldShowCard) cardLinkEl.href = normalizedCardLink;
   if (!shouldShowCard) {
     const cardTab = document.querySelector('[data-panel="cartao"]');
     if (cardTab) cardTab.hidden = true;
@@ -1215,7 +1228,7 @@ window.addEventListener('app:ready', ({ detail: { config } }) => {
   if (allPanels.length) allPanels[0].classList.add('is-active');
 
   /* Renderiza lista com chave Pix carregada */
-  if (catalogEnabled) renderGiftList(pixKey, qrSrc, cardLink);
+  if (catalogEnabled) renderGiftList(pixKey, qrSrc, normalizedCardLink);
 });
 
 /* Fallback — renderiza lista mesmo sem app:ready */

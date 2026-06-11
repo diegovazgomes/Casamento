@@ -33,6 +33,10 @@
   O link salvo no dashboard estava sendo reescrito na página de presentes com um parâmetro `amount`, o que podia invalidar URLs prontas do provedor de pagamento.
   > Corrigido em `presente.html`: a modal agora abre exatamente a URL cadastrada em `gift.cardPaymentLink`, sem alterar query string; o valor sugerido continua aparecendo apenas como texto de apoio.
 
+- [x] **B8 — Link de cartão podia abrir como rota relativa do convite**
+  Quando o casal informava o link sem protocolo, o botão de cartão podia concatenar a URL do convite com o valor salvo no dashboard, gerando erro 404.
+  > Corrigido em `assets/js/script.js` e `presente.html`: o link agora é normalizado para URL absoluta com `https://` antes da validação e antes de ser aplicado ao botão. Também foram suavizados os textos visíveis da aba de cartão para priorizar "presentear" em vez de "pagamento".
+
 - [x] **B5 — Corrigir paletas do noivo e da noiva em Traje**
   Após o ajuste dos círculos de padrinhos e madrinhas (mobile), os círculos das paletas do **noivo** e da **noiva** ficaram visualmente bugados. É necessário padronizar para círculos perfeitos (sem deformação elíptica), mantendo consistência entre todos os blocos de paleta.
   > Corrigido em `layout.css`: `.traje-color-item .traje-swatch` recebia `width:56px` da media query mas mantinha `height:44px` — `aspect-ratio:1/1` não tem efeito com duas dimensões explícitas. Adicionado `height:auto` para que o aspect-ratio compute a altura a partir da largura. Confirmado 56×56px no mobile via preview.
