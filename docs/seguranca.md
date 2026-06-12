@@ -156,7 +156,7 @@ Todos os endpoints do dashboard trocaram `'*'` por `process.env.ALLOWED_ORIGIN |
 Adicionado bloco `headers` global com: `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy` e `Strict-Transport-Security` (HSTS 2 anos com preload).
 
 - [ ] Após o próximo deploy, verificar em https://securityheaders.com
-- [ ] CSP fica como próximo passo (requer mapeamento dos scripts inline)
+- [ ] CSP fica como próximo passo (requer mapeamento dos scripts inline) — primeira etapa executada em 2026-06-12: bootstraps inline repetidos do convite foram movidos para arquivos externos
 
 ---
 
@@ -317,7 +317,14 @@ CSP adicionado ao `vercel.json` em 2026-05-18 cobrindo todas as páginas:
 
 **Ajuste aplicado em 2026-05-20:** `style-src` passou a incluir `https://unpkg.com` para permitir o carregamento do `leaflet.css` na página de hospedagem. Sem esse stylesheet, o mapa renderiza com tiles desalinhados/quebrados.
 
-**Ressalva:** `unsafe-inline` em `script-src` é necessário pelos scripts inline de bootstrap no `index.html`. Eles lêem `sessionStorage` antes do carregamento do JS modular e não podem ser movidos para arquivos externos sem refatoração. O CSP atual ainda bloqueia scripts de origens externas não listadas, que é o vetor mais comum de XSS.
+**Ajuste aplicado em 2026-06-12:** primeira etapa de remoção de scripts inline concluída:
+- `index.html` passou a usar `assets/js/invitation-head-bootstrap.js`, `assets/js/loading-head-bootstrap.js`, `assets/js/loading-init-debug.js` e `assets/js/mobile-bar.js`
+- `faq.html`, `historia.html`, `hospedagem.html`, `mensagem.html`, `musica.html`, `traje.html` e `presente.html` passaram a usar `assets/js/loading-head-bootstrap.js` e `assets/js/loading-init.js`
+- `confirm.html` passou a usar `assets/js/confirm.js`
+- `forgot-password.html` passou a usar `assets/js/forgot-password.js`
+- Restam scripts inline em `landing.html`, `dashboard.html`, `signup.html`, `reset-password.html` e blocos maiores de `presente.html`; por isso `unsafe-inline` ainda não pode ser removido de `script-src`
+
+**Ressalva:** `unsafe-inline` em `script-src` ainda é necessário pelos scripts inline restantes em páginas de autenticação, dashboard, landing e presente. A primeira leva de bootstraps do convite já foi externalizada, mas remover `unsafe-inline` exige continuar a migração desses blocos maiores. O CSP atual ainda bloqueia scripts de origens externas não listadas, que é o vetor mais comum de XSS.
 
 ---
 
