@@ -239,14 +239,16 @@ Vários pontos usam `innerHTML` com dados vindos de `site.json` ou do Supabase. 
 - `dashboard.js`: renderização de confirmações com dados do Supabase via `innerHTML`
 
 **Checklist de verificação:**
-- [ ] Buscar todos os `innerHTML` no projeto: `grep -rn "innerHTML" assets/js/`
-- [ ] Para cada ocorrência, rastrear a origem do dado (config JSON, Supabase, input do usuário)
-- [ ] Verificar se algum campo de texto do `site.json` aceita HTML real ou é texto puro
+- [x] Buscar todos os `innerHTML` no projeto: `rg -n "innerHTML" assets/js/` — executado em 2026-06-12
+- [x] Para cada ocorrência, rastrear a origem do dado (config JSON, Supabase, input do usuário) — pontos públicos de config revisados em 2026-06-12
+- [x] Verificar se algum campo de texto do `site.json` aceita HTML real ou é texto puro — campos de texto tratados como texto puro; `script.js` e `gallery.js` escapam valores antes de renderizar em templates
 
 **Corrigido em 2026-05-18** — `escapeHtml` (já existente em `utils.js`) aplicado em:
 - [x] `faq.js` — `question` e `answer`
 - [x] `historia.js` — `year`, `title`, `text` de cada capítulo
 - [x] `hospedagem.js` — `name`, `description`, `linkLabel` e validação de URL com `isSafeUrl()` para bloquear `javascript:` nos `href`
+- [x] `script.js` — nomes da intro e cards de páginas extras (`cardLabel`, `cardHint`)
+- [x] `gallery.js` — `src`/`alt` de imagens da galeria, com bloqueio de protocolos inseguros como `javascript:`
 
 `dashboard.js` tem o mesmo padrão com dados do Supabase, mas o dashboard só é acessado pelo casal autenticado — risco residual aceito.
 

@@ -9,6 +9,26 @@
  * Para desabilitar: esvazie (ou remova) o index.json — a galeria simplesmente não aparece.
  */
 
+import { escapeHtml } from './utils.js';
+
+function normalizeImageSrc(src) {
+    const raw = String(src || '').trim();
+    if (!raw) return '';
+
+    try {
+        const parsed = new URL(raw, window.location.origin);
+        if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+            return '';
+        }
+
+        return parsed.origin === window.location.origin
+            ? `${parsed.pathname}${parsed.search}${parsed.hash}`
+            : parsed.href;
+    } catch {
+        return '';
+    }
+}
+
 /**
  * Inicializa a galeria dentro do elemento identificado por containerId.
  * @param {string} containerId - ID do elemento container no DOM.
@@ -18,7 +38,16 @@ export function initGallery(containerId, images) {
     const container = document.getElementById(containerId);
     if (!container || !Array.isArray(images) || images.length === 0) return;
 
-    const total = images.length;
+    const safeImages = images
+        .map((img) => ({
+            src: normalizeImageSrc(img?.src),
+            alt: String(img?.alt ?? ''),
+        }))
+        .filter((img) => img.src);
+
+    if (safeImages.length === 0) return;
+
+    const total = safeImages.length;
     let currentIndex = 0;
     let lastSwipeAt = 0;
 
@@ -28,9 +57,9 @@ export function initGallery(containerId, images) {
     // Constrói o HTML interno da galeria
     container.innerHTML =
         `<div class="gallery-track" role="region" aria-live="polite" aria-label="Galeria de fotos, imagem 1 de ${total}">` +
-            images.map((img, i) =>
+            safeImages.map((img, i) =>
                 `<figure class="gallery-slide${i === 0 ? ' active' : ''}" aria-hidden="${i !== 0}" data-index="${i}">` +
-                `<img src="${img.src}" alt="${img.alt ?? ''}" loading="lazy">` +
+                `<img src="${escapeHtml(img.src)}" alt="${escapeHtml(img.alt)}" loading="lazy">` +
                 `</figure>`
             ).join('') +
         `</div>` +
@@ -38,7 +67,7 @@ export function initGallery(containerId, images) {
             ? `<div class="gallery-controls">` +
                                 `<button class="gallery-nav gallery-prev" aria-label="Ver foto anterior" type="button">&#8592;</button>` +
                 `<div class="gallery-dots" role="tablist">` +
-                    images.map((_, i) =>
+                    safeImages.map((_, i) =>
                                                 `<button class="gallery-dot${i === 0 ? ' active' : ''}" role="tab" aria-selected="${i === 0}" aria-label="Ir para foto ${i + 1}" data-index="${i}" type="button"></button>`
                     ).join('') +
                 `</div>` +

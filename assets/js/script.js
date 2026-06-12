@@ -4,7 +4,7 @@ import { RSVP } from './rsvp.js';
 import { PresentPage } from './presente.js';
 import { AudioController } from './audio.js';
 import { GuestViewTracker } from './guest-analytics.js';
-import { cloneDeep, mergeDeep, setInputPlaceholder, setText } from './utils.js';
+import { cloneDeep, escapeHtml, mergeDeep, setInputPlaceholder, setText } from './utils.js';
 import {
     getEventSlugFromPath,
     getThemeOverrideBucketKeys,
@@ -1086,7 +1086,7 @@ class InvitationExperience {
         const introScreenTitle = document.getElementById('introScreenTitle');
 
         if (introScreenTitle) {
-            introScreenTitle.innerHTML = `${names.firstName} <span>&</span> ${names.secondName}`;
+            introScreenTitle.innerHTML = `${escapeHtml(names.firstName)} <span>&</span> ${escapeHtml(names.secondName)}`;
         }
 
         setText('introLabel', this.config.texts?.introLabel);
@@ -1456,8 +1456,8 @@ class InvitationExperience {
             const page = pages[key];
             const url = buildInternalUrl(PAGE_URLS[key], this.guestToken);
             return `<a class="extras-card" href="${url}">
-                <span class="extras-card-label">${page.cardLabel ?? ''}</span>
-                <span class="extras-card-hint">${page.cardHint ?? ''}</span>
+                <span class="extras-card-label">${escapeHtml(page.cardLabel)}</span>
+                <span class="extras-card-hint">${escapeHtml(page.cardHint)}</span>
             </a>`;
         }).join('');
         grid.classList.add('visible');
