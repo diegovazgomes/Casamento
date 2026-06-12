@@ -1,6 +1,7 @@
 # Checklist de Segurança — Convite de Casamento
 
-> Auditoria realizada em 2026-05-18. Cobre frontend estático, Vercel Functions, Supabase e gestão do secrets.
+> Auditoria inicial realizada em 2026-05-18. Cobre frontend estático, Vercel Functions, Supabase e gestão do secrets.
+> Segunda auditoria realizada em 2026-06-12 — novos achados registrados como C4, A4, A5, M4 e B6.
 > Verificações C1, RLS e Storage executadas em 2026-05-18 — resultados inline em cada item.
 
 > **Isolamento de ambientes confirmado em 2026-05-18:** dev (`zunizibunrsjizgsfdlr.supabase.co`) e produção (`lrlmjalkbgbzzsbgdfax.supabase.co`) são projetos completamente separados — Supabase, Vercel, GitHub e emails distintos, todas as chaves independentes. O ambiente dev não representa risco para dados de produção.
@@ -9,12 +10,12 @@
 
 ## Resumo executivo
 
-| Severidade | Qtd | Status geral |
-|------------|-----|--------------|
-| 🔴 Crítico | 1   | ✅ C3 (Storage) corrigido em 2026-05-18 |
-| 🟠 Alto    | 0   | ✅ Todos corrigidos — A1 env var adicionada no Vercel |
-| 🟡 Médio   | 0   | ✅ Todos tratados — M1 é limitação do plano gratuito, risco residual aceito |
-| 🔵 Baixo   | 1   | B1/B2/B4/B5 corrigidos — B3 aguarda ação no Supabase (LGPD) |
+| Severidade | Abertos | Status geral |
+|------------|---------|--------------||
+| 🔴 Crítico | 1 | C3 corrigido em 2026-05-18 — **C4 aberto** (rate limiting inoperante no serverless) |
+| 🟠 Alto    | 2 | A1/A2/A3 corrigidos — **A4 e A5 abertos** (sem rate limiting em guest-token e signup) |
+| 🟡 Médio   | 1 | M1/M2/M3 tratados — **M4 aberto** (catch silencioso no limite de RSVP gratuito) |
+| 🔵 Baixo   | 2 | B1/B2/B4/B5 corrigidos — **B3 e B6 aguardam correção** |
 
 ---
 
@@ -109,6 +110,28 @@ Isso garante que apenas o dono autenticado do evento pode ler, fazer upload, atu
 
 ---
 
+### C4 — Rate limiting em `Map()` em memória inoperante no ambiente serverless
+
+**Arquivos:** `api/event-config.js`, `api/submissions.js` — **descoberto em 2026-06-12**
+
+O rate limiting implementado em A3 e o pré-existente em `api/event-config.js` usam `Map()` em memória para rastrear requests por IP. Em ambiente Vercel serverless, cada instância da função é um processo isolado com seu próprio `Map`. Sob carga real, o Vercel distribui requests entre múltiplas instâncias paralelas — cada uma com contador zerado — tornando o rate limiting efetivamente inoperante contra qualquer ataque com mais de uma instância simultânea.
+
+**Impacto:** os limites de 10 req/min (`submissions`) e 30 req/min (`event-config`) existem no código mas não protegem em produção. Um bot pode enviar milhares de RSVPs falsos ou enumerar slugs sem qualquer barreira global.
+
+**Restrição importante:** o limite de funções serverless do plano Vercel Hobby já foi atingido — não é possível criar novas funções. As alternativas que não criam novas funções serverless são:
+
+| Alternativa | Custo | Complexidade | Cria nova função serverless? |
+|---|---|---|---|
+| Upstash Redis + `@upstash/ratelimit` | Free tier (10 k req/dia) | Médio — adiciona dependência e modifica funções existentes | Não |
+| Vercel Edge Middleware (`middleware.js`) | Grátis no plano atual | Médio — arquivo `middleware.js` na raiz do projeto | Não (Edge ≠ Serverless) |
+
+**Checklist de correção:**
+- [ ] Decidir entre Upstash Redis ou Vercel Edge Middleware
+- [ ] Implementar rate limiting persistido entre instâncias
+- [ ] Testar que requests distribuídos entre múltiplas origens são corretamente limitados
+
+---
+
 ## 🟠 ALTO — Corrigir esta semana
 
 ### A1 — ~~CORS `*` em endpoints autenticados do dashboard~~ ✅ CORRIGIDO
@@ -139,6 +162,40 @@ Adicionado bloco `headers` global com: `X-Content-Type-Options: nosniff`, `X-Fra
 **Arquivo:** `api/submissions.js` — **corrigido em 2026-05-18**
 
 Implementado rate limiting por IP: máximo 10 submissões por minuto por IP. IPs que ultrapassam o limite recebem HTTP 429 com header `Retry-After: 60`. A lógica usa Map em memória seguindo o mesmo padrão já existente em `api/event-config.js`.
+
+> ⚠️ **Ressalva identificada em 2026-06-12:** a implementação com `Map()` em memória é arquiteturalmente inoperante no Vercel serverless — cada instância tem seu próprio contador isolado. O código existe, mas a proteção não é efetiva em produção. Ver **C4**.
+
+---
+
+### A4 — `api/guest-token.js` sem rate limiting
+
+**Arquivo:** `api/guest-token.js` — **descoberto em 2026-06-12**
+
+Endpoint público sem qualquer controle de frequência. Responde 200 com dados do grupo ou 404 para token inválido — a diferença de resposta permite **enumeration**: um atacante pode tentar tokens sistematicamente e distinguir quais existem.
+
+**Impacto:** exposição de `group_name` e `max_confirmations` de grupos de convidados por força bruta. Tokens são UUIDs (alta entropia), mas sem rate limiting não há qualquer barreira.
+
+**Restrição:** não exige criação de nova função serverless — apenas adicionar o padrão em memória ao arquivo existente. A proteção será parcial até que C4 seja resolvido.
+
+**Checklist:**
+- [ ] Adicionar rate limiting em memória (máx. 20 req/min por IP) em `api/guest-token.js`
+- [ ] Resolver C4 para que o limite seja efetivo entre instâncias
+
+---
+
+### A5 — `api/auth/signup.js` sem rate limiting na função serverless
+
+**Arquivo:** `api/auth/signup.js` — **descoberto em 2026-06-12**
+
+O Supabase aplica rate limiting interno de autenticação (30 sign-ins/5 min por IP, documentado em M1), mas esse limite é aplicado **depois** que a função serverless já processou o request. A função `api/auth/signup.js` não tem barreira antes de chamar o Supabase.
+
+**Impacto:** automação de cadastros em massa dispara emails de verificação (abuso do serviço de email), consome slots de usuário e pode escalar custos. O rate limiting do Supabase mitiga parcialmente.
+
+**Restrição:** não exige criação de nova função serverless — apenas modificar o arquivo existente.
+
+**Checklist:**
+- [ ] Adicionar rate limiting em memória (máx. 5 req/min por IP) em `api/auth/signup.js`
+- [ ] Resolver C4 para que o limite seja efetivo entre instâncias
 
 ---
 
@@ -196,6 +253,24 @@ Removido o campo `commitSha` da resposta do endpoint público `/api/event-config
 
 ---
 
+### M4 — `checkRsvpLimit()` com `catch {}` completamente silencioso
+
+**Arquivo:** `api/submissions.js`, função `checkRsvpLimit()` — **descoberto em 2026-06-12**
+
+A função que verifica o limite de 50 RSVPs do plano gratuito tem um bloco `catch {}` vazio que descarta qualquer erro de banco silenciosamente, liberando o RSVP mesmo sem ter verificado o limite.
+
+**Impacto:** durante qualquer instabilidade de banco (transiente ou não), usuários do plano gratuito ultrapassam o limite sem aviso ou bloqueio no servidor.
+
+**Corrigir altera o funcionamento?**
+- Opção A — logar o erro e manter comportamento permissivo: sem impacto para o convidado
+- Opção B — bloquear o RSVP quando a verificação falhar para plano free: pode causar falsos negativos durante instabilidade de DB
+
+**Checklist:**
+- [ ] Substituir `catch {}` por `catch (err) { console.warn('[submissions] checkRsvpLimit falhou:', err?.message); }` (Opção A)
+- [ ] Decidir se adota Opção B (restritiva) antes de ir para produção
+
+---
+
 ## 🔵 BAIXO — Boas práticas
 
 ### B1 — ~~Sem `robots.txt`~~ ✅ CORRIGIDO
@@ -232,6 +307,20 @@ CSP adicionado ao `vercel.json` em 2026-05-18 cobrindo todas as páginas:
 **Ajuste aplicado em 2026-05-20:** `style-src` passou a incluir `https://unpkg.com` para permitir o carregamento do `leaflet.css` na página de hospedagem. Sem esse stylesheet, o mapa renderiza com tiles desalinhados/quebrados.
 
 **Ressalva:** `unsafe-inline` em `script-src` é necessário pelos scripts inline de bootstrap no `index.html`. Eles lêem `sessionStorage` antes do carregamento do JS modular e não podem ser movidos para arquivos externos sem refatoração. O CSP atual ainda bloqueia scripts de origens externas não listadas, que é o vetor mais comum de XSS.
+
+---
+
+### B6 — `api/payments.js` (checkout) sem rate limiting
+
+**Arquivo:** `api/payments.js`, action `checkout` — **descoberto em 2026-06-12**
+
+O endpoint de criação de checkout session não tem rate limiting. Risco baixo pois requer Bearer token válido e o código já verifica `isPremiumPlan()` antes de criar a sessão. O Stripe tem proteções próprias contra sessões duplicadas.
+
+**Impacto:** mínimo — um usuário autenticado poderia criar múltiplas checkout sessions consecutivas, mas a verificação de plano e o Stripe barram o efeito prático.
+
+**Checklist:**
+- [ ] Adicionar rate limiting em memória (máx. 5 req/min por IP) em `api/payments.js` — não exige nova função serverless
+- [ ] Dependência: resolver C4 para efetividade entre instâncias
 
 ---
 
