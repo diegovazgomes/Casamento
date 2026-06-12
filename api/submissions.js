@@ -1,27 +1,9 @@
 import { createSupabaseServerClient } from './_lib/supabase-server.js';
+import { consumeRateLimit, getClientIp } from './_lib/rate-limit.js';
 
 const RATE_LIMIT_MAX = 10;
 const RATE_LIMIT_WINDOW_MS = 60_000;
-const requestsByIp = new Map();
-
-function getClientIp(req) {
-  const headers = req?.headers || {};
-  const forwarded = headers['x-forwarded-for'];
-  if (typeof forwarded === 'string') return forwarded.split(',')[0].trim();
-  return headers['x-real-ip'] || 'unknown';
-}
-
-function isRateLimited(ip) {
-  const now = Date.now();
-  const history = (requestsByIp.get(ip) || []).filter(t => now - t < RATE_LIMIT_WINDOW_MS);
-  if (history.length >= RATE_LIMIT_MAX) {
-    requestsByIp.set(ip, history);
-    return true;
-  }
-  history.push(now);
-  requestsByIp.set(ip, history);
-  return false;
-}
+const RATE_LIMIT_SCOPE = 'submissions';
 
 const FREE_RSVP_LIMIT = 50;
 const RSVP_TABLE = 'rsvp_confirmations';
@@ -437,9 +419,15 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const ip = getClientIp(req);
-  if (isRateLimited(ip)) {
-    res.setHeader('Retry-After', '60');
+  const rateLimit = await consumeRateLimit({
+    scope: RATE_LIMIT_SCOPE,
+    identifier: getClientIp(req),
+    max: RATE_LIMIT_MAX,
+    windowMs: RATE_LIMIT_WINDOW_MS,
+  });
+
+  if (!rateLimit.allowed) {
+    res.setHeader('Retry-After', String(rateLimit.retryAfterSec || 60));
     return res.status(429).json({ error: 'Too many requests. Try again in a minute.' });
   }
 

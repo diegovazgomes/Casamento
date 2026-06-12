@@ -6,6 +6,7 @@ import {
   resolveEventPixQrFromStorage,
 } from './_lib/event-config.js';
 import { createSupabaseServerClient } from './_lib/supabase-server.js';
+import { consumeRateLimit, getClientIp } from './_lib/rate-limit.js';
 
 const CACHE_CONTROL_HEADER = 'no-store, no-cache, must-revalidate';
 const SLUG_MIN_LENGTH = 3;
@@ -67,9 +68,6 @@ const RESERVED_SLUGS = new Set([
   'musica',
   'presente',
 ]);
-
-const requestsByIp = new Map();
-const lastCheckByIpAndSlug = new Map();
 
 function normalizeSlug(rawSlug) {
   if (Array.isArray(rawSlug)) {
@@ -186,48 +184,6 @@ function normalizeSlugCandidate(value) {
     .replace(/-{2,}/g, '-');
 }
 
-function getClientIp(req) {
-  const forwardedFor = req?.headers?.['x-forwarded-for'] || req?.headers?.['X-Forwarded-For'];
-  if (typeof forwardedFor === 'string' && forwardedFor.trim()) {
-    return forwardedFor.split(',')[0].trim();
-  }
-
-  const realIp = req?.headers?.['x-real-ip'] || req?.headers?.['X-Real-IP'];
-  if (typeof realIp === 'string' && realIp.trim()) {
-    return realIp.trim();
-  }
-
-  return 'unknown';
-}
-
-function consumeRateLimit(ip, slug) {
-  const now = Date.now();
-  const normalizedSlug = normalizeSlugCandidate(slug);
-  const ipAndSlugKey = `${ip}::${normalizedSlug}`;
-  const lastCheckAt = lastCheckByIpAndSlug.get(ipAndSlugKey) || 0;
-
-  if (normalizedSlug && (now - lastCheckAt) < RATE_LIMIT_SAME_SLUG_GRACE_MS) {
-    return { allowed: true, retryAfterSec: 0 };
-  }
-
-  const history = requestsByIp.get(ip) || [];
-  const recentHistory = history.filter((timestamp) => now - timestamp < RATE_LIMIT_WINDOW_MS);
-
-  if (recentHistory.length >= RATE_LIMIT_MAX_REQUESTS) {
-    const retryAfterMs = Math.max(0, RATE_LIMIT_WINDOW_MS - (now - recentHistory[0]));
-    const retryAfterSec = Math.ceil(retryAfterMs / 1000);
-    requestsByIp.set(ip, recentHistory);
-    return { allowed: false, retryAfterSec };
-  }
-
-  recentHistory.push(now);
-  requestsByIp.set(ip, recentHistory);
-  if (normalizedSlug) {
-    lastCheckByIpAndSlug.set(ipAndSlugKey, now);
-  }
-  return { allowed: true, retryAfterSec: 0 };
-}
-
 function validateSlugCandidate(rawSlug) {
   const normalized = normalizeSlugCandidate(rawSlug);
 
@@ -267,8 +223,14 @@ async function handleSlugAvailabilityCheck(req, res, supabase) {
     });
   }
 
-  const ip = getClientIp(req);
-  const rateLimit = consumeRateLimit(ip, validation.normalized);
+  const rateLimit = await consumeRateLimit({
+    scope: 'event-config:check-slug',
+    identifier: getClientIp(req),
+    max: RATE_LIMIT_MAX_REQUESTS,
+    windowMs: RATE_LIMIT_WINDOW_MS,
+    skipKey: validation.normalized,
+    skipWindowMs: RATE_LIMIT_SAME_SLUG_GRACE_MS,
+  });
 
   if (!rateLimit.allowed) {
     res.setHeader('Retry-After', String(rateLimit.retryAfterSec));

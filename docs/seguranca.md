@@ -38,7 +38,7 @@ O arquivo `.env` contém um GitHub Personal Access Token real (`github_pat_...`)
 | `.env` está no `.gitignore`? | `cat .gitignore \| grep env` | ✅ **Sim** — `.env` e `.env.local` estão excluídos |
 | Arquivo existe em disco? | `ls -la .env*` | ⚠️ **Sim** — `.env` de 106 bytes, criado em 04/05/2026 |
 
-**Conclusão:** O token **não foi exposto no repositório git** e não está no histórico. O risco é restrito ao acesso físico à máquina local. Severidade rebaixada de Crítico para Médio-Alto.
+**Conclusão:** O token **não foi exposto no repositório git** e não está no histórico. O risco é restrito ao acesso físico à máquina local. Severidade rebaixada de Crítico para Médio-Alto. Em 2026-06-12, o arquivo local foi padronizado como `.env.local`.
 
 #### Contexto adicional verificado em 2026-05-18 (log de auditoria GitHub)
 
@@ -46,8 +46,8 @@ O log de auditoria (`github.com/settings/security-log`) mostra apenas eventos de
 
 **Checklist de implementação:**
 - [x] ~~Revogar o token~~ — token é necessário para desenvolvimento local (Claude GitHub App / Supabase OAuth)
-- [ ] Mover o conteúdo do `.env` para `.env.local` (já coberto pelo `.gitignore`) e deletar o `.env` — apenas por higiene, para evitar confusão futura
-- [ ] Nunca criar arquivos chamados `.env` sem o sufixo `.local` — padronizar em `.env.local` para desenvolvimento
+- [x] Mover o conteúdo do `.env` para `.env.local` (já coberto pelo `.gitignore`) e deletar o `.env` — concluído em 2026-06-12
+- [x] Nunca criar arquivos chamados `.env` sem o sufixo `.local` — padrão local atual: `.env.local`
 - [ ] Monitorar o log de auditoria periodicamente: https://github.com/settings/security-log
 
 ---
@@ -126,9 +126,12 @@ O rate limiting implementado em A3 e o pré-existente em `api/event-config.js` u
 | Vercel Edge Middleware (`middleware.js`) | Grátis no plano atual | Médio — arquivo `middleware.js` na raiz do projeto | Não (Edge ≠ Serverless) |
 
 **Checklist de correção:**
-- [ ] Decidir entre Upstash Redis ou Vercel Edge Middleware
-- [ ] Implementar rate limiting persistido entre instâncias
+- [x] Decidir entre Upstash Redis ou Vercel Edge Middleware — escolhido Upstash Redis REST, pois persiste contadores entre instâncias sem criar nova função serverless
+- [x] Implementar rate limiting persistido entre instâncias — helper `api/_lib/rate-limit.js` aplicado em `api/submissions.js` e `api/event-config.js` em 2026-06-12
+- [ ] Configurar `UPSTASH_REDIS_REST_URL` e `UPSTASH_REDIS_REST_TOKEN` na Vercel para produção e preview
 - [ ] Testar que requests distribuídos entre múltiplas origens são corretamente limitados
+
+**Teste local possível:** sem Upstash configurado, o fallback em memória deve continuar retornando HTTP 429 após exceder o limite no mesmo processo. Com Upstash configurado na Vercel, repetir o teste em produção/previews confirma a proteção compartilhada entre instâncias.
 
 ---
 
