@@ -375,6 +375,14 @@ input[type="date"].field-input{width:100%;min-width:0;box-sizing:border-box;-web
   margin-bottom:8px;
   display:flex;flex-direction:column;gap:6px;
 }
+.dashboard-account-email{
+  min-width:0;max-width:100%;
+  color:var(--text-soft);
+  font-size:11px;font-weight:300;line-height:1.4;
+  letter-spacing:0.02em;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.dashboard-account-email[hidden]{display:none!important}
 .btn-sm{padding:8px 16px}
 .sidebar-hamburger{
   display:none;
@@ -426,6 +434,9 @@ input[type="date"].field-input{width:100%;min-width:0;box-sizing:border-box;-web
 }
 .drawer-plan-label strong{
   color:var(--text);font-weight:600;text-transform:capitalize;
+}
+.drawer-plan .dashboard-account-email{
+  font-size:12px;
 }
 .drawer-item{
   display:flex;align-items:center;gap:10px;
@@ -2208,6 +2219,7 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
       </div>
       <div class="sidebar-plan" id="sidebarPlan" hidden>
         <span class="sidebar-plan-label">Plano: <strong id="sidebarPlanName">Free</strong></span>
+        <span class="dashboard-account-email" id="sidebarAccountEmail" hidden></span>
         <button class="btn btn-primary btn-full btn-sm" id="btnUpgrade" hidden>
           Upgrade para Premium
         </button>
@@ -3794,6 +3806,7 @@ window.__DASHBOARD_BOOTSTRAP_PROMISE__ = (async function loadTheme() {
   <div class="mobile-drawer-body">
     <div class="drawer-plan" id="drawerPlan">
       <span class="drawer-plan-label">Plano: <strong id="drawerPlanName">Free</strong></span>
+      <span class="dashboard-account-email" id="drawerAccountEmail" hidden></span>
       <button class="btn btn-primary btn-full btn-sm" id="drawerBtnUpgrade" hidden>
         Upgrade para Premium
       </button>

@@ -755,10 +755,35 @@ function isPremiumPlan(planValue) {
   return String(planValue || '').trim().toLowerCase() === 'premium';
 }
 
+function renderAccountEmail(profile) {
+  const email = String(profile?.email || '').trim();
+  const emailElements = [
+    document.getElementById('sidebarAccountEmail'),
+    document.getElementById('drawerAccountEmail'),
+  ];
+
+  emailElements.forEach((element) => {
+    if (!element) return;
+
+    if (!email) {
+      element.hidden = true;
+      element.textContent = '';
+      element.removeAttribute('title');
+      return;
+    }
+
+    element.hidden = false;
+    element.textContent = email;
+    element.setAttribute('title', email);
+  });
+}
+
 function renderPlanBadge(profile) {
   const plan = String(profile?.plan || 'free');
   const isPremium = isPremiumPlan(plan);
   const planLabel = isPremium ? 'Premium' : 'Free';
+
+  renderAccountEmail(profile);
 
   // Sidebar desktop
   const container = document.getElementById('sidebarPlan');

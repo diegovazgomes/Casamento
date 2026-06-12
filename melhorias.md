@@ -103,6 +103,10 @@
   O botão grande da topbar mostrava um checkmark SVG e mudava cor/borda ao copiar, igual aos ícones pequenos da tabela — visual pesado para um botão de destaque.
   > Corrigido em `dashboard.js`: `copyGeneralInviteLink` agora troca apenas o texto do span `.btn-label` para "Link copiado" por 2 segundos e restaura o original. Sem ícone, sem mudança de cor. Implementado em 23/05/2026.
 
+- [x] **N10 - Exibir e-mail da conta no dashboard**
+  O dashboard mostrava o plano do usuario, mas nao deixava visivel qual e-mail estava autenticado na sessao.
+  > Implementado em `dashboard.html` e `dashboard.js`: o e-mail retornado por `/api/dashboard/profile` aparece abaixo do plano na sidebar desktop e no menu mobile aberto pelo hamburguer, com truncamento visual para nao quebrar o alinhamento. Implementado em 11/06/2026.
+
 ---
 
 ## Documentação técnica
