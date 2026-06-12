@@ -8,11 +8,15 @@
 
 import Stripe from 'stripe';
 import { authenticateDashboardRequest } from './_lib/dashboard-auth.js';
+import { consumeRateLimit, getClientIp } from './_lib/rate-limit.js';
 import { createSupabaseServerClient } from './_lib/supabase-server.js';
 
 export const config = { api: { bodyParser: false } };
 
 const PREMIUM_PLAN_DURATION_MONTHS = 12;
+const CHECKOUT_RATE_LIMIT_MAX = 5;
+const CHECKOUT_RATE_LIMIT_WINDOW_MS = 60_000;
+const CHECKOUT_RATE_LIMIT_SCOPE = 'payments-checkout';
 
 function getStripe() {
   const key = process.env.STRIPE_SECRET_KEY;
@@ -258,6 +262,18 @@ export default async function handler(req, res) {
 
   try {
     if (action === 'checkout') {
+      const rateLimit = await consumeRateLimit({
+        scope: CHECKOUT_RATE_LIMIT_SCOPE,
+        identifier: getClientIp(req),
+        max: CHECKOUT_RATE_LIMIT_MAX,
+        windowMs: CHECKOUT_RATE_LIMIT_WINDOW_MS,
+      });
+
+      if (!rateLimit.allowed) {
+        res.setHeader('Retry-After', String(rateLimit.retryAfterSec || 60));
+        return res.status(429).json({ error: 'Muitas tentativas de checkout. Tente novamente em um minuto.' });
+      }
+
       return await handleCheckout(req, res, rawBody);
     }
 

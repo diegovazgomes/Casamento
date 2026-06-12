@@ -152,8 +152,8 @@ async function checkRsvpLimit(supabase, eventId) {
         hint: '',
       };
     }
-  } catch {
-    // Silencioso — não bloquear o RSVP por falha de verificação
+  } catch (err) {
+    console.warn('[submissions] checkRsvpLimit falhou:', err?.message);
   }
   return null;
 }

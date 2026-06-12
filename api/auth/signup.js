@@ -27,15 +27,13 @@
 
 import { createClient } from '@supabase/supabase-js';
 import { createSupabaseServerClient } from '../_lib/supabase-server.js';
+import { consumeRateLimit, getClientIp } from '../_lib/rate-limit.js';
 
 const WHATSAPP_RE = /^\d{10,15}$/;
 const EMAIL_RE    = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-function getClientIp(req) {
-  const forwarded = req.headers['x-forwarded-for'];
-  if (forwarded) return String(forwarded).split(',')[0].trim();
-  return req.socket?.remoteAddress || null;
-}
+const RATE_LIMIT_MAX = 5;
+const RATE_LIMIT_WINDOW_MS = 60_000;
+const RATE_LIMIT_SCOPE = 'auth-signup';
 
 function validateBody({ couple_name, bride_name, groom_name, email, whatsapp, password }) {
   if (!bride_name || String(bride_name).trim().length < 2) {
@@ -402,6 +400,18 @@ export default async function handler(req, res) {
   const validationError = validateBody({ couple_name, bride_name, groom_name, email, whatsapp, password });
   if (validationError) {
     return res.status(400).json({ error: validationError });
+  }
+
+  const rateLimit = await consumeRateLimit({
+    scope: RATE_LIMIT_SCOPE,
+    identifier: getClientIp(req),
+    max: RATE_LIMIT_MAX,
+    windowMs: RATE_LIMIT_WINDOW_MS,
+  });
+
+  if (!rateLimit.allowed) {
+    res.setHeader('Retry-After', String(rateLimit.retryAfterSec || 60));
+    return res.status(429).json({ error: 'Muitas tentativas. Tente novamente em um minuto.' });
   }
 
   try {

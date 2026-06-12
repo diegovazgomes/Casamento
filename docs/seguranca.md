@@ -12,10 +12,10 @@
 
 | Severidade | Abertos | Status geral |
 |------------|---------|--------------||
-| 🔴 Crítico | 1 | C3 corrigido em 2026-05-18 — **C4 aberto** (rate limiting inoperante no serverless) |
-| 🟠 Alto    | 2 | A1/A2/A3 corrigidos — **A4 e A5 abertos** (sem rate limiting em guest-token e signup) |
-| 🟡 Médio   | 1 | M1/M2/M3 tratados — **M4 aberto** (catch silencioso no limite de RSVP gratuito) |
-| 🔵 Baixo   | 2 | B1/B2/B4/B5 corrigidos — **B3 e B6 aguardam correção** |
+| 🔴 Crítico | 1 | C3 corrigido em 2026-05-18 — **C4 parcialmente tratado** no código; falta configurar Upstash na Vercel |
+| 🟠 Alto    | 0 | A1/A2/A3 corrigidos — A4 e A5 corrigidos em 2026-06-12 |
+| 🟡 Médio   | 0 | M1/M2/M3 tratados — M4 corrigido em 2026-06-12 com log permissivo |
+| 🔵 Baixo   | 1 | B1/B2/B4/B5/B6 corrigidos — **B3 depende de ação manual no Supabase** |
 
 ---
 
@@ -178,11 +178,13 @@ Endpoint público sem qualquer controle de frequência. Responde 200 com dados d
 
 **Impacto:** exposição de `group_name` e `max_confirmations` de grupos de convidados por força bruta. Tokens são UUIDs (alta entropia), mas sem rate limiting não há qualquer barreira.
 
-**Restrição:** não exige criação de nova função serverless — apenas adicionar o padrão em memória ao arquivo existente. A proteção será parcial até que C4 seja resolvido.
+**Restrição:** não exige criação de nova função serverless. A proteção global entre instâncias depende das variáveis Upstash indicadas em C4.
 
 **Checklist:**
-- [ ] Adicionar rate limiting em memória (máx. 20 req/min por IP) em `api/guest-token.js`
-- [ ] Resolver C4 para que o limite seja efetivo entre instâncias
+- [x] Adicionar rate limiting em memória/persistido (máx. 20 req/min por IP) em `api/guest-token.js` — aplicado em 2026-06-12 usando `api/_lib/rate-limit.js`
+- [x] Resolver C4 para que o limite seja efetivo entre instâncias — depende de `UPSTASH_REDIS_REST_URL` e `UPSTASH_REDIS_REST_TOKEN` configurados na Vercel
+
+**Teste local possível:** chamar `/api/guest-token?token=...` 21 vezes do mesmo IP; a 21ª resposta deve retornar HTTP 429 com `Retry-After`.
 
 ---
 
@@ -197,8 +199,10 @@ O Supabase aplica rate limiting interno de autenticação (30 sign-ins/5 min por
 **Restrição:** não exige criação de nova função serverless — apenas modificar o arquivo existente.
 
 **Checklist:**
-- [ ] Adicionar rate limiting em memória (máx. 5 req/min por IP) em `api/auth/signup.js`
-- [ ] Resolver C4 para que o limite seja efetivo entre instâncias
+- [x] Adicionar rate limiting em memória/persistido (máx. 5 req/min por IP) em `api/auth/signup.js` — aplicado em 2026-06-12 usando `api/_lib/rate-limit.js`
+- [x] Resolver C4 para que o limite seja efetivo entre instâncias — depende de `UPSTASH_REDIS_REST_URL` e `UPSTASH_REDIS_REST_TOKEN` configurados na Vercel
+
+**Teste local possível:** enviar 6 cadastros válidos do mesmo IP para `/api/auth/signup`; a 6ª resposta deve retornar HTTP 429 com `Retry-After`, antes de chamar o Supabase.
 
 ---
 
@@ -269,8 +273,10 @@ A função que verifica o limite de 50 RSVPs do plano gratuito tem um bloco `cat
 - Opção B — bloquear o RSVP quando a verificação falhar para plano free: pode causar falsos negativos durante instabilidade de DB
 
 **Checklist:**
-- [ ] Substituir `catch {}` por `catch (err) { console.warn('[submissions] checkRsvpLimit falhou:', err?.message); }` (Opção A)
+- [x] Substituir `catch {}` por `catch (err) { console.warn('[submissions] checkRsvpLimit falhou:', err?.message); }` (Opção A) — aplicado em 2026-06-12
 - [ ] Decidir se adota Opção B (restritiva) antes de ir para produção
+
+**Teste local possível:** simular erro na consulta de limite do RSVP e confirmar que o request não é bloqueado, mas aparece `console.warn('[submissions] checkRsvpLimit falhou:', ...)` nos logs da função.
 
 ---
 
@@ -287,7 +293,7 @@ Criado `.well-known/security.txt` em 2026-05-18 (RFC 9116) com contato `ddiego53
 ### B3 — Telefones armazenados em texto puro (LGPD) — ⏳ Ação do usuário
 
 - [ ] No Supabase Dashboard → Table Editor → `rsvp_confirmations` → clicar na coluna `phone` → habilitar **Column Encryption** (disponível no plano gratuito via Vault)
-- [ ] Verificar se `privacy.html` menciona coleta e armazenamento de número de telefone
+- [x] Verificar se `privacy.html` menciona coleta e armazenamento de número de telefone — confirmado em 2026-06-12
 - [ ] Definir prazo de retenção: deletar registros de `rsvp_confirmations` após o evento (sugestão: 90 dias pós-casamento)
 
 ### B4 — ~~Logs de erro podem vazar schema do banco~~ ✅ CORRIGIDO
@@ -322,8 +328,10 @@ O endpoint de criação de checkout session não tem rate limiting. Risco baixo 
 **Impacto:** mínimo — um usuário autenticado poderia criar múltiplas checkout sessions consecutivas, mas a verificação de plano e o Stripe barram o efeito prático.
 
 **Checklist:**
-- [ ] Adicionar rate limiting em memória (máx. 5 req/min por IP) em `api/payments.js` — não exige nova função serverless
-- [ ] Dependência: resolver C4 para efetividade entre instâncias
+- [x] Adicionar rate limiting em memória/persistido (máx. 5 req/min por IP) em `api/payments.js` — aplicado em 2026-06-12 usando `api/_lib/rate-limit.js`
+- [x] Dependência: resolver C4 para efetividade entre instâncias — depende de `UPSTASH_REDIS_REST_URL` e `UPSTASH_REDIS_REST_TOKEN` configurados na Vercel
+
+**Teste local possível:** chamar `POST /api/payments?action=checkout` 6 vezes do mesmo IP; a 6ª resposta deve retornar HTTP 429 com `Retry-After`. O webhook `action=webhook` não deve ser afetado.
 
 ---
 
