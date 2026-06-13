@@ -1,4 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+// @vitest-environment happy-dom
+
 import { PresentPage } from '../../assets/js/presente.js';
 
 function mountPixDom(value = 'PIX123') {

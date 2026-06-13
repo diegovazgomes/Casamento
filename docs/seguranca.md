@@ -326,9 +326,10 @@ CSP adicionado ao `vercel.json` em 2026-05-18 cobrindo todas as páginas:
 - `signup.html` passou a usar `assets/js/signup.js`
 - `landing.html` passou a usar `assets/js/landing.js`
 - `dashboard.html` passou a usar `assets/js/dashboard-bootstrap.js`
-- Restam scripts inline em blocos maiores de `presente.html`; por isso `unsafe-inline` ainda não pode ser removido de `script-src`
+- `presente.html` passou a usar `assets/js/presente-page.js`
+- `vercel.json` teve `'unsafe-inline'` removido de `script-src`; a busca por scripts inline em HTML não retornou ocorrências
 
-**Ressalva:** `unsafe-inline` em `script-src` ainda é necessário pelos scripts inline restantes em presente. A primeira leva de bootstraps do convite já foi externalizada, mas remover `unsafe-inline` exige continuar a migração desses blocos maiores. O CSP atual ainda bloqueia scripts de origens externas não listadas, que é o vetor mais comum de XSS.
+**Ressalva:** `unsafe-inline` permanece em `style-src` porque o projeto ainda usa estilos inline em HTML. Em `script-src`, ele foi removido; o CSP atual bloqueia scripts inline e scripts de origens externas não listadas.
 
 ---
 
