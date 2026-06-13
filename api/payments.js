@@ -197,7 +197,7 @@ async function processCheckoutCompleted(event) {
     .maybeSingle();
 
   if (existing) {
-    console.log('[payments/webhook] Evento já processado, ignorando:', event.id);
+    console.warn('[payments/webhook] Evento já processado, ignorando:', event.id);
     return;
   }
 
@@ -227,7 +227,6 @@ async function processCheckoutCompleted(event) {
     plan: 'premium',
   });
 
-  console.log('[payments/webhook] Plano atualizado para premium:', userId);
 }
 
 // ─── HELPERS ─────────────────────────────────────────────────────────────────

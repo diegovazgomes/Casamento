@@ -111,7 +111,7 @@ async function handleSendReminder(req, res) {
       }
     } else {
       // Se Twilio não está configurado, apenas logar como enviado
-      console.log('[reminders] Twilio not configured, logging reminder only');
+      console.warn('[reminders] Twilio not configured, logging reminder only');
       sendStatus = 'sent';
     }
 
@@ -189,7 +189,6 @@ async function sendViaWhatsApp(phone, message, accountSid, authToken, phoneFrom)
       throw new Error(data.message || 'Twilio API error');
     }
 
-    console.log('[reminders] Message sent:', data.sid);
     return 'sent';
   } catch (error) {
     console.error('[reminders] Twilio send error:', error);

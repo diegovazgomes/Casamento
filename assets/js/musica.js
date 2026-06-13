@@ -19,7 +19,7 @@ function shouldPersistToDatabase(config, moduleName) {
 
     if (rsvpConfig.supabaseEnabled === false) {
         console.warn(
-            `[${moduleName}] config.rsvp.supabaseEnabled=false é legado e será ignorado. A persistência permanece habilitada; use config.rsvp.disablePersistence=true para desativar.`
+            `[${moduleName}] config.rsvp.supabaseEnabled=false Ã© legado e serÃ¡ ignorado. A persistÃªncia permanece habilitada; use config.rsvp.disablePersistence=true para desativar.`
         );
     }
 
@@ -71,7 +71,7 @@ function bindMusicForm(content, config) {
         if (!songTitle) {
             setFieldValidity(songField, true);
             feedback.classList.add('is-error');
-            feedback.textContent = 'Informe o nome da música antes de continuar.';
+            feedback.textContent = 'Informe o nome da mÃºsica antes de continuar.';
             return;
         }
 
@@ -80,12 +80,6 @@ function bindMusicForm(content, config) {
         }
 
         if (shouldPersistToDatabase(config, 'musica')) {
-            console.log('[musica] Enviando sugestão para persistência.', {
-                eventId: config?.rsvp?.eventId || 'wedding-event',
-                hasGuestName: Boolean(guestName),
-                songTitleLength: songTitle.length,
-            });
-
             const saved = await saveSongSuggestion({
                 guestName,
                 songTitle,
@@ -95,26 +89,24 @@ function bindMusicForm(content, config) {
             }).catch(() => false);
 
             if (!saved) {
-                console.warn('[musica] Falha na persistência da sugestão.');
+                console.warn('[musica] Falha na persistÃªncia da sugestÃ£o.');
                 feedback.classList.add('is-error');
                 const lastSubmissionError = getLastSubmissionError();
                 if (lastSubmissionError?.code === DEMO_SUBMISSIONS_BLOCKED_CODE) {
                     feedback.textContent = lastSubmissionError.message || 'Este convite e demonstrativo. RSVP, mensagens e musicas estao desativados no exemplo.';
                 } else {
-                    feedback.textContent = content?.errorMessage || 'Não foi possível enviar sua sugestão agora. Tente novamente.';
+                    feedback.textContent = content?.errorMessage || 'NÃ£o foi possÃ­vel enviar sua sugestÃ£o agora. Tente novamente.';
                 }
                 if (submitButton) {
                     submitButton.disabled = false;
                 }
                 return;
             }
-
-            console.log('[musica] Sugestão persistida com sucesso.');
         } else {
-            console.warn('[musica] Persistência desativada (config.rsvp.disablePersistence=true). Sugestão não será salva no banco.');
+            console.warn('[musica] PersistÃªncia desativada (config.rsvp.disablePersistence=true). SugestÃ£o nÃ£o serÃ¡ salva no banco.');
         }
 
-        feedback.textContent = content?.successMessage || 'Sugestão enviada com sucesso. Obrigado por participar da nossa festa.';
+        feedback.textContent = content?.successMessage || 'SugestÃ£o enviada com sucesso. Obrigado por participar da nossa festa.';
         form.reset();
         setFieldValidity(songField, false);
         if (submitButton) {

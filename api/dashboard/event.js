@@ -464,7 +464,7 @@ export default async function handler(req, res) {
 
     const ownedEvent = await requireOwnedEvent(req, {
       lookup,
-      allowFallbackOwnedEvent: false,
+      allowFallbackOwnedEvent: true,
       selectClause: 'id,user_id,config,slug',
     });
 
@@ -534,12 +534,6 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Chave Pix inválida — links não são permitidos. Use CPF, e-mail, telefone ou chave aleatória.' });
     }
 
-    console.log('[dashboard/event] PATCH received:', {
-      eventId: ownedEvent.event.id,
-      slug: ownedEvent.event.slug,
-      configKeys: Object.keys(sanitizedIncomingConfig),
-    });
-
     // 1. Extrair campos que vão direto na tabela
     const tableFields = extractEventTableFields(sanitizedIncomingConfig);
 
@@ -560,11 +554,6 @@ export default async function handler(req, res) {
       updateData.slug = normalizedIncomingSlug;
     }
 
-    console.log('[dashboard/event] Update payload:', {
-      tableFields: Object.keys(tableFields),
-      configSize: JSON.stringify(newConfig).length,
-    });
-
     // 4. Executar update
     const { data, error: updateError } = await ownedEvent.supabase
       .from('events')
@@ -582,11 +571,6 @@ export default async function handler(req, res) {
     if (!data) {
       return res.status(404).json({ error: 'Evento não encontrado ou sem permissão' });
     }
-
-    console.log('[dashboard/event] Update success:', {
-      eventId: data.id,
-      updatedAt: data.updated_at,
-    });
 
     // 4b. Sincronizar event_gifts.enabled para pix e card
     //     O config JSONB guarda pixEnabled/cardPaymentEnabled, mas
@@ -614,8 +598,6 @@ export default async function handler(req, res) {
           `[dashboard/event] Falha ao sincronizar event_gifts.enabled type=${sync.type}:`,
           giftUpdateError,
         );
-      } else {
-        console.log(`[dashboard/event] event_gifts.enabled synced: type=${sync.type} enabled=${sync.enabled}`);
       }
     }
 
@@ -651,8 +633,6 @@ export default async function handler(req, res) {
 
             if (updateErr) {
               console.warn('[dashboard/event] Falha ao atualizar config do catalog:', updateErr);
-            } else {
-              console.log(`[dashboard/event] event_gifts.config synced: catalog key=${catalogKey}`);
             }
           } else {
             console.warn(`[dashboard/event] Nenhuma linha event_gifts com type=catalog key=${catalogKey} encontrada.`);
@@ -686,8 +666,6 @@ export default async function handler(req, res) {
 
         if (extUpsertError) {
           console.warn('[dashboard/event] Falha ao upsert event_gifts external:', extUpsertError);
-        } else {
-          console.log('[dashboard/event] event_gifts.external upserted:', extData.url);
         }
       } else {
         const { error: extDeleteError } = await ownedEvent.supabase
@@ -697,8 +675,6 @@ export default async function handler(req, res) {
 
         if (extDeleteError) {
           console.warn('[dashboard/event] Falha ao deletar event_gifts external:', extDeleteError);
-        } else {
-          console.log('[dashboard/event] event_gifts.external deleted (disabled or no url)');
         }
       }
     }

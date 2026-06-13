@@ -1547,7 +1547,6 @@ async function bootstrap() {
         const eventId = initialConfig?.rsvp?.eventId;
         if (eventId && !configSource.usesApi) {
             finalConfigUrl = `/api/event-config?slug=${encodeURIComponent(eventId)}`;
-            console.log('[bootstrap] Detectado eventId, carregando config da API:', finalConfigUrl);
         }
 
         // 3. Carregar config final (pode ser diferente se usarmos API)
@@ -1646,9 +1645,14 @@ async function bootstrap() {
     }
 }
 
+const isVitestRuntime =
+    typeof globalThis !== 'undefined' &&
+    (typeof globalThis.__vitest_worker__ !== 'undefined' || Boolean(globalThis.process?.env?.VITEST));
+
 const shouldAutoBootstrap =
     typeof window !== 'undefined' &&
     typeof document !== 'undefined' &&
+    !isVitestRuntime &&
     window.__INVITATION_DISABLE_BOOTSTRAP__ !== true;
 
 if (shouldAutoBootstrap) {
