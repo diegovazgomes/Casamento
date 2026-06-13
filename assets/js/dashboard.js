@@ -10,6 +10,7 @@ const state = {
   eventSlug: new URLSearchParams(window.location.search).get('slug') || null,
   userProfile: null,
   grupos: [],
+  gruposCurrentPage: 1,
   confirmacoes: [],
   allConfirmacoes: [],
   mensagens: [],
@@ -51,6 +52,7 @@ function resetDashboardRuntimeContext() {
   state.eventSlug = null;
   state.userProfile = null;
   state.grupos = [];
+  state.gruposCurrentPage = 1;
   state.confirmacoes = [];
   state.allConfirmacoes = [];
   state.mensagens = [];
@@ -505,6 +507,9 @@ function runPaginationAction(dataset) {
   if (kind === 'confirmacoes') {
     loadConfirmacoes(page, dataset.paginationStatus || '', dataset.paginationGroupId || '', search);
   }
+  if (kind === 'grupos') {
+    loadGrupos(page);
+  }
   if (kind === 'audiencia') {
     loadAudiencia(page, search, dataset.paginationPagePath || '');
   }
@@ -914,6 +919,7 @@ function normalizeDashboardAuthMessage(message) {
 async function handleLogout() {
   await clearDashboardSession();
   state.grupos = [];
+  state.gruposCurrentPage = 1;
   state.confirmacoes = [];
   state.allConfirmacoes = [];
   showAuthScreen();
@@ -1669,15 +1675,19 @@ async function throwIfApiNotOk(response, contextLabel) {
   throw new Error(`${contextLabel}: ${detail}`);
 }
 
-async function loadGrupos() {
+const GRUPOS_PAGE_SIZE = 20;
+
+async function loadGrupos(page = 1) {
   const container = document.getElementById('gruposTable');
   const loading = document.getElementById('gruposLoading');
   const empty = document.getElementById('gruposEmpty');
   const body = document.getElementById('gruposBody');
+  const paginacao = document.getElementById('gruposPaginacao');
 
   loading.style.display = 'flex';
   container.hidden = true;
   empty.hidden = true;
+  if (paginacao) paginacao.innerHTML = '';
 
   try {
     const response = await fetchWithAuth(`/api/dashboard/guest-groups?eventId=${state.eventId}`);
@@ -1693,12 +1703,18 @@ async function loadGrupos() {
       return;
     }
 
+    const totalPages = Math.max(1, Math.ceil(state.grupos.length / GRUPOS_PAGE_SIZE));
+    const currentPage = Math.min(Math.max(1, Number(page) || 1), totalPages);
+    const offset = (currentPage - 1) * GRUPOS_PAGE_SIZE;
+    const gruposPage = state.grupos.slice(offset, offset + GRUPOS_PAGE_SIZE);
+    state.gruposCurrentPage = currentPage;
+
     // Garantir que o perfil esteja carregado antes de verificar o plano
     if (!state.userProfile) await fetchUserProfile();
 
     // Renderizar tabela
     const isFreePlan = !isPremiumPlan(state.userProfile?.plan);
-    body.innerHTML = state.grupos.map(grupo => {
+    body.innerHTML = gruposPage.map(grupo => {
       const hasPhone = !!grupo.phone;
       const phoneDisabledAttr = hasPhone ? '' : ' disabled title="Telefone não cadastrado"';
       const phoneDisabledClass = hasPhone ? '' : ' style="opacity:0.35;cursor:not-allowed"';
@@ -1743,6 +1759,12 @@ async function loadGrupos() {
 
     loading.style.display = 'none';
     container.hidden = false;
+    renderGruposPaginacao({
+      page: currentPage,
+      pageSize: GRUPOS_PAGE_SIZE,
+      total: state.grupos.length,
+      totalPages,
+    });
     updateOverview();
   } catch (error) {
     console.error('[loadGrupos]', error);
@@ -6430,6 +6452,32 @@ async function maybeShowWizard(config) {
     backBtn.dataset.boundWizardBack = 'true';
     backBtn.addEventListener('click', wizardBack);
   }
+}
+
+function renderGruposPaginacao(pagination) {
+  const paginacao = document.getElementById('gruposPaginacao');
+  if (!paginacao) return;
+
+  if (!pagination || pagination.totalPages <= 1) {
+    paginacao.innerHTML = '';
+    return;
+  }
+
+  const currentPage = pagination.page;
+  let html = '<div style="display: flex; gap: 0.5rem; justify-content: center; align-items: center;">';
+
+  if (currentPage > 1) {
+    html += `<button class="page-btn" data-pagination-kind="grupos" data-pagination-page="${currentPage - 1}">←</button>`;
+  }
+
+  html += `<span style="padding: 0.5rem 1rem; border: 1px solid var(--border); color: var(--text-dim);">Página ${currentPage} de ${pagination.totalPages}</span>`;
+
+  if (currentPage < pagination.totalPages) {
+    html += `<button class="page-btn" data-pagination-kind="grupos" data-pagination-page="${currentPage + 1}">→</button>`;
+  }
+
+  html += '</div>';
+  paginacao.innerHTML = html;
 }
 
 async function _saveWizard() {
