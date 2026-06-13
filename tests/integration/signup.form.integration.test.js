@@ -1,3 +1,5 @@
+// @vitest-environment happy-dom
+
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -9,15 +11,15 @@ function loadSignupHtml() {
 
 function mountSignupPage() {
   const html = loadSignupHtml();
-  const bodyMatch = html.match(/<body>([\s\S]*?)<script>/i);
-  const scriptMatch = html.match(/<script>([\s\S]*?)<\/script>\s*<\/body>/i);
+  const bodyMatch = html.match(/<body[^>]*>([\s\S]*?)<script/i);
+  const scriptPath = path.resolve(process.cwd(), 'assets/js/signup.js');
 
-  if (!bodyMatch || !scriptMatch) {
-    throw new Error('Nao foi possivel extrair body/script de signup.html');
+  if (!bodyMatch) {
+    throw new Error('Nao foi possivel extrair body de signup.html');
   }
 
   document.body.innerHTML = bodyMatch[1];
-  window.eval(scriptMatch[1]);
+  window.eval(readFileSync(scriptPath, 'utf8'));
 }
 
 describe('signup form integration', () => {
@@ -47,6 +49,7 @@ describe('signup form integration', () => {
     document.getElementById('emailInput').value = '  CASAL@EMAIL.COM  ';
     document.getElementById('whatsappInput').value = '(11) 99999-9999';
     document.getElementById('passwordInput').value = 'senhaforte123';
+    document.getElementById('confirmInput').value = 'senhaforte123';
     document.getElementById('consentCheckbox').checked = true;
 
     const form = document.getElementById('signupForm');
