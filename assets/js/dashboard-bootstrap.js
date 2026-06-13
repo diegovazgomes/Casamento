@@ -1,4 +1,4 @@
-import { loadDashboardThemeConfig } from './dashboard-theme-config.js';
+﻿import { loadDashboardThemeConfig } from './dashboard-theme-config.js';
 import {
   initLoadingScreen,
   hideLoadingScreen,

@@ -3,15 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dashboard â€” Convite de Casamento</title>
+<title>Dashboard — Convite de Casamento</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Great+Vibes&family=Jost:wght@200;300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-   TOKENS â€” padrÃ£o clÃ¡ssico silver
+/* ══════════════════════════════════════════════════════════════════════════
+   TOKENS — padrão clássico silver
    Valores sobrescritos em runtime pelo site.json via loadTheme()
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+══════════════════════════════════════════════════════════════════════════ */
 :root {
   --bg:            #0f0d0b;
   --surface:       #1a1714;
@@ -67,7 +67,7 @@ body::before{
   background-size:48px 48px;opacity:.4;
 }
  
-/* â•â• AUTH SCREEN â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+/* ══ AUTH SCREEN ═══════════════════════════════════════════════════════════ */
 .auth-screen{
   position:fixed;inset:0;z-index:100;
   display:flex;align-items:center;justify-content:center;
@@ -127,7 +127,7 @@ body::before{
 .field-input::placeholder{color:var(--text-dim);font-style:italic}
 .field-input:focus{border-color:var(--primary);background:rgba(192,192,192,0.04)}
 input[type="date"].field-input{width:100%;min-width:0;box-sizing:border-box;-webkit-appearance:none;appearance:none;font-size:13px;padding:10px 12px;height:36px;line-height:1;display:block;text-align:left}
-/* â”€â”€ Volume range slider â”€â”€ */
+/* ── Volume range slider ── */
 #edTrackVolume{-webkit-appearance:none;appearance:none;width:100%;height:3px;border-radius:2px;background:linear-gradient(to right,var(--primary) var(--vol-pct,14%),rgba(255,255,255,0.12) var(--vol-pct,14%));outline:none;cursor:pointer;border:none;padding:0;margin:8px 0 2px;display:block}
 #edTrackVolume::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--primary);cursor:pointer;box-shadow:0 0 0 3px rgba(255,255,255,0.08);transition:box-shadow .15s,transform .15s}
 #edTrackVolume::-webkit-slider-thumb:hover{box-shadow:0 0 0 5px rgba(255,255,255,0.14);transform:scale(1.15)}
@@ -141,8 +141,8 @@ input[type="date"].field-input{width:100%;min-width:0;box-sizing:border-box;-web
   }
   input[type="date"].field-input::-webkit-calendar-picker-indicator{opacity:1;cursor:pointer}
 }
-/* iOS Safari: font-size < 16px dispara zoom automÃ¡tico ao focar â€” sem reversÃ£o apÃ³s submit.
-   Os inputs do formulÃ¡rio de login recebem 16px explÃ­cito para prevenir o zoom. */
+/* iOS Safari: font-size < 16px dispara zoom automático ao focar — sem reversão após submit.
+   Os inputs do formulário de login recebem 16px explícito para prevenir o zoom. */
 .auth-form .field-input{font-size:16px}
 .field-auto{opacity:.7;cursor:default;background:rgba(0,0,0,0.15)!important}
 .field-badge-auto{
@@ -292,7 +292,7 @@ input[type="date"].field-input{width:100%;min-width:0;box-sizing:border-box;-web
   }
 }
  
-/* â•â• DASHBOARD LAYOUT â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+/* ══ DASHBOARD LAYOUT ══════════════════════════════════════════════════════ */
 .dashboard{display:none;position:relative;z-index:1}
 .dashboard.is-active{display:flex;min-height:100vh}
  
@@ -512,7 +512,7 @@ input[type="date"].field-input{width:100%;min-width:0;box-sizing:border-box;-web
 .tab-content.is-active{display:block;animation:fadeIn 0.4s ease}
 @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
  
-/* â•â• SECTION â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+/* ══ SECTION ═══════════════════════════════════════════════════════════════ */
 .section{margin-bottom:40px}
 .section-head{
   display:flex;justify-content:space-between;align-items:center;gap:16px;
@@ -528,7 +528,7 @@ input[type="date"].field-input{width:100%;min-width:0;box-sizing:border-box;-web
   margin-top:2px;
 }
  
-/* â•â• CARDS â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+/* ══ CARDS ════════════════════════════════════════════════════════════════ */
 .card{
   background:linear-gradient(180deg,var(--surface),var(--surface-2));
   border:1px solid var(--border);
@@ -543,7 +543,7 @@ input[type="date"].field-input{width:100%;min-width:0;box-sizing:border-box;-web
   opacity:0.3;
 }
  
-/* â•â• STATS (KPI Cards) â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+/* ══ STATS (KPI Cards) ═════════════════════════════════════════════════════ */
 .stats{
   display:grid;
   grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
@@ -581,7 +581,7 @@ input[type="date"].field-input{width:100%;min-width:0;box-sizing:border-box;-web
   transition:width 0.6s ease;
 }
  
-/* â•â• TABLE â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+/* ══ TABLE ════════════════════════════════════════════════════════════════ */
 .table-wrap{
   position:relative;
   background:linear-gradient(180deg,var(--surface),var(--surface-2));
@@ -666,7 +666,7 @@ input[type="date"].field-input{width:100%;min-width:0;box-sizing:border-box;-web
 .icon-btn svg{width:14px;height:14px}
 .icon-btn-label{font-size:9px;letter-spacing:0.08em;text-transform:uppercase;line-height:1;color:inherit}
  
-/* â•â• FILTERS â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+/* ══ FILTERS ══════════════════════════════════════════════════════════════ */
 .filters{
   display:grid;
   grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
@@ -692,7 +692,7 @@ input[type="date"].field-input{width:100%;min-width:0;box-sizing:border-box;-web
 .filter-actions{display:flex;align-items:flex-end;justify-content:flex-end}
 .filter-actions .btn-full{margin-top:0;padding-top:10px;padding-bottom:10px}
 
-/* â•â• EMPTY / LOADING â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+/* ══ EMPTY / LOADING ═══════════════════════════════════════════════════════ */
 .empty{
   padding:32px 24px;text-align:center;
   color:var(--text-dim);
@@ -728,7 +728,7 @@ input[type="date"].field-input{width:100%;min-width:0;box-sizing:border-box;-web
 }
 @keyframes spin{to{transform:rotate(360deg)}}
  
-/* â•â• PAGINATION â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+/* ══ PAGINATION ═══════════════════════════════════════════════════════════ */
 .pagination{
   display:flex;justify-content:center;align-items:center;gap:6px;
   padding:20px;
@@ -746,7 +746,7 @@ input[type="date"].field-input{width:100%;min-width:0;box-sizing:border-box;-web
   border-color:var(--primary);background:var(--primary);color:var(--bg);
 }
  
-/* â•â• MODAL â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+/* ══ MODAL ════════════════════════════════════════════════════════════════ */
 .modal{
   display:none;
   position:fixed;inset:0;z-index:1000;
@@ -816,7 +816,7 @@ input[type="date"].field-input{width:100%;min-width:0;box-sizing:border-box;-web
   display:flex;justify-content:flex-end;gap:10px;
 }
  
-/* â•â• EXPORT PAGE â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+/* ══ EXPORT PAGE ══════════════════════════════════════════════════════════ */
 .export-opts{display:flex;flex-direction:column;gap:14px;margin:20px 0 24px}
 .opt{
   display:flex;align-items:flex-start;gap:12px;
@@ -833,7 +833,7 @@ input[type="date"].field-input{width:100%;min-width:0;box-sizing:border-box;-web
 }
 .opt-hint{font-size:11px;color:var(--text-dim);line-height:1.6;letter-spacing:0.02em}
  
-/* â•â• MESSAGES MURAL â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+/* ══ MESSAGES MURAL ══════════════════════════════════════════════════════ */
 .messages-wrap{
   position:relative;
 }
@@ -1008,7 +1008,7 @@ input[type="date"].field-input{width:100%;min-width:0;box-sizing:border-box;-web
   color:var(--text-dim);
 }
 
-/* â•â• RESPONSIVE â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+/* ══ RESPONSIVE ══════════════════════════════════════════════════════════ */
 @media (max-width:960px){
   body{font-size:15px}
   .dashboard.is-active{flex-direction:column}
@@ -1081,7 +1081,7 @@ input[type="date"].field-input{width:100%;min-width:0;box-sizing:border-box;-web
   outline:2px solid var(--primary);outline-offset:2px;
 }
 
-/* â•â• EDITOR TAB â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+/* ══ EDITOR TAB ══════════════════════════════════════════════ */
 .editor-savebar{
   position:sticky;top:0;z-index:8;
   display:flex;align-items:center;justify-content:space-between;gap:16px;
@@ -1103,7 +1103,7 @@ input[type="date"].field-input{width:100%;min-width:0;box-sizing:border-box;-web
 .editor-save-status.is-saved .editor-save-dot{background:var(--success);animation:none}
 .editor-save-status.is-saved{color:var(--success)}
 .editor-save-actions{display:flex;gap:10px;align-items:center}
-/* â”€â”€ RodapÃ© de alteraÃ§Ãµes nÃ£o salvas por seÃ§Ã£o â”€â”€ */
+/* ── Rodapé de alterações não salvas por seção ── */
 .editor-section-footer{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 20px;border-top:1px solid var(--border-faint);margin-top:8px;background:rgba(255,255,255,0.01)}
 .editor-section-footer.is-dirty{animation:footerFadeIn 0.2s ease;background:rgba(196,145,66,0.08)}
 .footer-warning-msg,.footer-saved-msg{display:none;align-items:center;gap:6px;font-size:11px;letter-spacing:0.06em;font-weight:500;line-height:1.4}
@@ -1440,8 +1440,8 @@ input[type="date"].field-input{width:100%;min-width:0;box-sizing:border-box;-web
 }
 
 .field-input.sm{padding:10px 12px;font-size:12px}
-/* Mobile: todos os inputs sobem para 16px â€” previne auto-zoom do iOS Safari.
-   Posicionado apÃ³s .field-input.sm para ganhar na cascade (mesma especificidade, ordem vence). */
+/* Mobile: todos os inputs sobem para 16px — previne auto-zoom do iOS Safari.
+   Posicionado após .field-input.sm para ganhar na cascade (mesma especificidade, ordem vence). */
 @media(max-width:768px){
   .field-input,.field-input.sm{font-size:16px}
 }
@@ -1610,7 +1610,7 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
   color:var(--primary,#c9a84c);font-weight:600;
 }
 
-/* â•â• WIZARD ONBOARDING â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+/* ══ WIZARD ONBOARDING ═══════════════════════════════════════════════════ */
 .wizard-overlay{
   display:none;position:fixed;inset:0;z-index:300;
   background:rgba(0,0,0,.92);
@@ -1714,7 +1714,7 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
   padding-top:20px;
 }
 
-/* â”€â”€ Seletor de tema â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── Seletor de tema ─────────────────────────────────────────── */
 .wizard-theme-layout{display:flex;flex-direction:column;gap:0;}
 
 .wizard-themes{
@@ -1761,7 +1761,7 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
 }
 .wizard-theme-card.is-selected .wizard-theme-label{color:var(--primary-soft);}
 
-/* â”€â”€ Preview do convite â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── Preview do convite ──────────────────────────────────────── */
 .wizard-preview-wrap{
   border-top:1px solid var(--border);
   padding-top:20px;
@@ -1816,7 +1816,7 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
   transition:color .45s;
 }
 
-/* â”€â”€ Etapa 4 â€” PrÃ³ximos passos â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── Etapa 4 — Próximos passos ──────────────────────────────── */
 .wizard-success-icon{
   width:52px;height:52px;border-radius:50%;
   border:1px solid var(--border-strong);
@@ -1865,7 +1865,7 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
   padding-top:20px;border-top:1px solid var(--border);margin-top:24px;
 }
 
-/* â”€â”€ Exemplos de nome â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── Exemplos de nome ─────────────────────────────────────── */
 .wizard-name-examples{
   display:flex;flex-wrap:wrap;gap:6px;align-items:center;
   margin-top:8px;
@@ -1882,7 +1882,7 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
 }
 .wizard-name-ex:hover{border-color:var(--primary);color:var(--primary-soft);}
 
-/* â”€â”€ Preview â€” estilo tela de abertura â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── Preview — estilo tela de abertura ───────────────────── */
 .wz-preview-tag{
   font-size:7px;letter-spacing:.35em;text-transform:uppercase;
   color:var(--wz-primary);margin-bottom:14px;display:block;
@@ -1898,7 +1898,7 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
   pointer-events:none;
 }
 
-/* â”€â”€ InstruÃ§Ãµes etapa 4 â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── Instruções etapa 4 ──────────────────────────────────── */
 .wizard-instructions{
   display:flex;flex-direction:column;gap:18px;
   margin-bottom:4px;
@@ -1925,7 +1925,7 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
 </head>
 <body>
 
-<!-- â•â• DASHBOARD INITIAL LOADING â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+<!-- ══ DASHBOARD INITIAL LOADING ════════════════════════════════════════ -->
 <div id="dashInitLoading" style="
   position:fixed;inset:0;z-index:9999;
   background:var(--bg,#0f0d0b);
@@ -1940,7 +1940,7 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
   <style>@keyframes dash-beam{to{stroke-dashoffset:0}}</style>
 </div>
 
-<!-- â•â• LOGIN LOADING â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+<!-- ══ LOGIN LOADING ═════════════════════════════════════════════════════ -->
 <div class="login-loading-screen" id="loginLoadingScreen" hidden>
   <div class="login-loading-shell" role="status" aria-live="polite" aria-atomic="true">
     <div class="login-loading-head">
@@ -1953,7 +1953,7 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
         <div class="login-loading-progress" id="loginLoadingProgress"></div>
       </div>
       <div class="login-loading-meta">
-        <span class="login-loading-stage" id="loginLoadingStage">Iniciando autenticaÃ§Ã£o...</span>
+        <span class="login-loading-stage" id="loginLoadingStage">Iniciando autenticação...</span>
         <div class="login-loading-percent" id="loginLoadingPercent">0%</div>
       </div>
     </div>
@@ -1964,12 +1964,12 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
   </div>
 </div>
  
-<!-- â•â• AUTH â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+<!-- ══ AUTH ═══════════════════════════════════════════════════════════════ -->
 <div class="auth-screen" id="authScreen">
   <div class="auth-card">
     <div class="auth-label">Acesso Restrito</div>
     <h1 class="auth-title" id="authCoupleTitle">Painel do Casal</h1>
-    <p class="auth-subtitle">Gerenciar convidados &amp; confirmaÃ§Ãµes</p>
+    <p class="auth-subtitle">Gerenciar convidados &amp; confirmações</p>
  
     <div class="alert" id="authError" hidden></div>
  
@@ -1992,13 +1992,13 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
       <a href="forgot-password.html" style="color:var(--primary-soft);text-decoration:none;border-bottom:1px solid transparent;transition:border-color .2s;" onmouseover="this.style.borderBottomColor='var(--primary-soft)'" onmouseout="this.style.borderBottomColor='transparent'">Esqueci minha senha</a>
     </p>
     <div style="margin-top:1.75rem;padding-top:1.75rem;border-top:1px solid var(--border);text-align:center;">
-      <p style="font-size:.78rem;color:var(--text-dim);margin-bottom:.75rem;">Ainda nÃ£o tem conta?</p>
+      <p style="font-size:.78rem;color:var(--text-dim);margin-bottom:.75rem;">Ainda não tem conta?</p>
       <a href="signup.html" style="display:inline-block;padding:10px 24px;background:var(--primary);color:var(--bg);border-radius:var(--radius);text-decoration:none;font-size:.78rem;font-weight:500;letter-spacing:.18em;text-transform:uppercase;transition:background .2s;" onmouseover="this.style.background='var(--primary-soft)'" onmouseout="this.style.background='var(--primary)'">Criar conta</a>
     </div>
   </div>
 </div>
  
-<!-- â•â• WIZARD ONBOARDING â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+<!-- ══ WIZARD ONBOARDING ══════════════════════════════════════════════════ -->
 <div class="wizard-overlay" id="wizardOverlay">
   <div class="wizard-card">
 
@@ -2016,7 +2016,7 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
     <!-- Etapa 1: Casal -->
     <div class="wizard-step is-active" id="wizardStep1">
       <h2 class="wizard-title">Bem-vindos!</h2>
-      <p class="wizard-sub">Vamos configurar o convite. Confirme como os nomes aparecerÃ£o no convite.</p>
+      <p class="wizard-sub">Vamos configurar o convite. Confirme como os nomes aparecerão no convite.</p>
       <div class="field">
         <label class="field-label">Como aparecem no convite *</label>
         <input type="text" class="field-input" id="wzDisplayName"
@@ -2040,17 +2040,17 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
           <input type="date" class="field-input" id="wzDate">
         </div>
         <div class="field">
-          <label class="field-label">HorÃ¡rio</label>
-          <select class="field-input" id="wzTime" aria-label="HorÃ¡rio do evento (formato 24h)"></select>
+          <label class="field-label">Horário</label>
+          <select class="field-input" id="wzTime" aria-label="Horário do evento (formato 24h)"></select>
           <div class="field-hint">Formato 24h. Exemplo: 17:00.</div>
         </div>
         <div class="field">
           <label class="field-label">Nome do local</label>
           <input type="text" class="field-input" id="wzVenueName"
-                 placeholder="Ex: MansÃ£o das Flores" maxlength="120" autocomplete="off">
+                 placeholder="Ex: Mansão das Flores" maxlength="120" autocomplete="off">
         </div>
         <div class="field">
-          <label class="field-label">EndereÃ§o</label>
+          <label class="field-label">Endereço</label>
           <input type="text" class="field-input" id="wzVenueAddress"
                  placeholder="Av. Rainha Simone, 1971" maxlength="200" autocomplete="off">
         </div>
@@ -2060,13 +2060,13 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
     <!-- Etapa 3: URL -->
     <div class="wizard-step" id="wizardStep3">
       <h2 class="wizard-title">URL do convite</h2>
-      <p class="wizard-sub">Escolha como sua URL vai aparecer para os convidados. VocÃª pode pular esta etapa.</p>
+      <p class="wizard-sub">Escolha como sua URL vai aparecer para os convidados. Você pode pular esta etapa.</p>
       <div class="field" style="margin-top:14px;">
         <label class="field-label" for="wzSlug">Escolha como sua URL vai aparecer</label>
         <input type="text" class="field-input" id="wzSlug"
                placeholder="Ex: siannah-diego-09-05-2026" maxlength="60" autocomplete="off">
         <div class="field-hint" id="wzSlugExample">Seu link vai ficar assim: www.devazi.app/sua-url</div>
-        <div class="field-hint" id="wzSlugStatus">VocÃª pode pular esta etapa. Se deixar em branco, criaremos uma URL automaticamente.</div>
+        <div class="field-hint" id="wzSlugStatus">Você pode pular esta etapa. Se deixar em branco, criaremos uma URL automaticamente.</div>
       </div>
     </div>
 
@@ -2075,19 +2075,19 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
       <h2 class="wizard-title">Escolha o tema</h2>
       <p class="wizard-sub">Selecione o visual do convite. Pode mudar a qualquer momento no painel.</p>
       <div id="wzPremiumBanner" style="display:none;margin-top:-12px;margin-bottom:16px;padding:12px 16px;background:rgba(192,160,96,.08);border:1px solid rgba(192,160,96,.25);border-radius:4px;font-size:.82rem;color:var(--primary-soft);text-align:center;">
-        VocÃª estÃ¡ no plano Free. <a href="#" onclick="handleUpgrade(event);return false;" style="color:var(--primary-soft);text-decoration:underline;cursor:pointer;">Upgrade para acessar 7+ temas premium</a>
+        Você está no plano Free. <a href="#" onclick="handleUpgrade(event);return false;" style="color:var(--primary-soft);text-decoration:underline;cursor:pointer;">Upgrade para acessar 7+ temas premium</a>
       </div>
       <div class="wizard-theme-layout">
         <div class="wizard-themes" id="wizardThemes"></div>
         <div class="wizard-preview-wrap">
-          <div class="wizard-preview-label">PRÃ‰VIA DO CONVITE</div>
+          <div class="wizard-preview-label">PRÉVIA DO CONVITE</div>
           <div class="wizard-preview-card" id="wzPreviewCard">
             <div class="wizard-preview-bg-grid"></div>
             <div class="wizard-preview-inner">
-              <span class="wz-preview-tag">VocÃª estÃ¡ convidado</span>
+              <span class="wz-preview-tag">Você está convidado</span>
               <div class="wz-preview-names" id="wzPreviewNames">Nome &amp; Nome</div>
               <div class="wz-preview-sep"></div>
-              <div class="wz-preview-date" id="wzPreviewDate">Â· Â· Â·</div>
+              <div class="wz-preview-date" id="wzPreviewDate">· · ·</div>
               <span class="wz-preview-cta">Abrir Convite</span>
             </div>
           </div>
@@ -2095,33 +2095,33 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
       </div>
     </div>
 
-    <!-- Etapa 5: PrÃ³ximos passos -->
+    <!-- Etapa 5: Próximos passos -->
     <div class="wizard-step" id="wizardStep5">
-      <div class="wizard-success-icon">âœ¦</div>
+      <div class="wizard-success-icon">✦</div>
       <h2 class="wizard-title" style="text-align:center">Convite criado!</h2>
       <p class="wizard-sub" style="text-align:center;margin-bottom:28px">
-        As informaÃ§Ãµes foram salvas. Veja o que fazer para deixar o convite pronto.
+        As informações foram salvas. Veja o que fazer para deixar o convite pronto.
       </p>
       <div class="wizard-instructions">
         <div class="wizard-instruction-item">
           <span class="wizard-instruction-num">01</span>
           <div>
             <strong>Personalize o convite</strong>
-            <p>VÃ¡ atÃ© a aba <em>Editar Evento</em> dentro do painel para adicionar fotos, textos, configurar o RSVP e os presentes.</p>
+            <p>Vá até a aba <em>Editar Evento</em> dentro do painel para adicionar fotos, textos, configurar o RSVP e os presentes.</p>
           </div>
         </div>
         <div class="wizard-instruction-item">
           <span class="wizard-instruction-num">02</span>
           <div>
             <strong>Veja como ficou</strong>
-            <p>O link do seu convite estÃ¡ na aba <em>Editar Evento</em>. Clique para visualizÃ¡-lo exatamente como os convidados irÃ£o ver.</p>
+            <p>O link do seu convite está na aba <em>Editar Evento</em>. Clique para visualizá-lo exatamente como os convidados irão ver.</p>
           </div>
         </div>
         <div class="wizard-instruction-item">
           <span class="wizard-instruction-num">03</span>
           <div>
             <strong>Envie os convites</strong>
-            <p>VÃ¡ atÃ© a aba <em>Convites</em> para criar convites em grupo ou convite individual personalizado com link exclusivo.</p>
+            <p>Vá até a aba <em>Convites</em> para criar convites em grupo ou convite individual personalizado com link exclusivo.</p>
           </div>
         </div>
       </div>
@@ -2132,16 +2132,16 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
       </div>
     </div>
 
-    <!-- RodapÃ© (oculto na etapa 5) -->
+    <!-- Rodapé (oculto na etapa 5) -->
     <div class="wizard-footer" id="wizardFooter">
       <button class="btn btn-subtle" id="wizardBtnBack" style="display:none">Voltar</button>
-      <button class="btn btn-primary" id="wizardBtnNext">PrÃ³ximo</button>
+      <button class="btn btn-primary" id="wizardBtnNext">Próximo</button>
     </div>
 
   </div>
 </div>
 
-<!-- â•â• DASHBOARD â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+<!-- ══ DASHBOARD ══════════════════════════════════════════════════════════ -->
 <div class="dashboard" id="dashboardScreen">
  
   <!-- SIDEBAR -->
@@ -2160,7 +2160,7 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
         <span class="nav-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
         </span>
-        <span>VisÃ£o Geral</span>
+        <span>Visão Geral</span>
       </button>
       <button class="nav-item" data-tab="editar" role="tab">
         <span class="nav-icon">
@@ -2178,13 +2178,13 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
         <span class="nav-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
         </span>
-        <span>ConfirmaÃ§Ãµes</span>
+        <span>Confirmações</span>
       </button>
       <button class="nav-item" data-tab="audiencia" role="tab">
         <span class="nav-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20h18"/><path d="M7 16v-5"/><path d="M12 16V8"/><path d="M17 16v-9"/></svg>
         </span>
-        <span>AudiÃªncia</span>
+        <span>Audiência</span>
       </button>
       <button class="nav-item" data-tab="mensagens" role="tab">
         <span class="nav-icon">
@@ -2196,13 +2196,13 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
         <span class="nav-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
         </span>
-        <span>MÃºsicas</span>
+        <span>Músicas</span>
       </button>
       <button class="nav-item" data-tab="relatorios" role="tab">
         <span class="nav-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
         </span>
-        <span>RelatÃ³rios</span>
+        <span>Relatórios</span>
       </button>
       <button class="nav-item" data-tab="export" role="tab" hidden>
         <span class="nav-icon">
@@ -2234,7 +2234,7 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
   <div class="main">
     <header class="topbar">
       <div class="topbar-left">
-        <div class="topbar-tag" id="topbarTag">VisÃ£o Geral</div>
+        <div class="topbar-tag" id="topbarTag">Visão Geral</div>
         <h1 class="topbar-title" id="topbarTitle">Bem-vindos ao painel</h1>
       </div>
       <div class="topbar-actions">
@@ -2273,18 +2273,18 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
           <div class="stat">
             <div class="stat-label">Confirmados</div>
             <div class="stat-value ok" id="statConfirmados">0</div>
-            <div class="stat-hint" id="statConfirmadosPct">â€”</div>
+            <div class="stat-hint" id="statConfirmadosPct">—</div>
             <div class="stat-progress"><div class="stat-progress-bar" id="statConfirmadosBar" style="width:0%"></div></div>
           </div>
           <div class="stat">
             <div class="stat-label">Recusaram</div>
             <div class="stat-value err" id="statRecusados">0</div>
-            <div class="stat-hint" id="statRecusadosPct">â€”</div>
+            <div class="stat-hint" id="statRecusadosPct">—</div>
           </div>
           <div class="stat">
             <div class="stat-label">Pendentes</div>
             <div class="stat-value warn" id="statPendentes">0</div>
-            <div class="stat-hint" id="statPendentesPct">â€”</div>
+            <div class="stat-hint" id="statPendentesPct">—</div>
           </div>
         </div>
  
@@ -2292,7 +2292,7 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
           <div class="section-head">
             <div>
               <h2 class="section-title">Atividade recente</h2>
-              <p class="section-sub">Ãšltimas confirmaÃ§Ãµes registradas</p>
+              <p class="section-sub">Últimas confirmações registradas</p>
             </div>
           </div>
           <div class="table-wrap">
@@ -2319,7 +2319,7 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
           <div class="section-head">
             <div>
               <h2 class="section-title">Convites</h2>
-              <p class="section-sub">Crie convites em grupo ou individuais com link Ãºnico de acesso</p>
+              <p class="section-sub">Crie convites em grupo ou individuais com link único de acesso</p>
             </div>
           </div>
  
@@ -2330,16 +2330,16 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
                 <tr>
                   <th>Convite</th>
                   <th>Vagas</th>
-                  <th>ObservaÃ§Ãµes</th>
-                  <th style="text-align:right">AÃ§Ãµes</th>
+                  <th>Observações</th>
+                  <th style="text-align:right">Ações</th>
                 </tr>
               </thead>
               <tbody id="gruposBody"></tbody>
             </table>
             <div class="empty" id="gruposEmpty" hidden>
-              <div class="empty-icon">âœ§</div>
+              <div class="empty-icon">✧</div>
               <div class="empty-title">Nenhum convite cadastrado</div>
-              <p class="empty-text">Crie um convite em grupo ou um convite individual. Cada convite terÃ¡ um link Ãºnico para compartilhar.</p>
+              <p class="empty-text">Crie um convite em grupo ou um convite individual. Cada convite terá um link único para compartilhar.</p>
             </div>
           </div>
         </section>
@@ -2350,7 +2350,7 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
         <section class="section">
           <div class="section-head">
             <div>
-              <h2 class="section-title">ConfirmaÃ§Ãµes</h2>
+              <h2 class="section-title">Confirmações</h2>
               <p class="section-sub">Todas as respostas recebidas pelo convite</p>
             </div>
           </div>
@@ -2396,15 +2396,15 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
             </table>
             <div class="pagination" id="paginacao"></div>
             <div class="empty" id="confirmacoesEmpty" hidden>
-              <div class="empty-icon">âœ§</div>
-              <div class="empty-title">Nenhuma confirmaÃ§Ã£o encontrada</div>
+              <div class="empty-icon">✧</div>
+              <div class="empty-title">Nenhuma confirmação encontrada</div>
               <p class="empty-text">Ajuste os filtros ou aguarde os primeiros convidados responderem.</p>
             </div>
           </div>
         </section>
       </div>
 
-      <!-- TAB: AUDIÃŠNCIA -->
+      <!-- TAB: AUDIÊNCIA -->
       <div class="tab-content" id="tab-audiencia" role="tabpanel">
         <div class="stats" id="audienciaStats">
           <div class="stat">
@@ -2413,40 +2413,40 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
             <div class="stat-hint">0 convite(s) com atividade</div>
           </div>
           <div class="stat">
-            <div class="stat-label">PÃ¡ginas acessadas</div>
+            <div class="stat-label">Páginas acessadas</div>
             <div class="stat-value">0</div>
-            <div class="stat-hint">PÃ¡ginas com pelo menos uma visita</div>
+            <div class="stat-hint">Páginas com pelo menos uma visita</div>
           </div>
           <div class="stat">
-            <div class="stat-label">Tempo mÃ©dio por acesso</div>
+            <div class="stat-label">Tempo médio por acesso</div>
             <div class="stat-value">0s</div>
-            <div class="stat-hint">MÃ©dia aproximada entre as visitas</div>
+            <div class="stat-hint">Média aproximada entre as visitas</div>
           </div>
           <div class="stat">
-            <div class="stat-label">PÃ¡gina mais vista</div>
-            <div class="stat-value stat-value-tight">â€”</div>
-            <div class="stat-hint">Sem pÃ¡ginas secundÃ¡rias ainda</div>
+            <div class="stat-label">Página mais vista</div>
+            <div class="stat-value stat-value-tight">—</div>
+            <div class="stat-hint">Sem páginas secundárias ainda</div>
           </div>
         </div>
-        <p class="audience-meta" id="audienciaMeta">A audiÃªncia serÃ¡ exibida assim que os convidados comeÃ§arem a navegar pelo convite.</p>
+        <p class="audience-meta" id="audienciaMeta">A audiência será exibida assim que os convidados começarem a navegar pelo convite.</p>
 
         <section class="section">
           <div class="section-head">
             <div>
-              <h2 class="section-title">Desempenho por pÃ¡gina</h2>
-              <p class="section-sub">Acompanhe o interesse geral no convite com mÃ©tricas agregadas, sem expor a navegaÃ§Ã£o individual dos convidados.</p>
+              <h2 class="section-title">Desempenho por página</h2>
+              <p class="section-sub">Acompanhe o interesse geral no convite com métricas agregadas, sem expor a navegação individual dos convidados.</p>
             </div>
           </div>
 
           <div class="filters">
             <div class="filter">
               <label class="filter-label" for="filterAudienceSearch">Buscar</label>
-              <input class="filter-control" id="filterAudienceSearch" type="search" placeholder="Nome ou caminho da pÃ¡gina">
+              <input class="filter-control" id="filterAudienceSearch" type="search" placeholder="Nome ou caminho da página">
             </div>
             <div class="filter">
-              <label class="filter-label" for="filterAudiencePage">PÃ¡gina</label>
+              <label class="filter-label" for="filterAudiencePage">Página</label>
               <select class="filter-control" id="filterAudiencePage">
-                <option value="">Todas as pÃ¡ginas</option>
+                <option value="">Todas as páginas</option>
               </select>
             </div>
             <div class="filter filter-actions">
@@ -2455,13 +2455,13 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
           </div>
 
           <div class="table-wrap">
-            <div class="loading" id="audienciaLoading"><div class="spinner"></div>Carregando audiÃªncia...</div>
+            <div class="loading" id="audienciaLoading"><div class="spinner"></div>Carregando audiência...</div>
             <table class="table" id="audienciaTable" hidden>
               <thead>
                 <tr>
-                  <th>PÃ¡gina</th>
+                  <th>Página</th>
                   <th>Acessos</th>
-                  <th>Tempo mÃ©dio</th>
+                  <th>Tempo médio</th>
                   <th>Tempo total</th>
                 </tr>
               </thead>
@@ -2469,9 +2469,9 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
             </table>
             <div class="pagination" id="audienciaPaginacao"></div>
             <div class="empty" id="audienciaEmpty" hidden>
-              <div class="empty-icon">âœ§</div>
+              <div class="empty-icon">✧</div>
               <div class="empty-title">Nenhuma atividade encontrada</div>
-              <p class="empty-text">Abra o convite e navegue entre as pÃ¡ginas para comeÃ§ar a visualizar as mÃ©tricas agregadas aqui.</p>
+              <p class="empty-text">Abra o convite e navegue entre as páginas para começar a visualizar as métricas agregadas aqui.</p>
             </div>
           </div>
         </section>
@@ -2490,7 +2490,7 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
           <div class="filters">
             <div class="filter">
               <label class="filter-label" for="filterMensagemSearch">Buscar</label>
-              <input class="filter-control" id="filterMensagemSearch" type="search" placeholder="Nome ou conteÃºdo da mensagem">
+              <input class="filter-control" id="filterMensagemSearch" type="search" placeholder="Nome ou conteúdo da mensagem">
             </div>
             <div class="filter filter-actions">
               <button class="btn btn-subtle btn-full" onclick="clearMensagensFilters()">Limpar</button>
@@ -2504,9 +2504,9 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
             </div>
             <div class="pagination" id="mensagensPaginacao"></div>
             <div class="empty" id="mensagensEmpty" hidden>
-              <div class="empty-icon">âœ§</div>
+              <div class="empty-icon">✧</div>
               <div class="empty-title">Nenhuma mensagem ainda</div>
-              <p class="empty-text">Os recados dos convidados aparecerÃ£o aqui.</p>
+              <p class="empty-text">Os recados dos convidados aparecerão aqui.</p>
             </div>
           </div>
         </section>
@@ -2517,15 +2517,15 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
         <section class="section">
           <div class="section-head">
             <div>
-              <h2 class="section-title">SugestÃµes de mÃºsica</h2>
-              <p class="section-sub">MÃºsicas enviadas pelos convidados</p>
+              <h2 class="section-title">Sugestões de música</h2>
+              <p class="section-sub">Músicas enviadas pelos convidados</p>
             </div>
           </div>
 
           <div class="filters">
             <div class="filter">
               <label class="filter-label" for="filterMusicaSearch">Buscar</label>
-              <input class="filter-control" id="filterMusicaSearch" type="search" placeholder="Convidado, mÃºsica, artista ou observaÃ§Ãµes">
+              <input class="filter-control" id="filterMusicaSearch" type="search" placeholder="Convidado, música, artista ou observações">
             </div>
             <div class="filter filter-actions">
               <button class="btn btn-subtle btn-full" onclick="clearMusicasFilters()">Limpar</button>
@@ -2533,14 +2533,14 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
           </div>
 
           <div class="table-wrap">
-            <div class="loading" id="musicasLoading"><div class="spinner"></div>Carregando sugestÃµes...</div>
+            <div class="loading" id="musicasLoading"><div class="spinner"></div>Carregando sugestões...</div>
             <table class="table" id="musicasTable" hidden>
               <thead>
                 <tr>
                   <th>Convidado</th>
-                  <th>MÃºsica</th>
+                  <th>Música</th>
                   <th>Artista</th>
-                  <th>ObservaÃ§Ãµes</th>
+                  <th>Observações</th>
                   <th>Data</th>
                 </tr>
               </thead>
@@ -2548,9 +2548,9 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
             </table>
             <div class="pagination" id="musicasPaginacao"></div>
             <div class="empty" id="musicasEmpty" hidden>
-              <div class="empty-icon">âœ§</div>
-              <div class="empty-title">Nenhuma sugestÃ£o encontrada</div>
-              <p class="empty-text">Ajuste a busca ou aguarde novas mÃºsicas sugeridas pelos convidados.</p>
+              <div class="empty-icon">✧</div>
+              <div class="empty-title">Nenhuma sugestão encontrada</div>
+              <p class="empty-text">Ajuste a busca ou aguarde novas músicas sugeridas pelos convidados.</p>
             </div>
           </div>
         </section>
@@ -2561,8 +2561,8 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
         <section class="section">
           <div class="section-head">
             <div>
-              <h2 class="section-title">RelatÃ³rios &amp; EstatÃ­sticas</h2>
-              <p class="section-sub">VisÃ£o detalhada das confirmaÃ§Ãµes por grupo</p>
+              <h2 class="section-title">Relatórios &amp; Estatísticas</h2>
+              <p class="section-sub">Visão detalhada das confirmações por grupo</p>
             </div>
           </div>
  
@@ -2592,7 +2592,7 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
           <div class="section-head">
             <div>
               <h2 class="section-title">Exportar dados</h2>
-              <p class="section-sub">Baixe a lista completa de confirmaÃ§Ãµes</p>
+              <p class="section-sub">Baixe a lista completa de confirmações</p>
             </div>
           </div>
  
@@ -2609,7 +2609,7 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
                 <input type="radio" name="exportFormat" value="csv" checked>
                 <div>
                   <div class="opt-label">CSV (Excel)</div>
-                  <div class="opt-hint">Formato compatÃ­vel com Excel, Google Sheets e ferramentas de planilha.</div>
+                  <div class="opt-hint">Formato compatível com Excel, Google Sheets e ferramentas de planilha.</div>
                 </div>
               </label>
             </div>
@@ -2620,7 +2620,7 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
             </button>
  
             <p style="color:var(--text-dim);margin-top:16px;font-size:11px;letter-spacing:0.04em;line-height:1.7">
-              Inclui: Nome, Telefone, Status, Grupo, Data da confirmaÃ§Ã£o, Mensagem e SugestÃ£o de mÃºsica.
+              Inclui: Nome, Telefone, Status, Grupo, Data da confirmação, Mensagem e Sugestão de música.
             </p>
           </div>
         </section>
@@ -2633,7 +2633,7 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
         <div class="editor-savebar">
           <div class="editor-save-status" id="editorSaveStatus">
             <span class="editor-save-dot"></span>
-            <span id="editorSaveStatusText">Carregando configuraÃ§Ãµesâ€¦</span>
+            <span id="editorSaveStatusText">Carregando configurações…</span>
           </div>
           <div class="editor-save-actions">
             <a id="btnPreviewInvite" href="#" target="_blank" rel="noopener noreferrer" class="btn btn-subtle" title="Abrir convite em nova aba">
@@ -2645,12 +2645,12 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
             </button>
             <button type="button" class="btn btn-primary" id="btnSaveConfig" onclick="saveEditorConfig()">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-              <span>Salvar alteraÃ§Ãµes</span>
+              <span>Salvar alterações</span>
             </button>
           </div>
         </div>
 
-        <!-- â”€â”€ SEÃ‡ÃƒO 1: CASAL & EVENTO â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+        <!-- ── SEÇÃO 1: CASAL & EVENTO ──────────────────── -->
         <div class="editor-section is-open" id="edSectionEvento">
           <button class="editor-section-header" type="button" onclick="toggleEditorSection('edSectionEvento')">
             <div>
@@ -2667,24 +2667,24 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
                 <input type="text" class="field-input sm" id="edCoupleNames" placeholder="Noiva &amp; Noivo" oninput="markEditorDirty()">
               </div>
               <div class="field">
-                <label class="field-label" for="edBrideName">Nome do cÃ´njuge 1</label>
+                <label class="field-label" for="edBrideName">Nome do cônjuge 1</label>
                 <input type="text" class="field-input sm" id="edBrideName" placeholder="Ex: Siannah" oninput="markEditorDirty()">
               </div>
             </div>
 
             <div class="form-grid-2">
               <div class="field">
-                <label class="field-label" for="edGroomName">Nome do cÃ´njuge 2</label>
+                <label class="field-label" for="edGroomName">Nome do cônjuge 2</label>
                 <input type="text" class="field-input sm" id="edGroomName" placeholder="Ex: Diego" oninput="markEditorDirty()">
               </div>
               <div class="field">
-                <label class="field-label" for="edCoupleSubtitle">SubtÃ­tulo (mensagem da primeira tela de abertura do convite)</label>
+                <label class="field-label" for="edCoupleSubtitle">Subtítulo (mensagem da primeira tela de abertura do convite)</label>
                 <input type="text" class="field-input sm" id="edCoupleSubtitle" value="Um momento pensado para viver ao lado de quem faz parte da nossa vida" oninput="markEditorDirty()">
               </div>
             </div>
 
             <div class="editor-rule"></div>
-            <span class="editor-sub-label">Datas e horÃ¡rio</span>
+            <span class="editor-sub-label">Datas e horário</span>
 
             <div class="form-grid-2">
               <div class="field">
@@ -2693,11 +2693,11 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
                        onchange="onEventDateChange(); markEditorDirty();">
               </div>
               <div class="field">
-                <label class="field-label" for="edEventTime">HorÃ¡rio de exibiÃ§Ã£o</label>
+                <label class="field-label" for="edEventTime">Horário de exibição</label>
                 <input type="text" class="field-input sm" id="edEventTime" placeholder="17h" oninput="markEditorDirty()">
               </div>
             </div>
-            <!-- Campos derivados â€” gerados automaticamente ao mudar a data -->
+            <!-- Campos derivados — gerados automaticamente ao mudar a data -->
             <div class="form-grid-3" hidden>
               <div class="field">
                 <label class="field-label">Data no hero <span class="field-badge-auto">auto</span></label>
@@ -2705,7 +2705,7 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
                        placeholder="06 . 09 . 2026" readonly>
               </div>
               <div class="field">
-                <label class="field-label">Data de exibiÃ§Ã£o <span class="field-badge-auto">auto</span></label>
+                <label class="field-label">Data de exibição <span class="field-badge-auto">auto</span></label>
                 <input type="text" class="field-input sm field-auto" id="edEventDisplayDate"
                        placeholder="6 de setembro de 2026" readonly>
               </div>
@@ -2719,22 +2719,22 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
             <div class="editor-rule"></div>
             <span class="editor-sub-label">Locais do evento</span>
 
-            <span class="location-group-label">Dados da cerimÃ´nia</span>
+            <span class="location-group-label">Dados da cerimônia</span>
             <div class="form-grid-2">
               <div class="field">
-                <label class="field-label" for="edCeremonyLocation">NOME DO LOCAL (CERIMÃ”NIA)</label>
-                <input type="text" class="field-input sm" id="edCeremonyLocation" placeholder="Igreja, CartÃ³rio, EspaÃ§o..." oninput="markEditorDirty()">
+                <label class="field-label" for="edCeremonyLocation">NOME DO LOCAL (CERIMÔNIA)</label>
+                <input type="text" class="field-input sm" id="edCeremonyLocation" placeholder="Igreja, Cartório, Espaço..." oninput="markEditorDirty()">
               </div>
               <div class="field">
-                <label class="field-label" for="edCeremonyCity">CIDADE (CERIMÃ”NIA)</label>
-                <input type="text" class="field-input sm" id="edCeremonyCity" placeholder="SÃ£o Paulo, SP" oninput="markEditorDirty()">
+                <label class="field-label" for="edCeremonyCity">CIDADE (CERIMÔNIA)</label>
+                <input type="text" class="field-input sm" id="edCeremonyCity" placeholder="São Paulo, SP" oninput="markEditorDirty()">
               </div>
             </div>
             <div class="form-group">
               <div class="field">
-                <label class="field-label" for="edCeremonyMapsLink">LINK DO GOOGLE MAPS (CERIMÃ”NIA)</label>
+                <label class="field-label" for="edCeremonyMapsLink">LINK DO GOOGLE MAPS (CERIMÔNIA)</label>
                 <input type="url" class="field-input sm" id="edCeremonyMapsLink"
-                       placeholder="Cole aqui o link do Google Maps da cerimÃ´nia"
+                       placeholder="Cole aqui o link do Google Maps da cerimônia"
                        oninput="markEditorDirty()"
                        onblur="onMapsLinkExtract('ceremony')"
                        onpaste="setTimeout(() => onMapsLinkExtract('ceremony'), 0)">
@@ -2743,9 +2743,9 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
             </div>
             <div class="form-group">
               <div class="field">
-                <label class="field-label" for="edCeremonyAddress">ENDEREÃ‡O COMPLETO (CERIMÃ”NIA)</label>
+                <label class="field-label" for="edCeremonyAddress">ENDEREÇO COMPLETO (CERIMÔNIA)</label>
                 <input type="text" class="field-input sm" id="edCeremonyAddress"
-                       placeholder="Rua da CerimÃ´nia, 100 â€” SÃ£o Paulo, SP" oninput="markEditorDirty()">
+                       placeholder="Rua da Cerimônia, 100 — São Paulo, SP" oninput="markEditorDirty()">
               </div>
             </div>
             <input type="hidden" id="edCeremonyLat">
@@ -2755,11 +2755,11 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
             <div class="form-grid-2">
               <div class="field">
                 <label class="field-label" for="edPartyLocation">NOME DO LOCAL (FESTA)</label>
-                <input type="text" class="field-input sm" id="edPartyLocation" placeholder="MansÃ£o, SÃ­tio, SalÃ£o de Festas..." oninput="markEditorDirty()">
+                <input type="text" class="field-input sm" id="edPartyLocation" placeholder="Mansão, Sítio, Salão de Festas..." oninput="markEditorDirty()">
               </div>
               <div class="field">
                 <label class="field-label" for="edPartyCity">CIDADE (FESTA)</label>
-                <input type="text" class="field-input sm" id="edPartyCity" placeholder="SÃ£o Bernardo do Campo, SP" oninput="markEditorDirty()">
+                <input type="text" class="field-input sm" id="edPartyCity" placeholder="São Bernardo do Campo, SP" oninput="markEditorDirty()">
               </div>
             </div>
             <div class="form-group">
@@ -2775,9 +2775,9 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
             </div>
             <div class="form-group">
               <div class="field">
-                <label class="field-label" for="edPartyAddress">ENDEREÃ‡O COMPLETO (FESTA)</label>
+                <label class="field-label" for="edPartyAddress">ENDEREÇO COMPLETO (FESTA)</label>
                 <input type="text" class="field-input sm" id="edPartyAddress"
-                       placeholder="Rua da Festa, 200 â€” SÃ£o Paulo, SP" oninput="markEditorDirty()">
+                       placeholder="Rua da Festa, 200 — São Paulo, SP" oninput="markEditorDirty()">
               </div>
             </div>
             <input type="hidden" id="edPartyLat">
@@ -2786,30 +2786,30 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
               <label class="toggle">
                 <input type="checkbox" class="toggle-input" id="edEventMapEnabled" onchange="markEditorDirty()">
                 <span class="toggle-track"><span class="toggle-thumb"></span></span>
-                <span class="toggle-label">Exibir mapa interativo na pÃ¡gina de hospedagem</span>
+                <span class="toggle-label">Exibir mapa interativo na página de hospedagem</span>
               </label>
             </div>
 
             <div class="editor-section-footer" id="footer-edSectionEvento">
               <span class="footer-warning-msg">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                AlteraÃ§Ãµes nÃ£o salvas
+                Alterações não salvas
               </span>
               <span class="footer-saved-msg">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                ConfiguraÃ§Ãµes salvas âœ“
+                Configurações salvas ✓
               </span>
-              <button type="button" class="btn btn-primary footer-save-btn" onclick="saveEditorConfig()">Salvar alteraÃ§Ãµes</button>
+              <button type="button" class="btn btn-primary footer-save-btn" onclick="saveEditorConfig()">Salvar alterações</button>
             </div>
 
           </div>
         </div>
 
-        <!-- â”€â”€ SEÃ‡ÃƒO 2: TEMA & VISUAL â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+        <!-- ── SEÇÃO 2: TEMA & VISUAL ─────────────────── -->
         <div class="editor-section" id="edSectionTema">
           <button class="editor-section-header" type="button" onclick="toggleEditorSection('edSectionTema')">
             <div>
-              <div class="editor-section-tag">AparÃªncia</div>
+              <div class="editor-section-tag">Aparência</div>
               <div class="editor-section-title">Tema &amp; Visual</div>
             </div>
             <svg class="editor-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
@@ -2829,27 +2829,27 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
                 <select class="field-input sm" id="edActiveTheme" onchange="markEditorDirty()"></select>
               </div>
             </div>
-            <div class="field-hint" style="margin-top:-6px">ApÃ³s salvar e aplicar o arquivo, recarregue o convite para ver a mudanÃ§a de tema.</div>
+            <div class="field-hint" style="margin-top:-6px">Após salvar e aplicar o arquivo, recarregue o convite para ver a mudança de tema.</div>
 
             <div class="editor-section-footer" id="footer-edSectionTema">
               <span class="footer-warning-msg">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                AlteraÃ§Ãµes nÃ£o salvas
+                Alterações não salvas
               </span>
               <span class="footer-saved-msg">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                ConfiguraÃ§Ãµes salvas âœ“
+                Configurações salvas ✓
               </span>
-              <button type="button" class="btn btn-primary footer-save-btn" onclick="saveEditorConfig()">Salvar alteraÃ§Ãµes</button>
+              <button type="button" class="btn btn-primary footer-save-btn" onclick="saveEditorConfig()">Salvar alterações</button>
             </div>
           </div>
         </div>
 
-        <!-- â”€â”€ SEÃ‡ÃƒO 3: WHATSAPP â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+        <!-- ── SEÇÃO 3: WHATSAPP ──────────────────────── -->
         <div class="editor-section" id="edSectionWhatsApp">
           <button class="editor-section-header" type="button" onclick="toggleEditorSection('edSectionWhatsApp')">
             <div>
-              <div class="editor-section-tag">ConfirmaÃ§Ã£o de presenÃ§a</div>
+              <div class="editor-section-tag">Confirmação de presença</div>
               <div class="editor-section-title">WhatsApp &amp; RSVP</div>
             </div>
             <svg class="editor-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
@@ -2857,19 +2857,19 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
           <div class="editor-section-body">
             <div class="form-grid-2">
               <div class="field">
-                <label class="field-label" for="edWaPhone">NÃºmero de destino *</label>
+                <label class="field-label" for="edWaPhone">Número de destino *</label>
                 <input type="tel" class="field-input sm" id="edWaPhone" placeholder="5511999999999" oninput="markEditorDirty()">
-                <div class="field-hint">CÃ³digo do paÃ­s + DDD + nÃºmero, sem espaÃ§os ou sÃ­mbolos.</div>
+                <div class="field-hint">Código do país + DDD + número, sem espaços ou símbolos.</div>
               </div>
               <div class="field">
-                <label class="field-label" for="edWaRecipient">Nome do destinatÃ¡rio</label>
+                <label class="field-label" for="edWaRecipient">Nome do destinatário</label>
                 <input type="text" class="field-input sm" id="edWaRecipient" placeholder="Nome da noiva/noivo" oninput="markEditorDirty()">
-                <div class="field-hint">Aparece na saudaÃ§Ã£o das mensagens automÃ¡ticas.</div>
+                <div class="field-hint">Aparece na saudação das mensagens automáticas.</div>
               </div>
             </div>
 
             <div class="field" style="margin-top: 16px;">
-              <label class="field-label" for="edWaInviteDeadline">Prazo de confirmaÃ§Ã£o do convite</label>
+              <label class="field-label" for="edWaInviteDeadline">Prazo de confirmação do convite</label>
               <input type="text" class="field-input sm" id="edWaInviteDeadline" placeholder="Ex: 06 de agosto de 2026" oninput="markEditorDirty()">
               <div class="field-hint">Aparece na mensagem de convite enviada pelo WhatsApp. A quantidade de pessoas do convite continua sendo exibida automaticamente ao final da mensagem.</div>
             </div>
@@ -2877,35 +2877,35 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
             <div class="editor-section-footer" id="footer-edSectionWhatsApp">
               <span class="footer-warning-msg">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                AlteraÃ§Ãµes nÃ£o salvas
+                Alterações não salvas
               </span>
               <span class="footer-saved-msg">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                ConfiguraÃ§Ãµes salvas âœ“
+                Configurações salvas ✓
               </span>
-              <button type="button" class="btn btn-primary footer-save-btn" onclick="saveEditorConfig()">Salvar alteraÃ§Ãµes</button>
+              <button type="button" class="btn btn-primary footer-save-btn" onclick="saveEditorConfig()">Salvar alterações</button>
             </div>
 
           </div>
         </div>
 
-        <!-- â”€â”€ SEÃ‡ÃƒO 4: PRESENTES â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+        <!-- ── SEÇÃO 4: PRESENTES ─────────────────────── -->
         <div class="editor-section" id="edSectionPresentes">
           <button class="editor-section-header" type="button" onclick="toggleEditorSection('edSectionPresentes')">
             <div>
-              <div class="editor-section-tag">PÃ¡gina de presentes</div>
-              <div class="editor-section-title">OpÃ§Ãµes de presente</div>
+              <div class="editor-section-tag">Página de presentes</div>
+              <div class="editor-section-title">Opções de presente</div>
             </div>
             <svg class="editor-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
           </button>
           <div class="editor-section-body">
-            <p class="field-hint" style="margin-bottom:18px">As trÃªs opÃ§Ãµes podem coexistir. Desabilite as que nÃ£o deseja exibir.</p>
+            <p class="field-hint" style="margin-bottom:18px">As três opções podem coexistir. Desabilite as que não deseja exibir.</p>
 
             <!-- Pix -->
             <div class="gift-block" id="giftBlockPix">
               <div class="gift-block-head">
                 <div>
-                  <div class="gift-block-type">OpÃ§Ã£o 1</div>
+                  <div class="gift-block-type">Opção 1</div>
                   <div class="gift-block-name">Pix</div>
                 </div>
                 <label class="toggle" onclick="event.stopPropagation()">
@@ -2919,7 +2919,7 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
                   <div class="field">
                     <label class="field-label" for="edGiftPixKey">Chave Pix *</label>
                     <input type="text" class="field-input sm" id="edGiftPixKey"
-                           placeholder="CPF, e-mail, telefone ou chave aleatÃ³ria" oninput="markEditorDirty()">
+                           placeholder="CPF, e-mail, telefone ou chave aleatória" oninput="markEditorDirty()">
                   </div>
                 </div>
                 <input type="hidden" id="edGiftPixQr">
@@ -2938,7 +2938,7 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
                   <div class="field">
                     <label class="field-label" for="edGiftPixQrFile">Upload do QR Pix</label>
                     <input type="file" class="field-input sm" id="edGiftPixQrFile" accept="image/png,image/jpeg,image/webp">
-                    <div class="field-hint">Formatos aceitos: JPG, PNG e WEBP atÃ© 10 MB. O upload substitui o QR atual.</div>
+                    <div class="field-hint">Formatos aceitos: JPG, PNG e WEBP até 10 MB. O upload substitui o QR atual.</div>
                     <div class="upload-file-meta" id="edGiftPixQrFileMeta"></div>
                   </div>
                   <div class="media-upload-action">
@@ -2959,12 +2959,12 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
               </div>
             </div>
 
-            <!-- CartÃ£o -->
+            <!-- Cartão -->
             <div class="gift-block" id="giftBlockCard">
               <div class="gift-block-head">
                 <div>
-                  <div class="gift-block-type">OpÃ§Ã£o 2</div>
-                  <div class="gift-block-name">CartÃ£o de crÃ©dito</div>
+                  <div class="gift-block-type">Opção 2</div>
+                  <div class="gift-block-name">Cartão de crédito</div>
                 </div>
                 <label class="toggle" onclick="event.stopPropagation()">
                   <input type="checkbox" class="toggle-input" id="edGiftCardEnabled"
@@ -2976,17 +2976,17 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
                 <div class="field">
                   <label class="field-label" for="edGiftCardLink">Link de pagamento *</label>
                   <input type="url" class="field-input sm" id="edGiftCardLink"
-                         placeholder="https://link.mercadopago.com.br/â€¦" oninput="markEditorDirty()">
+                         placeholder="https://link.mercadopago.com.br/…" oninput="markEditorDirty()">
                   <div class="field-hint">Mercado Pago, PagSeguro, Stripe ou outra plataforma.</div>
                 </div>
               </div>
             </div>
 
-            <!-- CatÃ¡logo -->
+            <!-- Catálogo -->
             <div class="gift-block" id="giftBlockCatalog">
               <div class="gift-block-head">
                 <div>
-                  <div class="gift-block-type">OpÃ§Ã£o 3</div>
+                  <div class="gift-block-type">Opção 3</div>
                   <div class="gift-block-name">Lista de presentes</div>
                 </div>
                 <label class="toggle" onclick="event.stopPropagation()">
@@ -2998,12 +2998,12 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
               <div class="gift-block-body">
                 <div class="form-grid-2">
                   <div class="field">
-                    <label class="field-label" for="edGiftCatalogTitle">TÃ­tulo da lista</label>
+                    <label class="field-label" for="edGiftCatalogTitle">Título da lista</label>
                     <input type="text" class="field-input sm" id="edGiftCatalogTitle"
                            placeholder="Definido automaticamente" readonly>
                   </div>
                   <div class="field">
-                    <label class="field-label" for="edGiftCatalogSubtitle">SubtÃ­tulo</label>
+                    <label class="field-label" for="edGiftCatalogSubtitle">Subtítulo</label>
                     <input type="text" class="field-input sm" id="edGiftCatalogSubtitle"
                            placeholder="Definido automaticamente" readonly>
                   </div>
@@ -3014,19 +3014,19 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
                   <div class="catalog-type-selector">
                     <label class="catalog-type-opt">
                       <input type="radio" name="catalogType" value="honeymoon" onchange="onCatalogTypeChange(this.value)">
-                      <span>ðŸŒ™ Lua de Mel</span>
+                      <span>🌙 Lua de Mel</span>
                     </label>
                     <label class="catalog-type-opt">
                       <input type="radio" name="catalogType" value="home" onchange="onCatalogTypeChange(this.value)">
-                      <span>ðŸ  Casa</span>
+                      <span>🏠 Casa</span>
                     </label>
                     <label class="catalog-type-opt">
                       <input type="radio" name="catalogType" value="couple" onchange="onCatalogTypeChange(this.value)">
-                      <span>âœ¨ Nosso Lar</span>
+                      <span>✨ Nosso Lar</span>
                     </label>
                     <label class="catalog-type-opt">
                       <input type="radio" name="catalogType" value="wedding" onchange="onCatalogTypeChange(this.value)">
-                      <span>ðŸ’ Ajuda no Casamento</span>
+                      <span>💍 Ajuda no Casamento</span>
                     </label>
                   </div>
                 </div>
@@ -3041,11 +3041,11 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
               </div>
             </div>
 
-            <!-- â”€â”€ OpÃ§Ã£o 4: Lista Externa â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+            <!-- ── Opção 4: Lista Externa ─────────────────────────────── -->
             <div class="gift-block" id="giftBlockExternal">
               <div class="gift-block-head">
                 <div>
-                  <div class="gift-block-type">OpÃ§Ã£o 4</div>
+                  <div class="gift-block-type">Opção 4</div>
                   <div class="gift-block-name">Lista externa de presentes</div>
                 </div>
                 <label class="toggle" onclick="event.stopPropagation()">
@@ -3058,17 +3058,17 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
                 <div class="field" style="margin-bottom:10px">
                   <label class="field-label" for="edExternalStore">Loja / Plataforma</label>
                   <input class="field-input sm" id="edExternalStore" type="text"
-                         placeholder="Ex: Amazon, Casas Bahiaâ€¦" oninput="markEditorDirty()">
-                  <div class="field-hint">Nome exibido no botÃ£o e na aba da pÃ¡gina de presentes.</div>
+                         placeholder="Ex: Amazon, Casas Bahia…" oninput="markEditorDirty()">
+                  <div class="field-hint">Nome exibido no botão e na aba da página de presentes.</div>
                 </div>
                 <div class="field" style="margin-bottom:10px">
                   <label class="field-label" for="edExternalUrl">URL da lista</label>
                   <input class="field-input sm" id="edExternalUrl" type="url"
-                         placeholder="https://â€¦" oninput="markEditorDirty()">
-                  <div class="field-hint">Link direto para a lista. Tags de afiliado sÃ£o adicionadas automaticamente para Amazon e Magalu.</div>
+                         placeholder="https://…" oninput="markEditorDirty()">
+                  <div class="field-hint">Link direto para a lista. Tags de afiliado são adicionadas automaticamente para Amazon e Magalu.</div>
                 </div>
                 <div class="field">
-                  <label class="field-label" for="edExternalLabel">Texto do botÃ£o</label>
+                  <label class="field-label" for="edExternalLabel">Texto do botão</label>
                   <input class="field-input sm" id="edExternalLabel" type="text"
                          placeholder="Ver lista completa" oninput="markEditorDirty()">
                 </div>
@@ -3078,31 +3078,31 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
             <div class="editor-section-footer" id="footer-edSectionPresentes">
               <span class="footer-warning-msg">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                AlteraÃ§Ãµes nÃ£o salvas
+                Alterações não salvas
               </span>
               <span class="footer-saved-msg">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                ConfiguraÃ§Ãµes salvas âœ“
+                Configurações salvas ✓
               </span>
-              <button type="button" class="btn btn-primary footer-save-btn" onclick="saveEditorConfig()">Salvar alteraÃ§Ãµes</button>
+              <button type="button" class="btn btn-primary footer-save-btn" onclick="saveEditorConfig()">Salvar alterações</button>
             </div>
 
           </div>
         </div>
 
-        <!-- â”€â”€ SEÃ‡ÃƒO 5: FOTOS & MÃDIA â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+        <!-- ── SEÇÃO 5: FOTOS & MÍDIA ─────────────────── -->
         <div class="editor-section" id="edSectionMidia">
           <button class="editor-section-header" type="button" onclick="toggleEditorSection('edSectionMidia')">
             <div>
-              <div class="editor-section-tag">Fotos &amp; MÃ­dia</div>
-              <div class="editor-section-title">Fotos &amp; MÃ­dia</div>
+              <div class="editor-section-tag">Fotos &amp; Mídia</div>
+              <div class="editor-section-title">Fotos &amp; Mídia</div>
             </div>
             <svg class="editor-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
           </button>
           <div class="editor-section-body">
             <div class="upload-guidance">
               <div class="upload-guidance-title">Antes de enviar</div>
-              <div class="upload-guidance-text">Use imagens JPG, PNG ou WEBP de atÃ© 10 MB por arquivo. O sistema salva automaticamente ao final de cada envio.</div>
+              <div class="upload-guidance-text">Use imagens JPG, PNG ou WEBP de até 10 MB por arquivo. O sistema salva automaticamente ao final de cada envio.</div>
             </div>
             <div class="media-preview-wrap" id="edMediaHeroPreviewWrap" style="display:none">
               <div class="field-label" style="margin-bottom:8px">Foto atual do hero</div>
@@ -3120,7 +3120,7 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
               <div class="field">
                 <label class="field-label" for="edMediaHeroFile">Upload da foto principal</label>
                 <input type="file" class="field-input sm" id="edMediaHeroFile" accept="image/png,image/jpeg,image/webp">
-                <div class="field-hint">Formatos aceitos: JPG, PNG e WEBP atÃ© 10 MB.</div>
+                <div class="field-hint">Formatos aceitos: JPG, PNG e WEBP até 10 MB.</div>
                 <div class="upload-file-meta" id="edMediaHeroFileMeta"></div>
               </div>
               <div class="media-upload-action">
@@ -3140,7 +3140,7 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
             </div>
 
             <div class="editor-rule"></div>
-            <span class="editor-sub-label">Galeria da pÃ¡gina Nossa HistÃ³ria</span>
+            <span class="editor-sub-label">Galeria da página Nossa História</span>
 
             <div class="media-gallery-toolbar" id="edMediaGalleryToolbar" hidden>
               <div class="media-gallery-toolbar-info" id="edMediaGallerySelectionInfo">0 foto selecionada</div>
@@ -3182,21 +3182,21 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
             </div>
 
             <div class="editor-rule"></div>
-            <span class="editor-sub-label">MÃºsica do convite</span>
+            <span class="editor-sub-label">Música do convite</span>
             <div class="form-group">
               <label class="toggle">
                 <input type="checkbox" class="toggle-input" id="edTrackEnabled" onchange="markEditorDirty()">
                 <span class="toggle-track"><span class="toggle-thumb"></span></span>
-                <span class="toggle-label">Habilitar mÃºsica no convite</span>
+                <span class="toggle-label">Habilitar música no convite</span>
               </label>
             </div>
 
             <div class="field" style="margin-bottom:12px">
-              <label class="field-label" for="edTrackSrc">MÃºsica</label>
+              <label class="field-label" for="edTrackSrc">Música</label>
               <select class="field-input sm" id="edTrackSrc" onchange="markEditorDirty()">
-                <option value="">â€” Carregando mÃºsicasâ€¦ â€”</option>
+                <option value="">— Carregando músicas… —</option>
               </select>
-              <div class="field-hint" id="edTrackSrcHint" style="margin-top:4px">As mÃºsicas sÃ£o carregadas da pasta <code>songs/</code> no Storage.</div>
+              <div class="field-hint" id="edTrackSrcHint" style="margin-top:4px">As músicas são carregadas da pasta <code>songs/</code> no Storage.</div>
             </div>
 
             <div class="form-grid-3">
@@ -3209,10 +3209,10 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
                        oninput="markEditorDirty();_syncVolumeSlider(this)">
               </div>
               <div class="field" style="grid-column: span 2">
-                <label class="field-label" for="edTrackStart">InÃ­cio em (seg)</label>
+                <label class="field-label" for="edTrackStart">Início em (seg)</label>
                 <input type="number" class="field-input sm" id="edTrackStart"
                        min="0" step="1" placeholder="0" oninput="markEditorDirty()">
-                <div class="field-hint" style="margin-top:4px">A mÃºsica reinicia neste ponto ao navegar entre pÃ¡ginas do convite.</div>
+                <div class="field-hint" style="margin-top:4px">A música reinicia neste ponto ao navegar entre páginas do convite.</div>
               </div>
             </div>
 
@@ -3239,36 +3239,36 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
             <div class="editor-section-footer" id="footer-edSectionMidia">
               <span class="footer-warning-msg">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                AlteraÃ§Ãµes nÃ£o salvas
+                Alterações não salvas
               </span>
               <span class="footer-saved-msg">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                ConfiguraÃ§Ãµes salvas âœ“
+                Configurações salvas ✓
               </span>
-              <button type="button" class="btn btn-primary footer-save-btn" onclick="saveEditorConfig()">Salvar alteraÃ§Ãµes</button>
+              <button type="button" class="btn btn-primary footer-save-btn" onclick="saveEditorConfig()">Salvar alterações</button>
             </div>
           </div>
         </div>
 
 
-        <!-- â”€â”€ SEÃ‡ÃƒO 6: NOSSA HISTÃ“RIA â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+        <!-- ── SEÇÃO 6: NOSSA HISTÓRIA ───────────────── -->
         <div class="editor-section" id="edSectionHistoria">
           <button class="editor-section-header" type="button" onclick="toggleEditorSection('edSectionHistoria')">
             <div>
-              <div class="editor-section-tag">ConteÃºdo</div>
-              <div class="editor-section-title">Nossa HistÃ³ria</div>
+              <div class="editor-section-tag">Conteúdo</div>
+              <div class="editor-section-title">Nossa História</div>
             </div>
             <svg class="editor-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
           </button>
           <div class="editor-section-body">
             <p style="font-size:11px;color:var(--text-dim);margin-bottom:16px;letter-spacing:0.03em;line-height:1.7">
-              Edite os trÃªs momentos que compÃµem a linha do tempo da pÃ¡gina Nossa HistÃ³ria.
+              Edite os três momentos que compõem a linha do tempo da página Nossa História.
             </p>
 
-            <!-- CapÃ­tulo 1 -->
+            <!-- Capítulo 1 -->
             <div class="historia-chapter-block">
               <div class="historia-chapter-header">
-                <span class="historia-chapter-num">CapÃ­tulo 1</span>
+                <span class="historia-chapter-num">Capítulo 1</span>
               </div>
               <div class="form-grid-3" style="margin-bottom:10px">
                 <div class="field">
@@ -3277,7 +3277,7 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
                          placeholder="ex: 2019" maxlength="10" oninput="markEditorDirty()">
                 </div>
                 <div class="field" style="grid-column:span 2">
-                  <label class="field-label" for="edChapter0Title">TÃ­tulo</label>
+                  <label class="field-label" for="edChapter0Title">Título</label>
                   <input type="text" class="field-input sm" id="edChapter0Title"
                          placeholder="ex: O primeiro encontro" oninput="markEditorDirty()">
                 </div>
@@ -3289,10 +3289,10 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
               </div>
             </div>
 
-            <!-- CapÃ­tulo 2 -->
+            <!-- Capítulo 2 -->
             <div class="historia-chapter-block">
               <div class="historia-chapter-header">
-                <span class="historia-chapter-num">CapÃ­tulo 2</span>
+                <span class="historia-chapter-num">Capítulo 2</span>
               </div>
               <div class="form-grid-3" style="margin-bottom:10px">
                 <div class="field">
@@ -3301,7 +3301,7 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
                          placeholder="ex: 2022" maxlength="10" oninput="markEditorDirty()">
                 </div>
                 <div class="field" style="grid-column:span 2">
-                  <label class="field-label" for="edChapter1Title">TÃ­tulo</label>
+                  <label class="field-label" for="edChapter1Title">Título</label>
                   <input type="text" class="field-input sm" id="edChapter1Title"
                          placeholder="ex: O pedido" oninput="markEditorDirty()">
                 </div>
@@ -3313,10 +3313,10 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
               </div>
             </div>
 
-            <!-- CapÃ­tulo 3 -->
+            <!-- Capítulo 3 -->
             <div class="historia-chapter-block">
               <div class="historia-chapter-header">
-                <span class="historia-chapter-num">CapÃ­tulo 3</span>
+                <span class="historia-chapter-num">Capítulo 3</span>
               </div>
               <div class="form-grid-3" style="margin-bottom:10px">
                 <div class="field">
@@ -3325,7 +3325,7 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
                          placeholder="ex: 2026" maxlength="10" oninput="markEditorDirty()">
                 </div>
                 <div class="field" style="grid-column:span 2">
-                  <label class="field-label" for="edChapter2Title">TÃ­tulo</label>
+                  <label class="field-label" for="edChapter2Title">Título</label>
                   <input type="text" class="field-input sm" id="edChapter2Title"
                          placeholder="ex: O grande dia" oninput="markEditorDirty()">
                 </div>
@@ -3340,30 +3340,30 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
             <div class="editor-section-footer" id="footer-edSectionHistoria">
               <span class="footer-warning-msg">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                AlteraÃ§Ãµes nÃ£o salvas
+                Alterações não salvas
               </span>
               <span class="footer-saved-msg">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                ConfiguraÃ§Ãµes salvas âœ“
+                Configurações salvas ✓
               </span>
-              <button type="button" class="btn btn-primary footer-save-btn" onclick="saveEditorConfig()">Salvar alteraÃ§Ãµes</button>
+              <button type="button" class="btn btn-primary footer-save-btn" onclick="saveEditorConfig()">Salvar alterações</button>
             </div>
 
           </div>
         </div>
 
-        <!-- â”€â”€ SEÃ‡ÃƒO 7: FAQ â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+        <!-- ── SEÇÃO 7: FAQ ───────────────────────────── -->
         <div class="editor-section" id="edSectionFaq">
           <button class="editor-section-header" type="button" onclick="toggleEditorSection('edSectionFaq')">
             <div>
-              <div class="editor-section-tag">ConteÃºdo</div>
+              <div class="editor-section-tag">Conteúdo</div>
               <div class="editor-section-title">Perguntas Frequentes</div>
             </div>
             <svg class="editor-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
           </button>
           <div class="editor-section-body">
             <p style="font-size:11px;color:var(--text-dim);margin-bottom:16px;letter-spacing:0.03em;line-height:1.7">
-              Adicione ou edite as perguntas frequentes que aparecem na pÃ¡gina de FAQ do convite.
+              Adicione ou edite as perguntas frequentes que aparecem na página de FAQ do convite.
             </p>
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
               <span class="editor-sub-label" style="margin-bottom:0">Perguntas</span>
@@ -3376,60 +3376,60 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
             <div class="editor-section-footer" id="footer-edSectionFaq">
               <span class="footer-warning-msg">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                AlteraÃ§Ãµes nÃ£o salvas
+                Alterações não salvas
               </span>
               <span class="footer-saved-msg">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                ConfiguraÃ§Ãµes salvas âœ“
+                Configurações salvas ✓
               </span>
-              <button type="button" class="btn btn-primary footer-save-btn" onclick="saveEditorConfig()">Salvar alteraÃ§Ãµes</button>
+              <button type="button" class="btn btn-primary footer-save-btn" onclick="saveEditorConfig()">Salvar alterações</button>
             </div>
           </div>
         </div>
 
-        <!-- â”€â”€ SEÃ‡ÃƒO 8: HOSPEDAGEM â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+        <!-- ── SEÇÃO 8: HOSPEDAGEM ───────────────────────── -->
         <div class="editor-section" id="edSectionHospedagem">
           <button class="editor-section-header" type="button" onclick="toggleEditorSection('edSectionHospedagem')">
             <div>
-              <div class="editor-section-tag">ConteÃºdo</div>
+              <div class="editor-section-tag">Conteúdo</div>
               <div class="editor-section-title">Para quem vem de fora</div>
             </div>
             <svg class="editor-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
           </button>
           <div class="editor-section-body">
             <p style="font-size:11px;color:var(--text-dim);margin-bottom:16px;letter-spacing:0.03em;line-height:1.7">
-              Configure os textos da pÃ¡gina de hospedagem e adicione opÃ§Ãµes de hotÃ©is e restaurantes para os convidados.
+              Configure os textos da página de hospedagem e adicione opções de hotéis e restaurantes para os convidados.
             </p>
 
             <div class="form-grid-2">
               <div class="field">
-                <label class="field-label" for="edHospTag">Tag da seÃ§Ã£o</label>
+                <label class="field-label" for="edHospTag">Tag da seção</label>
                 <input type="text" class="field-input sm" id="edHospTag" placeholder="Para quem vem de fora" oninput="markEditorDirty()">
               </div>
               <div class="field">
-                <label class="field-label" for="edHospTitle">TÃ­tulo principal</label>
+                <label class="field-label" for="edHospTitle">Título principal</label>
                 <input type="text" class="field-input sm" id="edHospTitle" placeholder="Para quem vem de fora" oninput="markEditorDirty()">
               </div>
             </div>
 
             <div class="field" style="margin-bottom:16px">
-              <label class="field-label" for="edHospIntro">IntroduÃ§Ã£o</label>
-              <textarea class="field-input sm" id="edHospIntro" rows="3" placeholder="Texto de introduÃ§Ã£o da pÃ¡gina de hospedagem..." oninput="markEditorDirty()"></textarea>
+              <label class="field-label" for="edHospIntro">Introdução</label>
+              <textarea class="field-input sm" id="edHospIntro" rows="3" placeholder="Texto de introdução da página de hospedagem..." oninput="markEditorDirty()"></textarea>
             </div>
 
             <div class="form-grid-2" style="margin-bottom:16px">
               <div class="field">
-                <label class="field-label" for="edHospHotelsTitle">TÃ­tulo da seÃ§Ã£o de hotÃ©is</label>
-                <input type="text" class="field-input sm" id="edHospHotelsTitle" placeholder="HotÃ©is" oninput="markEditorDirty()">
+                <label class="field-label" for="edHospHotelsTitle">Título da seção de hotéis</label>
+                <input type="text" class="field-input sm" id="edHospHotelsTitle" placeholder="Hotéis" oninput="markEditorDirty()">
               </div>
               <div class="field">
-                <label class="field-label" for="edHospRestaurantsTitle">TÃ­tulo da seÃ§Ã£o de restaurantes</label>
+                <label class="field-label" for="edHospRestaurantsTitle">Título da seção de restaurantes</label>
                 <input type="text" class="field-input sm" id="edHospRestaurantsTitle" placeholder="Restaurantes" oninput="markEditorDirty()">
               </div>
             </div>
 
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-              <span class="editor-sub-label" style="margin-bottom:0">HotÃ©is</span>
+              <span class="editor-sub-label" style="margin-bottom:0">Hotéis</span>
               <button type="button" id="edAddHotelBtn" class="btn btn-subtle" style="padding:6px 14px;font-size:10px" onclick="addHotelItem()">
                 + Adicionar hotel
               </button>
@@ -3449,29 +3449,29 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
             <div class="editor-section-footer" id="footer-edSectionHospedagem">
               <span class="footer-warning-msg">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                AlteraÃ§Ãµes nÃ£o salvas
+                Alterações não salvas
               </span>
               <span class="footer-saved-msg">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                ConfiguraÃ§Ãµes salvas âœ“
+                Configurações salvas ✓
               </span>
-              <button type="button" class="btn btn-primary footer-save-btn" onclick="saveEditorConfig()">Salvar alteraÃ§Ãµes</button>
+              <button type="button" class="btn btn-primary footer-save-btn" onclick="saveEditorConfig()">Salvar alterações</button>
             </div>
           </div>
         </div>
 
-        <!-- â”€â”€ SEÃ‡ÃƒO 9: TRAJE & PALETAS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+        <!-- ── SEÇÃO 9: TRAJE & PALETAS ─────────────────── -->
         <div class="editor-section" id="edSectionTraje">
           <button class="editor-section-header" type="button" onclick="toggleEditorSection('edSectionTraje')">
             <div>
-              <div class="editor-section-tag">ConteÃºdo</div>
+              <div class="editor-section-tag">Conteúdo</div>
               <div class="editor-section-title">Traje &amp; Paletas</div>
             </div>
             <svg class="editor-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
           </button>
           <div class="editor-section-body">
             <p style="font-size:11px;color:var(--text-dim);margin-bottom:16px;letter-spacing:0.03em;line-height:1.7">
-              Aparece como card de detalhes na pÃ¡gina principal. Ao clicar, abre a pÃ¡gina com dress code e paletas de cores.
+              Aparece como card de detalhes na página principal. Ao clicar, abre a página com dress code e paletas de cores.
             </p>
 
             <!-- Tipo de traje -->
@@ -3504,7 +3504,7 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
                   + Adicionar cor
                 </button>
               </div>
-              <p style="font-size:10px;color:var(--text-dim);margin-bottom:8px">MÃ¡ximo 5 cores</p>
+              <p style="font-size:10px;color:var(--text-dim);margin-bottom:8px">Máximo 5 cores</p>
               <div id="bridesmaidsPaletteList"></div>
             </div>
 
@@ -3517,7 +3517,7 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
                   + Adicionar cor
                 </button>
               </div>
-              <p style="font-size:10px;color:var(--text-dim);margin-bottom:8px">MÃ¡ximo 5 cores</p>
+              <p style="font-size:10px;color:var(--text-dim);margin-bottom:8px">Máximo 5 cores</p>
               <div id="groomsMenPaletteList"></div>
             </div>
 
@@ -3553,11 +3553,11 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
               </div>
             </div>
 
-            <!-- ObservaÃ§Ã£o dos noivos -->
+            <!-- Observação dos noivos -->
             <div class="field" style="margin-bottom:8px">
               <label class="field-label" for="edTrajeNote">
-                ObservaÃ§Ã£o dos noivos
-                <span style="font-size:10px;color:var(--text-dim);font-weight:400;letter-spacing:0;text-transform:none"> â€” mÃ¡ximo 200 caracteres</span>
+                Observação dos noivos
+                <span style="font-size:10px;color:var(--text-dim);font-weight:400;letter-spacing:0;text-transform:none"> — máximo 200 caracteres</span>
               </label>
               <textarea class="field-input sm" id="edTrajeNote" rows="3"
                         maxlength="200"
@@ -3569,42 +3569,42 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
             <div class="editor-section-footer" id="footer-edSectionTraje">
               <span class="footer-warning-msg">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                AlteraÃ§Ãµes nÃ£o salvas
+                Alterações não salvas
               </span>
               <span class="footer-saved-msg">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                ConfiguraÃ§Ãµes salvas âœ“
+                Configurações salvas ✓
               </span>
-              <button type="button" class="btn btn-primary footer-save-btn" onclick="saveEditorConfig()">Salvar alteraÃ§Ãµes</button>
+              <button type="button" class="btn btn-primary footer-save-btn" onclick="saveEditorConfig()">Salvar alterações</button>
             </div>
           </div>
         </div>
 
-        <!-- â”€â”€ SEÃ‡ÃƒO 10: PÃGINAS EXTRAS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+        <!-- ── SEÇÃO 10: PÁGINAS EXTRAS ───────────────── -->
         <div class="editor-section" id="edSectionPages">
           <button class="editor-section-header" type="button" onclick="toggleEditorSection('edSectionPages')">
             <div>
-              <div class="editor-section-tag">NavegaÃ§Ã£o</div>
-              <div class="editor-section-title">PÃ¡ginas extras</div>
+              <div class="editor-section-tag">Navegação</div>
+              <div class="editor-section-title">Páginas extras</div>
             </div>
             <svg class="editor-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
           </button>
           <div class="editor-section-body">
             <p style="font-size:11px;color:var(--text-dim);margin-bottom:16px;letter-spacing:0.03em;line-height:1.7">
-              PÃ¡ginas desabilitadas nÃ£o aparecem nos cards de navegaÃ§Ã£o do convite.
+              Páginas desabilitadas não aparecem nos cards de navegação do convite.
             </p>
             <div class="pages-grid" id="edPagesGrid"></div>
 
             <div class="editor-section-footer" id="footer-edSectionPages">
               <span class="footer-warning-msg">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                AlteraÃ§Ãµes nÃ£o salvas
+                Alterações não salvas
               </span>
               <span class="footer-saved-msg">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                ConfiguraÃ§Ãµes salvas âœ“
+                Configurações salvas ✓
               </span>
-              <button type="button" class="btn btn-primary footer-save-btn" onclick="saveEditorConfig()">Salvar alteraÃ§Ãµes</button>
+              <button type="button" class="btn btn-primary footer-save-btn" onclick="saveEditorConfig()">Salvar alterações</button>
             </div>
           </div>
         </div>
@@ -3615,7 +3615,7 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
   </div>
 </div>
 
-<!-- â•â• MODAL: GRUPO â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+<!-- ══ MODAL: GRUPO ═══════════════════════════════════════════════════════ -->
 <div class="modal" id="modalGrupo" role="dialog" aria-labelledby="modalGrupoTitle">
   <div class="modal-dialog">
     <div class="modal-head">
@@ -3631,7 +3631,7 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
       <div class="modal-body">
         <div class="field">
           <label class="field-label" for="grupoName" id="grupoNameLabel">Nome do grupo *</label>
-          <input class="field-input" type="text" id="grupoName" required placeholder="Ex: FamÃ­lia Silva">
+          <input class="field-input" type="text" id="grupoName" required placeholder="Ex: Família Silva">
         </div>
         <div class="form-row">
           <div class="field">
@@ -3644,8 +3644,8 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
           </div>
         </div>
         <div class="field">
-          <label class="field-label" for="grupoNotes">ObservaÃ§Ãµes</label>
-          <input class="field-input" type="text" id="grupoNotes" placeholder="Ex: crianÃ§a de 8 anos, vegetariana">
+          <label class="field-label" for="grupoNotes">Observações</label>
+          <input class="field-input" type="text" id="grupoNotes" placeholder="Ex: criança de 8 anos, vegetariana">
         </div>
       </div>
       <div class="modal-foot">
@@ -3656,12 +3656,12 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
   </div>
 </div>
  
-<!-- â•â• MODAL: LEMBRETE â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+<!-- ══ MODAL: LEMBRETE ════════════════════════════════════════════════════ -->
 <div class="modal" id="modalLembrete" role="dialog" aria-labelledby="modalLembreteTitle">
   <div class="modal-dialog">
     <div class="modal-head">
       <div>
-        <div class="modal-tag">ComunicaÃ§Ã£o</div>
+        <div class="modal-tag">Comunicação</div>
         <h3 class="modal-title" id="modalLembreteTitle">Enviar lembrete</h3>
       </div>
       <button class="modal-close" onclick="closeModal('modalLembrete')" aria-label="Fechar">
@@ -3671,15 +3671,15 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
     <form id="formLembrete" onsubmit="handleSendLembrete(event)">
       <div class="modal-body">
         <div class="field">
-          <span class="field-label">Grupo destinatÃ¡rio</span>
-          <p style="font-family:var(--font-display);font-size:18px;font-style:italic;color:var(--text);padding:10px 0" id="lembreteGrupo">â€”</p>
+          <span class="field-label">Grupo destinatário</span>
+          <p style="font-family:var(--font-display);font-size:18px;font-style:italic;color:var(--text);padding:10px 0" id="lembreteGrupo">—</p>
         </div>
         <div class="field">
           <label class="field-label" for="lembreteTemplate">Template</label>
           <select class="filter-control" id="lembreteTemplate" onchange="updateMensagemPreview()">
-            <option value="pending">Lembrete â€” ainda nÃ£o confirmou</option>
-            <option value="thankyou">Agradecimento â€” jÃ¡ confirmou</option>
-            <option value="announcement">AnÃºncio â€” informaÃ§Ã£o importante</option>
+            <option value="pending">Lembrete — ainda não confirmou</option>
+            <option value="thankyou">Agradecimento — já confirmou</option>
+            <option value="announcement">Anúncio — informação importante</option>
           </select>
         </div>
         <div class="field">
@@ -3687,7 +3687,7 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
           <textarea class="field-input" id="lembreteMensagem" rows="6" required></textarea>
         </div>
         <div class="form-hint">
-          A mensagem abrirÃ¡ o WhatsApp do telefone cadastrado para envio manual. Revise antes de enviar.
+          A mensagem abrirá o WhatsApp do telefone cadastrado para envio manual. Revise antes de enviar.
         </div>
       </div>
       <div class="modal-foot">
@@ -3701,7 +3701,7 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
   </div>
 </div>
  
-<!-- â•â• THEME LOADER â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+<!-- ══ THEME LOADER ═══════════════════════════════════════════════════════ -->
 <script type="module" src="assets/js/dashboard-bootstrap.js"></script>
  <!-- Dashboard JS original -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -3712,7 +3712,7 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
 <div class="mobile-drawer-backdrop" id="drawerBackdrop" hidden></div>
 <aside class="mobile-drawer" id="mobileDrawer" aria-hidden="true">
   <div class="mobile-drawer-header">
-    <button class="mobile-drawer-close" id="drawerClose" aria-label="Fechar menu">âœ•</button>
+    <button class="mobile-drawer-close" id="drawerClose" aria-label="Fechar menu">✕</button>
   </div>
   <div class="mobile-drawer-body">
     <div class="drawer-plan" id="drawerPlan">
@@ -3723,12 +3723,12 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
       </button>
     </div>
     <button class="drawer-item drawer-item--theme" id="drawerThemeToggle" disabled>
-      <span class="drawer-item-icon">â˜€</span>
+      <span class="drawer-item-icon">☀</span>
       <span>Tema claro / escuro</span>
       <span class="drawer-item-badge">Em breve</span>
     </button>
     <button class="drawer-item drawer-item--logout" id="drawerLogout">
-      <span class="drawer-item-icon">â†’</span>
+      <span class="drawer-item-icon">→</span>
       <span>Sair do painel</span>
     </button>
   </div>
