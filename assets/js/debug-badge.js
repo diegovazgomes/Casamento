@@ -55,7 +55,7 @@ function buildBadgeHTML(loadTime) {
 ">
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">
     <span style="color:#9d9dff;font-weight:600;letter-spacing:.04em;">⬡ DEBUG</span>
-    <button onclick="document.getElementById('__debugBadge').remove()" style="
+    <button id="__debugBadgeClose" style="
         background:none;border:none;cursor:pointer;color:#888;
         font-size:13px;line-height:1;padding:0 0 0 10px;">✕</button>
   </div>
@@ -131,6 +131,9 @@ export function initDebugBadge() {
     if (!isDebugMode()) return;
     const loadTime = fmt(new Date());
     document.body.insertAdjacentHTML('beforeend', buildBadgeHTML(loadTime));
+    document.getElementById('__debugBadgeClose')?.addEventListener('click', () => {
+        document.getElementById('__debugBadge')?.remove();
+    });
     loadCommitInfo();
 }
 

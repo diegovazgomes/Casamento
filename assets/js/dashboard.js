@@ -298,8 +298,8 @@ function closeDrawer() {
 }
 
 function bindUiEvents() {
-  authForm.addEventListener('submit', handleAuth);
-  logoutButton.addEventListener('click', handleLogout);
+  authForm?.addEventListener('submit', handleAuth);
+  logoutButton?.addEventListener('click', handleLogout);
   document.getElementById('btnUpgrade')?.addEventListener('click', handleUpgrade);
 
   // Drawer mobile
@@ -315,12 +315,12 @@ function bindUiEvents() {
   });
 
   // Modais
-  document.getElementById('btnNewGroup').addEventListener('click', () => openGroupModal('group'));
+  document.getElementById('btnNewGroup')?.addEventListener('click', () => openGroupModal('group'));
   document.getElementById('btnNewSingleInvite')?.addEventListener('click', () => openGroupModal('individual'));
   document.getElementById('btnCopyGeneralInvite')?.addEventListener('click', function () {
     copyGeneralInviteLink(this);
   });
-  document.getElementById('btnDownloadCsv').addEventListener('click', handleDownloadCsv);
+  document.getElementById('btnDownloadCsv')?.addEventListener('click', handleDownloadCsv);
   document.getElementById('btnRefresh')?.addEventListener('click', () => {
     refreshActiveTab();
   });
@@ -348,6 +348,299 @@ function bindUiEvents() {
   const filterAudiencePage = document.getElementById('filterAudiencePage');
   if (filterAudiencePage) {
     filterAudiencePage.addEventListener('change', reloadAudiencia);
+  }
+
+  bindDashboardCspSafeEvents();
+}
+
+function bindDashboardCspSafeEvents() {
+  document.addEventListener('click', handleDashboardDelegatedClick);
+  document.addEventListener('input', handleDashboardDelegatedInput);
+  document.addEventListener('change', handleDashboardDelegatedChange);
+  document.addEventListener('blur', handleDashboardDelegatedBlur, true);
+  document.addEventListener('keydown', handleDashboardDelegatedKeydown);
+
+  document.getElementById('formGrupo')?.addEventListener('submit', handleSaveGrupo);
+  document.getElementById('formLembrete')?.addEventListener('submit', handleSendLembrete);
+}
+
+function handleDashboardDelegatedClick(event) {
+  const sectionButton = event.target.closest('[data-editor-section]');
+  if (sectionButton) {
+    event.preventDefault();
+    toggleEditorSection(sectionButton.dataset.editorSection);
+    return;
+  }
+
+  const closeButton = event.target.closest('[data-close-modal]');
+  if (closeButton) {
+    event.preventDefault();
+    closeModal(closeButton.dataset.closeModal);
+    return;
+  }
+
+  const actionButton = event.target.closest('[data-dashboard-action]');
+  if (actionButton) {
+    event.preventDefault();
+    runDashboardAction(actionButton.dataset.dashboardAction, event, actionButton);
+    return;
+  }
+
+  const groupButton = event.target.closest('[data-group-action]');
+  if (groupButton) {
+    event.preventDefault();
+    runGroupAction(groupButton.dataset.groupAction, groupButton.dataset.groupId, groupButton);
+    return;
+  }
+
+  const paginationButton = event.target.closest('[data-pagination-kind]');
+  if (paginationButton) {
+    event.preventDefault();
+    runPaginationAction(paginationButton.dataset);
+    return;
+  }
+
+  const removeCatalogButton = event.target.closest('[data-remove-catalog-index]');
+  if (removeCatalogButton) {
+    event.preventDefault();
+    removeCatalogItem(Number(removeCatalogButton.dataset.removeCatalogIndex));
+    return;
+  }
+
+  const removeFaqButton = event.target.closest('[data-remove-faq-index]');
+  if (removeFaqButton) {
+    event.preventDefault();
+    removeFaqItem(Number(removeFaqButton.dataset.removeFaqIndex));
+    return;
+  }
+
+  const removeHospedagemButton = event.target.closest('[data-hospedagem-remove-type]');
+  if (removeHospedagemButton) {
+    event.preventDefault();
+    const index = Number(removeHospedagemButton.dataset.hospedagemIndex);
+    if (removeHospedagemButton.dataset.hospedagemRemoveType === 'hotel') {
+      removeHotelItem(index);
+    } else {
+      removeRestaurantItem(index);
+    }
+    return;
+  }
+
+  const removeColorButton = event.target.closest('[data-color-remove-type]');
+  if (removeColorButton) {
+    event.preventDefault();
+    const index = Number(removeColorButton.dataset.colorIndex);
+    if (removeColorButton.dataset.colorRemoveType === 'bridesmaid') {
+      removeBridesmaidColor(index);
+    } else {
+      removeGroomsmanColor(index);
+    }
+    return;
+  }
+
+  const galleryButton = event.target.closest('[data-gallery-action]');
+  if (galleryButton) {
+    event.preventDefault();
+    const index = Number(galleryButton.dataset.galleryIndex);
+    if (galleryButton.dataset.galleryAction === 'move-prev') moveGalleryImageByOffset(index, -1);
+    if (galleryButton.dataset.galleryAction === 'move-next') moveGalleryImageByOffset(index, 1);
+  }
+}
+
+function runDashboardAction(action, event, trigger) {
+  const actions = {
+    handleUpgrade: () => handleUpgrade(event),
+    clearFilters,
+    clearAudienceFilters,
+    clearMensagensFilters,
+    clearMusicasFilters,
+    reloadEditorTab,
+    saveEditorConfig,
+    uploadPixQrMedia,
+    uploadHeroMedia,
+    toggleSelectAllGalleryImages,
+    deleteSelectedGalleryImages,
+    uploadGalleryMedia,
+    audioPreviewPlay,
+    audioPreviewPause,
+    audioPreviewStop,
+    addCatalogItem,
+    addFaqItem,
+    addHotelItem,
+    addRestaurantItem,
+    addBridesmaidColor,
+    addGroomsmanColor,
+  };
+
+  actions[action]?.();
+}
+
+function runGroupAction(action, groupId, trigger) {
+  if (!groupId) return;
+  if (action === 'sendInviteWhatsApp') sendInviteWhatsApp(groupId);
+  if (action === 'copyInviteWhatsAppMessage') copyInviteWhatsAppMessage(groupId, trigger);
+  if (action === 'editGrupo') editGrupo(groupId);
+  if (action === 'deleteGrupo') deleteGrupo(groupId);
+}
+
+function runPaginationAction(dataset) {
+  const page = Number(dataset.paginationPage || '1');
+  const search = dataset.paginationSearch || '';
+  const kind = dataset.paginationKind;
+
+  if (kind === 'confirmacoes') {
+    loadConfirmacoes(page, dataset.paginationStatus || '', dataset.paginationGroupId || '', search);
+  }
+  if (kind === 'audiencia') {
+    loadAudiencia(page, search, dataset.paginationPagePath || '');
+  }
+  if (kind === 'mensagens') {
+    loadMensagens(page, search);
+  }
+  if (kind === 'musicas') {
+    loadMusicas(page, search);
+  }
+}
+
+function handleDashboardDelegatedInput(event) {
+  const target = event.target;
+  if (!(target instanceof HTMLElement)) return;
+
+  if (target.id === 'edTrackVolume') _syncVolumeSlider(target);
+  if (target.id === 'edBrideColorPicker') syncColorFromPicker('edBrideColorHex', target.value);
+  if (target.id === 'edBrideColorHex') syncColorToPicker('edBrideColorPicker', target.value);
+  if (target.id === 'edGroomColorPicker') syncColorFromPicker('edGroomColorHex', target.value);
+  if (target.id === 'edGroomColorHex') syncColorToPicker('edGroomColorPicker', target.value);
+  if (target.id === 'edTrajeNote') updateTrajeNoteCounter();
+
+  handleDynamicEditorFieldInput(target);
+
+  if (isDirtyTrackingEditorField(target)) {
+    markEditorDirty();
+  }
+}
+
+function handleDashboardDelegatedChange(event) {
+  const target = event.target;
+  if (!(target instanceof HTMLElement)) return;
+
+  if (target.id === 'filterStatus' || target.id === 'filterGrupo') reloadConfirmacoes();
+  if (target.id === 'lembreteTemplate') updateMensagemPreview();
+  if (target.id === 'edEventDate') onEventDateChange();
+  if (target.id === 'edActiveLayout') onLayoutChange();
+
+  const giftBlockByInput = {
+    edGiftPixEnabled: 'giftBlockPix',
+    edGiftCardEnabled: 'giftBlockCard',
+    edGiftCatalogEnabled: 'giftBlockCatalog',
+    edExternalEnabled: 'giftBlockExternal',
+  };
+  if (giftBlockByInput[target.id]) {
+    toggleGiftBlock(giftBlockByInput[target.id], target.checked);
+  }
+
+  if (target.matches('input[name="catalogType"]')) {
+    onCatalogTypeChange(target.value);
+  }
+
+  if (target.dataset.gallerySelectIndex !== undefined) {
+    toggleGalleryImageSelectionByIndex(Number(target.dataset.gallerySelectIndex), target.checked);
+  }
+
+  handleDynamicEditorFieldChange(target);
+
+  if (isDirtyTrackingEditorField(target)) {
+    markEditorDirty();
+  }
+}
+
+function handleDashboardDelegatedBlur(event) {
+  const target = event.target;
+  if (!(target instanceof HTMLElement)) return;
+  if (target.id === 'edCeremonyMapsLink') onMapsLinkExtract('ceremony');
+  if (target.id === 'edPartyMapsLink') onMapsLinkExtract('party');
+}
+
+function handleDashboardDelegatedKeydown(event) {
+  const target = event.target;
+  if (!(target instanceof HTMLElement) || event.key !== 'Enter') return;
+
+  if (target.id === 'edBrideColorHex') {
+    syncColorToPicker('edBrideColorPicker', target.value);
+    markEditorDirty();
+  }
+  if (target.id === 'edGroomColorHex') {
+    syncColorToPicker('edGroomColorPicker', target.value);
+    markEditorDirty();
+  }
+
+  if (target.dataset.colorField === 'hex') {
+    syncDynamicColorInput(target);
+    updateDynamicColorField(target);
+  }
+}
+
+function isDirtyTrackingEditorField(target) {
+  if (!target.closest('#tab-editar')) return false;
+  if (!target.matches('input, select, textarea')) return false;
+  if (target.type === 'file') return false;
+  if (target.readOnly && target.type !== 'radio' && target.type !== 'checkbox') return false;
+  return true;
+}
+
+function handleDynamicEditorFieldInput(target) {
+  if (target.dataset.faqField) {
+    updateFaqItem(Number(target.dataset.faqIndex), target.dataset.faqField, target.value);
+  }
+
+  if (target.dataset.hospedagemField) {
+    updateHospedagemItemFromDataset(target);
+  }
+
+  if (target.dataset.colorField) {
+    if (target.dataset.colorField === 'hex') syncDynamicColorInput(target);
+    updateDynamicColorField(target);
+  }
+}
+
+function handleDynamicEditorFieldChange(target) {
+  if (target.dataset.catalogField) {
+    const value = target.dataset.catalogField === 'amount' ? Number(target.value) : target.value;
+    updateCatalogItem(Number(target.dataset.catalogIndex), target.dataset.catalogField, value);
+  }
+
+  if (target.dataset.hospedagemField) {
+    updateHospedagemItemFromDataset(target);
+  }
+
+  if (target.dataset.colorField) {
+    if (target.dataset.colorField === 'hex') syncDynamicColorInput(target);
+    updateDynamicColorField(target);
+  }
+}
+
+function updateHospedagemItemFromDataset(target) {
+  const index = Number(target.dataset.hospedagemIndex);
+  const field = target.dataset.hospedagemField;
+  if (target.dataset.hospedagemType === 'hotel') {
+    updateHotelItem(index, field, target.value);
+  } else {
+    updateRestaurantItem(index, field, target.value);
+  }
+}
+
+function syncDynamicColorInput(target) {
+  const peer = target.dataset.colorPeer === 'next' ? target.nextElementSibling : target.previousElementSibling;
+  syncDynColorPicker(peer, target.value);
+}
+
+function updateDynamicColorField(target) {
+  const index = Number(target.dataset.colorIndex);
+  const field = target.dataset.colorField;
+  if (target.dataset.colorType === 'bridesmaid') {
+    updateBridesmaidColor(index, field, target.value);
+  } else {
+    updateGroomsmanColor(index, field, target.value);
   }
 }
 
@@ -809,7 +1102,7 @@ function applyPlanRestrictions(profile) {
     const banner = document.createElement('div');
     banner.className = 'premium-lock-banner';
     banner.innerHTML = '<span>🔒 Seleção de tema disponível no plano Premium</span>'
-      + '<button type="button" class="btn btn-subtle" onclick="handleUpgrade()">Fazer upgrade</button>';
+      + '<button type="button" class="btn btn-subtle" data-dashboard-action="handleUpgrade">Fazer upgrade</button>';
     temaBody.insertBefore(banner, temaBody.firstChild);
     const layout = document.getElementById('edActiveLayout');
     const theme  = document.getElementById('edActiveTheme');
@@ -850,7 +1143,7 @@ function applyPlanRestrictions(profile) {
       const audioBanner = document.createElement('div');
       audioBanner.className = 'premium-lock-banner premium-lock-audio';
       audioBanner.innerHTML = '<span>🔒 Música do convite não está disponível no plano Free</span>'
-        + '<button type="button" class="btn btn-subtle" onclick="handleUpgrade()">Fazer upgrade</button>';
+        + '<button type="button" class="btn btn-subtle" data-dashboard-action="handleUpgrade">Fazer upgrade</button>';
       insertBefore.parentNode.insertBefore(audioBanner, insertBefore);
     }
     
@@ -858,7 +1151,7 @@ function applyPlanRestrictions(profile) {
       const el = document.getElementById(id);
       if (el) el.disabled = true;
     });
-    midiaBody.querySelectorAll('[onclick^="audioPreview"]').forEach(btn => {
+    midiaBody.querySelectorAll('[data-dashboard-action^="audioPreview"]').forEach(btn => {
       btn.disabled = true;
     });
   }
@@ -874,7 +1167,7 @@ function applyPlanRestrictions(profile) {
       if (card && !card.querySelector('.page-card-lock')) {
         const lockEl = document.createElement('span');
         lockEl.className = 'page-card-lock';
-        lockEl.innerHTML = '<button type="button" class="btn btn-subtle" style="padding:3px 8px;font-size:9px" onclick="handleUpgrade()">Premium</button>';
+        lockEl.innerHTML = '<button type="button" class="btn btn-subtle" style="padding:3px 8px;font-size:9px" data-dashboard-action="handleUpgrade">Premium</button>';
         card.appendChild(lockEl);
       }
     }
@@ -886,7 +1179,7 @@ function applyPlanRestrictions(profile) {
     const paletteBanner = document.createElement('div');
     paletteBanner.className = 'premium-lock-banner premium-lock-palette';
     paletteBanner.innerHTML = '<span>🔒 Paletas de cores disponíveis no plano Premium</span>'
-      + '<button type="button" class="btn btn-subtle" onclick="handleUpgrade()">Fazer upgrade</button>';
+      + '<button type="button" class="btn btn-subtle" data-dashboard-action="handleUpgrade">Fazer upgrade</button>';
     // Inserir antes do bloco "Paleta das madrinhas"
     const paletteStart = document.getElementById('edAddBridesmaid')?.closest('div[style]');
     if (paletteStart) {
@@ -908,7 +1201,7 @@ function applyPlanRestrictions(profile) {
     const cardBanner = document.createElement('div');
     cardBanner.className = 'premium-lock-banner';
     cardBanner.innerHTML = '<span>🔒 Link de pagamento por cartão disponível no plano Premium</span>'
-      + '<button type="button" class="btn btn-subtle" onclick="handleUpgrade()">Fazer upgrade</button>';
+      + '<button type="button" class="btn btn-subtle" data-dashboard-action="handleUpgrade">Fazer upgrade</button>';
     cardBlock.appendChild(cardBanner);
     const cardInput  = document.getElementById('edGiftCardLink');
     const cardToggle = document.getElementById('edGiftCardEnabled');
@@ -922,7 +1215,7 @@ function applyPlanRestrictions(profile) {
     const extBanner = document.createElement('div');
     extBanner.className = 'premium-lock-banner';
     extBanner.innerHTML = '<span>🔒 Lista de presentes externa disponível no plano Premium</span>'
-      + '<button type="button" class="btn btn-subtle" onclick="handleUpgrade()">Fazer upgrade</button>';
+      + '<button type="button" class="btn btn-subtle" data-dashboard-action="handleUpgrade">Fazer upgrade</button>';
     externalBlock.appendChild(extBanner);
     const externalToggle = document.getElementById('edExternalEnabled');
     if (externalToggle) externalToggle.disabled = true;
@@ -1412,19 +1705,19 @@ async function loadGrupos() {
         <td><span class="cell-sub">${escapeHtml(grupo.notes || '—')}</span></td>
         <td>
           <div class="row-actions">
-            <button class="icon-btn"${isFreePlan ? premiumActionDisabledAttr : `${phoneDisabledAttr}${phoneDisabledClass}`} onclick="${(!isFreePlan && hasPhone) ? `sendInviteWhatsApp('${escapeHtmlAttribute(grupo.id)}')` : ''}" aria-label="Enviar convite para ${escapeHtml(grupo.group_name)}" title="${isFreePlan ? 'Disponível no plano Premium' : (hasPhone ? 'Enviar convite por WhatsApp' : 'Telefone não cadastrado')}">
+            <button class="icon-btn"${isFreePlan ? premiumActionDisabledAttr : `${phoneDisabledAttr}${phoneDisabledClass}`} ${(!isFreePlan && hasPhone) ? `data-group-action="sendInviteWhatsApp" data-group-id="${escapeHtmlAttribute(grupo.id)}"` : ''} aria-label="Enviar convite para ${escapeHtml(grupo.group_name)}" title="${isFreePlan ? 'Disponível no plano Premium' : (hasPhone ? 'Enviar convite por WhatsApp' : 'Telefone não cadastrado')}">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4 20-7z"/><path d="M22 2 11 13"/></svg>
               <span class="icon-btn-label">Convidar</span>
             </button>
-            <button class="icon-btn"${isFreePlan ? premiumActionDisabledAttr : ''} onclick="${isFreePlan ? '' : `copyInviteWhatsAppMessage('${escapeHtmlAttribute(grupo.id)}', this)`}" aria-label="Copiar texto do convite de ${escapeHtml(grupo.group_name)}" title="${isFreePlan ? 'Disponível no plano Premium' : 'Copiar texto do convite'}">
+            <button class="icon-btn"${isFreePlan ? premiumActionDisabledAttr : ''} ${isFreePlan ? '' : `data-group-action="copyInviteWhatsAppMessage" data-group-id="${escapeHtmlAttribute(grupo.id)}"`} aria-label="Copiar texto do convite de ${escapeHtml(grupo.group_name)}" title="${isFreePlan ? 'Disponível no plano Premium' : 'Copiar texto do convite'}">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
               <span class="icon-btn-label">Copiar texto</span>
             </button>
-            <button class="icon-btn"${isFreePlan ? premiumActionDisabledAttr : ''} onclick="${isFreePlan ? '' : `editGrupo('${escapeHtmlAttribute(grupo.id)}')`}" aria-label="Editar grupo ${escapeHtml(grupo.group_name)}" title="${isFreePlan ? 'Disponível no plano Premium' : 'Editar'}">
+            <button class="icon-btn"${isFreePlan ? premiumActionDisabledAttr : ''} ${isFreePlan ? '' : `data-group-action="editGrupo" data-group-id="${escapeHtmlAttribute(grupo.id)}"`} aria-label="Editar grupo ${escapeHtml(grupo.group_name)}" title="${isFreePlan ? 'Disponível no plano Premium' : 'Editar'}">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 1 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
               <span class="icon-btn-label">Editar</span>
             </button>
-            <button class="icon-btn danger"${isFreePlan ? premiumActionDisabledAttr : ''} onclick="${isFreePlan ? '' : `deleteGrupo('${escapeHtmlAttribute(grupo.id)}')`}" aria-label="Excluir grupo ${escapeHtml(grupo.group_name)}" title="${isFreePlan ? 'Disponível no plano Premium' : 'Excluir'}">
+            <button class="icon-btn danger"${isFreePlan ? premiumActionDisabledAttr : ''} ${isFreePlan ? '' : `data-group-action="deleteGrupo" data-group-id="${escapeHtmlAttribute(grupo.id)}"`} aria-label="Excluir grupo ${escapeHtml(grupo.group_name)}" title="${isFreePlan ? 'Disponível no plano Premium' : 'Excluir'}">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
               <span class="icon-btn-label">Excluir</span>
             </button>
@@ -1626,7 +1919,7 @@ function renderPaginacao(pagination, currentPage, status, groupId, searchTerm = 
   let html = '<div style="display: flex; gap: 0.5rem; justify-content: center; align-items: center;">';
   
   if (currentPage > 1) {
-    html += `<button class="page-btn" onclick="loadConfirmacoes(${currentPage - 1}, '${status}', '${groupId}', '${escapeHtmlAttribute(searchTerm)}')">←</button>`;
+    html += `<button class="page-btn" data-pagination-kind="confirmacoes" data-pagination-page="${currentPage - 1}" data-pagination-status="${escapeHtmlAttribute(status)}" data-pagination-group-id="${escapeHtmlAttribute(groupId)}" data-pagination-search="${escapeHtmlAttribute(searchTerm)}">←</button>`;
   }
 
   html += `<span style="padding: 0.5rem 1rem; border: 1px solid var(--border); color: var(--text-dim);">
@@ -1634,7 +1927,7 @@ function renderPaginacao(pagination, currentPage, status, groupId, searchTerm = 
   </span>`;
 
   if (currentPage < pagination.totalPages) {
-    html += `<button class="page-btn" onclick="loadConfirmacoes(${currentPage + 1}, '${status}', '${groupId}', '${escapeHtmlAttribute(searchTerm)}')">→</button>`;
+    html += `<button class="page-btn" data-pagination-kind="confirmacoes" data-pagination-page="${currentPage + 1}" data-pagination-status="${escapeHtmlAttribute(status)}" data-pagination-group-id="${escapeHtmlAttribute(groupId)}" data-pagination-search="${escapeHtmlAttribute(searchTerm)}">→</button>`;
   }
 
   html += '</div>';
@@ -1814,13 +2107,13 @@ function renderAudiencePagination(pagination, currentPage, searchTerm = '', page
   let html = '<div style="display: flex; gap: 0.5rem; justify-content: center; align-items: center;">';
 
   if (currentPage > 1) {
-    html += `<button class="page-btn" onclick="loadAudiencia(${currentPage - 1}, '${safeSearch}', '${safePagePath}')">←</button>`;
+    html += `<button class="page-btn" data-pagination-kind="audiencia" data-pagination-page="${currentPage - 1}" data-pagination-search="${safeSearch}" data-pagination-page-path="${safePagePath}">←</button>`;
   }
 
   html += `<span style="padding: 0.5rem 1rem; border: 1px solid var(--border); color: var(--text-dim);">Página ${currentPage} de ${pagination.totalPages}</span>`;
 
   if (currentPage < pagination.totalPages) {
-    html += `<button class="page-btn" onclick="loadAudiencia(${currentPage + 1}, '${safeSearch}', '${safePagePath}')">→</button>`;
+    html += `<button class="page-btn" data-pagination-kind="audiencia" data-pagination-page="${currentPage + 1}" data-pagination-search="${safeSearch}" data-pagination-page-path="${safePagePath}">→</button>`;
   }
 
   html += '</div>';
@@ -2034,13 +2327,13 @@ function renderSubmissionPagination(pagination, currentPage, paginationId, callb
   let html = '<div style="display: flex; gap: 0.5rem; justify-content: center; align-items: center;">';
 
   if (currentPage > 1) {
-    html += `<button class="page-btn" onclick="${callbackName}(${currentPage - 1}, '${safeSearch}')">←</button>`;
+    html += `<button class="page-btn" data-pagination-kind="${callbackName === 'loadMensagens' ? 'mensagens' : 'musicas'}" data-pagination-page="${currentPage - 1}" data-pagination-search="${safeSearch}">←</button>`;
   }
 
   html += `<span style="padding: 0.5rem 1rem; border: 1px solid var(--border); color: var(--text-dim);">Página ${currentPage} de ${pagination.totalPages}</span>`;
 
   if (currentPage < pagination.totalPages) {
-    html += `<button class="page-btn" onclick="${callbackName}(${currentPage + 1}, '${safeSearch}')">→</button>`;
+    html += `<button class="page-btn" data-pagination-kind="${callbackName === 'loadMensagens' ? 'mensagens' : 'musicas'}" data-pagination-page="${currentPage + 1}" data-pagination-search="${safeSearch}">→</button>`;
   }
 
   html += '</div>';
@@ -4376,14 +4669,14 @@ function renderMediaGalleryGrid(images) {
         <div class="media-gallery-card-top">
           <span class="media-gallery-order">${index + 1}</span>
           <input type="checkbox" class="media-gallery-check" aria-label="Selecionar ${alt}" ${checked}
-            onchange="toggleGalleryImageSelectionByIndex(${index}, this.checked)">
+            data-gallery-select-index="${index}">
         </div>
         <div class="media-gallery-card-bottom">
           <div class="media-gallery-actions">
             <button type="button" class="media-gallery-action-btn" title="Mover para cima" ${index === 0 ? 'disabled' : ''}
-              onclick="moveGalleryImageByOffset(${index}, -1)">↑</button>
+              data-gallery-action="move-prev" data-gallery-index="${index}">↑</button>
             <button type="button" class="media-gallery-action-btn" title="Mover para baixo" ${index === images.length - 1 ? 'disabled' : ''}
-              onclick="moveGalleryImageByOffset(${index}, 1)">↓</button>
+              data-gallery-action="move-next" data-gallery-index="${index}">↓</button>
           </div>
         </div>
       </div>
@@ -4902,14 +5195,14 @@ function renderCatalogItems() {
     <div class="catalog-item">
       <input type="text" class="field-input emoji-input" value="${escapeHtml(item.icon || '💛')}"
              placeholder="😊" title="Emoji do presente"
-             onchange="updateCatalogItem(${i},'icon',this.value)">
+             data-catalog-field="icon" data-catalog-index="${i}">
       <input type="text" class="field-input sm" value="${escapeHtml(item.name || '')}"
              placeholder="Descrição do presente"
-             onchange="updateCatalogItem(${i},'name',this.value)">
+             data-catalog-field="name" data-catalog-index="${i}">
       <input type="number" class="field-input sm" value="${item.amount ?? ''}"
              min="0" step="1" placeholder="Valor (R$)"
-             onchange="updateCatalogItem(${i},'amount',Number(this.value))">
-      <button type="button" class="btn-icon-sm" onclick="removeCatalogItem(${i})" aria-label="Remover item">
+             data-catalog-field="amount" data-catalog-index="${i}">
+      <button type="button" class="btn-icon-sm" data-remove-catalog-index="${i}" aria-label="Remover item">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
           <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
         </svg>
@@ -4954,7 +5247,7 @@ function renderFaqItems() {
     <div class="faq-item-block">
       <div class="faq-item-header">
         <span class="faq-item-num">Pergunta ${i + 1}</span>
-        <button type="button" class="btn-icon-sm" onclick="removeFaqItem(${i})" aria-label="Remover pergunta">
+        <button type="button" class="btn-icon-sm" data-remove-faq-index="${i}" aria-label="Remover pergunta">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
             <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
           </svg>
@@ -4964,13 +5257,13 @@ function renderFaqItems() {
         <label class="field-label">Pergunta</label>
         <input type="text" class="field-input sm" value="${escapeHtml(item.question || '')}"
                placeholder="ex: Tem estacionamento no local?"
-               oninput="updateFaqItem(${i},'question',this.value)">
+               data-faq-field="question" data-faq-index="${i}">
       </div>
       <div class="field">
         <label class="field-label">Resposta</label>
         <textarea class="field-input sm" rows="3"
                   placeholder="Digite a resposta..."
-                  oninput="updateFaqItem(${i},'answer',this.value)">${escapeHtml(item.answer || '')}</textarea>
+                  data-faq-field="answer" data-faq-index="${i}">${escapeHtml(item.answer || '')}</textarea>
       </div>
     </div>`).join('');
 }
@@ -5015,7 +5308,7 @@ function renderHospedagemList(containerId, items, type) {
     <div class="faq-item-block">
       <div class="faq-item-header">
         <span class="faq-item-num">${type === 'hotel' ? 'Hotel' : 'Restaurante'} ${i + 1}</span>
-        <button type="button" class="btn-icon-sm" onclick="${removeFn}(${i})" aria-label="Remover item">
+        <button type="button" class="btn-icon-sm" data-hospedagem-remove-type="${type}" data-hospedagem-index="${i}" aria-label="Remover item">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
             <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
           </svg>
@@ -5023,16 +5316,16 @@ function renderHospedagemList(containerId, items, type) {
       </div>
       <div class="field" style="margin-bottom:8px">
         <label class="field-label">Nome</label>
-        <input type="text" class="field-input sm" value="${escapeHtml(item.name || '')}" placeholder="Nome" oninput="${updateFn}(${i},'name',this.value)">
+        <input type="text" class="field-input sm" value="${escapeHtml(item.name || '')}" placeholder="Nome" data-hospedagem-field="name" data-hospedagem-type="${type}" data-hospedagem-index="${i}">
       </div>
       <div class="field" style="margin-bottom:8px">
         <label class="field-label">Descrição</label>
-        <textarea class="field-input sm" rows="2" placeholder="Descrição" oninput="${updateFn}(${i},'description',this.value)">${escapeHtml(item.description || '')}</textarea>
+        <textarea class="field-input sm" rows="2" placeholder="Descrição" data-hospedagem-field="description" data-hospedagem-type="${type}" data-hospedagem-index="${i}">${escapeHtml(item.description || '')}</textarea>
       </div>
       <div class="form-grid-2">
         <div class="field">
           <label class="field-label">Link</label>
-          <input type="url" class="field-input sm" value="${escapeHtml(item.link || '')}" placeholder="https://..." oninput="${updateFn}(${i},'link',this.value)">
+          <input type="url" class="field-input sm" value="${escapeHtml(item.link || '')}" placeholder="https://..." data-hospedagem-field="link" data-hospedagem-type="${type}" data-hospedagem-index="${i}">
         </div>
       </div>
     </div>`).join('');
@@ -5130,17 +5423,17 @@ function renderColorPaletteList(containerId, items, updateFn, removeFn, addBtnId
       <input type="color"
              value="${(c.hex && /^#[0-9a-fA-F]{3,6}$/.test(c.hex)) ? c.hex : '#c9a84c'}"
              style="width:40px;height:36px;border:1px solid var(--border);border-radius:4px;padding:2px;cursor:pointer;background:none;flex-shrink:0"
-             oninput="${updateFn}(${i},'hex',this.value); syncDynColorPicker(this.nextElementSibling, this.value)">
+             data-color-field="hex" data-color-type="${updateFn === 'updateBridesmaidColor' ? 'bridesmaid' : 'groomsman'}" data-color-index="${i}" data-color-peer="next">
       <input type="text" class="field-input sm" value="${c.hex || ''}"
              placeholder="#c9a84c" maxlength="7" style="width:90px;flex-shrink:0"
-             oninput="${updateFn}(${i},'hex',this.value); syncDynColorPicker(this.previousElementSibling, this.value)"
-             onkeydown="if(event.key==='Enter'){syncDynColorPicker(this.previousElementSibling,this.value);${updateFn}(${i},'hex',this.value)}"
+             data-color-field="hex" data-color-type="${updateFn === 'updateBridesmaidColor' ? 'bridesmaid' : 'groomsman'}" data-color-index="${i}" data-color-peer="previous"
+             
       >
       <input type="text" class="field-input sm" value="${c.name || ''}"
              placeholder="Nome (opcional)"
-             oninput="${updateFn}(${i},'name',this.value)">
+             data-color-field="name" data-color-type="${updateFn === 'updateBridesmaidColor' ? 'bridesmaid' : 'groomsman'}" data-color-index="${i}">
       <button type="button" class="btn btn-subtle" style="padding:4px 10px;font-size:12px;flex-shrink:0"
-              onclick="${removeFn}(${i})" aria-label="Remover cor">&times;</button>
+              data-color-remove-type="${removeFn === 'removeBridesmaidColor' ? 'bridesmaid' : 'groomsman'}" data-color-index="${i}" aria-label="Remover cor">&times;</button>
     </div>
   `).join('');
   const addBtn = document.getElementById(addBtnId);
@@ -5218,9 +5511,9 @@ function renderPagesGrid(pages) {
       <div class="page-card-key">${escapeHtml(key)}</div>
       <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">
         <span class="page-card-name">${escapeHtml(PAGE_LABELS[key] || key)}</span>
-        <label class="toggle" style="flex-shrink:0" onclick="event.stopPropagation()">
+        <label class="toggle" style="flex-shrink:0" >
           <input type="checkbox" class="toggle-input" id="edPage_${key}_enabled"
-                 ${enabled ? 'checked' : ''} onchange="markEditorDirty()">
+                 ${enabled ? 'checked' : ''} >
           <span class="toggle-track"><span class="toggle-thumb"></span></span>
         </label>
       </div>
@@ -5950,7 +6243,10 @@ function _wizardGoToStep(step) {
 
   if (step === 5) {
     const closeBtn = document.getElementById('wzCloseBtn');
-    if (closeBtn) closeBtn.onclick = () => document.getElementById('wizardOverlay').classList.remove('is-active');
+    if (closeBtn && !closeBtn.dataset.boundClose) {
+      closeBtn.dataset.boundClose = 'true';
+      closeBtn.addEventListener('click', () => document.getElementById('wizardOverlay').classList.remove('is-active'));
+    }
     return;
   }
 
@@ -6110,8 +6406,16 @@ async function maybeShowWizard(config) {
   }
 
   document.getElementById('wizardOverlay').classList.add('is-active');
-  document.getElementById('wizardBtnNext').onclick = wizardNext;
-  document.getElementById('wizardBtnBack').onclick = wizardBack;
+  const nextBtn = document.getElementById('wizardBtnNext');
+  const backBtn = document.getElementById('wizardBtnBack');
+  if (nextBtn && !nextBtn.dataset.boundWizardNext) {
+    nextBtn.dataset.boundWizardNext = 'true';
+    nextBtn.addEventListener('click', wizardNext);
+  }
+  if (backBtn && !backBtn.dataset.boundWizardBack) {
+    backBtn.dataset.boundWizardBack = 'true';
+    backBtn.addEventListener('click', wizardBack);
+  }
 }
 
 async function _saveWizard() {

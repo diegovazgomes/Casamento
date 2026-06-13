@@ -400,7 +400,7 @@ function renderValidationBanner(results) {
     <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;">
       <strong style="color:${titleColor}">⚠ ${esc(title)}</strong>
       <button
-        onclick="document.getElementById('validation-banner')?.remove()"
+        id="validation-banner-close"
         style="background:none;border:none;cursor:pointer;color:#666;font-size:12px;padding:0;flex-shrink:0;"
         aria-label="Fechar aviso de validação">
         Fechar ×
@@ -409,6 +409,9 @@ function renderValidationBanner(results) {
     <ul style="margin-top:6px;padding-left:16px;color:#4b4b4b;">${itemsHtml}</ul>`;
 
   document.querySelector('.ed-tab-bar-wrap')?.insertAdjacentElement('afterend', banner);
+  document.getElementById('validation-banner-close')?.addEventListener('click', () => {
+    document.getElementById('validation-banner')?.remove();
+  });
 }
 
 function collectInvalidAccommodationLinks() {

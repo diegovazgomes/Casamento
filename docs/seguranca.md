@@ -328,6 +328,7 @@ CSP adicionado ao `vercel.json` em 2026-05-18 cobrindo todas as páginas:
 - `dashboard.html` passou a usar `assets/js/dashboard-bootstrap.js`
 - `presente.html` passou a usar `assets/js/presente-page.js`
 - `vercel.json` teve `'unsafe-inline'` removido de `script-src`; a busca por scripts inline em HTML não retornou ocorrências
+- Ajuste pós-deploy em 2026-06-13: handlers inline bloqueados pela CSP em `dashboard.html` (`onclick`, `oninput`, `onsubmit` etc.) foram removidos e substituídos por listeners em `assets/js/dashboard.js`; a varredura ampla também removeu handlers inline gerados em `assets/js/debug-badge.js` e `assets/js/editor.js`
 
 **Ressalva:** `unsafe-inline` permanece em `style-src` porque o projeto ainda usa estilos inline em HTML. Em `script-src`, ele foi removido; o CSP atual bloqueia scripts inline e scripts de origens externas não listadas.
 
