@@ -41,6 +41,10 @@
   Ao redefinir a senha usando uma senha já utilizada, a mensagem retornada pelo Supabase era exibida diretamente em inglês.
   > Corrigido em `assets/js/reset-password.js`: mensagens de erro de atualização de senha agora são normalizadas para português, incluindo senha reutilizada, senha fraca, link expirado e excesso de tentativas.
 
+- [x] **B10 — Campo de senha do dashboard sem visualização**
+  A tela de login do dashboard não tinha controle para conferir a senha digitada antes de entrar.
+  > Corrigido em `dashboard.html` e `assets/js/dashboard.js`: adicionado botão de mostrar/ocultar senha com estado acessível e foco visível.
+
 - [x] **B5 — Corrigir paletas do noivo e da noiva em Traje**
   Após o ajuste dos círculos de padrinhos e madrinhas (mobile), os círculos das paletas do **noivo** e da **noiva** ficaram visualmente bugados. É necessário padronizar para círculos perfeitos (sem deformação elíptica), mantendo consistência entre todos os blocos de paleta.
   > Corrigido em `layout.css`: `.traje-color-item .traje-swatch` recebia `width:56px` da media query mas mantinha `height:44px` — `aspect-ratio:1/1` não tem efeito com duas dimensões explícitas. Adicionado `height:auto` para que o aspect-ratio compute a altura a partir da largura. Confirmado 56×56px no mobile via preview.

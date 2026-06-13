@@ -300,6 +300,7 @@ function closeDrawer() {
 function bindUiEvents() {
   authForm?.addEventListener('submit', handleAuth);
   logoutButton?.addEventListener('click', handleLogout);
+  document.getElementById('passwordToggle')?.addEventListener('click', togglePasswordVisibility);
   document.getElementById('btnUpgrade')?.addEventListener('click', handleUpgrade);
 
   // Drawer mobile
@@ -351,6 +352,19 @@ function bindUiEvents() {
   }
 
   bindDashboardCspSafeEvents();
+}
+
+function togglePasswordVisibility() {
+  const passwordInput = document.getElementById('password');
+  const toggleButton = document.getElementById('passwordToggle');
+  if (!passwordInput || !toggleButton) return;
+
+  const shouldShow = passwordInput.type === 'password';
+  passwordInput.type = shouldShow ? 'text' : 'password';
+  toggleButton.classList.toggle('is-visible', shouldShow);
+  toggleButton.setAttribute('aria-pressed', String(shouldShow));
+  toggleButton.setAttribute('aria-label', shouldShow ? 'Ocultar senha' : 'Mostrar senha');
+  toggleButton.title = shouldShow ? 'Ocultar senha' : 'Mostrar senha';
 }
 
 function bindDashboardCspSafeEvents() {
