@@ -6,7 +6,7 @@
 > **Como usar este checklist:**
 > - Marque `[x]` quando o item passar no teste
 > - Marque `[!]` quando encontrar um problema e anote o que aconteceu.
-> - Repita os testes após qualquer atualização importante no sistema.
+> - Repita os testes após qualquer atualização importante no sistema
 
 ---
 
