@@ -155,8 +155,9 @@ Todos os endpoints do dashboard trocaram `'*'` por `process.env.ALLOWED_ORIGIN |
 
 Adicionado bloco `headers` global com: `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy` e `Strict-Transport-Security` (HSTS 2 anos com preload).
 
-- [ ] Após o próximo deploy, verificar em https://securityheaders.com
-- [ ] CSP fica como próximo passo (requer mapeamento dos scripts inline) — primeira etapa executada em 2026-06-12: bootstraps inline repetidos do convite foram movidos para arquivos externos
+- [x] Após o próximo deploy, verificar em https://securityheaders.com — executado em 2026-06-13 para `https://casamento-siannah-diego.vercel.app/landing.html`: nota A+
+- [x] CSP fica como próximo passo (requer mapeamento dos scripts inline) — concluído em 2026-06-13: scripts e handlers inline removidos; `script-src` sem `'unsafe-inline'`
+- [ ] Avaliar `Access-Control-Allow-Origin: *` observado pelo SecurityHeaders nas páginas estáticas. O header não está no `vercel.json`; no repositório, `*` aparece apenas em `api/submissions.js`, endpoint público de RSVP. Antes de sobrescrever globalmente, decidir o domínio canônico para não quebrar dev/prod.
 
 ---
 
