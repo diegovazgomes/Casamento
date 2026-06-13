@@ -20,6 +20,41 @@
     if (states[name]) states[name].classList.add('is-active');
   }
 
+  function normalizePasswordUpdateMessage(message) {
+    const normalized = String(message || '').trim().toLowerCase();
+
+    if (!normalized) {
+      return 'Não foi possível atualizar a senha. Tente novamente.';
+    }
+
+    if (
+      normalized.includes('different from the old password')
+      || normalized.includes('same as the old password')
+      || normalized.includes('new password should be different')
+      || normalized.includes('password should be different')
+    ) {
+      return 'A nova senha precisa ser diferente da senha anterior.';
+    }
+
+    if (normalized.includes('password') && normalized.includes('weak')) {
+      return 'A senha informada é muito fraca. Use uma combinação mais segura.';
+    }
+
+    if (normalized.includes('password') && normalized.includes('characters')) {
+      return 'A senha deve ter no mínimo 8 caracteres.';
+    }
+
+    if (normalized.includes('session') || normalized.includes('token') || normalized.includes('expired')) {
+      return 'Seu link expirou ou não é mais válido. Solicite um novo link de redefinição.';
+    }
+
+    if (normalized.includes('rate limit') || normalized.includes('too many')) {
+      return 'Muitas tentativas em pouco tempo. Aguarde alguns minutos e tente novamente.';
+    }
+
+    return 'Não foi possível atualizar a senha. Tente novamente.';
+  }
+
   function clearSensitiveAuthParams() {
     const currentUrl = new URL(window.location.href);
     const nextQuery = new URLSearchParams(currentUrl.search);
@@ -145,7 +180,7 @@
       try {
         const { error } = await supabase.auth.updateUser({ password: pwd });
         if (error) {
-          alertError.textContent = error.message || 'Não foi possível atualizar a senha. Tente novamente.';
+          alertError.textContent = normalizePasswordUpdateMessage(error.message);
           alertError.classList.add('visible');
           return;
         }
