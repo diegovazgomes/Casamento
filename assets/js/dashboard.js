@@ -13,6 +13,8 @@ const state = {
   gruposCurrentPage: 1,
   confirmacoes: [],
   allConfirmacoes: [],
+  overviewSummary: null,
+  recentConfirmacoes: [],
   mensagens: [],
   musicas: [],
   audiencia: [],
@@ -55,6 +57,8 @@ function resetDashboardRuntimeContext() {
   state.gruposCurrentPage = 1;
   state.confirmacoes = [];
   state.allConfirmacoes = [];
+  state.overviewSummary = null;
+  state.recentConfirmacoes = [];
   state.mensagens = [];
   state.musicas = [];
   state.audiencia = [];
@@ -922,6 +926,8 @@ async function handleLogout() {
   state.gruposCurrentPage = 1;
   state.confirmacoes = [];
   state.allConfirmacoes = [];
+  state.overviewSummary = null;
+  state.recentConfirmacoes = [];
   showAuthScreen();
   authForm.reset();
 }
@@ -1841,7 +1847,8 @@ async function handleSaveGrupo(event) {
 
     closeModal('modalGrupo');
     state.editingGrupoId = null;
-    await loadGrupos();
+    await loadGrupos(state.gruposCurrentPage);
+    await loadOverviewSummary();
   } catch (error) {
     console.error('[handleSaveGrupo]', error);
     alert(String(error?.message || 'Erro ao salvar grupo'));
@@ -1860,7 +1867,8 @@ async function deleteGrupo(grupoId) {
 
     await throwIfApiNotOk(response, 'Falha ao deletar grupo');
     alert('Grupo deletado com sucesso');
-    await loadGrupos();
+    await loadGrupos(state.gruposCurrentPage);
+    await loadOverviewSummary();
   } catch (error) {
     console.error('[deleteGrupo]', error);
     alert(String(error?.message || 'Erro ao deletar grupo'));
@@ -1878,6 +1886,22 @@ async function reloadConfirmacoes() {
 
   await loadConfirmacoes(1, status, groupId, searchTerm);
   await populateGrupoFilter();
+}
+
+async function loadOverviewSummary() {
+  if (!state.eventId) return;
+
+  try {
+    const response = await fetchWithAuth(`/api/dashboard/confirmations?mode=summary&eventId=${state.eventId}`);
+    if (!response.ok) throw new Error(response.statusText);
+
+    const data = await response.json();
+    state.overviewSummary = data.summary || null;
+    state.recentConfirmacoes = data.recent || [];
+    updateOverview();
+  } catch (error) {
+    console.warn('[loadOverviewSummary] Nao foi possivel carregar o resumo global.', error);
+  }
 }
 
 async function loadConfirmacoes(page = 1, status = '', groupId = '', searchTerm = '') {
@@ -2575,22 +2599,33 @@ function renderStatusBadge(status) {
 }
 
 function updateOverview() {
-  const totalConvidados = state.grupos.reduce((sum, grupo) => sum + (Number(grupo.max_confirmations) || 0), 0);
-  const confirmados = state.allConfirmacoes.filter((conf) => conf.status === 'yes').length;
-  const recusados = state.allConfirmacoes.filter((conf) => conf.status === 'no').length;
-  const pendentes = Math.max(totalConvidados - confirmados - recusados, 0);
+  const summary = state.overviewSummary;
+  const totalConvidados = summary
+    ? Number(summary.totalGuests || 0)
+    : state.grupos.reduce((sum, grupo) => sum + (Number(grupo.max_confirmations) || 0), 0);
+  const confirmados = summary
+    ? Number(summary.confirmed || 0)
+    : state.allConfirmacoes.filter((conf) => conf.status === 'yes').length;
+  const recusados = summary
+    ? Number(summary.declined || 0)
+    : state.allConfirmacoes.filter((conf) => conf.status === 'no').length;
+  const pendentes = summary
+    ? Number(summary.pending || 0)
+    : Math.max(totalConvidados - confirmados - recusados, 0);
+  const totalGrupos = summary ? Number(summary.totalGroups || 0) : state.grupos.length;
+  const recentRows = summary ? state.recentConfirmacoes : state.allConfirmacoes;
 
-  updateOverviewStats(totalConvidados, confirmados, recusados, pendentes);
+  updateOverviewStats(totalConvidados, confirmados, recusados, pendentes, totalGrupos);
 
   const recentActivityBody = document.getElementById('recentActivityBody');
   if (!recentActivityBody) return;
 
-  if (state.allConfirmacoes.length === 0) {
+  if (recentRows.length === 0) {
     recentActivityBody.innerHTML = '<tr><td colspan="4"><div class="empty"><div class="empty-title">Sem atividade recente</div><p class="empty-text">As confirmações mais recentes aparecerão aqui.</p></div></td></tr>';
     return;
   }
 
-  recentActivityBody.innerHTML = state.allConfirmacoes.slice(0, 5).map((conf) => `
+  recentActivityBody.innerHTML = recentRows.slice(0, 5).map((conf) => `
     <tr>
       <td>
         <div class="cell-name">${escapeHtml(conf.name)}</div>
@@ -2602,7 +2637,7 @@ function updateOverview() {
   `).join('');
 }
 
-function updateOverviewStats(total, confirmados, recusados, pendentes) {
+function updateOverviewStats(total, confirmados, recusados, pendentes, totalGrupos = state.grupos.length) {
   const confirmadosPct = total > 0 ? Math.round((confirmados / total) * 100) : 0;
   const recusadosPct = total > 0 ? Math.round((recusados / total) * 100) : 0;
   const pendentesPct = total > 0 ? Math.round((pendentes / total) * 100) : 0;
@@ -2618,7 +2653,7 @@ function updateOverviewStats(total, confirmados, recusados, pendentes) {
   const statPendentesPct = document.getElementById('statPendentesPct');
 
   if (statTotalConvidados) statTotalConvidados.textContent = String(total);
-  if (statTotalConvidadosHint) statTotalConvidadosHint.textContent = `${state.grupos.length} grupo(s) cadastrados`;
+  if (statTotalConvidadosHint) statTotalConvidadosHint.textContent = `${totalGrupos} grupo(s) cadastrados`;
   if (statConfirmados) statConfirmados.textContent = String(confirmados);
   if (statConfirmadosPct) statConfirmadosPct.textContent = `${confirmadosPct}% do total previsto`;
   if (statConfirmadosBar) statConfirmadosBar.style.width = `${confirmadosPct}%`;
@@ -2978,6 +3013,7 @@ async function loadAllData() {
   await Promise.all([
     loadGrupos(),
     reloadConfirmacoes(),
+    loadOverviewSummary(),
   ]);
   // populateGrupoFilter depende de state.grupos — roda após o Promise.all
   populateGrupoFilter();

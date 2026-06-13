@@ -49,6 +49,10 @@
   A aba de convites carregava todos os grupos em uma única tabela, diferente das demais abas paginadas do dashboard.
   > Corrigido em `dashboard.html` e `assets/js/dashboard.js`: adicionada paginação da tabela de convites em páginas de 20 itens, preservando a lista completa para filtros e relatórios.
 
+- [x] **B12 — Visão geral usava apenas a página atual de confirmações**
+  Os cards da visão geral calculavam confirmados e recusados a partir da página carregada na tabela de confirmações, não do total real salvo no banco.
+  > Corrigido em `api/dashboard/confirmations.js` e `assets/js/dashboard.js`: criada leitura global de resumo para totais e atividade recente, independente da paginação.
+
 - [x] **B5 — Corrigir paletas do noivo e da noiva em Traje**
   Após o ajuste dos círculos de padrinhos e madrinhas (mobile), os círculos das paletas do **noivo** e da **noiva** ficaram visualmente bugados. É necessário padronizar para círculos perfeitos (sem deformação elíptica), mantendo consistência entre todos os blocos de paleta.
   > Corrigido em `layout.css`: `.traje-color-item .traje-swatch` recebia `width:56px` da media query mas mantinha `height:44px` — `aspect-ratio:1/1` não tem efeito com duas dimensões explícitas. Adicionado `height:auto` para que o aspect-ratio compute a altura a partir da largura. Confirmado 56×56px no mobile via preview.

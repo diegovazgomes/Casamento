@@ -46,6 +46,10 @@ export default function handler(req, res) {
     return handleAudience(req, res);
   }
 
+  if (req.query?.mode === 'summary') {
+    return handleSummary(req, res);
+  }
+
   return handleListConfirmations(req, res);
 }
 
@@ -227,6 +231,104 @@ function buildAudienceSummary(pageOptions = [], totals = {}, eventSlug = '') {
         }
       : null,
   };
+}
+
+async function countConfirmationsByAttendance(supabase, eventSlug, attendance) {
+  const { count, error } = await supabase
+    .from('rsvp_confirmations')
+    .select('id', { count: 'exact', head: true })
+    .eq('event_id', eventSlug)
+    .eq('attendance', attendance);
+
+  if (error) {
+    throw error;
+  }
+
+  return count || 0;
+}
+
+/**
+ * GET /api/dashboard/confirmations?mode=summary
+ * Retorna totais globais da visao geral, sem depender da pagina atual.
+ */
+async function handleSummary(req, res) {
+  try {
+    const ownedEvent = await requireOwnedEvent(req, {
+      selectClause: 'id,slug,user_id,config',
+    });
+
+    if (!ownedEvent.ok) {
+      res.setHeader('Content-Type', 'application/json');
+      return res.status(ownedEvent.status).json({ error: ownedEvent.error });
+    }
+
+    const supabase = ownedEvent.supabase;
+
+    const { data: groups, error: groupsError } = await supabase
+      .from('guest_tokens')
+      .select('id, max_confirmations')
+      .eq('event_id', ownedEvent.event.id);
+
+    if (groupsError) {
+      throw groupsError;
+    }
+
+    const [confirmedCount, declinedCount, recentResult] = await Promise.all([
+      countConfirmationsByAttendance(supabase, ownedEvent.event.slug, 'yes'),
+      countConfirmationsByAttendance(supabase, ownedEvent.event.slug, 'no'),
+      supabase
+        .from('rsvp_confirmations')
+        .select(
+          `
+          id,
+          name,
+          phone,
+          attendance,
+          created_at,
+          token_id,
+          guest_tokens:token_id(group_name)
+          `
+        )
+        .eq('event_id', ownedEvent.event.slug)
+        .order('created_at', { ascending: false })
+        .limit(5),
+    ]);
+
+    if (recentResult.error) {
+      throw recentResult.error;
+    }
+
+    const totalGuests = (groups || []).reduce((sum, group) => (
+      sum + (Number(group.max_confirmations) || 0)
+    ), 0);
+    const declinedSafe = declinedCount || 0;
+    const confirmedSafe = confirmedCount || 0;
+
+    res.setHeader('Content-Type', 'application/json');
+    return res.status(200).json({
+      success: true,
+      summary: {
+        totalGuests,
+        totalGroups: groups?.length || 0,
+        confirmed: confirmedSafe,
+        declined: declinedSafe,
+        pending: Math.max(totalGuests - confirmedSafe - declinedSafe, 0),
+      },
+      recent: (recentResult.data || []).map((c) => ({
+        id: c.id,
+        name: c.name,
+        phone: c.phone,
+        status: c.attendance,
+        confirmedAt: c.created_at,
+        groupName: c.guest_tokens?.group_name || 'N/A',
+        groupId: c.token_id,
+      })),
+    });
+  } catch (error) {
+    console.error('[confirmations summary GET]', error);
+    res.setHeader('Content-Type', 'application/json');
+    return res.status(500).json({ error: error.message });
+  }
 }
 
 /**
