@@ -4,7 +4,7 @@
 > E2E (End-to-End, ou "ponta a ponta") significa testar o sistema completo como se você fosse um usuário real, seguindo os passos que ele seguiria, verificando se tudo funciona como esperado
 >
 > **Como usar este checklist:**
-> - Marque `[x]` quando o item passar no teste.
+> - Marque `[x]` quando o item passar no teste
 > - Marque `[!]` quando encontrar um problema e anote o que aconteceu.
 > - Repita os testes após qualquer atualização importante no sistema.
 
