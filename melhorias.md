@@ -164,3 +164,8 @@
 
 - [x] **B7 — Texto padrão opcional no convite de WhatsApp**
   O painel agora permite restaurar o texto padrão dos convites individual e em grupo com um checkbox, e a quantidade de pessoas passou a aparecer sempre como observação fixa no final da mensagem.
+  > Implementado no fluxo de convites do dashboard: o casal pode reaplicar o texto padrÃ£o sem reescrever manualmente a mensagem, e o rodapÃ© da mensagem preserva a quantidade de pessoas do convite.
+
+- [x] **S1 â€” Implementar a migration 013 de equalizaÃ§Ã£o opcional dos defaults em `public.events`**
+  O plano de equalizaÃ§Ã£o previa uma migration opcional para alinhar o contrato da tabela `public.events` ao snapshot de desenvolvimento, preenchendo `NULL` legados e endurecendo defaults/nulabilidade em campos principais do evento.
+  > Implementado em `docs/migrations/013_equalize_events_defaults_optional.sql`: a migration normaliza `couple_names`, `bride_name`, `groom_name`, `venue_name`, `venue_address` e `venue_maps_link` com `COALESCE`, define default `''` e aplica `NOT NULL` nessas colunas. Como muda o contrato da tabela, foi mantida como etapa opcional e dependente de validaÃ§Ã£o prÃ©via de processos externos.

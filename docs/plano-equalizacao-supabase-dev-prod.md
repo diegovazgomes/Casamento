@@ -8,6 +8,8 @@ Arquivos de referencia:
 - `docs/migrations/009_guest_views_analytics_columns.sql`
 - `docs/migrations/010_admin_users.sql`
 - `docs/migrations/011_platform_events.sql`
+- `docs/migrations/012_equalize_remaining_prod_to_dev.sql`
+- `docs/migrations/013_equalize_events_defaults_optional.sql`
 
 ## 1. Diagnostico atual
 
@@ -120,6 +122,9 @@ Aplicar em producao, nesta ordem:
 1. `docs/migrations/009_guest_views_analytics_columns.sql`
 2. `docs/migrations/010_admin_users.sql`
 3. `docs/migrations/011_platform_events.sql`
+4. `docs/migrations/012_equalize_remaining_prod_to_dev.sql`
+
+A migration `013_equalize_events_defaults_optional.sql` fica fora da primeira rodada. Ela so deve ser aplicada se a meta for igualdade mais estrita e depois de confirmar que nenhum processo externo grava `NULL` nos campos principais de `events`.
 
 Resultado esperado:
 
@@ -132,7 +137,8 @@ Observacao: esta fase nao deixa dev e prod identicos. Ela apenas resolve as lacu
 
 ## 5. Fase 2: aplicar vinculo UUID entre convites e eventos
 
-Se producao ainda nao tiver `event_uuid`, aplicar:
+Esta fase esta consolidada em `docs/migrations/012_equalize_remaining_prod_to_dev.sql`.
+Se for necessario executar manualmente, aplicar:
 
 ```sql
 alter table public.rsvp_confirmations
@@ -181,6 +187,7 @@ order by event_id;
 ## 6. Fase 3: equalizar defaults e nulabilidade de `events`
 
 Esta fase deve ser feita com cuidado porque pode alterar comportamento de inserts futuros.
+Ela esta isolada em `docs/migrations/013_equalize_events_defaults_optional.sql` e deve ser tratada como opcional.
 
 Campos a alinhar ao snapshot de dev:
 
@@ -380,12 +387,10 @@ Essas acoes devem ser tratadas como limpeza posterior, com backup e confirmacao 
 
 1. Backup e inventario.
 2. Aplicar migrations `009`, `010`, `011`.
-3. Inserir primeiro admin em `admin_users`.
-4. Adicionar `event_uuid` em `guest_tokens` e `rsvp_confirmations`.
-5. Popular `event_uuid` com base em `events.slug`.
-6. Adicionar `idx_events_is_active`.
-7. Equalizar defaults/nulabilidade de `events`, se aprovado.
+3. Aplicar migration `012_equalize_remaining_prod_to_dev.sql`.
+4. Inserir primeiro admin em `admin_users`.
+5. Rodar smoke tests.
+6. Gerar novo snapshot de prod e comparar novamente com dev.
+7. Se a meta for igualdade mais estrita, avaliar `013_equalize_events_defaults_optional.sql`.
 8. Manter `couple_credentials` e colunas antigas de `guest_views` ate decisao posterior.
-9. Rodar smoke tests.
-10. Gerar novo snapshot de prod e comparar novamente com dev.
-
+9. Se a meta for igualdade literal, decidir explicitamente sobre remocoes/renomes.
