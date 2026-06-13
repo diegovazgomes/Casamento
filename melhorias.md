@@ -3,7 +3,7 @@
 - [x] **P2 â€” Campo de cupom digitÃ¡vel no Stripe Checkout do upgrade**
   O checkout de upgrade jÃ¡ era aberto pela pÃ¡gina hospedada do Stripe, mas a sessÃ£o nÃ£o habilitava a entrada de cÃ³digo promocional. Sem essa flag, cupons e promotion codes criados no dashboard nÃ£o aparecem para o usuÃ¡rio.
   > Corrigido em `api/payments.js`: adicionada a flag `allow_promotion_codes: true` na criaÃ§Ã£o da `checkout.session`. Implementado em 28/05/2026.
-> Itens ordenados por área. Marque `[x]` quando concluído e `[!]` quando encontrar impedimento.
+> Itens ordenados por área. Marque `[x]` quando concluído e `[!]` quando encontrar impedimento
 
 ---
 
