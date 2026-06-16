@@ -127,6 +127,10 @@
   O dashboard mostrava o plano do usuario, mas nao deixava visivel qual e-mail estava autenticado na sessao.
   > Implementado em `dashboard.html` e `dashboard.js`: o e-mail retornado por `/api/dashboard/profile` aparece abaixo do plano na sidebar desktop e no menu mobile aberto pelo hamburguer, com truncamento visual para nao quebrar o alinhamento. Implementado em 11/06/2026.
 
+- [x] **N11 - Foto padrao no perfil do dashboard**
+  O dashboard nao exibia imagem de perfil para contas recem-criadas.
+  > Implementado em `dashboard.html` e `assets/js/dashboard.js`: a sidebar agora usa `assets/images/Hero-standard.jpeg` como foto padrao enquanto o perfil nao tiver uma URL propria de foto. Quando o backend passar a retornar `photo_url`, `avatar_url` ou `profile_photo_url`, a imagem sera substituida automaticamente.
+
 ---
 
 ## Documentação técnica

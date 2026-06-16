@@ -30,6 +30,7 @@ const LEGACY_DASHBOARD_TOKEN_STORAGE_KEY = 'dashboardToken';
 const DASHBOARD_SUPABASE_STORAGE_KEY = 'dashboard-supabase-auth';
 const DASHBOARD_ACCESS_TOKEN_STORAGE_KEY = 'dashboard-access-token';
 const DASHBOARD_PAYMENT_SYNC_PENDING_KEY = 'dashboard-payment-sync-pending';
+const DEFAULT_PROFILE_PHOTO_URL = 'assets/images/Hero-standard.jpeg';
 
 let dashboardSupabaseClientPromise = null;
 let loginLoadingHideTimer = null;
@@ -1097,12 +1098,41 @@ function renderAccountEmail(profile) {
   });
 }
 
+function getProfilePhotoUrl(profile) {
+  const explicitPhoto = String(
+    profile?.photo_url ||
+    profile?.avatar_url ||
+    profile?.profile_photo_url ||
+    '',
+  ).trim();
+
+  return explicitPhoto || DEFAULT_PROFILE_PHOTO_URL;
+}
+
+function renderProfilePhoto(profile) {
+  const photo = document.getElementById('sidebarProfilePhoto');
+  if (!photo) return;
+
+  const nextSrc = getProfilePhotoUrl(profile);
+  if (photo.getAttribute('src') !== nextSrc) {
+    photo.src = nextSrc;
+  }
+
+  photo.alt = 'Foto do perfil do casal';
+  photo.onerror = () => {
+    if (photo.getAttribute('src') !== DEFAULT_PROFILE_PHOTO_URL) {
+      photo.src = DEFAULT_PROFILE_PHOTO_URL;
+    }
+  };
+}
+
 function renderPlanBadge(profile) {
   const plan = String(profile?.plan || 'free');
   const isPremium = isPremiumPlan(plan);
   const planLabel = isPremium ? 'Premium' : 'Free';
 
   renderAccountEmail(profile);
+  renderProfilePhoto(profile);
 
   // Sidebar desktop
   const container = document.getElementById('sidebarPlan');
