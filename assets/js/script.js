@@ -30,6 +30,7 @@ const ACTIVE_LAYOUT_KEY = 'classic';
 
 const DEFAULT_THEME_URL         = 'assets/config/defaults/theme.json';
 const DEFAULT_SITE_CONTENT_URL  = 'assets/config/defaults/site.json';
+const DEFAULT_HERO_IMAGE_URL    = 'assets/images/Hero-standard.jpeg';
 
 // Minimal safety-net fallbacks — populated from the external files above at bootstrap.
 // These only activate if both the server AND the defaults files are unreachable.
@@ -41,7 +42,7 @@ let DEFAULT_THEME = {
 };
 let DEFAULT_SITE_CONTENT = {
     couple: {}, event: {}, texts: {}, gift: {},
-    media: { tracks: { main: {}, gift: {} } },
+    media: { heroImage: DEFAULT_HERO_IMAGE_URL, tracks: { main: {}, gift: {} } },
     whatsapp: { messages: {}, feedback: {}, inviteCopy: {} }, pages: {},
     rsvp: { eventId: 'wedding-event', supabaseEnabled: false },
     analytics: { enabled: false, requireGuestToken: true, trackPageDuration: true }
@@ -1082,7 +1083,7 @@ class InvitationExperience {
 
     setHero() {
         const names = this.parseCoupleNames();
-        const heroImage = this.config.media?.heroImage;
+        const heroImage = this.config.media?.heroImage || DEFAULT_HERO_IMAGE_URL;
         const introScreenTitle = document.getElementById('introScreenTitle');
 
         if (introScreenTitle) {
@@ -1097,9 +1098,14 @@ class InvitationExperience {
         setText('heroDate', this.config.event?.heroDate || this.config.event?.displayDate);
 
         const heroPhoto = document.getElementById('couplePhoto');
-        if (heroPhoto && heroImage) {
+        if (heroPhoto) {
             heroPhoto.setAttribute('src', heroImage);
             heroPhoto.setAttribute('alt', this.config.texts?.heroPhotoAlt || `${names.names} em retrato do casal`);
+            heroPhoto.onerror = () => {
+                if (heroPhoto.getAttribute('src') !== DEFAULT_HERO_IMAGE_URL) {
+                    heroPhoto.setAttribute('src', DEFAULT_HERO_IMAGE_URL);
+                }
+            };
         }
         this.heroPhotoElement = heroPhoto;
         this.setupDesktopHeroImageMode(heroPhoto);

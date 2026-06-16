@@ -240,6 +240,9 @@ function buildInitialEventConfig({ coupleName, brideName, groomName, slug, whats
       pixEnabled: false,
       cardPaymentEnabled: false,
     },
+    media: {
+      heroImage: 'assets/images/Hero-standard.jpeg',
+    },
   };
 }
 

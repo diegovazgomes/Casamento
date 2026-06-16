@@ -101,7 +101,7 @@ function escapeHtml(value) {
 }
 
 function resolveImageUrl(origin, imagePath) {
-  const fallback = '/assets/images/couple/casal.png';
+  const fallback = '/assets/images/Hero-standard.jpeg';
   const source = String(imagePath || '').trim() || fallback;
 
   try {
@@ -136,7 +136,7 @@ function resolveSharePreviewImage(origin, imagePath) {
     return primaryImage;
   }
 
-  return resolveImageUrl(origin, '/assets/images/couple/casal.png');
+  return resolveImageUrl(origin, '/assets/images/Hero-standard.jpeg');
 }
 
 function inferOgImageType(imageUrl) {

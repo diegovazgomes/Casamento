@@ -109,7 +109,7 @@ BEGIN
     "footerNote": "06 . 09 . 2026 | São Bernardo do Campo"
   },
   "media": {
-    "heroImage": "assets/images/couple/casal.png",
+    "heroImage": "assets/images/Hero-standard.jpeg",
     "tracks": {
       "main": {
         "src": "assets/audio/main-theme.mp3",

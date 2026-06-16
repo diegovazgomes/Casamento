@@ -458,7 +458,7 @@
     }
   },
   "media": {
-    "heroImage": "assets/images/couple/casal.png",
+    "heroImage": "assets/images/Hero-standard.jpeg",
     "tracks": {
       "main": {
         "src": "assets/audio/main-theme.mp3",

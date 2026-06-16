@@ -126,7 +126,7 @@ describe('GET /api/event-config?mode=share', () => {
     }, res);
 
     expect(res.statusCode).toBe(200);
-    expect(res.body).toContain('property="og:image" content="https://example.com/assets/images/couple/casal.png"');
-    expect(res.body).toContain('property="og:image:type" content="image/png"');
+    expect(res.body).toContain('property="og:image" content="https://example.com/assets/images/Hero-standard.jpeg"');
+    expect(res.body).toContain('property="og:image:type" content="image/jpeg"');
   });
 });

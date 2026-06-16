@@ -131,6 +131,10 @@
   O dashboard nao exibia imagem de perfil para contas recem-criadas.
   > Implementado em `dashboard.html` e `assets/js/dashboard.js`: a sidebar agora usa `assets/images/Hero-standard.jpeg` como foto padrao enquanto o perfil nao tiver uma URL propria de foto. Quando o backend passar a retornar `photo_url`, `avatar_url` ou `profile_photo_url`, a imagem sera substituida automaticamente.
 
+- [x] **N12 - Foto principal padrao do convite**
+  Convites sem foto principal propria ainda podiam apontar para `assets/images/couple/casal.png`, arquivo ausente no projeto.
+  > Implementado em `api/auth/signup.js`, `assets/config/defaults/site.json`, `assets/config/site.json`, `api/event-config.js`, `assets/js/script.js` e `assets/js/dashboard.js`: novos convites nascem com `assets/images/Hero-standard.jpeg`; convites antigos com URL vazia ou quebrada caem visualmente nessa foto padrao ate o casal enviar a propria foto principal.
+
 ---
 
 ## Documentação técnica

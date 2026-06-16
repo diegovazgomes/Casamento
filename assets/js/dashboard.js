@@ -31,6 +31,7 @@ const DASHBOARD_SUPABASE_STORAGE_KEY = 'dashboard-supabase-auth';
 const DASHBOARD_ACCESS_TOKEN_STORAGE_KEY = 'dashboard-access-token';
 const DASHBOARD_PAYMENT_SYNC_PENDING_KEY = 'dashboard-payment-sync-pending';
 const DEFAULT_PROFILE_PHOTO_URL = 'assets/images/Hero-standard.jpeg';
+const DEFAULT_HERO_IMAGE_URL = 'assets/images/Hero-standard.jpeg';
 
 let dashboardSupabaseClientPromise = null;
 let loginLoadingHideTimer = null;
@@ -4237,7 +4238,7 @@ function renderMediaHeroPreview(url) {
     return;
   }
 
-  const source = String(url || document.getElementById('edMediaHero')?.value || '').trim();
+  const source = String(url || document.getElementById('edMediaHero')?.value || DEFAULT_HERO_IMAGE_URL).trim();
 
   if (source) {
     let resolvedSource = source;
@@ -4257,12 +4258,12 @@ function renderMediaHeroPreview(url) {
     return;
   }
 
-  previewImg.removeAttribute('src');
+  previewImg.src = DEFAULT_HERO_IMAGE_URL;
   if (previewUrl) {
     previewUrl.textContent = '';
   }
-  previewWrap.style.display = 'none';
-  emptyEl.style.display = '';
+  previewWrap.style.display = '';
+  emptyEl.style.display = 'none';
 }
 
 function renderPixQrPreview(url) {
