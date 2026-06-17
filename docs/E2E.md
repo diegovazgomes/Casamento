@@ -1,7 +1,7 @@
 # Checklist de Testes E2E — Devazi
 
 > **O que é um teste E2E?**
-> E2E (End-to-End, ou "ponta a ponta") significa testar o sistema completo como se você fosse um usuário real, seguindo os passos que ele seguiria, verificando se tudo funciona como esperado
+> E2E (End-to-End, ou "ponta a ponta") significa testar o sistema completo como se você fosse um usuário real, seguindo os passos que ele seguiria, verificando se tudo funciona como esperado.
 >
 > **Como usar este checklist:**
 > - Marque `[x]` quando o item passar no teste
