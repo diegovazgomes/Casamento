@@ -1,6 +1,6 @@
 const AUDIO_START_VOLUME_FACTOR = 0.05;
-const AUDIO_FADE_IN_DURATION_MS = 5000;
-const AUDIO_FIRST_PLAY_AUDIBLE_DELAY_MS = 700;
+const AUDIO_FADE_IN_DURATION_MS = 6500;
+const AUDIO_FIRST_PLAY_AUDIBLE_DELAY_MS = 1800;
 
 export class AudioController extends EventTarget {
     constructor(trackConfig = {}) {
@@ -11,6 +11,8 @@ export class AudioController extends EventTarget {
         this.userPaused = false;
         this.lastError = null;
         this.fadeFrameId = null;
+        this.audioContext = null;
+        this.audioOutputNodes = new WeakMap();
         this.tracks = Object.fromEntries(
             Object.entries(trackConfig).map(([key, definition]) => [
                 key,
@@ -23,7 +25,9 @@ export class AudioController extends EventTarget {
     }
 
     createAudioElement(src) {
-        const audio = new Audio(src);
+        const audio = new Audio();
+        audio.crossOrigin = 'anonymous';
+        audio.src = src;
         audio.loop = true;
         audio.preload = 'metadata';
         audio.volume = 0;
@@ -85,6 +89,104 @@ export class AudioController extends EventTarget {
         }
 
         return Math.max(0, Math.min(targetVolume * AUDIO_START_VOLUME_FACTOR, targetVolume));
+    }
+
+    getAudioContext() {
+        if (this.audioContext) {
+            return this.audioContext;
+        }
+
+        const AudioContextConstructor = window.AudioContext || window.webkitAudioContext;
+
+        if (!AudioContextConstructor) {
+            return null;
+        }
+
+        try {
+            this.audioContext = new AudioContextConstructor();
+            return this.audioContext;
+        } catch {
+            return null;
+        }
+    }
+
+    ensureAudioOutput(audio, initialVolume = 0) {
+        if (!audio) {
+            return null;
+        }
+
+        const existing = this.audioOutputNodes.get(audio);
+
+        if (existing) {
+            return existing;
+        }
+
+        const context = this.getAudioContext();
+
+        if (!context) {
+            return null;
+        }
+
+        try {
+            const source = context.createMediaElementSource(audio);
+            const gain = context.createGain();
+            gain.gain.value = this.clampVolume(initialVolume);
+            source.connect(gain);
+            gain.connect(context.destination);
+            const output = { context, gain };
+            this.audioOutputNodes.set(audio, output);
+            audio.volume = 1;
+            return output;
+        } catch {
+            return null;
+        }
+    }
+
+    async resumeAudioContext() {
+        const context = this.audioContext;
+
+        if (!context || context.state !== 'suspended') {
+            return;
+        }
+
+        try {
+            await context.resume();
+        } catch {
+        }
+    }
+
+    clampVolume(volume) {
+        const normalizedVolume = Number(volume);
+
+        if (!Number.isFinite(normalizedVolume)) {
+            return 0;
+        }
+
+        return Math.max(0, Math.min(normalizedVolume, 1));
+    }
+
+    getOutputVolume(audio) {
+        const output = this.audioOutputNodes.get(audio);
+
+        if (output) {
+            return output.gain.gain.value;
+        }
+
+        return this.clampVolume(audio?.volume ?? 0);
+    }
+
+    setOutputVolume(audio, volume) {
+        const nextVolume = this.clampVolume(volume);
+        const output = this.audioOutputNodes.get(audio);
+
+        if (output) {
+            output.gain.gain.value = nextVolume;
+            return;
+        }
+
+        if (audio) {
+            audio.volume = nextVolume;
+        }
     }
 
     hasMetadata(audio) {
@@ -231,7 +333,9 @@ export class AudioController extends EventTarget {
         const audio = track.element;
         const targetTime = this.getTrackStartTime(trackKey);
         const targetVolume = this.getTrackVolume(trackKey);
-        audio.volume = 0;
+        this.ensureAudioOutput(audio, 0);
+        await this.resumeAudioContext();
+        this.setOutputVolume(audio, 0);
         audio.load();
         const seekPromise = this.ensureMetadataAndSeek(audio, targetTime, { metadataTimeout: 4000 });
 
@@ -288,7 +392,9 @@ export class AudioController extends EventTarget {
         const nextElement = track.element;
         const targetVolume = this.getTrackVolume(trackKey);
         const startVolume = this.getStartFadeVolume(targetVolume);
-        nextElement.volume = startVolume;
+        this.ensureAudioOutput(nextElement, startVolume);
+        await this.resumeAudioContext();
+        this.setOutputVolume(nextElement, startVolume);
         await this.ensureMetadataAndSeek(nextElement, this.getTrackStartTime(trackKey));
 
         const played = await this.safePlay(nextElement);
@@ -325,11 +431,11 @@ export class AudioController extends EventTarget {
 
         await new Promise((resolve) => {
             const startTime = performance.now();
-            const startVolume = audio.volume;
+            const startVolume = this.getOutputVolume(audio);
 
             const step = (now) => {
                 const progress = Math.min((now - startTime) / duration, 1);
-                audio.volume = startVolume + (targetVolume - startVolume) * progress;
+                this.setOutputVolume(audio, startVolume + (targetVolume - startVolume) * progress);
 
                 if (progress < 1) {
                     this.fadeFrameId = window.requestAnimationFrame(step);
@@ -389,7 +495,10 @@ export class AudioController extends EventTarget {
         }
 
         const targetVolume = this.getTrackVolume(this.currentTrackKey);
-        currentElement.volume = this.getStartFadeVolume(targetVolume);
+        const startVolume = this.getStartFadeVolume(targetVolume);
+        this.ensureAudioOutput(currentElement, startVolume);
+        await this.resumeAudioContext();
+        this.setOutputVolume(currentElement, startVolume);
         const played = await this.safePlay(currentElement);
 
         if (!played) {
