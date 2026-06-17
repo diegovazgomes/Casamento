@@ -1,5 +1,6 @@
 const AUDIO_START_VOLUME_FACTOR = 0.05;
 const AUDIO_FADE_IN_DURATION_MS = 5000;
+const AUDIO_FIRST_PLAY_AUDIBLE_DELAY_MS = 700;
 
 export class AudioController extends EventTarget {
     constructor(trackConfig = {}) {
@@ -136,6 +137,20 @@ export class AudioController extends EventTarget {
         });
     }
 
+    async waitForFirstAudibleStart(startedAt, delay) {
+        const normalizedDelay = Math.max(Number(delay) || 0, 0);
+        const elapsed = performance.now() - startedAt;
+        const remaining = normalizedDelay - elapsed;
+
+        if (remaining <= 0) {
+            return;
+        }
+
+        await new Promise((resolve) => {
+            window.setTimeout(resolve, remaining);
+        });
+    }
+
     async ensureMetadataAndSeek(audio, time, options = {}) {
         const metadataTimeout = Number(options.metadataTimeout ?? 1200);
         const applySeek = () => {
@@ -195,7 +210,9 @@ export class AudioController extends EventTarget {
         this.emitState();
     }
 
-    async startFromGesture(trackKey) {
+    async startFromGesture(trackKey, options = {}) {
+        const startedAt = performance.now();
+        const audibleDelayMs = Number(options.audibleDelayMs ?? AUDIO_FIRST_PLAY_AUDIBLE_DELAY_MS);
         const track = this.tracks[trackKey];
 
         this.readyForPlayback = true;
@@ -227,8 +244,9 @@ export class AudioController extends EventTarget {
                 await playPromise;
             }
 
+            this.emitState();
             await seekPromise;
-            audio.volume = this.getStartFadeVolume(targetVolume);
+            await this.waitForFirstAudibleStart(startedAt, audibleDelayMs);
             await this.fadeVolume(audio, targetVolume, AUDIO_FADE_IN_DURATION_MS);
             this.lastError = null;
             this.emitState();

@@ -59,7 +59,7 @@
 
 - [x] **B14 - Musica do convite ignorava inicio em segundos em producao**
   O preview do dashboard aguardava a metadata antes de aplicar o inicio da musica, mas o player do convite podia chamar `play()` antes de o navegador aceitar o `currentTime`, especialmente com audio remoto/Storage/CDN.
-  > Corrigido em `assets/js/audio.js`: o primeiro play agora inicia mudo, aplica `startTime` quando a metadata permite, aguarda o seek assentar e so depois sobe o volume com fade. Teste unitario adicionado em `tests/unit/audio.test.js`.
+  > Corrigido em `assets/js/audio.js`: o primeiro play agora inicia mudo, aplica `startTime` quando a metadata permite, aguarda o seek assentar, respeita a entrada da interface/botao de som e so depois sobe o volume com fade desde zero. Teste unitario adicionado em `tests/unit/audio.test.js`.
 
 - [x] **B5 — Corrigir paletas do noivo e da noiva em Traje**
   Após o ajuste dos círculos de padrinhos e madrinhas (mobile), os círculos das paletas do **noivo** e da **noiva** ficaram visualmente bugados. É necessário padronizar para círculos perfeitos (sem deformação elíptica), mantendo consistência entre todos os blocos de paleta.

@@ -856,6 +856,7 @@ class InvitationExperience {
         }
 
         if (audioPromise) {
+            this.syncAudioButton();
             await audioPromise;
         } else if (this.isAudioEnabled() && !this.audio.userPaused) {
             await this.audio.unlock();

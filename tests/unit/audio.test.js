@@ -57,7 +57,9 @@ describe('AudioController', () => {
   it('keeps the first play muted until delayed metadata allows seeking to startTime', async () => {
     vi.stubGlobal('Audio', FakeAudio);
     vi.stubGlobal('HTMLMediaElement', { HAVE_METADATA: 1 });
+    const fadeStartVolumes = [];
     vi.spyOn(AudioController.prototype, 'fadeVolume').mockImplementation(async (audio, targetVolume) => {
+      fadeStartVolumes.push(audio.volume);
       audio.volume = targetVolume;
     });
 
@@ -70,7 +72,7 @@ describe('AudioController', () => {
     });
     const audio = controller.tracks.main.element;
 
-    const started = controller.startFromGesture('main');
+    const started = controller.startFromGesture('main', { audibleDelayMs: 0 });
     await Promise.resolve();
 
     expect(audio.playCalls).toEqual([{ currentTime: 0, volume: 0 }]);
@@ -87,5 +89,6 @@ describe('AudioController', () => {
 
     expect(audio.currentTime).toBe(42);
     expect(audio.volume).toBe(0.4);
+    expect(fadeStartVolumes).toEqual([0]);
   });
 });
