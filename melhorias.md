@@ -57,6 +57,10 @@
   A landing referenciava `assets/images/landing-couple.jpeg`, mas o arquivo versionado estava como `assets/images/Landing-couple.jpeg`.
   > Corrigido em `landing.html`: o `src` da imagem do casal agora usa exatamente o nome do arquivo existente.
 
+- [x] **B14 - Musica do convite ignorava inicio em segundos em producao**
+  O preview do dashboard aguardava a metadata antes de aplicar o inicio da musica, mas o player do convite podia chamar `play()` antes de o navegador aceitar o `currentTime`, especialmente com audio remoto/Storage/CDN.
+  > Corrigido em `assets/js/audio.js`: o primeiro play agora inicia mudo, aplica `startTime` quando a metadata permite, aguarda o seek assentar e so depois sobe o volume com fade. Teste unitario adicionado em `tests/unit/audio.test.js`.
+
 - [x] **B5 — Corrigir paletas do noivo e da noiva em Traje**
   Após o ajuste dos círculos de padrinhos e madrinhas (mobile), os círculos das paletas do **noivo** e da **noiva** ficaram visualmente bugados. É necessário padronizar para círculos perfeitos (sem deformação elíptica), mantendo consistência entre todos os blocos de paleta.
   > Corrigido em `layout.css`: `.traje-color-item .traje-swatch` recebia `width:56px` da media query mas mantinha `height:44px` — `aspect-ratio:1/1` não tem efeito com duas dimensões explícitas. Adicionado `height:auto` para que o aspect-ratio compute a altura a partir da largura. Confirmado 56×56px no mobile via preview.

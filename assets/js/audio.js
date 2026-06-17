@@ -24,7 +24,7 @@ export class AudioController extends EventTarget {
     createAudioElement(src) {
         const audio = new Audio(src);
         audio.loop = true;
-        audio.preload = 'none';
+        audio.preload = 'metadata';
         audio.volume = 0;
 
         audio.addEventListener('error', () => {
@@ -100,14 +100,52 @@ export class AudioController extends EventTarget {
         return Math.min(normalizedTime, audio.duration);
     }
 
-    async ensureMetadataAndSeek(audio, time) {
-        const applySeek = () => {
+    trySeek(audio, time) {
+        try {
             audio.currentTime = this.clampTime(audio, time);
+            return true;
+        } catch {
+            return false;
+        }
+    }
+
+    async waitForSeekToSettle(audio, timeout = 1400) {
+        if (!audio?.seeking) {
+            return;
+        }
+
+        await new Promise((resolve) => {
+            let settled = false;
+
+            const finish = () => {
+                if (settled) {
+                    return;
+                }
+
+                settled = true;
+                window.clearTimeout(timeoutId);
+                audio.removeEventListener('seeked', finish);
+                audio.removeEventListener('error', finish);
+                resolve();
+            };
+
+            const timeoutId = window.setTimeout(finish, timeout);
+
+            audio.addEventListener('seeked', finish, { once: true });
+            audio.addEventListener('error', finish, { once: true });
+        });
+    }
+
+    async ensureMetadataAndSeek(audio, time, options = {}) {
+        const metadataTimeout = Number(options.metadataTimeout ?? 1200);
+        const applySeek = () => {
+            return this.trySeek(audio, time);
         };
 
         if (this.hasMetadata(audio)) {
-            applySeek();
-            return;
+            const applied = applySeek();
+            await this.waitForSeekToSettle(audio);
+            return applied;
         }
 
         await new Promise((resolve) => {
@@ -126,7 +164,7 @@ export class AudioController extends EventTarget {
                 resolve();
             };
 
-            const timeoutId = window.setTimeout(finish, 1200);
+            const timeoutId = window.setTimeout(finish, metadataTimeout);
 
             audio.addEventListener('loadedmetadata', finish, { once: true });
             audio.addEventListener('durationchange', finish, { once: true });
@@ -134,22 +172,22 @@ export class AudioController extends EventTarget {
             audio.load();
         });
 
-        try {
-            applySeek();
-        } catch {
+        const applied = applySeek();
+
+        if (!applied) {
             const retrySeek = () => {
                 audio.removeEventListener('loadedmetadata', retrySeek);
                 audio.removeEventListener('durationchange', retrySeek);
 
-                try {
-                    applySeek();
-                } catch {
-                }
+                applySeek();
             };
 
             audio.addEventListener('loadedmetadata', retrySeek, { once: true });
             audio.addEventListener('durationchange', retrySeek, { once: true });
         }
+
+        await this.waitForSeekToSettle(audio);
+        return applied;
     }
 
     async unlock() {
@@ -176,23 +214,9 @@ export class AudioController extends EventTarget {
         const audio = track.element;
         const targetTime = this.getTrackStartTime(trackKey);
         const targetVolume = this.getTrackVolume(trackKey);
-        const startVolume = this.getStartFadeVolume(targetVolume);
-        const seekToStart = () => {
-            try {
-                audio.currentTime = this.clampTime(audio, targetTime);
-            } catch {
-            }
-        };
-
-        audio.volume = startVolume;
+        audio.volume = 0;
         audio.load();
-
-        if (this.hasMetadata(audio)) {
-            seekToStart();
-        } else {
-            audio.addEventListener('loadedmetadata', seekToStart, { once: true });
-            audio.addEventListener('durationchange', seekToStart, { once: true });
-        }
+        const seekPromise = this.ensureMetadataAndSeek(audio, targetTime, { metadataTimeout: 4000 });
 
         this.currentTrackKey = trackKey;
 
@@ -203,6 +227,8 @@ export class AudioController extends EventTarget {
                 await playPromise;
             }
 
+            await seekPromise;
+            audio.volume = this.getStartFadeVolume(targetVolume);
             await this.fadeVolume(audio, targetVolume, AUDIO_FADE_IN_DURATION_MS);
             this.lastError = null;
             this.emitState();
