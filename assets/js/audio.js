@@ -1,6 +1,7 @@
 const AUDIO_START_VOLUME_FACTOR = 0.05;
 const AUDIO_FADE_IN_DURATION_MS = 6500;
 const AUDIO_FIRST_PLAY_AUDIBLE_DELAY_MS = 1800;
+const AUDIO_AUTO_PAUSE_FADE_MS = 180;
 
 export class AudioController extends EventTarget {
     constructor(trackConfig = {}) {
@@ -11,6 +12,7 @@ export class AudioController extends EventTarget {
         this.userPaused = false;
         this.lastError = null;
         this.fadeFrameId = null;
+        this.fadeResolve = null;
         this.audioContext = null;
         this.audioOutputNodes = new WeakMap();
         this.tracks = Object.fromEntries(
@@ -428,8 +430,13 @@ export class AudioController extends EventTarget {
         }
 
         window.cancelAnimationFrame(this.fadeFrameId);
+        if (this.fadeResolve) {
+            this.fadeResolve();
+            this.fadeResolve = null;
+        }
 
         await new Promise((resolve) => {
+            this.fadeResolve = resolve;
             const startTime = performance.now();
             const startVolume = this.getOutputVolume(audio);
 
@@ -440,6 +447,8 @@ export class AudioController extends EventTarget {
                 if (progress < 1) {
                     this.fadeFrameId = window.requestAnimationFrame(step);
                 } else {
+                    this.fadeFrameId = null;
+                    this.fadeResolve = null;
                     resolve();
                 }
             };
@@ -472,6 +481,31 @@ export class AudioController extends EventTarget {
             currentElement.pause();
         }
 
+        this.emitState();
+    }
+
+    async pauseForSystem({ fadeDuration = AUDIO_AUTO_PAUSE_FADE_MS } = {}) {
+        const currentElement = this.getCurrentElement();
+
+        if (!currentElement || currentElement.paused) {
+            this.emitState();
+            return;
+        }
+
+        const normalizedDuration = Math.max(Number(fadeDuration) || 0, 0);
+
+        if (normalizedDuration > 0) {
+            await this.fadeVolume(currentElement, 0, normalizedDuration);
+        } else {
+            window.cancelAnimationFrame(this.fadeFrameId);
+            if (this.fadeResolve) {
+                this.fadeResolve();
+                this.fadeResolve = null;
+            }
+            this.setOutputVolume(currentElement, 0);
+        }
+
+        currentElement.pause();
         this.emitState();
     }
 

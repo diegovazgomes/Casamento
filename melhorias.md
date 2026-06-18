@@ -1,5 +1,9 @@
 # Checklist de Melhorias — Devazi
 
+- [x] **Audio - Ruido ao navegar entre paginas**
+  Ao trocar de pagina com a musica tocando, a pausa automatica podia interromper o audio em volume audivel e gerar um ruido seco.
+  > Corrigido em `assets/js/audio.js` e `assets/js/script.js`: pausas automaticas agora silenciam o volume antes de pausar, nao alteram a preferencia manual do usuario e nao resetam `currentTime`. Testes adicionados em `tests/unit/audio.test.js`.
+
 - [x] **Minimal - Galeria, FAQ e extras desalinhadas**
   O layout minimal tinha problemas nas paginas extras: a galeria da historia nao trocava visualmente de foto, o FAQ nao exibia respostas, a timeline da historia jogava o texto em uma coluna estreita, as extras somavam padding no topo, os formularios de mensagem/musica nao pareciam campos editaveis e a hospedagem renderizava itens vazios/labels incorretos.
   > Corrigido em `assets/layouts/minimal/layout.css`, `assets/layouts/minimal/defaults.json`, `assets/js/faq.js`, `assets/js/hospedagem.js`, `tests/integration/faq.integration.test.js` e `tests/integration/hospedagem.integration.test.js`: a galeria agora usa `.active`, o FAQ abre/fecha respostas, a timeline coloca titulo e texto na coluna de leitura, as extras deixam de duplicar padding no primeiro bloco, os formularios extras ganharam campos claros e hospedagem filtra itens vazios respeitando `linkLabel`.
