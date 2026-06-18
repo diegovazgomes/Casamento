@@ -486,6 +486,7 @@ function runDashboardAction(action, event, trigger) {
     audioPreviewPlay,
     audioPreviewPause,
     audioPreviewStop,
+    renderThemeHeroPreview,
     addCatalogItem,
     addFaqItem,
     addHotelItem,
@@ -553,6 +554,7 @@ function handleDashboardDelegatedChange(event) {
   if (target.id === 'lembreteTemplate') updateMensagemPreview();
   if (target.id === 'edEventDate') onEventDateChange();
   if (target.id === 'edActiveLayout') onLayoutChange();
+  if (target.id === 'edActiveTheme') refreshThemeHeroPreviewIfOpen();
 
   const giftBlockByInput = {
     edGiftPixEnabled: 'giftBlockPix',
@@ -5128,6 +5130,377 @@ function onLayoutChange() {
   const currentTheme = document.getElementById('edActiveTheme')?.value || '';
   const currentThemeKey = extractDashboardThemeKey(currentTheme);
   populateThemeSelect(layout, currentThemeKey);
+  refreshThemeHeroPreviewIfOpen();
+}
+
+let themeHeroPreviewRequestId = 0;
+
+const DASHBOARD_PREVIEW_URLS = {
+  themeDefaults: 'assets/config/defaults/theme.json',
+  typography: 'assets/config/typography.json',
+};
+
+const DASHBOARD_PREVIEW_LAYOUT_LABELS = {
+  classic: 'Classic',
+  modern: 'Modern',
+  minimal: 'Minimal',
+  editorial: 'Editorial',
+};
+
+const DASHBOARD_PREVIEW_SHARED_TO_LEGACY_THEME_KEYS = {
+  gold: ['classic-gold'],
+  'gold-light': ['classic-gold-light'],
+  silver: ['classic-silver', 'black-silver'],
+  'silver-light': ['classic-silver-light'],
+  purple: ['classic-purple'],
+  blue: ['classic-blue'],
+  'green-light': ['classic-green-light'],
+};
+
+function cloneDashboardPreviewValue(value) {
+  if (value === undefined || value === null) {
+    return value;
+  }
+
+  return JSON.parse(JSON.stringify(value));
+}
+
+function mergeDashboardPreviewDeep(base, override) {
+  if (Array.isArray(override)) {
+    return cloneDashboardPreviewValue(override);
+  }
+
+  if (!override || typeof override !== 'object') {
+    return override === undefined ? cloneDashboardPreviewValue(base) : override;
+  }
+
+  const merged = base && typeof base === 'object' && !Array.isArray(base)
+    ? cloneDashboardPreviewValue(base)
+    : {};
+
+  Object.entries(override).forEach(([key, value]) => {
+    merged[key] = mergeDashboardPreviewDeep(merged[key], value);
+  });
+
+  return merged;
+}
+
+async function fetchDashboardPreviewJson(url) {
+  const response = await fetch(url, {
+    method: 'GET',
+    headers: { Accept: 'application/json' },
+    cache: 'no-store',
+  });
+
+  if (!response.ok) {
+    throw new Error(`${url} retornou HTTP ${response.status}`);
+  }
+
+  return response.json();
+}
+
+async function fetchDashboardPreviewJsonOrEmpty(url, warningLabel) {
+  try {
+    return await fetchDashboardPreviewJson(url);
+  } catch (error) {
+    console.warn(`[dashboard-preview] Falha ao carregar ${warningLabel}.`, error);
+    return {};
+  }
+}
+
+function getDashboardPreviewThemeBucketKeys(activeTheme) {
+  const primaryKey = normalizeDashboardThemeKey(activeTheme);
+  if (!primaryKey) return [];
+
+  const rawThemeValue = String(activeTheme || '').trim();
+  const pathMatch = rawThemeValue.match(/\/themes\/([^/]+)\.json$/i);
+  const rawKey = (pathMatch ? pathMatch[1] : rawThemeValue).replace(/\.json$/i, '');
+  const keys = [primaryKey];
+
+  if (rawKey && rawKey !== primaryKey) {
+    keys.push(rawKey);
+  }
+
+  (DASHBOARD_PREVIEW_SHARED_TO_LEGACY_THEME_KEYS[primaryKey] || []).forEach((legacyKey) => {
+    if (!keys.includes(legacyKey)) {
+      keys.push(legacyKey);
+    }
+  });
+
+  return keys;
+}
+
+function getDashboardPreviewThemeOverrides(config, activeTheme) {
+  const byTheme = config?.themeOverridesByTheme;
+  for (const key of getDashboardPreviewThemeBucketKeys(activeTheme)) {
+    const scoped = byTheme?.[key];
+    if (scoped && typeof scoped === 'object') {
+      return scoped;
+    }
+  }
+
+  const legacy = config?.themeOverrides;
+  return legacy && typeof legacy === 'object' ? legacy : null;
+}
+
+function mergeDashboardPreviewTypographyFamilies(theme, typographyConfig) {
+  const globalFamilies = typographyConfig?.typography?.families ?? {};
+  const themeFamilies = theme?.typography?.families ?? {};
+  const mergedTheme = cloneDashboardPreviewValue(theme || {});
+
+  mergedTheme.typography = mergedTheme.typography || {};
+  mergedTheme.typography.families = {
+    ...globalFamilies,
+    ...themeFamilies,
+  };
+
+  return mergedTheme;
+}
+
+function resolveDashboardPreviewResponsiveTheme(theme) {
+  if (window.matchMedia('(max-width: 767px)').matches && theme?.responsive?.mobile) {
+    return mergeDashboardPreviewDeep(theme, theme.responsive.mobile);
+  }
+
+  return theme;
+}
+
+async function loadDashboardPreviewTheme(config) {
+  const layoutKey = config.activeLayout || 'classic';
+  const themeKey = extractDashboardThemeKey(config.activeTheme || 'gold') || 'gold';
+  const themePath = resolveDashboardThemePath(themeKey) || 'assets/themes/gold.json';
+  const [themeDefaults, layoutDefaults, themeConfig, typographyConfig] = await Promise.all([
+    fetchDashboardPreviewJsonOrEmpty(DASHBOARD_PREVIEW_URLS.themeDefaults, 'defaults/theme.json'),
+    fetchDashboardPreviewJsonOrEmpty(`assets/layouts/${layoutKey}/defaults.json`, `defaults do layout ${layoutKey}`),
+    fetchDashboardPreviewJsonOrEmpty(themePath, `tema ${themeKey}`),
+    fetchDashboardPreviewJsonOrEmpty(DASHBOARD_PREVIEW_URLS.typography, 'typography.json'),
+  ]);
+
+  const baseTheme = mergeDashboardPreviewDeep(themeDefaults, layoutDefaults);
+  const paletteTheme = mergeDashboardPreviewDeep(baseTheme, themeConfig);
+  const themeWithTypography = mergeDashboardPreviewTypographyFamilies(paletteTheme, typographyConfig);
+  const overrides = getDashboardPreviewThemeOverrides(config, themeKey);
+  const themeWithOverrides = overrides
+    ? mergeDashboardPreviewDeep(themeWithTypography, overrides)
+    : themeWithTypography;
+
+  return {
+    theme: resolveDashboardPreviewResponsiveTheme(themeWithOverrides),
+    themeKey,
+    themeName: themeConfig?.meta?.name || themeConfig?.meta?.displayName || themeKey,
+    layoutKey,
+  };
+}
+
+function scaleDashboardPreviewSize(size, fallback, factor = 0.66) {
+  if (!size) return fallback;
+
+  if (typeof size === 'object') {
+    const min = scaleDashboardPreviewSizeToken(size.min, '34px', factor);
+    const fluid = scaleDashboardPreviewSizeToken(size.fluid, '6vw', factor);
+    const max = scaleDashboardPreviewSizeToken(size.max, '76px', factor);
+    return `clamp(${min}, ${fluid}, ${max})`;
+  }
+
+  return scaleDashboardPreviewSizeToken(size, fallback, factor);
+}
+
+function scaleDashboardPreviewSizeToken(value, fallback, factor) {
+  const token = String(value || '').trim();
+  if (!token) return fallback;
+
+  const pxMatch = token.match(/^(-?\d+(?:\.\d+)?)px$/i);
+  if (pxMatch) {
+    const scaled = Math.max(9, Number(pxMatch[1]) * factor);
+    return `${Math.round(scaled * 10) / 10}px`;
+  }
+
+  const vwMatch = token.match(/^(-?\d+(?:\.\d+)?)vw$/i);
+  if (vwMatch) {
+    const scaled = Math.max(4, Number(vwMatch[1]) * factor);
+    return `${Math.round(scaled * 10) / 10}vw`;
+  }
+
+  return token;
+}
+
+function resolveDashboardPreviewRole(theme, roleName, fallback = {}) {
+  const typography = theme?.typography ?? {};
+  const role = typography.roles?.[roleName] ?? {};
+  const fonts = typography.fonts ?? {};
+  const families = typography.families ?? {};
+  const familyKey = role.family || fallback.familyKey || '';
+  const fallbackFamily = fallback.family || fonts.primary || "'Jost', sans-serif";
+
+  return {
+    family: families[familyKey] || fonts[familyKey] || role.family || fallbackFamily,
+    size: scaleDashboardPreviewSize(role.size || fallback.size, fallback.size || '12px', fallback.scale ?? 1),
+    weight: role.weight ?? fallback.weight ?? 300,
+    style: role.style || fallback.style || 'normal',
+    lineHeight: role.lineHeight ?? fallback.lineHeight ?? 1.4,
+    letterSpacing: role.letterSpacing || fallback.letterSpacing || '',
+    textTransform: role.textTransform || fallback.textTransform || 'none',
+  };
+}
+
+function applyDashboardHeroPreviewTheme(stage, theme) {
+  const colors = theme?.colors ?? {};
+  const effects = theme?.effects ?? {};
+  const titleRole = resolveDashboardPreviewRole(theme, 'heroTitle', {
+    familyKey: 'accent',
+    size: { min: '38px', fluid: '7vw', max: '76px' },
+    scale: 0.66,
+    weight: 300,
+    lineHeight: 1,
+  });
+  const subtitleRole = resolveDashboardPreviewRole(theme, 'heroSubtitle', {
+    familyKey: 'primary',
+    size: theme?.typography?.sizes?.heroLabel || '10px',
+    scale: 1,
+    weight: 300,
+    lineHeight: 1.4,
+    letterSpacing: '.18em',
+    textTransform: 'uppercase',
+  });
+
+  stage.style.setProperty('--preview-bg', colors.background || 'var(--bg)');
+  stage.style.setProperty('--preview-text', colors.text || 'var(--text)');
+  stage.style.setProperty('--preview-muted', colors.textDim || 'var(--text-dim)');
+  stage.style.setProperty('--preview-primary', colors.primarySoft || colors.primary || 'var(--primary-soft)');
+  stage.style.setProperty('--preview-border', colors.border || 'var(--border)');
+  stage.style.setProperty('--preview-overlay', effects.heroOverlayGradient || 'linear-gradient(to bottom, transparent, var(--preview-bg))');
+  stage.style.setProperty('--preview-text-shadow', effects.textShadowStrong || 'var(--shadow-soft)');
+  stage.style.setProperty('--preview-title-family', titleRole.family);
+  stage.style.setProperty('--preview-title-size', titleRole.size);
+  stage.style.setProperty('--preview-title-weight', titleRole.weight);
+  stage.style.setProperty('--preview-title-style', titleRole.style);
+  stage.style.setProperty('--preview-title-line-height', titleRole.lineHeight);
+  stage.style.setProperty('--preview-subtitle-family', subtitleRole.family);
+  stage.style.setProperty('--preview-subtitle-size', subtitleRole.size);
+  stage.style.setProperty('--preview-subtitle-weight', subtitleRole.weight);
+  stage.style.setProperty('--preview-subtitle-style', subtitleRole.style);
+  stage.style.setProperty('--preview-subtitle-line-height', subtitleRole.lineHeight);
+  stage.style.setProperty('--preview-subtitle-letter-spacing', subtitleRole.letterSpacing || '.18em');
+  stage.style.setProperty('--preview-subtitle-transform', subtitleRole.textTransform);
+  stage.style.setProperty('--preview-date-size', scaleDashboardPreviewSize(theme?.typography?.sizes?.heroDate, '11px', 1));
+}
+
+function formatDashboardHeroPreviewDate(config) {
+  const configuredDate = config?.event?.heroDate || config?.event?.displayDate || config?.event?.detailDate;
+  if (configuredDate) return configuredDate;
+
+  const rawDate = String(config?.event?.date || '').split('T')[0];
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(rawDate)) {
+    return 'Data a definir';
+  }
+
+  const date = new Date(`${rawDate}T12:00:00`);
+  if (Number.isNaN(date.getTime())) {
+    return 'Data a definir';
+  }
+
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  return `${day} · ${month} · ${date.getFullYear()}`;
+}
+
+function splitDashboardPreviewNames(names) {
+  const normalized = String(names || '').trim();
+  if (!normalized) {
+    return { first: 'Nome', second: 'Nome', separator: '&' };
+  }
+
+  const separators = [' & ', ' e ', ' + ', ' - '];
+  for (const separator of separators) {
+    if (normalized.includes(separator)) {
+      const parts = normalized.split(separator);
+      return {
+        first: parts[0].trim(),
+        second: parts.slice(1).join(separator).trim(),
+        separator: separator.trim(),
+      };
+    }
+  }
+
+  return { first: normalized, second: '', separator: '' };
+}
+
+function renderDashboardPreviewNames(element, displayNames) {
+  const { first, second, separator } = splitDashboardPreviewNames(displayNames);
+  element.textContent = '';
+  element.append(document.createTextNode(first));
+
+  if (!second) return;
+
+  const amp = document.createElement('span');
+  amp.className = 'dashboard-hero-preview__amp';
+  amp.textContent = ` ${separator || '&'} `;
+  element.append(amp, document.createTextNode(second));
+}
+
+function refreshThemeHeroPreviewIfOpen() {
+  const preview = document.getElementById('themeHeroPreview');
+  if (!preview || preview.hidden) return;
+  renderThemeHeroPreview({ refreshOnly: true });
+}
+
+async function renderThemeHeroPreview(options = {}) {
+  const preview = document.getElementById('themeHeroPreview');
+  const stage = document.getElementById('themeHeroPreviewStage');
+  const status = document.getElementById('themeHeroPreviewStatus');
+  const button = document.getElementById('btnThemeHeroPreview');
+  const photo = document.getElementById('themeHeroPreviewPhoto');
+  const label = document.getElementById('themeHeroPreviewLabel');
+  const names = document.getElementById('themeHeroPreviewNames');
+  const date = document.getElementById('themeHeroPreviewDate');
+
+  if (!preview || !stage || !status || !photo || !label || !names || !date) {
+    return;
+  }
+
+  const requestId = ++themeHeroPreviewRequestId;
+  preview.hidden = false;
+  status.textContent = options.refreshOnly ? 'Atualizando prévia...' : 'Gerando prévia...';
+
+  if (button && !options.refreshOnly) {
+    button.disabled = true;
+    button.dataset.originalText = button.dataset.originalText || button.textContent.trim();
+    button.textContent = 'Gerando...';
+  }
+
+  try {
+    const config = collectEditorValues();
+    const { theme, themeKey, themeName, layoutKey } = await loadDashboardPreviewTheme(config);
+    if (requestId !== themeHeroPreviewRequestId) return;
+
+    applyDashboardHeroPreviewTheme(stage, theme);
+    stage.dataset.layout = layoutKey;
+
+    const heroImage = String(config.media?.heroImage || DEFAULT_HERO_IMAGE_URL).trim();
+    photo.onerror = () => {
+      if (!photo.src.endsWith(DEFAULT_HERO_IMAGE_URL)) {
+        photo.src = DEFAULT_HERO_IMAGE_URL;
+      }
+    };
+    photo.src = heroImage || DEFAULT_HERO_IMAGE_URL;
+    photo.alt = config.texts?.heroPhotoAlt || 'Foto principal do casal na prévia';
+
+    label.textContent = config.texts?.heroLabel || 'Você está convidado';
+    renderDashboardPreviewNames(names, config.couple?.names || 'Nome & Nome');
+    date.textContent = formatDashboardHeroPreviewDate(config);
+
+    const layoutLabel = DASHBOARD_PREVIEW_LAYOUT_LABELS[layoutKey] || layoutKey;
+    const themeLabel = themeName || themeKey;
+    status.textContent = `${layoutLabel} · ${themeLabel}`;
+  } catch (error) {
+    console.warn('[dashboard-preview] Não foi possível gerar a prévia da hero.', error);
+    status.textContent = 'Não foi possível gerar a prévia agora.';
+  } finally {
+    if (button && !options.refreshOnly) {
+      button.disabled = false;
+      button.textContent = button.dataset.originalText || 'Prévia da hero';
+    }
+  }
 }
 
 // ── Catálogo de presentes ─────────────────────────────────────

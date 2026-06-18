@@ -1528,6 +1528,175 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
 .gift-block-body{display:none;padding:14px 18px;border-top:1px solid var(--border)}
 .gift-block.is-open .gift-block-body{display:block}
 
+/* Hero preview in editor */
+.dashboard-hero-preview-tools{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-top:18px;
+  padding-top:16px;
+  border-top:1px solid var(--border);
+}
+.dashboard-hero-preview-tools .field-hint{
+  margin:0;
+  line-height:1.5;
+}
+.dashboard-hero-preview{
+  margin-top:16px;
+  border:1px solid var(--border);
+  background:var(--surface);
+}
+.dashboard-hero-preview[hidden]{display:none}
+.dashboard-hero-preview__bar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:12px 16px;
+  border-bottom:1px solid var(--border);
+}
+.dashboard-hero-preview__title{
+  font-size:9px;
+  letter-spacing:0.28em;
+  text-transform:uppercase;
+  color:var(--text-dim);
+}
+.dashboard-hero-preview__status{
+  font-size:11px;
+  color:var(--text-faint);
+  text-align:right;
+}
+.dashboard-hero-preview__stage{
+  position:relative;
+  min-height:360px;
+  overflow:hidden;
+  background:var(--preview-bg);
+  color:var(--preview-text,var(--text));
+}
+.dashboard-hero-preview__photo{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  opacity:.86;
+  filter:saturate(.95) contrast(.98);
+}
+.dashboard-hero-preview__overlay{
+  position:absolute;
+  inset:0;
+  background:var(--preview-overlay);
+}
+.dashboard-hero-preview__content{
+  position:relative;
+  z-index:1;
+  min-height:360px;
+  display:flex;
+  flex-direction:column;
+  justify-content:flex-end;
+  align-items:center;
+  text-align:center;
+  padding:56px 32px 48px;
+}
+.dashboard-hero-preview__label{
+  margin:0 0 16px;
+  font-family:var(--preview-subtitle-family,var(--font-body));
+  font-size:var(--preview-subtitle-size,10px);
+  font-weight:var(--preview-subtitle-weight,300);
+  font-style:var(--preview-subtitle-style,normal);
+  line-height:var(--preview-subtitle-line-height,1.4);
+  letter-spacing:var(--preview-subtitle-letter-spacing,.18em);
+  text-transform:var(--preview-subtitle-transform,uppercase);
+  color:var(--preview-primary,var(--primary-soft));
+}
+.dashboard-hero-preview__names{
+  margin:0;
+  font-family:var(--preview-title-family,var(--font-display));
+  font-size:var(--preview-title-size,clamp(38px,7vw,76px));
+  font-weight:var(--preview-title-weight,300);
+  font-style:var(--preview-title-style,normal);
+  line-height:var(--preview-title-line-height,1);
+  color:var(--preview-text,var(--text));
+  text-wrap:balance;
+  word-break:break-word;
+  text-shadow:var(--preview-text-shadow,var(--shadow-soft));
+}
+.dashboard-hero-preview__amp{
+  color:var(--preview-primary,var(--primary-soft));
+}
+.dashboard-hero-preview__date{
+  margin:20px 0 0;
+  font-family:var(--preview-subtitle-family,var(--font-body));
+  font-size:var(--preview-date-size,11px);
+  font-weight:var(--preview-subtitle-weight,300);
+  line-height:1.4;
+  letter-spacing:.26em;
+  text-transform:uppercase;
+  color:var(--preview-muted,var(--text-dim));
+}
+.dashboard-hero-preview__stage[data-layout="modern"] .dashboard-hero-preview__content{
+  justify-content:center;
+  padding:48px 40px;
+}
+.dashboard-hero-preview__stage[data-layout="modern"]::before,
+.dashboard-hero-preview__stage[data-layout="modern"]::after{
+  content:'';
+  position:absolute;
+  z-index:1;
+  inset:24px;
+  border:1px solid var(--preview-border,var(--border));
+  pointer-events:none;
+}
+.dashboard-hero-preview__stage[data-layout="modern"]::after{
+  inset:36px;
+  opacity:.45;
+}
+.dashboard-hero-preview__stage[data-layout="minimal"] .dashboard-hero-preview__photo{
+  left:auto;
+  width:52%;
+}
+.dashboard-hero-preview__stage[data-layout="minimal"] .dashboard-hero-preview__overlay{
+  background:linear-gradient(90deg,var(--preview-bg) 0%,var(--preview-bg) 42%,color-mix(in srgb,var(--preview-bg) 16%,transparent) 100%);
+}
+.dashboard-hero-preview__stage[data-layout="minimal"] .dashboard-hero-preview__content{
+  width:50%;
+  align-items:flex-start;
+  text-align:left;
+  padding:48px 28px;
+}
+.dashboard-hero-preview__stage[data-layout="editorial"] .dashboard-hero-preview__overlay{
+  background:linear-gradient(90deg,var(--preview-bg) 0%,color-mix(in srgb,var(--preview-bg) 58%,transparent) 46%,transparent 100%);
+}
+.dashboard-hero-preview__stage[data-layout="editorial"] .dashboard-hero-preview__content{
+  align-items:flex-start;
+  text-align:left;
+  padding:52px 42px;
+}
+@media(max-width:760px){
+  .dashboard-hero-preview-tools{align-items:flex-start;flex-direction:column}
+  .dashboard-hero-preview-tools .btn{width:100%}
+  .dashboard-hero-preview__bar{align-items:flex-start;flex-direction:column}
+  .dashboard-hero-preview__status{text-align:left}
+  .dashboard-hero-preview__stage,
+  .dashboard-hero-preview__content{min-height:420px}
+  .dashboard-hero-preview__content{padding:46px 24px 40px}
+  .dashboard-hero-preview__stage[data-layout="minimal"] .dashboard-hero-preview__photo{
+    inset:0;
+    width:100%;
+    opacity:.72;
+  }
+  .dashboard-hero-preview__stage[data-layout="minimal"] .dashboard-hero-preview__overlay{
+    background:linear-gradient(to bottom,transparent,var(--preview-bg) 86%);
+  }
+  .dashboard-hero-preview__stage[data-layout="minimal"] .dashboard-hero-preview__content{
+    width:auto;
+    align-items:center;
+    text-align:center;
+    padding:52px 24px 42px;
+  }
+}
+
 /* Catalog item rows */
 .catalog-item{
   display:grid;grid-template-columns:48px 1fr 110px 34px;
@@ -2847,6 +3016,28 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
               </div>
             </div>
             <div class="field-hint" style="margin-top:-6px">Após salvar e aplicar o arquivo, recarregue o convite para ver a mudança de tema.</div>
+
+            <div class="dashboard-hero-preview-tools">
+              <div class="field-hint">Veja a hero com o layout, tema e dados atuais antes de salvar as alterações.</div>
+              <button type="button" class="btn btn-subtle" id="btnThemeHeroPreview" data-dashboard-action="renderThemeHeroPreview">
+                Prévia da hero
+              </button>
+            </div>
+            <div class="dashboard-hero-preview" id="themeHeroPreview" hidden aria-live="polite">
+              <div class="dashboard-hero-preview__bar">
+                <span class="dashboard-hero-preview__title">Hero do convite</span>
+                <span class="dashboard-hero-preview__status" id="themeHeroPreviewStatus">Aguardando prévia</span>
+              </div>
+              <div class="dashboard-hero-preview__stage" id="themeHeroPreviewStage" data-layout="classic">
+                <img class="dashboard-hero-preview__photo" id="themeHeroPreviewPhoto" src="assets/images/Hero-standard.jpeg" alt="Foto principal do casal na prévia">
+                <div class="dashboard-hero-preview__overlay" aria-hidden="true"></div>
+                <div class="dashboard-hero-preview__content">
+                  <p class="dashboard-hero-preview__label" id="themeHeroPreviewLabel"></p>
+                  <h3 class="dashboard-hero-preview__names" id="themeHeroPreviewNames"></h3>
+                  <p class="dashboard-hero-preview__date" id="themeHeroPreviewDate"></p>
+                </div>
+              </div>
+            </div>
 
             <div class="editor-section-footer" id="footer-edSectionTema">
               <span class="footer-warning-msg">

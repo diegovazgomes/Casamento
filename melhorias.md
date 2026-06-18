@@ -1,5 +1,10 @@
 # Correções recentes
 
+- 2026-06-18: Adicionada prévia da hero no dashboard para layout e tema.
+  - Causa: a escolha de layout e tema exigia salvar/aplicar antes de visualizar a capa do convite com os dados reais do casal.
+  - Mudança aplicada: a seção `Tema & Visual` ganhou botão de prévia que monta a hero com layout, tema, foto, nomes e data atuais do editor, sem salvar alterações nem alterar o convite público.
+  - Impacto percebido: o casal consegue comparar rapidamente o visual da hero antes de publicar, inclusive com ajustes responsivos no dashboard mobile.
+
 - 2026-06-18: Ajuste fino em presentes mobile e observação de traje no layout `editorial`.
   - Causa: emoji dos presentes ficava pequeno para a caixa no mobile e a observação da página de traje herdava a fonte serifada grande dos valores principais.
   - Mudanca aplicada: emoji dos cards de presentes ampliado, com caixa mais alta no mobile, e `#trajeNote` passou a usar Jost/texto corrido com peso leve e linha arejada.
