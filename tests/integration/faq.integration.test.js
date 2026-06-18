@@ -35,28 +35,18 @@ beforeEach(() => {
 });
 
 describe('faq page', () => {
-  it('abre e fecha respostas ao clicar na pergunta', async () => {
+  it('renderiza perguntas e respostas diretamente', async () => {
     createFaqDom();
 
     await import('../../assets/js/faq.js');
     window.dispatchEvent(new CustomEvent('app:ready', { detail: { config: baseConfig } }));
 
-    const item = document.querySelector('.faq-item');
-    const button = document.querySelector('.faq-question');
+    const question = document.querySelector('.faq-question');
     const answer = document.querySelector('.faq-answer');
 
-    expect(button.tagName).toBe('BUTTON');
-    expect(button.getAttribute('aria-expanded')).toBe('false');
+    expect(question.tagName).toBe('H2');
+    expect(question.textContent).toBe('Tem estacionamento?');
     expect(answer.textContent).toBe('Sim.');
-
-    button.click();
-
-    expect(item.classList.contains('is-open')).toBe(true);
-    expect(button.getAttribute('aria-expanded')).toBe('true');
-
-    button.click();
-
-    expect(item.classList.contains('is-open')).toBe(false);
-    expect(button.getAttribute('aria-expanded')).toBe('false');
+    expect(document.querySelector('.faq-question button')).toBeNull();
   });
 });

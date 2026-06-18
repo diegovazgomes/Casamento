@@ -1328,16 +1328,15 @@ footer {
     width: 100%;
     background: transparent;
     border: none;
-    padding: 20px 0;
+    padding: 20px 0 8px;
     text-align: left;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 16px;
-    font-family: var(--font-serif);
-    font-size: 16px;
+    display: block;
+    font-family: var(--font-primary);
+    font-size: 11px;
     font-weight: 400;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    line-height: 1.5;
     color: var(--color-text);
     transition: var(--transition-standard);
     outline: none;
@@ -1349,20 +1348,15 @@ footer {
 }
 
 .faq-answer {
-    max-height: 0;
-    overflow: hidden;
-    transition: max-height 0.3s ease, padding 0.3s ease;
+    max-height: none;
+    overflow: visible;
+    padding-bottom: 20px;
     font-family: var(--font-serif);
     font-style: italic;
     font-size: 15px;
     font-weight: 400;
     color: var(--color-text-soft);
     line-height: 1.7;
-}
-
-.faq-item.is-open .faq-answer {
-    max-height: 400px;
-    padding-bottom: 20px;
 }
 
 /* ── 19. MENSAGEM / MÚSICA ─────────────────────────────────── */

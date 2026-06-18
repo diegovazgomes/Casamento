@@ -5,30 +5,12 @@ function renderFaq(items) {
     const container = document.getElementById('faqList');
     if (!container || !Array.isArray(items)) return;
 
-    container.innerHTML = items.map((item, index) => {
-        const answerId = `faqAnswer${index + 1}`;
-
-        return `
+    container.innerHTML = items.map((item) => `
         <article class="faq-item">
-            <h2>
-                <button class="faq-question" type="button" aria-expanded="false" aria-controls="${answerId}">
-                    ${escapeHtml(item.question)}
-                </button>
-            </h2>
-            <p class="faq-answer" id="${answerId}">${escapeHtml(item.answer)}</p>
+            <h2 class="faq-question">${escapeHtml(item.question)}</h2>
+            <p class="faq-answer">${escapeHtml(item.answer)}</p>
         </article>
-    `;
-    }).join('');
-
-    container.querySelectorAll('.faq-question').forEach((button) => {
-        button.addEventListener('click', () => {
-            const item = button.closest('.faq-item');
-            if (!item) return;
-
-            const isOpen = item.classList.toggle('is-open');
-            button.setAttribute('aria-expanded', String(isOpen));
-        });
-    });
+    `).join('');
 }
 
 initExtraPage({
