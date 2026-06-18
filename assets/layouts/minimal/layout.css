@@ -1502,21 +1502,30 @@ footer {
 }
 
 .gallery-container {
-    overflow: hidden;
     position: relative;
+    width: min(100%, 420px);
+    margin-inline: 0;
 }
 
 .gallery-track {
-    display: flex;
-    transition: transform 0.5s ease;
+    position: relative;
+    overflow: hidden;
+    aspect-ratio: 3 / 4;
+    background: var(--color-surface-soft);
+    touch-action: pan-y;
 }
 
 .gallery-slide {
-    flex-shrink: 0;
+    display: none;
+    position: absolute;
+    inset: 0;
     width: 100%;
-    aspect-ratio: 3 / 4;
+    height: 100%;
     overflow: hidden;
-    background: var(--color-surface-soft);
+}
+
+.gallery-slide.active {
+    display: block;
 }
 
 .gallery-slide img {
@@ -1575,7 +1584,7 @@ footer {
     outline: none;
 }
 
-.gallery-dot.is-active {
+.gallery-dot.active {
     background: var(--color-text);
 }
 
