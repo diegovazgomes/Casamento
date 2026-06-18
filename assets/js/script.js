@@ -702,6 +702,7 @@ class InvitationExperience {
         this.bindIntro();
         this._animateIntroScreen();
         this.bindAudioToggle();
+        this.clearAutomaticAudioPauseFlags();
         this.audio.addEventListener('statechange', () => this.syncAudioButton());
         this.syncAudioButton();
 
@@ -791,39 +792,22 @@ class InvitationExperience {
         // Pausa o áudio ao sair da página (cobre navegações normais e bfcache)
         window.addEventListener('pagehide', () => {
             if (this.audio && !this.audio.userPaused) {
-                this.audio.pause();
-                try { sessionStorage.setItem('audio-nav-paused', '1'); } catch { /* silent */ }
+                this.audio.pauseForSystem();
             }
         });
 
-        // Pausa ao minimizar o navegador ou trocar de aba; retoma ao voltar
+        // Pausa ao minimizar o navegador ou trocar de aba; o convidado retoma manualmente se quiser.
         document.addEventListener('visibilitychange', () => {
             if (document.visibilityState === 'hidden') {
                 if (this.audio && !this.audio.userPaused) {
-                    this.audio.pause();
-                    try { sessionStorage.setItem('audio-visibility-paused', '1'); } catch { /* silent */ }
+                    this.audio.pauseForSystem();
                 }
-            } else if (document.visibilityState === 'visible') {
-                try {
-                    if (sessionStorage.getItem('audio-visibility-paused') === '1') {
-                        sessionStorage.removeItem('audio-visibility-paused');
-                        this.audio?.resume();
-                    }
-                } catch { /* silent */ }
             }
         });
 
         // Detecta restauração via bfcache (botão voltar do browser após redirect)
         window.addEventListener('pageshow', (event) => {
             if (!event.persisted) return;
-
-            // Retoma o áudio se foi pausado pela navegação (não pelo usuário)
-            try {
-                if (sessionStorage.getItem('audio-nav-paused') === '1') {
-                    sessionStorage.removeItem('audio-nav-paused');
-                    this.audio?.resume();
-                }
-            } catch { /* silent */ }
 
             if (this.rsvp?.wasAlreadySubmittedThisSession()) {
                 this.rsvp.showSlotCounter();
@@ -995,6 +979,14 @@ class InvitationExperience {
     markAudioPaused(paused) {
         try {
             window.sessionStorage.setItem(AUDIO_PAUSED_STORAGE_KEY, String(Boolean(paused)));
+        } catch {
+        }
+    }
+
+    clearAutomaticAudioPauseFlags() {
+        try {
+            window.sessionStorage.removeItem('audio-nav-paused');
+            window.sessionStorage.removeItem('audio-visibility-paused');
         } catch {
         }
     }

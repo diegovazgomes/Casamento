@@ -11,6 +11,7 @@ export class AudioController extends EventTarget {
         this.userPaused = false;
         this.lastError = null;
         this.fadeFrameId = null;
+        this.fadeResolve = null;
         this.audioContext = null;
         this.audioOutputNodes = new WeakMap();
         this.tracks = Object.fromEntries(
@@ -405,6 +406,7 @@ export class AudioController extends EventTarget {
         }
 
         this.currentTrackKey = trackKey;
+        this.emitState();
         await this.fadeVolume(nextElement, targetVolume, AUDIO_FADE_IN_DURATION_MS);
         this.emitState();
         return true;
@@ -427,9 +429,10 @@ export class AudioController extends EventTarget {
             return;
         }
 
-        window.cancelAnimationFrame(this.fadeFrameId);
+        this.cancelFade();
 
         await new Promise((resolve) => {
+            this.fadeResolve = resolve;
             const startTime = performance.now();
             const startVolume = this.getOutputVolume(audio);
 
@@ -440,12 +443,26 @@ export class AudioController extends EventTarget {
                 if (progress < 1) {
                     this.fadeFrameId = window.requestAnimationFrame(step);
                 } else {
+                    this.fadeFrameId = null;
+                    this.fadeResolve = null;
                     resolve();
                 }
             };
 
             this.fadeFrameId = window.requestAnimationFrame(step);
         });
+    }
+
+    cancelFade() {
+        if (this.fadeFrameId) {
+            window.cancelAnimationFrame(this.fadeFrameId);
+            this.fadeFrameId = null;
+        }
+
+        if (this.fadeResolve) {
+            this.fadeResolve();
+            this.fadeResolve = null;
+        }
     }
 
     async safePlay(audio) {
@@ -469,6 +486,20 @@ export class AudioController extends EventTarget {
         const currentElement = this.getCurrentElement();
 
         if (currentElement) {
+            this.cancelFade();
+            this.setOutputVolume(currentElement, 0);
+            currentElement.pause();
+        }
+
+        this.emitState();
+    }
+
+    pauseForSystem() {
+        const currentElement = this.getCurrentElement();
+
+        if (currentElement) {
+            this.cancelFade();
+            this.setOutputVolume(currentElement, 0);
             currentElement.pause();
         }
 
@@ -506,6 +537,7 @@ export class AudioController extends EventTarget {
             return false;
         }
 
+        this.emitState();
         await this.fadeVolume(currentElement, targetVolume, AUDIO_FADE_IN_DURATION_MS);
         this.emitState();
         return true;

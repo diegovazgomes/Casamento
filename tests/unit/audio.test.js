@@ -91,4 +91,88 @@ describe('AudioController', () => {
     expect(audio.volume).toBe(0.4);
     expect(fadeStartVolumes).toEqual([0]);
   });
+
+  it('pauses automatically without storing a manual pause', async () => {
+    vi.stubGlobal('Audio', FakeAudio);
+    vi.stubGlobal('HTMLMediaElement', { HAVE_METADATA: 1 });
+
+    const controller = new AudioController({
+      main: {
+        src: 'assets/audio/main-theme.mp3',
+        volume: 0.4,
+        startTime: 0,
+      },
+    });
+    const audio = controller.tracks.main.element;
+    audio.readyState = 1;
+    audio.duration = 120;
+    audio.currentTime = 36;
+    audio.volume = 0.4;
+    audio.paused = false;
+    controller.readyForPlayback = true;
+    controller.desiredTrackKey = 'main';
+    controller.currentTrackKey = 'main';
+
+    controller.pauseForSystem();
+
+    expect(audio.paused).toBe(true);
+    expect(audio.volume).toBe(0);
+    expect(audio.currentTime).toBe(36);
+    expect(controller.userPaused).toBe(false);
+  });
+
+  it('resumes after an automatic pause from a user action', async () => {
+    vi.stubGlobal('Audio', FakeAudio);
+    vi.stubGlobal('HTMLMediaElement', { HAVE_METADATA: 1 });
+    vi.spyOn(AudioController.prototype, 'fadeVolume').mockImplementation(async (audio, targetVolume) => {
+      audio.volume = targetVolume;
+    });
+
+    const controller = new AudioController({
+      main: {
+        src: 'assets/audio/main-theme.mp3',
+        volume: 0.4,
+        startTime: 0,
+      },
+    });
+    const audio = controller.tracks.main.element;
+    audio.readyState = 1;
+    audio.duration = 120;
+    audio.paused = false;
+    controller.readyForPlayback = true;
+    controller.desiredTrackKey = 'main';
+    controller.currentTrackKey = 'main';
+
+    controller.pauseForSystem();
+    await controller.toggle();
+
+    expect(audio.paused).toBe(false);
+    expect(audio.volume).toBe(0.4);
+    expect(controller.userPaused).toBe(false);
+  });
+
+  it('marks only explicit pauses as manual pauses', () => {
+    vi.stubGlobal('Audio', FakeAudio);
+    vi.stubGlobal('HTMLMediaElement', { HAVE_METADATA: 1 });
+
+    const controller = new AudioController({
+      main: {
+        src: 'assets/audio/main-theme.mp3',
+        volume: 0.4,
+        startTime: 0,
+      },
+    });
+    const audio = controller.tracks.main.element;
+    audio.readyState = 1;
+    audio.duration = 120;
+    audio.volume = 0.4;
+    audio.paused = false;
+    controller.currentTrackKey = 'main';
+
+    controller.pause();
+
+    expect(audio.paused).toBe(true);
+    expect(audio.volume).toBe(0);
+    expect(controller.userPaused).toBe(true);
+  });
 });
