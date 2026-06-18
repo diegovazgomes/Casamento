@@ -1,5 +1,15 @@
 # Correções recentes
 
+- 2026-06-18: Refinado layout `editorial` após revisão visual.
+  - Causa: prints mostraram excesso de rótulos editoriais no hero, emojis quebrando a sofisticação, footer desalinhado e cards de presentes com botões em alturas diferentes.
+  - Mudança aplicada: removidos `THE WEDDING ISSUE` e `ISSUE 01`, foto do hero reenquadrada, scroll hint alinhado com intenção visual, emojis ocultos, footer centralizado, páginas extras ajustadas e cards de presentes equalizados.
+  - Impacto percebido: o layout fica mais limpo, menos decorativo e mais premium, com melhor consistência entre hero, presentes e páginas extras.
+
+- 2026-06-18: Adicionado layout `editorial` inspirado em revista premium.
+  - Causa: solicitação de novo layout completo "Editorial Magazine" para convites com cara de edição especial.
+  - Mudança aplicada: criados `assets/layouts/editorial/defaults.json` e `assets/layouts/editorial/layout.css`, com registro em `dashboard.html`, `assets/js/editor.js`, `assets/js/dashboard.js` e `landing.html`.
+  - Impacto percebido: o convite ganha hero assimétrico de capa editorial, tipografia serifada forte, seções arejadas, cards retos e tratamento visual discreto em RSVP, presentes e páginas extras.
+
 - 2026-06-18: Removida foto de perfil do casal da sidebar do dashboard.
   - Causa: solicitação do usuário para simplificar a UI da sidebar, removendo elemento visual desnecessário.
   - Mudança aplicada: removido `<img class="sidebar-profile-photo">` de `dashboard.html`, CSS da classe `.sidebar-profile-photo` de `dashboard.html`, função `renderProfilePhoto()` de `assets/js/dashboard.js` e chamada de função em `renderPlanBadge()`.

@@ -1644,6 +1644,11 @@ const LAYOUT_DEFINITIONS = [
     name: 'Minimal',
     description: 'Foto portrait ao lado do texto, fundo visivel, sem overlay. Countdown sem cards, details como lista com regua.',
   },
+  {
+    key: 'editorial',
+    name: 'Editorial',
+    description: 'Capa de revista premium, composicao assimetrica, serif elegante e detalhes em caixa alta.',
+  },
 ];
 
 const THEME_COLOR_SECTIONS = [

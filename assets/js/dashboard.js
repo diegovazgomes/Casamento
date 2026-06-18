@@ -3096,6 +3096,7 @@ const LAYOUT_THEMES = {
   classic:  PALETTE_LIST,
   modern:   PALETTE_LIST,
   minimal:  PALETTE_LIST,
+  editorial: PALETTE_LIST,
 };
 
 const LEGACY_THEME_KEY_MAP = {
