@@ -1,5 +1,10 @@
 # Correções recentes
 
+- 2026-06-18: Ajustado layout `editorial` apos nova revisao mobile e desktop.
+  - Causa: hero ainda tinha linhas horizontais extras, texto de catalogo aparecia no mobile, icones de presentes estavam ocultos, divisores de paginas extras tinham respiro irregular e o feedback do RSVP nao era exibido pelo estado usado no JS.
+  - Mudanca aplicada: removidas as reguas da hero, nav desktop afastada do botao de som, emojis dos presentes reexibidos, listras herdadas dos cards de presentes anuladas, texto auxiliar da lista oculto no mobile, divisores de historia/hospedagem redistribuidos, termos do footer sem uppercase forcado e `.rsvp-success.show` suportado no layout.
+  - Impacto percebido: a capa fica mais limpa, presentes voltam a ter referencia visual, paginas extras ganham ritmo mais uniforme e o envio do RSVP passa a mostrar retorno visual corretamente.
+
 - 2026-06-18: Refinado layout `editorial` após revisão visual.
   - Causa: prints mostraram excesso de rótulos editoriais no hero, emojis quebrando a sofisticação, footer desalinhado e cards de presentes com botões em alturas diferentes.
   - Mudança aplicada: removidos `THE WEDDING ISSUE` e `ISSUE 01`, foto do hero reenquadrada, scroll hint alinhado com intenção visual, emojis ocultos, footer centralizado, páginas extras ajustadas e cards de presentes equalizados.
