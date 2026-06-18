@@ -1,5 +1,10 @@
 # Correções recentes
 
+- 2026-06-18: Removida foto de perfil do casal da sidebar do dashboard.
+  - Causa: solicitação do usuário para simplificar a UI da sidebar, removendo elemento visual desnecessário.
+  - Mudança aplicada: removido `<img class="sidebar-profile-photo">` de `dashboard.html`, CSS da classe `.sidebar-profile-photo` de `dashboard.html`, função `renderProfilePhoto()` de `assets/js/dashboard.js` e chamada de função em `renderPlanBadge()`.
+  - Impacto percebido: sidebar fica mais limpa mantendo label "Dashboard", nomes do casal e data do casamento. Sem quebra de layout ou responsividade.
+
 - 2026-06-18: Corrigido bloqueio do botão de som no canto superior direito (desktop e mobile) quando o layout ativo era minimal.
   - Causa raiz: a faixa completa da navegação fixa no topo interceptava clique/toque na área vazia da nav, impedindo o evento no botão de áudio.
   - Correção aplicada: a camada `.site-nav` passou a ignorar ponteiro por padrão e apenas elementos interativos da navegação (`a`, `button`, `input`, etc.) continuam clicáveis.

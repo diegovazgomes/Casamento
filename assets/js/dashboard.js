@@ -1110,30 +1110,12 @@ function getProfilePhotoUrl(profile) {
   return explicitPhoto || DEFAULT_PROFILE_PHOTO_URL;
 }
 
-function renderProfilePhoto(profile) {
-  const photo = document.getElementById('sidebarProfilePhoto');
-  if (!photo) return;
-
-  const nextSrc = getProfilePhotoUrl(profile);
-  if (photo.getAttribute('src') !== nextSrc) {
-    photo.src = nextSrc;
-  }
-
-  photo.alt = 'Foto do perfil do casal';
-  photo.onerror = () => {
-    if (photo.getAttribute('src') !== DEFAULT_PROFILE_PHOTO_URL) {
-      photo.src = DEFAULT_PROFILE_PHOTO_URL;
-    }
-  };
-}
-
 function renderPlanBadge(profile) {
   const plan = String(profile?.plan || 'free');
   const isPremium = isPremiumPlan(plan);
   const planLabel = isPremium ? 'Premium' : 'Free';
 
   renderAccountEmail(profile);
-  renderProfilePhoto(profile);
 
   // Sidebar desktop
   const container = document.getElementById('sidebarPlan');
