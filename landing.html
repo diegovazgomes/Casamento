@@ -1778,6 +1778,44 @@ footer {
 .direcao-screen--classico { background: var(--marfim); }
 .direcao-screen--minimal  { background: #fefefe; }
 .direcao-screen--moderno  { background: var(--carvao); }
+.direcao-screen--editorial {
+  background: var(--linho);
+  color: var(--carvao);
+  display: flex;
+  align-items: flex-end;
+  padding: 28px 24px;
+}
+
+.direcao-editorial-preview {
+  width: 100%;
+  min-height: 72%;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: 18px;
+  border-top: 1px solid var(--line);
+}
+
+.direcao-editorial-kicker,
+.direcao-editorial-date {
+  font-family: var(--mono);
+  font-size: 8px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ouro-velho);
+}
+
+.direcao-editorial-names {
+  align-self: end;
+  font-family: var(--serif);
+  font-size: clamp(42px, 10vw, 64px);
+  font-weight: 400;
+  line-height: 0.88;
+  color: var(--carvao);
+}
+
+.direcao-editorial-names span {
+  display: block;
+}
 
 .direcao-video {
   width: 100%;
@@ -2072,7 +2110,7 @@ footer {
     <div class="reveal">
       <div class="section-num">— Direções visuais</div>
       <h2 class="section-title">
-        Três formas de criar uma presença digital <em>elegante.</em>
+        Quatro formas de criar uma presença digital <em>elegante.</em>
       </h2>
     </div>
 
@@ -2103,6 +2141,17 @@ footer {
                 </video>
               </div>
 
+              <div class="direcao-screen direcao-screen--editorial" id="screen-editorial">
+                <div class="direcao-editorial-preview" aria-hidden="true">
+                  <span class="direcao-editorial-kicker">The Wedding Issue</span>
+                  <div class="direcao-editorial-names">
+                    <span>Nome</span>
+                    <span>&amp; Nome</span>
+                  </div>
+                  <span class="direcao-editorial-date">06.09.2026</span>
+                </div>
+              </div>
+
             </div>
           </div>
         </div>
@@ -2114,6 +2163,7 @@ footer {
         <span class="direcao-dot is-active" role="tab" aria-selected="true"  aria-label="Clássico" tabindex="0"></span>
         <span class="direcao-dot"           role="tab" aria-selected="false" aria-label="Minimalista" tabindex="0"></span>
         <span class="direcao-dot"           role="tab" aria-selected="false" aria-label="Moderno" tabindex="0"></span>
+        <span class="direcao-dot"           role="tab" aria-selected="false" aria-label="Editorial" tabindex="0"></span>
       </div>
 
       <div class="direcoes-info">
@@ -2148,6 +2198,17 @@ footer {
             <span class="direcao-tag">Editorial</span>
             <span class="direcao-tag">Ousado</span>
             <span class="direcao-tag">Contemporâneo</span>
+          </div>
+        </div>
+
+        <div class="direcao-info" id="info-editorial">
+          <span class="direcao-info-num">iv</span>
+          <h3 class="direcao-info-name">Editorial</h3>
+          <p class="direcao-info-desc">Capa de revista premium, fotografia assimétrica, nomes em serif elegante e detalhes discretos como uma edição especial de casamento.</p>
+          <div class="direcao-info-tags">
+            <span class="direcao-tag">Premium</span>
+            <span class="direcao-tag">Revista</span>
+            <span class="direcao-tag">Tipográfico</span>
           </div>
         </div>
 
