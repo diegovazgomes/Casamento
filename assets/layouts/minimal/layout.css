@@ -1170,10 +1170,19 @@ footer {
     padding-bottom: 80px;
 }
 
+.extra-main > .content-section {
+    width: 100%;
+    padding-inline: 0;
+}
+
 .extra-intro {
     text-align: left;
     margin-bottom: 48px;
     padding-bottom: 12px;
+}
+
+.extra-main > .extra-intro {
+    padding-top: 0;
 }
 
 .extra-content {
@@ -1267,7 +1276,7 @@ footer {
     padding: 32px 0;
     border-bottom: 1px solid var(--color-border-soft);
     display: grid;
-    grid-template-columns: 80px 1fr;
+    grid-template-columns: minmax(80px, 120px) minmax(0, 680px);
     gap: 24px;
     align-items: start;
 }
@@ -1283,6 +1292,7 @@ footer {
 }
 
 .historia-chapter-title {
+    grid-column: 2;
     font-family: var(--font-serif);
     font-size: clamp(18px, 3vw, 24px);
     font-weight: 300;
@@ -1292,6 +1302,8 @@ footer {
 }
 
 .historia-chapter-text {
+    grid-column: 2;
+    max-width: 620px;
     font-family: var(--font-serif);
     font-style: italic;
     font-size: 16px;
@@ -1792,6 +1804,11 @@ footer {
     .historia-chapter {
         grid-template-columns: 1fr;
         gap: 8px;
+    }
+
+    .historia-chapter-title,
+    .historia-chapter-text {
+        grid-column: 1;
     }
 
     /* Hospedagem: 1 coluna */

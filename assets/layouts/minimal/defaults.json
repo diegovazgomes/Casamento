@@ -195,8 +195,8 @@
   "responsive": {
     "mobile": {
       "spacing": {
-        "sectionPaddingTop":        "72px",
-        "sectionPaddingInline":     "24px",
+        "sectionPaddingTop":        "40px",
+        "sectionPaddingInline":     "20px",
         "detailsSectionPaddingTop": "72px",
         "dividerMarginTop":         "0px"
       },
