@@ -854,7 +854,7 @@ a {
     font-family: var(--font-primary);
     font-size: 9px;
     font-weight: 400;
-    color: #c44;
+    color: var(--color-primary-soft);
     letter-spacing: 0.1em;
     padding: 4px 0 0;
 }
@@ -1368,18 +1368,21 @@ footer {
 /* ── 19. MENSAGEM / MÚSICA ─────────────────────────────────── */
 
 .extra-form-card {
-    padding: 0;
+    width: min(100%, 680px);
+    padding: 28px;
+    border: 1px solid var(--color-border-soft);
+    background: var(--color-surface-soft);
     display: flex;
     flex-direction: column;
-    gap: 20px;
-    padding-top: 6px;
+    gap: 18px;
 }
 
 .extra-form-title {
     font-family: var(--font-serif);
-    font-size: clamp(18px, 3vw, 24px);
+    font-size: clamp(20px, 3vw, 26px);
     font-weight: 300;
     color: var(--color-text);
+    line-height: 1.25;
 }
 
 .extra-form-field {
@@ -1406,38 +1409,52 @@ footer {
     line-height: 1.7;
 }
 
-.extra-form-textarea {
-    font-family: var(--font-serif);
-    font-size: 16px;
-    font-weight: 400;
-    color: var(--color-text);
-    background: transparent;
-    border: none;
-    border-bottom: 1px solid var(--color-border);
-    padding: 12px 0;
-    resize: none;
-    min-height: 100px;
-    line-height: 1.65;
-    transition: var(--transition-standard);
-    outline: none;
-    width: 100%;
+.extra-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
 }
 
-.extra-form-textarea:focus {
-    border-bottom-color: var(--color-text);
+.extra-form .rsvp-input {
+    min-height: 50px;
+    padding: 14px 16px;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border-soft);
+    color: var(--color-text);
+    font-family: var(--font-primary);
+    font-size: 13px;
+    line-height: 1.5;
+    letter-spacing: 0.04em;
+}
+
+.extra-form .rsvp-input:focus {
+    border-color: var(--color-border-strong);
+    background: var(--color-input-focus-bg);
+}
+
+.extra-form-textarea {
+    resize: vertical;
+    min-height: 140px;
+}
+
+.extra-form .rsvp-submit {
+    margin-top: 8px;
 }
 
 .extra-form-feedback {
+    min-height: 1.4em;
     font-family: var(--font-primary);
     font-size: 10px;
     font-weight: 400;
     color: var(--color-text-muted);
+    letter-spacing: 0.08em;
+    line-height: 1.5;
 }
 
 .extra-form-feedback.is-error,
 .rsvp-input.is-invalid {
-    color: #d4877b;
-    border-color: #d4877b;
+    color: var(--color-primary-soft);
+    border-color: var(--color-border-strong);
 }
 
 /* ── 20. HOSPEDAGEM ────────────────────────────────────────── */
@@ -1864,6 +1881,23 @@ footer {
     .extras-card-hint {
         font-size: 9px;
         letter-spacing: 0.12em;
+    }
+
+    .extra-form-card {
+        padding: 20px;
+        gap: 16px;
+    }
+
+    .extra-form {
+        gap: 14px;
+    }
+
+    .extra-form .rsvp-input {
+        padding: 13px 14px;
+    }
+
+    .extra-form-textarea {
+        min-height: 132px;
     }
 
     .rsvp-submit {
