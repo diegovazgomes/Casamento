@@ -1,3 +1,10 @@
+# Correções recentes
+
+- 2026-06-18: Corrigido bloqueio do botão de som no canto superior direito (desktop e mobile) quando o layout ativo era minimal.
+  - Causa raiz: a faixa completa da navegação fixa no topo interceptava clique/toque na área vazia da nav, impedindo o evento no botão de áudio.
+  - Correção aplicada: a camada `.site-nav` passou a ignorar ponteiro por padrão e apenas elementos interativos da navegação (`a`, `button`, `input`, etc.) continuam clicáveis.
+  - Impacto percebido: botão de som volta a pausar/retomar áudio imediatamente sem perder a navegação por links.
+
 # Checklist de Melhorias — Devazi
 
 - [x] **Audio - Botao e pausa automatica separados**

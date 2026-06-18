@@ -597,6 +597,18 @@ img {
 
 .site-nav {
     display: none;
+    /* Evita que a faixa inteira da nav bloqueie cliques no botão de áudio */
+    pointer-events: none;
+}
+
+.site-nav a,
+.site-nav button,
+.site-nav [role="button"],
+.site-nav input,
+.site-nav select,
+.site-nav textarea,
+.site-nav label {
+    pointer-events: auto;
 }
 
 /* ─── Footer (shared) ────────────────────────────────────────────────────── */
