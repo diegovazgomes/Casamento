@@ -798,7 +798,7 @@ a:focus-visible {
     align-items: center;
     justify-content: center;
     color: var(--color-text-muted);
-    font-size: clamp(18px, 5vw, 28px);
+    font-size: clamp(28px, 6vw, 42px);
     line-height: 1;
     opacity: 0.7;
 }
@@ -1191,6 +1191,15 @@ footer {
     font-size: 12px;
 }
 
+#trajeNote {
+    max-width: 68ch;
+    color: var(--color-text-soft);
+    font-family: var(--font-primary);
+    font-size: 13px;
+    font-weight: 300;
+    line-height: 1.8;
+}
+
 /* 14. Nossa Historia */
 .historia-timeline {
     display: grid;
@@ -1571,6 +1580,15 @@ footer {
 
     .gift-item {
         min-height: 240px;
+    }
+
+    .gift-item-img-wrap,
+    .gift-item-icon {
+        min-height: 96px;
+    }
+
+    .gift-item-icon {
+        font-size: clamp(42px, 15vw, 58px);
     }
 
     .detail-card {

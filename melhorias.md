@@ -1,5 +1,10 @@
 # Correções recentes
 
+- 2026-06-18: Ajuste fino em presentes mobile e observação de traje no layout `editorial`.
+  - Causa: emoji dos presentes ficava pequeno para a caixa no mobile e a observação da página de traje herdava a fonte serifada grande dos valores principais.
+  - Mudanca aplicada: emoji dos cards de presentes ampliado, com caixa mais alta no mobile, e `#trajeNote` passou a usar Jost/texto corrido com peso leve e linha arejada.
+  - Impacto percebido: presentes ficam mais proporcionais no mobile e a observação de traje fica mais limpa, legível e menos parecida com título.
+
 - 2026-06-18: Ajustado layout `editorial` apos nova revisao mobile e desktop.
   - Causa: hero ainda tinha linhas horizontais extras, texto de catalogo aparecia no mobile, icones de presentes estavam ocultos, divisores de paginas extras tinham respiro irregular e o feedback do RSVP nao era exibido pelo estado usado no JS
   - Mudanca aplicada: removidas as reguas da hero, nav desktop afastada do botao de som, emojis dos presentes reexibidos, listras herdadas dos cards de presentes anuladas, texto auxiliar da lista oculto no mobile, divisores de historia/hospedagem redistribuidos, termos do footer sem uppercase forcado e `.rsvp-success.show` suportado no layout.
