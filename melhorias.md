@@ -5,6 +5,11 @@
   - Correção aplicada: a camada `.site-nav` passou a ignorar ponteiro por padrão e apenas elementos interativos da navegação (`a`, `button`, `input`, etc.) continuam clicáveis.
   - Impacto percebido: botão de som volta a pausar/retomar áudio imediatamente sem perder a navegação por links.
 
+- 2026-06-18: Corrigido reinício indevido do áudio no desktop ao entrar em páginas extras.
+  - Causa raiz: ao navegar para páginas extras, o áudio era pausado no unload, mas o próximo bootstrap podia retomar automaticamente a trilha.
+  - Correção aplicada: no desktop, clique de navegação para páginas extras agora pausa o áudio antes da troca de página e persiste estado pausado da sessão.
+  - Impacto percebido: ao entrar em páginas extras no desktop, o som para (não reinicia). No mobile, comportamento permanece inalterado.
+
 # Checklist de Melhorias — Devazi
 
 - [x] **Audio - Botao e pausa automatica separados**

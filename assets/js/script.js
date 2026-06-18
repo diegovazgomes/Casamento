@@ -702,6 +702,7 @@ class InvitationExperience {
         this.bindIntro();
         this._animateIntroScreen();
         this.bindAudioToggle();
+        this.bindDesktopExtraPageAudioStop();
         this.clearAutomaticAudioPauseFlags();
         this.audio.addEventListener('statechange', () => this.syncAudioButton());
         this.syncAudioButton();
@@ -760,6 +761,70 @@ class InvitationExperience {
             await this.audio.toggle();
             this.syncAudioButton();
         });
+    }
+
+    isDesktopViewport() {
+        return !window.matchMedia('(max-width: 768px)').matches;
+    }
+
+    isExtraPagePath(pathname = '') {
+        const normalizedPath = String(pathname || '').toLowerCase();
+        const extraPaths = [
+            '/historia.html',
+            '/faq.html',
+            '/hospedagem.html',
+            '/mensagem.html',
+            '/musica.html',
+            '/presente.html',
+            '/traje.html'
+        ];
+
+        return extraPaths.some((path) => normalizedPath.endsWith(path));
+    }
+
+    stopAudioBeforeDesktopExtraNavigation() {
+        this.audio.pauseForSystem();
+        this.audio.userPaused = true;
+        this.markAudioPaused(true);
+        this.syncAudioButton();
+    }
+
+    bindDesktopExtraPageAudioStop() {
+        if (this.desktopExtraPageAudioStopBound) {
+            return;
+        }
+
+        this.desktopExtraPageAudioStopBound = true;
+
+        document.addEventListener('click', (event) => {
+            if (!this.isDesktopViewport()) {
+                return;
+            }
+
+            if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+                return;
+            }
+
+            const anchor = event.target instanceof Element ? event.target.closest('a[href]') : null;
+
+            if (!anchor || anchor.target === '_blank' || anchor.hasAttribute('download')) {
+                return;
+            }
+
+            let destination;
+
+            try {
+                destination = new URL(anchor.href, window.location.href);
+            } catch {
+                return;
+            }
+
+            if (destination.origin !== window.location.origin || !this.isExtraPagePath(destination.pathname)) {
+                return;
+            }
+
+            this.stopAudioBeforeDesktopExtraNavigation();
+        }, { capture: true });
     }
 
     initializeMainSite() {
