@@ -28,10 +28,18 @@ function renderCards(containerId, items, type) {
 
     const defaultLinkLabel = type === 'hotels' ? 'Conferir no mapa' : 'Ver site';
 
-    container.innerHTML = items.map((item) => {
+    const visibleItems = items.filter((item) => {
+        const name = String(item?.name || '').trim();
+        const description = String(item?.description || '').trim();
+        const link = String(item?.link || '').trim();
+        return Boolean(name || description || link);
+    });
+
+    container.innerHTML = visibleItems.map((item) => {
         const normalizedLink = normalizeExternalUrl(item.link);
+        const linkLabel = String(item.linkLabel || '').trim() || defaultLinkLabel;
         const linkHtml = normalizedLink
-            ? `<a class="hospedagem-card-link" href="${escapeHtml(normalizedLink)}" target="_blank" rel="noopener noreferrer">${escapeHtml(defaultLinkLabel)}</a>`
+            ? `<a class="hospedagem-card-link" href="${escapeHtml(normalizedLink)}" target="_blank" rel="noopener noreferrer">${escapeHtml(linkLabel)}</a>`
             : '';
 
         return `

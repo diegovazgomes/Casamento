@@ -1482,13 +1482,14 @@ footer {
 
 .hospedagem-card {
     display: grid;
-    grid-template-columns: 1fr auto;
-    align-items: center;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
     padding: 20px 0;
     border-bottom: 1px solid var(--color-border-soft);
     text-decoration: none;
     color: inherit;
-    gap: 16px;
+    column-gap: 24px;
+    row-gap: 4px;
     transition: var(--transition-standard);
 }
 
@@ -1498,6 +1499,7 @@ footer {
 }
 
 .hospedagem-card-name {
+    grid-column: 1;
     font-family: var(--font-serif);
     font-size: clamp(15px, 2.5vw, 20px);
     font-weight: 300;
@@ -1505,6 +1507,7 @@ footer {
 }
 
 .hospedagem-card-description {
+    grid-column: 1;
     font-family: var(--font-serif);
     font-style: italic;
     font-size: 14px;
@@ -1515,6 +1518,9 @@ footer {
 }
 
 .hospedagem-card-link {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    align-self: center;
     font-family: var(--font-primary);
     font-size: 9px;
     font-weight: 400;
@@ -1831,6 +1837,12 @@ footer {
     /* Hospedagem: 1 coluna */
     .hospedagem-card {
         grid-template-columns: 1fr;
+    }
+
+    .hospedagem-card-link {
+        grid-column: 1;
+        grid-row: auto;
+        justify-self: start;
     }
 
     /* Footer: 1 coluna, centralizado */
