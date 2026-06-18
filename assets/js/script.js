@@ -791,7 +791,7 @@ class InvitationExperience {
         // Pausa o áudio ao sair da página (cobre navegações normais e bfcache)
         window.addEventListener('pagehide', () => {
             if (this.audio && !this.audio.userPaused) {
-                this.audio.pauseForSystem({ fadeDuration: 0 });
+                this.audio.pause();
                 try { sessionStorage.setItem('audio-nav-paused', '1'); } catch { /* silent */ }
             }
         });
@@ -800,7 +800,7 @@ class InvitationExperience {
         document.addEventListener('visibilitychange', () => {
             if (document.visibilityState === 'hidden') {
                 if (this.audio && !this.audio.userPaused) {
-                    this.audio.pauseForSystem();
+                    this.audio.pause();
                     try { sessionStorage.setItem('audio-visibility-paused', '1'); } catch { /* silent */ }
                 }
             } else if (document.visibilityState === 'visible') {
