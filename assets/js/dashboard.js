@@ -6599,7 +6599,7 @@ const WIZARD_THEME_KEYS_ALL = [
   'green-light',
 ];
 
-const WIZARD_THEME_KEYS_FREE = ['gold'];
+const WIZARD_THEME_KEYS_FREE = ['gold', 'gold-light'];
 
 function getWizardThemeKeys() {
   const isPremium = state.userProfile && isPremiumPlan(state.userProfile.plan);

@@ -1,5 +1,15 @@
 # Correções recentes
 
+- 2026-06-19: Ajustado wizard e destaque da aba de edicao.
+  - Causa: o wizard Free mostrava apenas o tema Dourado, o banner de temas premium abria checkout direto e a aba Editar Evento ficava discreta na navegacao.
+  - Mudanca aplicada: o wizard Free passou a oferecer Dourado e Dourado Claro, o banner do wizard agora orienta upgrade pelo painel sem link de checkout e a aba Editar Evento ganhou destaque com badge "Comece aqui".
+  - Impacto percebido: novos usuarios enxergam mais uma opcao visual no onboarding e entendem melhor que devem seguir para a edicao do convite no dashboard.
+
+- 2026-06-19: Corrigida barra visual do botao final do wizard.
+  - Causa: o botao "Salvar e publicar" herdava o preenchimento global de hover dos botoes mesmo quando ficava desabilitado como "Salvando...", deixando a barra presa ou fora de fase.
+  - Mudanca aplicada: o botao principal do wizard nao usa a barra de preenchimento enquanto esta desabilitado durante o salvamento.
+  - Impacto percebido: ao finalizar o wizard, o estado "Salvando..." fica estavel e sem preenchimento visual bugado.
+
 - 2026-06-19: Ajustado preview de musica no dashboard.
   - Causa: a configuracao de inicio em segundos aparecia na aba Midia e o preview de audio podia continuar tocando ao sair da pagina ou trocar de tela no dashboard.
   - Mudanca aplicada: o campo de inicio em segundos foi ocultado da interface, preservando o valor existente em segundo plano; o preview de audio agora pausa ao trocar de aba, ocultar a pagina, navegar para fora ou fechar/recarregar.
