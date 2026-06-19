@@ -1,5 +1,10 @@
 # Correções recentes
 
+- 2026-06-19: Ajustado preview de musica no dashboard.
+  - Causa: a configuracao de inicio em segundos aparecia na aba Midia e o preview de audio podia continuar tocando ao sair da pagina ou trocar de tela no dashboard.
+  - Mudanca aplicada: o campo de inicio em segundos foi ocultado da interface, preservando o valor existente em segundo plano; o preview de audio agora pausa ao trocar de aba, ocultar a pagina, navegar para fora ou fechar/recarregar.
+  - Impacto percebido: a configuracao de midia fica mais simples e a musica de teste nao continua tocando fora da tela de edicao.
+
 - 2026-06-19: Corrigido preenchimento preso no botao de salvar do dashboard.
   - Causa: o preenchimento animado do botao de salvar confundia hover, carregamento e sucesso, mantendo a barra visual fora de fase.
   - Mudanca aplicada: botoes de salvar deixaram de usar a barra de preenchimento; o status textual mostra "Salvando dados..." durante o request no topo e nos rodapes das secoes, depois exibe "Dados salvos" em verde ate uma nova alteracao.

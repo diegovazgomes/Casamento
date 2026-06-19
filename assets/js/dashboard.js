@@ -322,6 +322,7 @@ function bindUiEvents() {
   document.querySelectorAll('.nav-item[data-tab]').forEach(button => {
     button.addEventListener('click', handleTabSwitch);
   });
+  bindAudioPreviewLifecycle();
 
   // Modais
   document.getElementById('btnNewGroup')?.addEventListener('click', () => openGroupModal('group'));
@@ -1477,6 +1478,10 @@ function handleTabSwitch(event) {
   const tabButton = event.currentTarget ?? event.target.closest('.nav-item[data-tab]');
   const tabName = tabButton?.dataset.tab;
   if (!tabName) return;
+
+  if (tabName !== 'editar') {
+    pauseAudioPreviewForSystem('Prévia pausada ao sair da edição.');
+  }
   
   // Remover active de todos
   document.querySelectorAll('.nav-item[data-tab]').forEach(btn => btn.classList.remove('is-active'));
@@ -4491,6 +4496,8 @@ async function fetchSongsList(currentSrc = '') {
 // ── Preview de música no editor ──────────────────────────────────────────────
 
 let _previewAudio = null;
+let _previewAudioLifecycleBound = false;
+let _previewPlaybackRequested = false;
 
 function _syncVolumeSlider(el) {
   if (!el) return;
@@ -4508,16 +4515,47 @@ function _updatePreviewStatus(text, isError = false) {
   }
 }
 
+function getAudioPreviewStartTime() {
+  return parseInt(document.getElementById('edTrackStart')?.value) || 0;
+}
+
+function pauseAudioPreviewForSystem(statusText = 'Prévia pausada.') {
+  _previewPlaybackRequested = false;
+  if (!_previewAudio) return;
+  _previewAudio.pause();
+  _updatePreviewStatus(statusText);
+}
+
+function bindAudioPreviewLifecycle() {
+  if (_previewAudioLifecycleBound) return;
+  _previewAudioLifecycleBound = true;
+
+  window.addEventListener('pagehide', () => {
+    pauseAudioPreviewForSystem('Prévia pausada ao sair da página.');
+  });
+
+  window.addEventListener('beforeunload', () => {
+    pauseAudioPreviewForSystem('Prévia pausada ao sair da página.');
+  });
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') {
+      pauseAudioPreviewForSystem('Prévia pausada ao sair da página.');
+    }
+  });
+}
+
 function audioPreviewPlay() {
   const src    = document.getElementById('edTrackSrc')?.value;
   const volume = (parseFloat(document.getElementById('edTrackVolume')?.value) || 14) / 100;
-  const start  = parseInt(document.getElementById('edTrackStart')?.value)    || 0;
+  const start  = getAudioPreviewStartTime();
 
   if (!src) {
     _updatePreviewStatus('Selecione uma música primeiro.', true);
     return;
   }
 
+  _previewPlaybackRequested = true;
   const isNewSrc = !_previewAudio || _previewAudio.src !== src;
   if (isNewSrc) {
     if (_previewAudio) _previewAudio.pause();
@@ -4530,6 +4568,7 @@ function audioPreviewPlay() {
   _updatePreviewStatus('Carregando…');
 
   const doPlay = () => {
+    if (!_previewPlaybackRequested || document.visibilityState === 'hidden') return;
     try { _previewAudio.currentTime = start; } catch {}
     _previewAudio.play()
       .then(() => _updatePreviewStatus('▶ Tocando'))
@@ -4549,14 +4588,16 @@ function audioPreviewPause() {
     _updatePreviewStatus('Nada tocando.');
     return;
   }
+  _previewPlaybackRequested = false;
   _previewAudio.pause();
   _updatePreviewStatus('⏸ Pausado');
 }
 
 function audioPreviewStop() {
   if (!_previewAudio) return;
+  _previewPlaybackRequested = false;
   _previewAudio.pause();
-  const start = parseInt(document.getElementById('edTrackStart')?.value) || 0;
+  const start = getAudioPreviewStartTime();
   try { _previewAudio.currentTime = start; } catch {}
   _updatePreviewStatus('⏹ Parado');
 }
