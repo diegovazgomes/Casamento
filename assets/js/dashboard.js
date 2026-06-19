@@ -5646,10 +5646,11 @@ function buildDashboardInvitePreviewMarkup(config, theme, layoutKey) {
     *,*::before,*::after{box-sizing:border-box}
     img{display:block;max-width:100%}
     .site-shell,.hero{height:100%;min-height:100%;}
+    .site-shell{opacity:1;transform:none;}
     .hero-content{opacity:1;transform:none;}
     .hero-photo{opacity:1;}
   </style>
-  <main class="site-shell">
+  <main class="site-shell is-visible">
     <section class="hero" id="hero" aria-label="Convite principal">
       <img class="hero-photo loaded" id="couplePhoto" src="${escapeHtml(heroImage)}" alt="${escapeHtml(heroAlt)}">
       <div class="hero-overlay" aria-hidden="true"></div>
