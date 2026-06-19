@@ -1574,11 +1574,10 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
   background:var(--surface-2);
   color:var(--text);
 }
-.dashboard-hero-preview__frame{
+.dashboard-hero-preview__surface{
   display:block;
   width:100%;
   height:560px;
-  border:0;
   background:var(--surface-2);
 }
 .dashboard-hero-preview__photo{
@@ -1685,7 +1684,7 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
   .dashboard-hero-preview-tools .btn{width:100%}
   .dashboard-hero-preview__bar{align-items:flex-start;flex-direction:column}
   .dashboard-hero-preview__status{text-align:left}
-  .dashboard-hero-preview__frame{height:620px}
+  .dashboard-hero-preview__surface{height:620px}
   .dashboard-hero-preview__stage,
   .dashboard-hero-preview__content{min-height:420px}
   .dashboard-hero-preview__content{padding:46px 24px 40px}
@@ -3037,7 +3036,7 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
                 <span class="dashboard-hero-preview__status" id="themeHeroPreviewStatus">Aguardando prévia</span>
               </div>
               <div class="dashboard-hero-preview__stage" id="themeHeroPreviewStage" data-layout="classic">
-                <iframe class="dashboard-hero-preview__frame" id="themeInvitePreviewFrame" title="Preview do convite"></iframe>
+                <div class="dashboard-hero-preview__surface" id="themeInvitePreviewSurface" role="img" aria-label="Preview do convite"></div>
               </div>
             </div>
 

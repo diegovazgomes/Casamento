@@ -2,7 +2,7 @@
 
 - 2026-06-19: Preview do convite passou a renderizar a hero real do layout.
   - Causa: a prévia anterior mostrava imagem e tipografia, mas não respeitava fielmente a estrutura visual da hero de cada layout.
-  - Mudança aplicada: o dashboard agora usa um iframe isolado com o HTML real da hero, `assets/css/style.css`, o CSS do layout ativo e variáveis CSS do tema/configuração atual; o texto visível foi ajustado para `Preview do convite`.
+  - Mudança aplicada: o dashboard agora usa Shadow DOM isolado com o HTML real da hero, `assets/css/style.css`, o CSS do layout ativo e variáveis CSS do tema/configuração atual; o texto visível foi ajustado para `Preview do convite`.
   - Impacto percebido: a escolha de layout e tema mostra uma prévia muito mais próxima do convite publicado, sem salvar alterações automaticamente.
 
 - 2026-06-18: Adicionada prévia da hero no dashboard para layout e tema.

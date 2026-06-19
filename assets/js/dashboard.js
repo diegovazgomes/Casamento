@@ -5628,8 +5628,7 @@ function parseDashboardPublicHeroNames(config) {
   };
 }
 
-function buildDashboardInvitePreviewSrcdoc(config, theme, layoutKey) {
-  const baseHref = new URL('.', window.location.href).href;
+function buildDashboardInvitePreviewMarkup(config, theme, layoutKey) {
   const cssVars = buildDashboardPreviewCssVars(theme);
   const names = parseDashboardPublicHeroNames(config);
   const heroImage = String(config.media?.heroImage || DEFAULT_HERO_IMAGE_URL).trim() || DEFAULT_HERO_IMAGE_URL;
@@ -5638,26 +5637,18 @@ function buildDashboardInvitePreviewSrcdoc(config, theme, layoutKey) {
   const heroDate = config.event?.heroDate || config.event?.displayDate || '';
   const layoutHref = `assets/layouts/${layoutKey || 'classic'}/layout.css`;
 
-  return `<!doctype html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <base href="${escapeHtml(baseHref)}">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  return `
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Great+Vibes&family=Jost:wght@200;300;400;500;600;700&family=DM+Mono:wght@300;400;500&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/css/style.css">
   <link rel="stylesheet" href="${escapeHtml(layoutHref)}">
   <style>
-    :root{${cssVars}}
-    html,body{margin:0;min-height:100%;overflow:hidden;background:var(--color-bg,var(--dark));}
-    .site-shell,.hero{height:100vh;min-height:100vh;}
+    :host{${cssVars};display:block;width:100%;height:100%;overflow:hidden;background:var(--color-bg,var(--dark));}
+    *,*::before,*::after{box-sizing:border-box}
+    img{display:block;max-width:100%}
+    .site-shell,.hero{height:100%;min-height:100%;}
     .hero-content{opacity:1;transform:none;}
     .hero-photo{opacity:1;}
   </style>
-</head>
-<body>
   <main class="site-shell">
     <section class="hero" id="hero" aria-label="Convite principal">
       <img class="hero-photo loaded" id="couplePhoto" src="${escapeHtml(heroImage)}" alt="${escapeHtml(heroAlt)}">
@@ -5672,18 +5663,20 @@ function buildDashboardInvitePreviewSrcdoc(config, theme, layoutKey) {
         <p class="hero-date" id="heroDate">${escapeHtml(heroDate)}</p>
       </div>
     </section>
-  </main>
-</body>
-</html>`;
+  </main>`;
 }
 
-function applyDashboardInvitePreviewFrameMode(frame) {
-  const frameWindow = frame?.contentWindow;
-  const doc = frame?.contentDocument;
-  if (!frameWindow || !doc) return;
+function getDashboardInvitePreviewShadow(surface) {
+  if (!surface) return null;
+  return surface.shadowRoot || surface.attachShadow({ mode: 'open' });
+}
 
-  const hero = doc.getElementById('hero');
-  const photo = doc.getElementById('couplePhoto');
+function applyDashboardInvitePreviewSurfaceMode(surface) {
+  const root = surface?.shadowRoot;
+  if (!surface || !root) return;
+
+  const hero = root.getElementById('hero');
+  const photo = root.getElementById('couplePhoto');
   if (!hero || !photo) return;
 
   const applyMode = () => {
@@ -5691,7 +5684,7 @@ function applyDashboardInvitePreviewFrameMode(frame) {
     hero.style.removeProperty('--hero-photo-render-width');
     hero.style.removeProperty('--hero-photo-text-scale');
 
-    if (!frameWindow.matchMedia('(min-width: 768px)').matches) {
+    if (!window.matchMedia('(min-width: 768px)').matches) {
       return;
     }
 
@@ -5712,7 +5705,7 @@ function applyDashboardInvitePreviewFrameMode(frame) {
     const heroWidth = Number(hero.clientWidth || 0);
     const heroHeight = Number(hero.clientHeight || 0);
     if (!heroWidth || !heroHeight) {
-      frameWindow.requestAnimationFrame(applyMode);
+      window.requestAnimationFrame(applyMode);
       return;
     }
 
@@ -5724,15 +5717,14 @@ function applyDashboardInvitePreviewFrameMode(frame) {
 
   photo.addEventListener('load', () => {
     photo.classList.add('loaded');
-    frameWindow.requestAnimationFrame(applyMode);
+    window.requestAnimationFrame(applyMode);
   });
   photo.addEventListener('error', () => {
     if (photo.getAttribute('src') !== DEFAULT_HERO_IMAGE_URL) {
       photo.setAttribute('src', DEFAULT_HERO_IMAGE_URL);
     }
   });
-  frameWindow.addEventListener('resize', () => frameWindow.requestAnimationFrame(applyMode), { passive: true });
-  frameWindow.requestAnimationFrame(applyMode);
+  window.requestAnimationFrame(applyMode);
 }
 
 function refreshThemeHeroPreviewIfOpen() {
@@ -5746,9 +5738,9 @@ async function renderThemeHeroPreview(options = {}) {
   const stage = document.getElementById('themeHeroPreviewStage');
   const status = document.getElementById('themeHeroPreviewStatus');
   const button = document.getElementById('btnThemeHeroPreview');
-  const frame = document.getElementById('themeInvitePreviewFrame');
+  const surface = document.getElementById('themeInvitePreviewSurface');
 
-  if (!preview || !stage || !status || !frame) {
+  if (!preview || !stage || !status || !surface) {
     return;
   }
 
@@ -5768,8 +5760,12 @@ async function renderThemeHeroPreview(options = {}) {
     if (requestId !== themeHeroPreviewRequestId) return;
 
     stage.dataset.layout = layoutKey;
-    frame.onload = () => applyDashboardInvitePreviewFrameMode(frame);
-    frame.srcdoc = buildDashboardInvitePreviewSrcdoc(config, theme, layoutKey);
+    const shadowRoot = getDashboardInvitePreviewShadow(surface);
+    if (!shadowRoot) {
+      throw new Error('Shadow DOM indisponível para o preview do convite.');
+    }
+    shadowRoot.innerHTML = buildDashboardInvitePreviewMarkup(config, theme, layoutKey);
+    applyDashboardInvitePreviewSurfaceMode(surface);
 
     const layoutLabel = DASHBOARD_PREVIEW_LAYOUT_LABELS[layoutKey] || layoutKey;
     const themeLabel = themeName || themeKey;
