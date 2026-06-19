@@ -374,12 +374,18 @@ input[type="date"].field-input{width:100%;min-width:0;box-sizing:border-box;-web
 .nav-item--primary .nav-icon{
   color:var(--primary-soft);
   opacity:1;
+  animation:navEditPulse 1.8s ease-in-out infinite;
 }
 .nav-item--primary:hover{color:var(--text-soft);background:rgba(255,255,255,0.02)}
 .nav-item--primary.is-active{
   color:var(--primary-soft);
   border-left-color:var(--primary);
   background:rgba(192,192,192,0.04);
+}
+.nav-item--primary.is-active .nav-icon{animation:none}
+@keyframes navEditPulse{
+  0%,100%{opacity:0.7;transform:scale(1)}
+  50%{opacity:1;transform:scale(1.12)}
 }
 .nav-icon{
   width:16px;height:16px;flex-shrink:0;opacity:0.7;
