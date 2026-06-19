@@ -183,12 +183,11 @@ input[type="date"].field-input{width:100%;min-width:0;box-sizing:border-box;-web
   transform:scaleX(0);transform-origin:left;
   transition:transform 0.45s cubic-bezier(0.76,0,0.24,1);
 }
-.btn:hover::before,.btn.btn-save-fill-visible:not(.btn-reset-fill)::before{transform:scaleX(1)}
-.btn:hover,.btn.btn-save-fill-visible:not(.btn-reset-fill){color:var(--bg);border-color:var(--primary)}
-.btn.btn-reset-fill::before{transform:scaleX(0)}
-.btn.btn-reset-fill{color:var(--text)}
-.btn.btn-reset-fill.btn-primary{border-color:var(--primary)}
-.btn.btn-reset-fill.btn-subtle{border-color:var(--border)}
+.btn:hover::before{transform:scaleX(1)}
+.btn:hover{color:var(--bg);border-color:var(--primary)}
+.btn[data-dashboard-action="saveEditorConfig"]::before,
+.btn[data-dashboard-action="saveEditorConfig"]:hover::before{transform:scaleX(0)}
+.btn[data-dashboard-action="saveEditorConfig"]:hover{color:var(--text);border-color:var(--primary)}
 .btn>*{position:relative;z-index:1}
 .btn-primary{border-color:var(--primary)}
 .btn-subtle{
@@ -1118,6 +1117,8 @@ input[type="date"].field-input{width:100%;min-width:0;box-sizing:border-box;-web
 }
 .editor-save-status.is-dirty .editor-save-dot{background:var(--warning);animation:pulse 1.6s ease infinite}
 .editor-save-status.is-dirty{color:var(--warning)}
+.editor-save-status.is-saving .editor-save-dot{background:var(--primary);animation:pulse 1.2s ease infinite}
+.editor-save-status.is-saving{color:var(--primary-soft)}
 .editor-save-status.is-saved .editor-save-dot{background:var(--success);animation:none}
 .editor-save-status.is-saved{color:var(--success)}
 .editor-save-actions{display:flex;gap:10px;align-items:center}

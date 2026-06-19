@@ -1,9 +1,9 @@
 # Correções recentes
 
 - 2026-06-19: Corrigido preenchimento preso no botao de salvar do dashboard.
-  - Causa: apos o clique, o cursor permanecia sobre o botao e o hover mantinha o pseudo-elemento dourado preenchido, parecendo que o botao continuava carregando.
-  - Mudanca aplicada: o estado de preenchimento/texto contrastante entra imediatamente no clique de salvar, a mensagem de "salvo" permanece e apenas o preenchimento do botao recolhe 1500ms apos o sucesso.
-  - Impacto percebido: apos salvar o evento, a confirmacao permanece visivel e o botao volta ao visual normal sem esconder o texto durante a animacao.
+  - Causa: o preenchimento animado do botao de salvar confundia hover, carregamento e sucesso, mantendo a barra visual fora de fase.
+  - Mudanca aplicada: botoes de salvar deixaram de usar a barra de preenchimento; o status textual mostra "Salvando dados..." durante o request e "Dados salvos ✓" em verde no sucesso.
+  - Impacto percebido: o fluxo de salvamento fica claro e estavel, sem animacao de botao presa ou texto com contraste fora de hora.
 
 - 2026-06-19: Ocultado temporariamente o exemplo Editorial da landing.
   - Causa: o layout Editorial ainda esta em teste visual e nao deve aparecer por enquanto na vitrine publica de exemplos.

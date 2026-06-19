@@ -477,10 +477,7 @@ function runDashboardAction(action, event, trigger) {
     clearMensagensFilters,
     clearMusicasFilters,
     reloadEditorTab,
-    saveEditorConfig: () => {
-      showSaveButtonFill(trigger);
-      return saveEditorConfig(false, trigger, { fillAlreadyVisible: true });
-    },
+    saveEditorConfig,
     uploadPixQrMedia,
     uploadHeroMedia,
     toggleSelectAllGalleryImages,
@@ -3533,8 +3530,6 @@ const EDITOR_SECTION_IDS = [
   'edSectionPages',
 ];
 
-const saveButtonResetTimers = new WeakMap();
-
 function setDefaultEditorSectionsOpenState() {
   EDITOR_SECTION_IDS.forEach((id) => {
     const section = document.getElementById(id);
@@ -3578,14 +3573,14 @@ function markEditorDirty() {
   updateEditorSaveStatus();
 }
 
-function updateEditorSaveStatus(message) {
+function updateEditorSaveStatus(message, state = 'saved') {
   const statusEl = document.getElementById('editorSaveStatus');
   const textEl   = document.getElementById('editorSaveStatusText');
   if (!statusEl || !textEl) return;
 
   if (message) {
     textEl.textContent = message;
-    statusEl.className = 'editor-save-status is-saved';
+    statusEl.className = `editor-save-status is-${state}`;
     return;
   }
 
@@ -3596,60 +3591,6 @@ function updateEditorSaveStatus(message) {
     textEl.textContent = 'Configurações carregadas';
     statusEl.className = 'editor-save-status';
   }
-}
-
-function resetSaveButtonFill(button) {
-  if (!button) return;
-
-  const existingTimers = saveButtonResetTimers.get(button);
-  if (existingTimers) {
-    existingTimers.forEach((timer) => clearTimeout(timer));
-  }
-
-  const resetTimer = setTimeout(() => {
-    button.blur();
-    button.classList.add('btn-reset-fill');
-
-    const clearReset = () => {
-      button.classList.remove('btn-reset-fill');
-    };
-    button.addEventListener('pointerleave', clearReset, { once: true });
-    button.addEventListener('pointerdown', clearReset, { once: true });
-
-    const contrastTimer = setTimeout(() => {
-      button.classList.remove('btn-save-fill-visible');
-      saveButtonResetTimers.delete(button);
-    }, 500);
-
-    saveButtonResetTimers.set(button, [contrastTimer]);
-  }, 1500);
-
-  saveButtonResetTimers.set(button, [resetTimer]);
-}
-
-function showSaveButtonFill(button) {
-  if (!button) return;
-
-  const existingTimers = saveButtonResetTimers.get(button);
-  if (existingTimers) {
-    existingTimers.forEach((timer) => clearTimeout(timer));
-    saveButtonResetTimers.delete(button);
-  }
-
-  button.classList.remove('btn-reset-fill');
-  button.classList.add('btn-save-fill-visible');
-}
-
-function stopSaveButtonFill(button) {
-  if (!button) return;
-
-  const existingTimers = saveButtonResetTimers.get(button);
-  if (existingTimers) {
-    existingTimers.forEach((timer) => clearTimeout(timer));
-    saveButtonResetTimers.delete(button);
-  }
-
-  button.classList.remove('btn-reset-fill', 'btn-save-fill-visible');
 }
 
 function setEditorStatusText(msg) {
@@ -6519,11 +6460,10 @@ function collectEditorValues() {
   return config;
 }
 
-async function saveEditorConfig(silent = false, triggerButton = null, options = {}) {
+async function saveEditorConfig(silent = false) {
   if (postLoginUiSyncInProgress) {
     if (!silent) {
       updateEditorSaveStatus('Sincronizando dados da conta atual. Aguarde e tente salvar novamente.');
-      stopSaveButtonFill(triggerButton);
     }
     return false;
   }
@@ -6533,7 +6473,6 @@ async function saveEditorConfig(silent = false, triggerButton = null, options = 
   if (!state.eventId) {
     if (!silent) {
       updateEditorSaveStatus('Evento não carregado — recarregue o dashboard');
-      stopSaveButtonFill(triggerButton);
     }
     return false;
   }
@@ -6549,13 +6488,12 @@ async function saveEditorConfig(silent = false, triggerButton = null, options = 
     }
     if (!silent) {
       updateEditorSaveStatus('Chave Pix inválida — não é permitido inserir links. Use CPF, e-mail, telefone ou chave aleatória.');
-      stopSaveButtonFill(triggerButton);
     }
     return false;
   }
 
-  if (!silent && options.fillAlreadyVisible !== true) {
-    showSaveButtonFill(triggerButton);
+  if (!silent) {
+    updateEditorSaveStatus('Salvando dados...', 'saving');
   }
 
   try {
@@ -6568,7 +6506,6 @@ async function saveEditorConfig(silent = false, triggerButton = null, options = 
 
     if (!response.ok) {
       if (!silent) updateEditorSaveStatus(data.error || 'Erro ao salvar no servidor');
-      if (!silent) stopSaveButtonFill(triggerButton);
       return false;
     }
 
@@ -6579,8 +6516,7 @@ async function saveEditorConfig(silent = false, triggerButton = null, options = 
     editorState.originalConfig = JSON.parse(JSON.stringify(savedConfig));
     applySiteConfig(savedConfig);
     if (!silent) {
-      updateEditorSaveStatus('As informações do seu convite foram salvas ✓');
-      resetSaveButtonFill(triggerButton);
+      updateEditorSaveStatus('Dados salvos ✓');
       showSectionFootersSaved();
     }
 
@@ -6588,7 +6524,6 @@ async function saveEditorConfig(silent = false, triggerButton = null, options = 
   } catch (error) {
     console.error('[saveEditorConfig]', error);
     if (!silent) updateEditorSaveStatus('Erro ao salvar no servidor');
-    if (!silent) stopSaveButtonFill(triggerButton);
     return false;
   }
 }
