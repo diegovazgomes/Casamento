@@ -3549,7 +3549,7 @@ function setDefaultEditorSectionsOpenState() {
   EDITOR_SECTION_IDS.forEach((id) => {
     const section = document.getElementById(id);
     if (!section) return;
-    section.classList.toggle('is-open', id === 'edSectionMidia');
+    section.classList.remove('is-open');
   });
 }
 

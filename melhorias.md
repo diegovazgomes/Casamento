@@ -2,8 +2,8 @@
 
 - 2026-06-19: Otimizada aba Editar Evento no mobile.
   - Causa: os botoes superiores ocupavam muito espaco verticalmente no mobile e a primeira secao aberta era Identidade, atrasando o acesso ao upload de fotos.
-  - Mudanca aplicada: as acoes superiores ficaram compactas no mobile, Fotos & Midia passou a abrir primeiro e a secao de Identidade inicia fechada.
-  - Impacto percebido: a edicao no celular fica mais direta, com mais opcoes visiveis de inicio e acesso imediato aos uploads.
+  - Mudanca aplicada: as acoes superiores ficaram compactas no mobile, com icone e texto nas tres acoes; Fotos & Midia passou a vir primeiro, mas recolhida, e as setas dos acordeoes ganharam destaque em dourado.
+  - Impacto percebido: a edicao no celular fica mais direta, com a barra superior em uma linha e indicacao visual mais clara de que cada bloco pode ser expandido.
 
 - 2026-06-19: Simplificada data e reforcado link opcional no wizard.
   - Causa: nome do local e endereco adicionavam friccao no inicio, enquanto a etapa de link ainda podia parecer obrigatoria.
