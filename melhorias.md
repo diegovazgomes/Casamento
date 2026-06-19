@@ -7,7 +7,7 @@
 
 - 2026-06-19: Ajustado wizard e destaque da aba de edicao.
   - Causa: o wizard Free mostrava apenas o tema Dourado, o banner de temas premium abria checkout direto e a aba Editar Evento ficava discreta na navegacao.
-  - Mudanca aplicada: o wizard Free passou a oferecer Dourado e Dourado Claro, o banner do wizard agora orienta upgrade pelo painel sem link de checkout e a aba Editar Evento ganhou destaque por cor, borda e fundo sutil sem alterar sua largura.
+  - Mudanca aplicada: o wizard Free passou a oferecer Dourado e Dourado Claro, o banner do wizard agora orienta upgrade pelo painel sem link de checkout e a aba Editar Evento ganhou destaque apenas no icone, sem parecer selecionada.
   - Impacto percebido: novos usuarios enxergam mais uma opcao visual no onboarding e entendem melhor que devem seguir para a edicao do convite no dashboard.
 
 - 2026-06-19: Corrigida barra visual do botao final do wizard.
