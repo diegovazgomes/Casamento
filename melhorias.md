@@ -1,5 +1,10 @@
 # Correções recentes
 
+- 2026-06-19: Corrigidas inconsistencias no wizard, landing e editor Free.
+  - Causa: a validacao do link podia exigir dois cliques, o plano Free nao permitia trocar entre Dourado e Dourado Claro depois da criacao, o CTA superior da landing rolava para outro CTA e paginas extras default podiam aparecer desmarcadas no editor.
+  - Mudanca aplicada: validacao imediata do link cancela debounce pendente, o editor Free libera apenas os temas gratuitos, os CTAs superiores apontam para cadastro e o grid de paginas usa fallback de habilitacao padrao.
+  - Impacto percebido: onboarding e edicao ficam mais consistentes com o que o usuario escolheu ao criar o convite.
+
 - 2026-06-19: Otimizada aba Editar Evento no mobile.
   - Causa: os botoes superiores ocupavam muito espaco verticalmente no mobile e a primeira secao aberta era Identidade, atrasando o acesso ao upload de fotos.
   - Mudanca aplicada: as acoes superiores ficaram compactas no mobile, com icone e texto nas tres acoes; Fotos & Midia passou a vir primeiro, mas recolhida, e as setas dos acordeoes ganharam destaque em dourado.

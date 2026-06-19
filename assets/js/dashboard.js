@@ -1143,13 +1143,11 @@ function applyPlanRestrictions(profile) {
   if (temaBody && !temaBody.querySelector('.premium-lock-banner')) {
     const banner = document.createElement('div');
     banner.className = 'premium-lock-banner';
-    banner.innerHTML = '<span>🔒 Seleção de tema disponível no plano Premium</span>'
+    banner.innerHTML = '<span>Temas premium e troca de layout dispon&iacute;veis no plano Premium</span>'
       + '<button type="button" class="btn btn-subtle" data-dashboard-action="handleUpgrade">Fazer upgrade</button>';
     temaBody.insertBefore(banner, temaBody.firstChild);
     const layout = document.getElementById('edActiveLayout');
-    const theme  = document.getElementById('edActiveTheme');
     if (layout) layout.disabled = true;
-    if (theme)  theme.disabled  = true;
   }
 
   // ── Seção 5: Botão "Novo grupo" — bloquear para free
@@ -3087,6 +3085,15 @@ const PAGE_LABELS = {
   presente:   'Lista de Presentes',
 };
 
+const DEFAULT_PAGE_ENABLED = {
+  historia: true,
+  faq: true,
+  hospedagem: true,
+  mensagem: false,
+  musica: false,
+  presente: true,
+};
+
 // Paletas compartilhadas — as mesmas para todos os layouts
 const PALETTE_LIST = [
   { key: 'gold',         label: 'Dourado' },
@@ -3097,6 +3104,8 @@ const PALETTE_LIST = [
   { key: 'blue',         label: 'Azul' },
   { key: 'green-light',  label: 'Verde' },
 ];
+
+const FREE_THEME_KEYS = ['gold', 'gold-light'];
 
 // Mantido para retrocompat com código legado que ainda referencie LAYOUT_THEMES
 const LAYOUT_THEMES = {
@@ -5172,7 +5181,10 @@ function populateThemeSelect(layout, currentPath) {
   if (!select) return;
 
   // Paletas são as mesmas para qualquer layout
-  const themes = PALETTE_LIST;
+  const isPremium = isPremiumPlan(state.userProfile?.plan);
+  const themes = isPremium
+    ? PALETTE_LIST
+    : PALETTE_LIST.filter(theme => FREE_THEME_KEYS.includes(theme.key));
   const currentKey = extractDashboardThemeKey(currentPath);
   select.innerHTML = themes.map(t => {
     const sel = currentKey === t.key ? ' selected' : '';
@@ -6302,7 +6314,7 @@ function renderPagesGrid(pages) {
   const keys = ['historia', 'faq', 'hospedagem', 'mensagem', 'musica', 'presente'];
   grid.innerHTML = keys.map(key => {
     const page    = pages[key] || {};
-    const enabled = !!page.enabled;
+    const enabled = page.enabled ?? DEFAULT_PAGE_ENABLED[key] ?? false;
     return `
     <div class="page-card">
       <div class="page-card-key">${escapeHtml(key)}</div>
@@ -6609,7 +6621,7 @@ const WIZARD_THEME_KEYS_ALL = [
   'green-light',
 ];
 
-const WIZARD_THEME_KEYS_FREE = ['gold', 'gold-light'];
+const WIZARD_THEME_KEYS_FREE = FREE_THEME_KEYS;
 
 function getWizardThemeKeys() {
   const isPremium = state.userProfile && isPremiumPlan(state.userProfile.plan);
@@ -6786,6 +6798,11 @@ function _populateWizardTimeOptions(defaultValue = '17:00') {
 async function _validateWizardSlugAvailability({ immediate = false } = {}) {
   const input = document.getElementById('wzSlug');
   if (!input) return false;
+
+  if (immediate && _wizardSlugValidationTimer) {
+    clearTimeout(_wizardSlugValidationTimer);
+    _wizardSlugValidationTimer = null;
+  }
 
   const normalizedInput = _normalizeWizardSlugInput(input.value);
   input.value = normalizedInput;
