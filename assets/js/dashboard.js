@@ -7059,6 +7059,7 @@ function renderWizardThemes() {
 
 function _wizardGoToStep(step) {
   _wizardStep = step;
+  document.querySelector('.wizard-card')?.classList.toggle('is-success', step === 5);
 
   for (let i = 1; i <= 5; i++) {
     const el = document.getElementById(`wizardStep${i}`);
@@ -7074,7 +7075,10 @@ function _wizardGoToStep(step) {
     const closeBtn = document.getElementById('wzCloseBtn');
     if (closeBtn && !closeBtn.dataset.boundClose) {
       closeBtn.dataset.boundClose = 'true';
-      closeBtn.addEventListener('click', () => document.getElementById('wizardOverlay').classList.remove('is-active'));
+      closeBtn.addEventListener('click', () => {
+        document.getElementById('wizardOverlay')?.classList.remove('is-active');
+        document.querySelector('.nav-item[data-tab="editar"]')?.click();
+      });
     }
     return;
   }
@@ -7088,7 +7092,7 @@ function _wizardGoToStep(step) {
   if (backBtn) backBtn.style.display = step > 1 ? '' : 'none';
   _updateWizardNextButtonText();
 
-  if (step === 4) _updateWizardPreview();
+  _updateWizardPreview();
 }
 
 async function wizardNext() {
@@ -7222,6 +7226,7 @@ async function maybeShowWizard(config) {
         
         displayInput.dataset.userEdited = '1';
         _updateWizardPreview();
+        _updateWizardSlugExampleText();
       }
     });
   });
@@ -7277,7 +7282,7 @@ function renderGruposPaginacao(pagination) {
 async function _saveWizard() {
   const nextBtn = document.getElementById('wizardBtnNext');
   const backBtn = document.getElementById('wizardBtnBack');
-  if (nextBtn) { nextBtn.disabled = true; nextBtn.textContent = 'Salvando…'; }
+  if (nextBtn) { nextBtn.disabled = true; nextBtn.textContent = 'Criando convite...'; }
   if (backBtn) backBtn.disabled = true;
 
   const displayName  = document.getElementById('wzDisplayName')?.value.trim()  || '';
@@ -7373,6 +7378,14 @@ async function _saveWizard() {
     if (data.config) {
       window.__SITE_CONFIG__ = data.config;
       applySiteConfig(data.config);
+    }
+
+    const selectedTheme = _wizardLoadedThemes.find(t => t.key === _wizardSelectedTheme);
+    const themeSummary = document.getElementById('wzThemeSummary');
+    if (themeSummary) {
+      themeSummary.textContent = selectedTheme?.data?.meta?.name
+        ? `Tema escolhido: ${selectedTheme.data.meta.name}`
+        : '';
     }
 
     await loadAllData();

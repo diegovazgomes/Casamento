@@ -1,5 +1,10 @@
 # Correções recentes
 
+- 2026-06-19: Aplicadas melhorias de UX no wizard.
+  - Causa: o wizard ainda parecia um formulario tecnico, com progresso pouco descritivo e proximo passo final menos claro.
+  - Mudanca aplicada: progresso ganhou labels, a previa do convite aparece durante o fluxo, textos ficaram mais acolhedores, o salvamento mostra "Criando convite..." e a tela final prioriza "Editar convite agora".
+  - Impacto percebido: o onboarding fica mais guiado, emocional e direciona o usuario para concluir a edicao do convite.
+
 - 2026-06-19: Melhorada clareza da etapa de link no wizard.
   - Causa: a etapa de URL parecia obrigatoria e usava linguagem tecnica, apesar de poder ser pulada.
   - Mudanca aplicada: textos foram ajustados para "Link do convite", o campo passou a indicar "opcional" e o botao mostra "Pular e continuar" quando o link esta em branco.

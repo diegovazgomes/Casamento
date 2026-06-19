@@ -1866,6 +1866,10 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
   display:flex;align-items:center;justify-content:center;
   margin-bottom:32px;
 }
+.wizard-progress-step{
+  display:flex;flex-direction:column;align-items:center;gap:7px;
+  min-width:44px;
+}
 .wizard-dot{
   width:7px;height:7px;border-radius:50%;
   background:var(--border-strong);
@@ -1873,8 +1877,14 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
   flex-shrink:0;
 }
 .wizard-dot.is-active{background:var(--primary);transform:scale(1.25);}
+.wizard-progress-label{
+  font-size:8px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--text-dim);line-height:1;
+  transition:color .25s;
+}
+.wizard-dot.is-active + .wizard-progress-label{color:var(--primary-soft)}
 .wizard-progress-line{
-  width:52px;height:1px;margin:0 8px;
+  width:46px;height:1px;margin:0 2px 18px;
   background:var(--border);
 }
 
@@ -1985,6 +1995,10 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
 .wizard-theme-card.is-selected .wizard-theme-label{color:var(--primary-soft);}
 
 /* ── Preview do convite ──────────────────────────────────────── */
+.wizard-live-preview{
+  margin-top:24px;
+}
+.wizard-card.is-success .wizard-live-preview{display:none}
 .wizard-preview-wrap{
   border-top:1px solid var(--border);
   padding-top:20px;
@@ -2233,19 +2247,31 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
 
     <!-- Progresso -->
     <div class="wizard-progress" id="wizardProgress">
-      <div class="wizard-dot is-active" data-step="1"></div>
+      <div class="wizard-progress-step">
+        <div class="wizard-dot is-active" data-step="1"></div>
+        <span class="wizard-progress-label">Nomes</span>
+      </div>
       <div class="wizard-progress-line"></div>
-      <div class="wizard-dot" data-step="2"></div>
+      <div class="wizard-progress-step">
+        <div class="wizard-dot" data-step="2"></div>
+        <span class="wizard-progress-label">Data</span>
+      </div>
       <div class="wizard-progress-line"></div>
-      <div class="wizard-dot" data-step="3"></div>
+      <div class="wizard-progress-step">
+        <div class="wizard-dot" data-step="3"></div>
+        <span class="wizard-progress-label">Link</span>
+      </div>
       <div class="wizard-progress-line"></div>
-      <div class="wizard-dot" data-step="4"></div>
+      <div class="wizard-progress-step">
+        <div class="wizard-dot" data-step="4"></div>
+        <span class="wizard-progress-label">Tema</span>
+      </div>
     </div>
 
     <!-- Etapa 1: Casal -->
     <div class="wizard-step is-active" id="wizardStep1">
-      <h2 class="wizard-title">Bem-vindos!</h2>
-      <p class="wizard-sub">Vamos configurar o convite. Confirme como os nomes aparecerão no convite.</p>
+      <h2 class="wizard-title">Vamos criar a primeira versão</h2>
+      <p class="wizard-sub">Comece pelos nomes do casal. Você poderá ajustar tudo depois na edição do convite.</p>
       <div class="field">
         <label class="field-label">Como aparecem no convite *</label>
         <input type="text" class="field-input" id="wzDisplayName"
@@ -2262,7 +2288,7 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
     <!-- Etapa 2: Data & Local -->
     <div class="wizard-step" id="wizardStep2">
       <h2 class="wizard-title">Data e Local</h2>
-      <p class="wizard-sub">Quando e onde acontece o casamento? Pode ser alterado depois.</p>
+      <p class="wizard-sub">Preencha o que já souber. Local e endereço podem ser completados depois.</p>
       <div class="wizard-date-time-grid wizard-step2-grid">
         <div class="field">
           <label class="field-label">Data do casamento</label>
@@ -2302,23 +2328,26 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
     <!-- Etapa 4: Tema -->
     <div class="wizard-step" id="wizardStep4">
       <h2 class="wizard-title">Escolha o tema</h2>
-      <p class="wizard-sub">Selecione o visual do convite. Pode mudar a qualquer momento no painel.</p>
+      <p class="wizard-sub">Escolha o visual inicial do convite. Você pode trocar o tema depois no painel.</p>
       <div id="wzPremiumBanner" style="display:none;margin-top:-12px;margin-bottom:16px;padding:12px 16px;background:rgba(192,160,96,.08);border:1px solid rgba(192,160,96,.25);border-radius:4px;font-size:.82rem;color:var(--primary-soft);text-align:center;">
         Você está no plano Free. Para acessar os temas premium, faça upgrade pelo painel do dashboard.
       </div>
       <div class="wizard-theme-layout">
         <div class="wizard-themes" id="wizardThemes"></div>
-        <div class="wizard-preview-wrap">
-          <div class="wizard-preview-label">PRÉVIA DO CONVITE</div>
-          <div class="wizard-preview-card" id="wzPreviewCard">
-            <div class="wizard-preview-bg-grid"></div>
-            <div class="wizard-preview-inner">
-              <span class="wz-preview-tag">Você está convidado</span>
-              <div class="wz-preview-names" id="wzPreviewNames">Nome &amp; Nome</div>
-              <div class="wz-preview-sep"></div>
-              <div class="wz-preview-date" id="wzPreviewDate">· · ·</div>
-              <span class="wz-preview-cta">Abrir Convite</span>
-            </div>
+      </div>
+    </div>
+
+    <div class="wizard-live-preview">
+      <div class="wizard-preview-wrap">
+        <div class="wizard-preview-label">PRÉVIA DO CONVITE</div>
+        <div class="wizard-preview-card" id="wzPreviewCard">
+          <div class="wizard-preview-bg-grid"></div>
+          <div class="wizard-preview-inner">
+            <span class="wz-preview-tag">Você está convidado</span>
+            <div class="wz-preview-names" id="wzPreviewNames">Nome &amp; Nome</div>
+            <div class="wz-preview-sep"></div>
+            <div class="wz-preview-date" id="wzPreviewDate">· · ·</div>
+            <span class="wz-preview-cta">Abrir Convite</span>
           </div>
         </div>
       </div>
@@ -2329,8 +2358,9 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
       <div class="wizard-success-icon">✦</div>
       <h2 class="wizard-title" style="text-align:center">Convite criado!</h2>
       <p class="wizard-sub" style="text-align:center;margin-bottom:28px">
-        As informações foram salvas. Veja o que fazer para deixar o convite pronto.
+        A primeira versão está pronta. Agora personalize fotos, textos, RSVP e presentes.
       </p>
+      <p class="wizard-sub" id="wzThemeSummary" style="text-align:center;margin-top:-18px;margin-bottom:24px"></p>
       <div class="wizard-instructions">
         <div class="wizard-instruction-item">
           <span class="wizard-instruction-num">01</span>
@@ -2355,9 +2385,9 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
         </div>
       </div>
       <div class="wizard-footer-step4" style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center">
+        <button class="btn btn-primary" id="wzCloseBtn" type="button">Editar convite agora</button>
         <a id="wzInviteLink" href="#" target="_blank" rel="noopener noreferrer"
            class="btn btn-subtle" style="display:none">Ver convite</a>
-        <button class="btn btn-primary" id="wzCloseBtn" type="button">Ir para o painel</button>
       </div>
     </div>
 
