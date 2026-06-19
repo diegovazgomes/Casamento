@@ -3603,12 +3603,15 @@ function resetSaveButtonFill(button) {
     existingTimers.forEach((timer) => clearTimeout(timer));
   }
 
-  button.classList.remove('btn-reset-fill');
-  button.classList.add('btn-save-fill-visible');
-
   const resetTimer = setTimeout(() => {
     button.blur();
     button.classList.add('btn-reset-fill');
+
+    const clearReset = () => {
+      button.classList.remove('btn-reset-fill');
+    };
+    button.addEventListener('pointerleave', clearReset, { once: true });
+    button.addEventListener('pointerdown', clearReset, { once: true });
 
     const contrastTimer = setTimeout(() => {
       button.classList.remove('btn-save-fill-visible');
@@ -3619,18 +3622,31 @@ function resetSaveButtonFill(button) {
   }, 1500);
 
   saveButtonResetTimers.set(button, [resetTimer]);
+}
 
-  const clearReset = () => {
-    const timers = saveButtonResetTimers.get(button);
-    if (timers) {
-      timers.forEach((timer) => clearTimeout(timer));
-      saveButtonResetTimers.delete(button);
-    }
-    button.classList.remove('btn-reset-fill', 'btn-save-fill-visible');
-  };
+function showSaveButtonFill(button) {
+  if (!button) return;
 
-  button.addEventListener('pointerleave', clearReset, { once: true });
-  button.addEventListener('pointerdown', clearReset, { once: true });
+  const existingTimers = saveButtonResetTimers.get(button);
+  if (existingTimers) {
+    existingTimers.forEach((timer) => clearTimeout(timer));
+    saveButtonResetTimers.delete(button);
+  }
+
+  button.classList.remove('btn-reset-fill');
+  button.classList.add('btn-save-fill-visible');
+}
+
+function stopSaveButtonFill(button) {
+  if (!button) return;
+
+  const existingTimers = saveButtonResetTimers.get(button);
+  if (existingTimers) {
+    existingTimers.forEach((timer) => clearTimeout(timer));
+    saveButtonResetTimers.delete(button);
+  }
+
+  button.classList.remove('btn-reset-fill', 'btn-save-fill-visible');
 }
 
 function setEditorStatusText(msg) {
@@ -6528,6 +6544,10 @@ async function saveEditorConfig(silent = false, triggerButton = null) {
     return false;
   }
 
+  if (!silent) {
+    showSaveButtonFill(triggerButton);
+  }
+
   try {
     const response = await fetchWithAuth('/api/dashboard/event', {
       method: 'PATCH',
@@ -6538,6 +6558,7 @@ async function saveEditorConfig(silent = false, triggerButton = null) {
 
     if (!response.ok) {
       if (!silent) updateEditorSaveStatus(data.error || 'Erro ao salvar no servidor');
+      if (!silent) stopSaveButtonFill(triggerButton);
       return false;
     }
 
@@ -6557,6 +6578,7 @@ async function saveEditorConfig(silent = false, triggerButton = null) {
   } catch (error) {
     console.error('[saveEditorConfig]', error);
     if (!silent) updateEditorSaveStatus('Erro ao salvar no servidor');
+    if (!silent) stopSaveButtonFill(triggerButton);
     return false;
   }
 }
