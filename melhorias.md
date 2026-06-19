@@ -1,5 +1,10 @@
 # Correções recentes
 
+- 2026-06-19: Melhorado contraste da previa Gold Light no wizard.
+  - Causa: o acento dourado claro da previa ficava com pouco contraste sobre o fundo claro do tema.
+  - Mudanca aplicada: previews de temas claros usam um dourado de exibicao misturado com a cor de texto do tema para melhorar leitura.
+  - Impacto percebido: textos e botoes dourados da previa Gold Light ficam legiveis sem alterar o tema real do convite.
+
 - 2026-06-19: Ajustado wizard e destaque da aba de edicao.
   - Causa: o wizard Free mostrava apenas o tema Dourado, o banner de temas premium abria checkout direto e a aba Editar Evento ficava discreta na navegacao.
   - Mudanca aplicada: o wizard Free passou a oferecer Dourado e Dourado Claro, o banner do wizard agora orienta upgrade pelo painel sem link de checkout e a aba Editar Evento ganhou destaque visual sem alterar sua largura.

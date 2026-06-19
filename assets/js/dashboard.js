@@ -6926,6 +6926,13 @@ function _wizardDisplayName() {
   return document.getElementById('wzDisplayName')?.value.trim() || '';
 }
 
+function _wizardPreviewPrimaryColor(themeKey, colors) {
+  if (String(themeKey || '').endsWith('-light')) {
+    return `color-mix(in srgb, ${colors.primary} 68%, ${colors.text} 32%)`;
+  }
+  return colors.primarySoft;
+}
+
 function _parseDisplayNameParts(displayName) {
   const input = String(displayName || '').trim();
   
@@ -6975,9 +6982,10 @@ function _updateWizardPreview() {
 
   if (theme) {
     const cols = _themeColors(theme.data);
+    const previewPrimary = _wizardPreviewPrimaryColor(theme.key, cols);
     previewCard.style.background  = cols.bg;
     previewCard.style.borderColor = cols.border;
-    previewCard.style.setProperty('--wz-primary',  cols.primarySoft);
+    previewCard.style.setProperty('--wz-primary',  previewPrimary);
     previewCard.style.setProperty('--wz-text',     cols.text);
     previewCard.style.setProperty('--wz-text-dim', cols.textDim);
     previewCard.style.setProperty('--wz-grid',     cols.grid);
