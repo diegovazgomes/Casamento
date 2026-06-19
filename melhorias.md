@@ -2,7 +2,7 @@
 
 - 2026-06-19: Corrigido preenchimento preso no botao de salvar do dashboard.
   - Causa: o preenchimento animado do botao de salvar confundia hover, carregamento e sucesso, mantendo a barra visual fora de fase.
-  - Mudanca aplicada: botoes de salvar deixaram de usar a barra de preenchimento; o status textual mostra "Salvando dados..." durante o request e "Dados salvos ✓" em verde no sucesso.
+  - Mudanca aplicada: botoes de salvar deixaram de usar a barra de preenchimento; o status textual mostra "Salvando dados..." durante o request no topo e nos rodapes das secoes, depois exibe "Dados salvos" em verde ate uma nova alteracao.
   - Impacto percebido: o fluxo de salvamento fica claro e estavel, sem animacao de botao presa ou texto com contraste fora de hora.
 
 - 2026-06-19: Ocultado temporariamente o exemplo Editorial da landing.

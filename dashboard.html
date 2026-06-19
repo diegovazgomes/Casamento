@@ -1132,6 +1132,10 @@ input[type="date"].field-input{width:100%;min-width:0;box-sizing:border-box;-web
 .editor-section-footer.is-saved .footer-warning-msg{display:none}
 .editor-section-footer.is-saved .footer-saved-msg{display:flex}
 .editor-section-footer.is-saved{background:rgba(88,186,129,0.08)}
+.editor-section-footer.is-saving{background:var(--primary-glow)}
+.editor-section-footer.is-saving .footer-warning-msg,
+.editor-section-footer.is-saving .footer-saved-msg{display:none}
+.editor-section-footer.is-saving::before{content:"Salvando dados...";display:flex;align-items:center;gap:6px;font-size:11px;letter-spacing:0.06em;font-weight:500;line-height:1.4;color:var(--primary-soft)}
 .footer-save-btn{flex-shrink:0;font-size:9px;letter-spacing:0.18em;padding:8px 18px}
 @keyframes footerFadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
 @media(max-width:768px){

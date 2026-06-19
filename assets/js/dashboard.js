@@ -3542,8 +3542,17 @@ function showSectionFootersDirty() {
   SECTION_FOOTER_IDS.forEach(id => {
     const footer = document.getElementById('footer-' + id);
     if (!footer) return;
-    footer.classList.remove('is-saved');
+    footer.classList.remove('is-saved', 'is-saving');
     footer.classList.add('is-dirty');
+  });
+}
+
+function showSectionFootersSaving() {
+  SECTION_FOOTER_IDS.forEach(id => {
+    const footer = document.getElementById('footer-' + id);
+    if (!footer) return;
+    footer.classList.remove('is-dirty', 'is-saved');
+    footer.classList.add('is-saving');
   });
 }
 
@@ -3551,17 +3560,16 @@ function showSectionFootersSaved() {
   SECTION_FOOTER_IDS.forEach(id => {
     const footer = document.getElementById('footer-' + id);
     if (!footer) return;
-    footer.classList.remove('is-dirty');
+    footer.classList.remove('is-dirty', 'is-saving');
     footer.classList.add('is-saved');
   });
-  setTimeout(hideSectionFooters, 2500);
 }
 
 function hideSectionFooters() {
   SECTION_FOOTER_IDS.forEach(id => {
     const footer = document.getElementById('footer-' + id);
     if (!footer) return;
-    footer.classList.remove('is-dirty', 'is-saved');
+    footer.classList.remove('is-dirty', 'is-saving', 'is-saved');
   });
 }
 // ─────────────────────────────────────────────────────────────
@@ -6494,6 +6502,7 @@ async function saveEditorConfig(silent = false) {
 
   if (!silent) {
     updateEditorSaveStatus('Salvando dados...', 'saving');
+    showSectionFootersSaving();
   }
 
   try {
@@ -6505,7 +6514,10 @@ async function saveEditorConfig(silent = false) {
     const data = await response.json().catch(() => ({}));
 
     if (!response.ok) {
-      if (!silent) updateEditorSaveStatus(data.error || 'Erro ao salvar no servidor');
+      if (!silent) {
+        updateEditorSaveStatus(data.error || 'Erro ao salvar no servidor');
+        showSectionFootersDirty();
+      }
       return false;
     }
 
@@ -6523,7 +6535,10 @@ async function saveEditorConfig(silent = false) {
     return true;
   } catch (error) {
     console.error('[saveEditorConfig]', error);
-    if (!silent) updateEditorSaveStatus('Erro ao salvar no servidor');
+    if (!silent) {
+      updateEditorSaveStatus('Erro ao salvar no servidor');
+      showSectionFootersDirty();
+    }
     return false;
   }
 }
