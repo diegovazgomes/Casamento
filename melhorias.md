@@ -1,5 +1,15 @@
 # Correções recentes
 
+- 2026-06-19: Ocultado temporariamente o exemplo Editorial da landing.
+  - Causa: o layout Editorial ainda esta em teste visual e nao deve aparecer por enquanto na vitrine publica de exemplos.
+  - Mudanca aplicada: removidos da landing o slide, o dot e o painel de info do exemplo Editorial; o titulo da secao passou de quatro para tres formas.
+  - Impacto percebido: a landing volta a mostrar apenas Classico, Minimalista e Moderno enquanto o Editorial segue disponivel no convite/painel.
+
+- 2026-06-19: Corrigido carrossel de exemplos de layout na landing.
+  - Causa: o preview `Editorial` tinha `display:flex` direto em `.direcao-screen--editorial`, sobrescrevendo o `display:none` base do carrossel e deixando a tela editorial sempre visivel.
+  - Mudanca aplicada: o display flex foi movido para `.direcao-screen--editorial.is-active`, mantendo o editorial oculto quando outro exemplo esta selecionado.
+  - Impacto percebido: os exemplos Classico, Minimalista, Moderno e Editorial voltam a alternar corretamente na vitrine da landing.
+
 - 2026-06-19: Preview do convite passou a renderizar a hero real do layout.
   - Causa: a prévia anterior mostrava imagem e tipografia, mas não respeitava fielmente a estrutura visual da hero de cada layout.
   - Mudança aplicada: o dashboard agora usa Shadow DOM isolado com o HTML real da hero, `assets/css/style.css`, o CSS do layout ativo e variáveis CSS do tema/configuração atual; o preview força `.site-shell.is-visible` para evitar a piscada causada pelo estado inicial invisível do convite.
