@@ -1,5 +1,10 @@
 # Correções recentes
 
+- 2026-06-19: Simplificada data e reforcado link opcional no wizard.
+  - Causa: nome do local e endereco adicionavam friccao no inicio, enquanto a etapa de link ainda podia parecer obrigatoria.
+  - Mudanca aplicada: local e endereco foram ocultados do wizard inicial, mantendo fallback para edicao posterior, e a etapa de link ganhou destaque explicando que pode ser pulada.
+  - Impacto percebido: o onboarding fica mais curto e o trecho mais confuso passa a comunicar claramente que e opcional.
+
 - 2026-06-19: Aplicadas melhorias de UX no wizard.
   - Causa: o wizard ainda parecia um formulario tecnico, com progresso pouco descritivo e proximo passo final menos claro.
   - Mudanca aplicada: progresso ganhou labels, a previa do convite aparece durante o fluxo, textos ficaram mais acolhedores, o salvamento mostra "Criando convite..." e a tela final prioriza "Editar convite agora".

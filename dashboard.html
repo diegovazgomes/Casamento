@@ -1933,6 +1933,16 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
   font-size:.82rem;color:var(--text-dim);
   line-height:1.65;margin-bottom:22px;
 }
+.wizard-optional-note{
+  margin:12px 0 14px;
+  padding:12px 14px;
+  border:1px solid var(--border);
+  background:var(--primary-glow);
+  color:var(--text-soft);
+  font-size:.78rem;
+  line-height:1.55;
+}
+.wizard-optional-note strong{color:var(--primary-soft);font-weight:500}
 .wizard-error{
   font-size:.75rem;color:var(--danger);
   margin-top:-8px;margin-bottom:12px;
@@ -2285,10 +2295,10 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
       </div>
     </div>
 
-    <!-- Etapa 2: Data & Local -->
+    <!-- Etapa 2: Data -->
     <div class="wizard-step" id="wizardStep2">
-      <h2 class="wizard-title">Data e Local</h2>
-      <p class="wizard-sub">Preencha o que já souber. Local e endereço podem ser completados depois.</p>
+      <h2 class="wizard-title">Data do casamento</h2>
+      <p class="wizard-sub">Informe a data e o horário. Local, endereço e detalhes podem ser preenchidos depois na edição do convite.</p>
       <div class="wizard-date-time-grid wizard-step2-grid">
         <div class="field">
           <label class="field-label">Data do casamento</label>
@@ -2299,13 +2309,13 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
           <select class="field-input" id="wzTime" aria-label="Horário do evento (formato 24h)"></select>
           <div class="field-hint">Formato 24h. Exemplo: 17:00.</div>
         </div>
-        <div class="field">
-          <label class="field-label">Nome do local</label>
+        <div class="field" hidden>
+          <label class="field-label" for="wzVenueName">Nome do local</label>
           <input type="text" class="field-input" id="wzVenueName"
                  placeholder="Ex: Mansão das Flores" maxlength="120" autocomplete="off">
         </div>
-        <div class="field">
-          <label class="field-label">Endereço</label>
+        <div class="field" hidden>
+          <label class="field-label" for="wzVenueAddress">Endereço</label>
           <input type="text" class="field-input" id="wzVenueAddress"
                  placeholder="Av. Rainha Simone, 1971" maxlength="200" autocomplete="off">
         </div>
@@ -2315,7 +2325,10 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
     <!-- Etapa 3: URL -->
     <div class="wizard-step" id="wizardStep3">
       <h2 class="wizard-title">Link do convite</h2>
-      <p class="wizard-sub">Você pode personalizar o link agora ou deixar que a Devazi crie um automaticamente.</p>
+      <p class="wizard-sub">Esta etapa é opcional. O convite funciona mesmo se você não preencher nada aqui.</p>
+      <div class="wizard-optional-note">
+        <strong>Pode pular sem problema.</strong> Se deixar em branco, a Devazi cria um link automaticamente para vocês.
+      </div>
       <div class="field" style="margin-top:14px;">
         <label class="field-label" for="wzSlug">Personalizar link (opcional)</label>
         <input type="text" class="field-input" id="wzSlug"
