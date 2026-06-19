@@ -183,10 +183,11 @@ input[type="date"].field-input{width:100%;min-width:0;box-sizing:border-box;-web
   transform:scaleX(0);transform-origin:left;
   transition:transform 0.45s cubic-bezier(0.76,0,0.24,1);
 }
-.btn:hover::before{transform:scaleX(1)}
-.btn:hover{color:var(--bg);border-color:var(--primary)}
+.btn:hover::before,.btn.btn-save-fill-visible::before{transform:scaleX(1)}
+.btn:hover,.btn.btn-save-fill-visible{color:var(--bg);border-color:var(--primary)}
 .btn.btn-reset-fill::before{transform:scaleX(0)}
 .btn.btn-reset-fill{color:var(--text)}
+.btn.btn-reset-fill.btn-save-fill-visible{color:var(--bg)}
 .btn.btn-reset-fill.btn-primary{border-color:var(--primary)}
 .btn.btn-reset-fill.btn-subtle{border-color:var(--border)}
 .btn>*{position:relative;z-index:1}

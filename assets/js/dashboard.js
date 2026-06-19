@@ -3530,6 +3530,8 @@ const EDITOR_SECTION_IDS = [
   'edSectionPages',
 ];
 
+const saveButtonResetTimers = new WeakMap();
+
 function setDefaultEditorSectionsOpenState() {
   EDITOR_SECTION_IDS.forEach((id) => {
     const section = document.getElementById(id);
@@ -3596,11 +3598,35 @@ function updateEditorSaveStatus(message) {
 function resetSaveButtonFill(button) {
   if (!button) return;
 
-  button.classList.add('btn-reset-fill');
-  button.blur();
+  const existingTimers = saveButtonResetTimers.get(button);
+  if (existingTimers) {
+    existingTimers.forEach((timer) => clearTimeout(timer));
+  }
+
+  button.classList.remove('btn-reset-fill');
+  button.classList.add('btn-save-fill-visible');
+
+  const resetTimer = setTimeout(() => {
+    button.blur();
+    button.classList.add('btn-reset-fill');
+
+    const contrastTimer = setTimeout(() => {
+      button.classList.remove('btn-save-fill-visible');
+      saveButtonResetTimers.delete(button);
+    }, 500);
+
+    saveButtonResetTimers.set(button, [contrastTimer]);
+  }, 1500);
+
+  saveButtonResetTimers.set(button, [resetTimer]);
 
   const clearReset = () => {
-    button.classList.remove('btn-reset-fill');
+    const timers = saveButtonResetTimers.get(button);
+    if (timers) {
+      timers.forEach((timer) => clearTimeout(timer));
+      saveButtonResetTimers.delete(button);
+    }
+    button.classList.remove('btn-reset-fill', 'btn-save-fill-visible');
   };
 
   button.addEventListener('pointerleave', clearReset, { once: true });
