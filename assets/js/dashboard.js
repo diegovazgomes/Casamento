@@ -477,7 +477,10 @@ function runDashboardAction(action, event, trigger) {
     clearMensagensFilters,
     clearMusicasFilters,
     reloadEditorTab,
-    saveEditorConfig: () => saveEditorConfig(false, trigger),
+    saveEditorConfig: () => {
+      showSaveButtonFill(trigger);
+      return saveEditorConfig(false, trigger, { fillAlreadyVisible: true });
+    },
     uploadPixQrMedia,
     uploadHeroMedia,
     toggleSelectAllGalleryImages,
@@ -6516,10 +6519,11 @@ function collectEditorValues() {
   return config;
 }
 
-async function saveEditorConfig(silent = false, triggerButton = null) {
+async function saveEditorConfig(silent = false, triggerButton = null, options = {}) {
   if (postLoginUiSyncInProgress) {
     if (!silent) {
       updateEditorSaveStatus('Sincronizando dados da conta atual. Aguarde e tente salvar novamente.');
+      stopSaveButtonFill(triggerButton);
     }
     return false;
   }
@@ -6527,7 +6531,10 @@ async function saveEditorConfig(silent = false, triggerButton = null) {
   const config = collectEditorValues();
 
   if (!state.eventId) {
-    if (!silent) updateEditorSaveStatus('Evento não carregado — recarregue o dashboard');
+    if (!silent) {
+      updateEditorSaveStatus('Evento não carregado — recarregue o dashboard');
+      stopSaveButtonFill(triggerButton);
+    }
     return false;
   }
 
@@ -6540,11 +6547,14 @@ async function saveEditorConfig(silent = false, triggerButton = null) {
       pixField.focus();
       pixField.addEventListener('input', () => pixField.classList.remove('field-error'), { once: true });
     }
-    if (!silent) updateEditorSaveStatus('Chave Pix inválida — não é permitido inserir links. Use CPF, e-mail, telefone ou chave aleatória.');
+    if (!silent) {
+      updateEditorSaveStatus('Chave Pix inválida — não é permitido inserir links. Use CPF, e-mail, telefone ou chave aleatória.');
+      stopSaveButtonFill(triggerButton);
+    }
     return false;
   }
 
-  if (!silent) {
+  if (!silent && options.fillAlreadyVisible !== true) {
     showSaveButtonFill(triggerButton);
   }
 
