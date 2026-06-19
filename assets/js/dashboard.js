@@ -3524,22 +3524,32 @@ const SECTION_FOOTER_IDS = [
 ];
 
 const EDITOR_SECTION_IDS = [
+  'edSectionMidia',
   'edSectionEvento',
   'edSectionTema',
   'edSectionWhatsApp',
   'edSectionPresentes',
-  'edSectionMidia',
   'edSectionHistoria',
   'edSectionFaq',
   'edSectionHospedagem',
   'edSectionPages',
 ];
 
+function prioritizeEditorMediaSection() {
+  const mediaSection = document.getElementById('edSectionMidia');
+  const identitySection = document.getElementById('edSectionEvento');
+  const parent = identitySection?.parentNode;
+  if (!mediaSection || !identitySection || !parent || mediaSection.parentNode !== parent) return;
+  if (identitySection.previousElementSibling === mediaSection) return;
+  parent.insertBefore(mediaSection, identitySection);
+}
+
 function setDefaultEditorSectionsOpenState() {
+  prioritizeEditorMediaSection();
   EDITOR_SECTION_IDS.forEach((id) => {
     const section = document.getElementById(id);
     if (!section) return;
-    section.classList.toggle('is-open', id === 'edSectionEvento');
+    section.classList.toggle('is-open', id === 'edSectionMidia');
   });
 }
 

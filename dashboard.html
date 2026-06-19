@@ -1146,6 +1146,8 @@ input[type="date"].field-input{width:100%;min-width:0;box-sizing:border-box;-web
 .editor-save-status.is-saved .editor-save-dot{background:var(--success);animation:none}
 .editor-save-status.is-saved{color:var(--success)}
 .editor-save-actions{display:flex;gap:10px;align-items:center}
+.editor-save-label-mobile{display:none}
+.editor-discard-icon{display:none}
 /* ── Rodapé de alterações não salvas por seção ── */
 .editor-section-footer{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 20px;border-top:1px solid var(--border-faint);margin-top:8px;background:rgba(255,255,255,0.01)}
 .editor-section-footer.is-dirty{animation:footerFadeIn 0.2s ease;background:rgba(196,145,66,0.08)}
@@ -1167,10 +1169,16 @@ input[type="date"].field-input{width:100%;min-width:0;box-sizing:border-box;-web
   .editor-section-footer .footer-save-btn{width:100%;box-sizing:border-box;justify-content:center}
 }
 @media(max-width:768px){
-  .editor-savebar{padding:10px 16px;gap:8px;flex-wrap:wrap}
-  .editor-save-status{width:100%;text-align:center;justify-content:center}
-  .editor-save-actions{flex-wrap:wrap;width:100%}
-  .editor-save-actions .btn{width:100%;box-sizing:border-box;justify-content:center}
+  .editor-savebar{padding:10px 0 12px;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+  .editor-save-status{width:100%;text-align:left;justify-content:flex-start;font-size:10px}
+  .editor-save-actions{display:grid;grid-template-columns:40px 40px minmax(0,1fr);gap:8px;width:100%}
+  .editor-save-actions .btn{width:auto;min-width:0;height:38px;box-sizing:border-box;justify-content:center;padding:0 10px}
+  .editor-save-actions .btn svg{width:15px;height:15px}
+  .editor-action-label{display:none}
+  .editor-save-label-full{display:none}
+  .editor-save-label-mobile{display:inline}
+  .editor-discard-icon{display:block}
+  #btnSaveConfig{letter-spacing:0.18em}
 }
 .media-upload-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px;align-items:end;margin-bottom:14px}
 .media-upload-action{display:flex;justify-content:flex-end;align-items:flex-end}
@@ -2909,22 +2917,24 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
             <span id="editorSaveStatusText">Carregando configurações…</span>
           </div>
           <div class="editor-save-actions">
-            <a id="btnPreviewInvite" href="#" target="_blank" rel="noopener noreferrer" class="btn btn-subtle" title="Abrir convite em nova aba">
+            <a id="btnPreviewInvite" href="#" target="_blank" rel="noopener noreferrer" class="btn btn-subtle" title="Abrir convite em nova aba" aria-label="Ver convite">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-              <span>Ver convite</span>
+              <span class="editor-action-label">Ver convite</span>
             </a>
-            <button type="button" class="btn btn-subtle" data-dashboard-action="reloadEditorTab">
-              <span>Descartar</span>
+            <button type="button" class="btn btn-subtle" data-dashboard-action="reloadEditorTab" title="Descartar alterações" aria-label="Descartar alterações">
+              <svg class="editor-discard-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v5"/><path d="M14 11v5"/></svg>
+              <span class="editor-action-label">Descartar</span>
             </button>
             <button type="button" class="btn btn-primary" id="btnSaveConfig" data-dashboard-action="saveEditorConfig">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-              <span>Salvar alterações</span>
+              <span class="editor-save-label-full">Salvar alterações</span>
+              <span class="editor-save-label-mobile">Salvar</span>
             </button>
           </div>
         </div>
 
         <!-- ── SEÇÃO 1: CASAL & EVENTO ──────────────────── -->
-        <div class="editor-section is-open" id="edSectionEvento">
+        <div class="editor-section" id="edSectionEvento">
           <button class="editor-section-header" type="button" data-editor-section="edSectionEvento">
             <div>
               <div class="editor-section-tag">Identidade</div>
@@ -3372,7 +3382,7 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
         </div>
 
         <!-- ── SEÇÃO 5: FOTOS & MÍDIA ─────────────────── -->
-        <div class="editor-section" id="edSectionMidia">
+        <div class="editor-section is-open" id="edSectionMidia">
           <button class="editor-section-header" type="button" data-editor-section="edSectionMidia">
             <div>
               <div class="editor-section-tag">Fotos &amp; Mídia</div>
