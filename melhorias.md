@@ -1,5 +1,10 @@
 # Correções recentes
 
+- 2026-06-19: Preview do convite passou a renderizar a hero real do layout.
+  - Causa: a prévia anterior mostrava imagem e tipografia, mas não respeitava fielmente a estrutura visual da hero de cada layout.
+  - Mudança aplicada: o dashboard agora usa um iframe isolado com o HTML real da hero, `assets/css/style.css`, o CSS do layout ativo e variáveis CSS do tema/configuração atual; o texto visível foi ajustado para `Preview do convite`.
+  - Impacto percebido: a escolha de layout e tema mostra uma prévia muito mais próxima do convite publicado, sem salvar alterações automaticamente.
+
 - 2026-06-18: Adicionada prévia da hero no dashboard para layout e tema.
   - Causa: a escolha de layout e tema exigia salvar/aplicar antes de visualizar a capa do convite com os dados reais do casal.
   - Mudança aplicada: a seção `Tema & Visual` ganhou botão de prévia que monta a hero com layout, tema, foto, nomes e data atuais do editor, sem salvar alterações nem alterar o convite público.

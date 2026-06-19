@@ -1571,8 +1571,15 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
   position:relative;
   min-height:360px;
   overflow:hidden;
-  background:var(--preview-bg);
-  color:var(--preview-text,var(--text));
+  background:var(--surface-2);
+  color:var(--text);
+}
+.dashboard-hero-preview__frame{
+  display:block;
+  width:100%;
+  height:560px;
+  border:0;
+  background:var(--surface-2);
 }
 .dashboard-hero-preview__photo{
   position:absolute;
@@ -1678,6 +1685,7 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
   .dashboard-hero-preview-tools .btn{width:100%}
   .dashboard-hero-preview__bar{align-items:flex-start;flex-direction:column}
   .dashboard-hero-preview__status{text-align:left}
+  .dashboard-hero-preview__frame{height:620px}
   .dashboard-hero-preview__stage,
   .dashboard-hero-preview__content{min-height:420px}
   .dashboard-hero-preview__content{padding:46px 24px 40px}
@@ -3020,22 +3028,16 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
             <div class="dashboard-hero-preview-tools">
               <div class="field-hint">Veja a hero com o layout, tema e dados atuais antes de salvar as alterações.</div>
               <button type="button" class="btn btn-subtle" id="btnThemeHeroPreview" data-dashboard-action="renderThemeHeroPreview">
-                Prévia da hero
+                Preview do convite
               </button>
             </div>
             <div class="dashboard-hero-preview" id="themeHeroPreview" hidden aria-live="polite">
               <div class="dashboard-hero-preview__bar">
-                <span class="dashboard-hero-preview__title">Hero do convite</span>
+                <span class="dashboard-hero-preview__title">Preview do convite</span>
                 <span class="dashboard-hero-preview__status" id="themeHeroPreviewStatus">Aguardando prévia</span>
               </div>
               <div class="dashboard-hero-preview__stage" id="themeHeroPreviewStage" data-layout="classic">
-                <img class="dashboard-hero-preview__photo" id="themeHeroPreviewPhoto" src="assets/images/Hero-standard.jpeg" alt="Foto principal do casal na prévia">
-                <div class="dashboard-hero-preview__overlay" aria-hidden="true"></div>
-                <div class="dashboard-hero-preview__content">
-                  <p class="dashboard-hero-preview__label" id="themeHeroPreviewLabel"></p>
-                  <h3 class="dashboard-hero-preview__names" id="themeHeroPreviewNames"></h3>
-                  <p class="dashboard-hero-preview__date" id="themeHeroPreviewDate"></p>
-                </div>
+                <iframe class="dashboard-hero-preview__frame" id="themeInvitePreviewFrame" title="Preview do convite"></iframe>
               </div>
             </div>
 

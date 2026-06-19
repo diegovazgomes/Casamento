@@ -5438,6 +5438,303 @@ function renderDashboardPreviewNames(element, displayNames) {
   element.append(amp, document.createTextNode(second));
 }
 
+function dashboardPreviewSizeToCss(size) {
+  if (!size) return '';
+  if (typeof size === 'object') {
+    const min = size.min || '';
+    const fluid = size.fluid || '';
+    const max = size.max || '';
+    return min && fluid && max ? `clamp(${min}, ${fluid}, ${max})` : '';
+  }
+  return String(size);
+}
+
+function resolveDashboardPreviewTypographyVars(theme) {
+  const typography = theme?.typography ?? {};
+  const roles = typography.roles ?? {};
+  const families = typography.families ?? {};
+  const fonts = typography.fonts ?? {};
+  const vars = {};
+
+  Object.entries(roles).forEach(([roleName, roleDef]) => {
+    const familyKey = roleDef?.family;
+    vars[`--typo-${roleName}-family`] = families[familyKey] || fonts[familyKey] || familyKey || fonts.primary || "'Jost', sans-serif";
+    vars[`--typo-${roleName}-size`] = dashboardPreviewSizeToCss(roleDef?.size) || '13px';
+    vars[`--typo-${roleName}-weight`] = roleDef?.weight ?? 300;
+    vars[`--typo-${roleName}-lineHeight`] = roleDef?.lineHeight ?? 1;
+    vars[`--typo-${roleName}-letterSpacing`] = roleDef?.letterSpacing ?? 'normal';
+    vars[`--typo-${roleName}-textTransform`] = roleDef?.textTransform ?? 'none';
+    vars[`--typo-${roleName}-style`] = roleDef?.style ?? 'normal';
+  });
+
+  return vars;
+}
+
+function buildDashboardPreviewCssVars(theme) {
+  const colors = theme?.colors ?? {};
+  const fonts = theme?.typography?.fonts ?? {};
+  const sizes = theme?.typography?.sizes ?? {};
+  const spacing = theme?.spacing ?? {};
+  const layout = theme?.layout ?? {};
+  const components = theme?.components ?? {};
+  const radius = theme?.radius ?? {};
+  const effects = theme?.effects ?? {};
+  const animation = theme?.animation ?? {};
+  const vars = {
+    '--color-bg': colors.background,
+    '--color-surface': colors.surface,
+    '--color-surface-soft': colors.surfaceSoft,
+    '--color-primary': colors.primary,
+    '--color-primary-soft': colors.primarySoft,
+    '--color-primary-glow': colors.primaryGlow,
+    '--color-text': colors.text,
+    '--color-text-muted': colors.textMuted,
+    '--color-text-soft': colors.textSoft,
+    '--color-text-dim': colors.textDim,
+    '--color-text-faint': colors.textFaint,
+    '--color-text-placeholder': colors.textPlaceholder,
+    '--color-border': colors.border,
+    '--color-border-soft': colors.borderSoft,
+    '--color-border-strong': colors.borderStrong,
+    '--color-gold-surface-soft': colors.goldSurfaceSoft,
+    '--color-gold-surface': colors.goldSurface,
+    '--color-gold-surface-strong': colors.goldSurfaceStrong,
+    '--color-page-grid-line': colors.pageGridLine,
+    '--color-overlay-backdrop': colors.overlayBackdrop,
+    '--color-audio-bg': colors.audioPanelBg || colors.audioButtonBg,
+    '--color-audio-hover-bg': colors.audioPanelHoverBg,
+    '--color-audio-border': colors.audioPanelBorder || colors.audioButtonBorder,
+    '--color-pulse-ring': colors.pulseRing,
+    '--color-pulse-ring-spread': colors.pulseRingSpread,
+    '--color-input-focus-bg': colors.inputFocusBg || colors.inputBorderFocus,
+    '--cream': colors.text,
+    '--gold': colors.primary,
+    '--gold-light': colors.primarySoft,
+    '--hero-label-color': colors.heroLabel || colors.primarySoft,
+    '--dark': colors.background,
+    '--border-soft': colors.border,
+    '--surface-soft': colors.surfaceSoft,
+    '--font-primary': fonts.primary,
+    '--font-serif': fonts.serif,
+    '--font-accent': fonts.accent,
+    '--base-font-size': sizes.base,
+    '--hero-label-size': sizes.heroLabel,
+    '--hero-date-size': sizes.heroDate,
+    '--hero-name-min': sizes.heroNames?.min,
+    '--hero-name-fluid': sizes.heroNames?.fluid,
+    '--hero-name-max': sizes.heroNames?.max,
+    '--scroll-hint-text-size': sizes.scrollHint,
+    '--section-tag-size': sizes.sectionTag,
+    '--section-title-min': sizes.sectionTitle?.min,
+    '--section-title-fluid': sizes.sectionTitle?.fluid,
+    '--section-title-max': sizes.sectionTitle?.max,
+    '--section-body-size': sizes.sectionBody,
+    '--countdown-number-size': sizes.countdownNumber,
+    '--countdown-label-size': sizes.countdownLabel,
+    '--countdown-finished-size': sizes.countdownFinished,
+    '--detail-icon-size': sizes.detailIcon,
+    '--detail-title-size': sizes.detailTitle,
+    '--detail-value-size': sizes.detailValue,
+    '--detail-sub-size': sizes.detailSub,
+    '--rsvp-title-size': sizes.rsvpTitle,
+    '--rsvp-subtitle-size': sizes.rsvpSubtitle,
+    '--rsvp-input-size': sizes.rsvpInput,
+    '--rsvp-choice-size': sizes.rsvpChoice,
+    '--rsvp-submit-size': sizes.rsvpSubmit,
+    '--rsvp-success-text-size': sizes.rsvpSuccessText,
+    '--rsvp-success-sub-size': sizes.rsvpSuccessSub,
+    '--footer-names-size': sizes.footerNames,
+    '--footer-note-size': sizes.footerNote,
+    '--container-width': spacing.containerWidth,
+    '--card-padding': spacing.cardPadding,
+    '--spacing-section': spacing.sectionPaddingTop,
+    '--section-padding-top': spacing.sectionPaddingTop,
+    '--details-section-padding-top': spacing.detailsSectionPaddingTop,
+    '--section-padding-inline': spacing.sectionPaddingInline,
+    '--section-tag-gap': spacing.sectionTagGap,
+    '--section-title-gap': spacing.sectionTitleGap,
+    '--hero-label-gap': spacing.heroLabelGap,
+    '--hero-date-gap': spacing.heroDateGap,
+    '--scroll-hint-bottom': spacing.scrollHintBottom,
+    '--scroll-hint-gap': spacing.scrollHintGap,
+    '--divider-margin-top': spacing.dividerMarginTop,
+    '--countdown-margin-top': spacing.countdownMarginTop,
+    '--countdown-gap': spacing.countdownGap,
+    '--details-margin-top': spacing.detailsMarginTop,
+    '--details-grid-gap': spacing.detailsGridGap,
+    '--detail-card-padding-block': spacing.detailCardPaddingBlock,
+    '--detail-card-padding-inline': spacing.detailCardPaddingInline,
+    '--rsvp-shell-padding-bottom': spacing.rsvpShellPaddingBottom,
+    '--rsvp-card-margin-top': spacing.rsvpCardMarginTop,
+    '--rsvp-card-padding-block': spacing.rsvpCardPaddingBlock,
+    '--rsvp-card-padding-inline': spacing.rsvpCardPaddingInline,
+    '--rsvp-subtitle-gap': spacing.rsvpSubtitleGap,
+    '--rsvp-form-gap': spacing.rsvpFormGap,
+    '--rsvp-choice-gap': spacing.rsvpChoiceGap,
+    '--rsvp-submit-margin-top': spacing.rsvpSubmitMarginTop,
+    '--footer-padding-bottom': spacing.footerPaddingBottom,
+    '--hero-height': layout.heroHeight,
+    '--hero-padding': layout.heroPadding,
+    '--hero-content-width': layout.heroContentWidth,
+    '--hero-content-padding-bottom': layout.heroContentPaddingBottom,
+    '--hero-fade-offset': layout.heroFadeOffset,
+    '--content-max-width': layout.contentMaxWidth,
+    '--divider-width': components.dividerWidth,
+    '--divider-diamond-size': components.dividerDiamond,
+    '--scroll-arrow-width': components.scrollArrowWidth,
+    '--scroll-arrow-height': components.scrollArrowHeight,
+    '--scroll-arrow-stem-height': components.scrollArrowStemHeight,
+    '--scroll-arrow-head-size': components.scrollArrowHeadSize,
+    '--components-card-line-height': components.cardLineHeight,
+    '--components-card-line-height-extras': components.cardLineHeightExtras,
+    '--components-card-line-z-index': components.cardLineZIndex,
+    '--radius-card': radius.card,
+    '--radius-button': radius.button,
+    '--shadow-soft': effects.shadowSoft,
+    '--shadow-hover': effects.shadowHover,
+    '--shadow-text-strong': effects.textShadowStrong,
+    '--shadow-text-soft': effects.textShadowSoft,
+    '--focus-ring': effects.focusRing,
+    '--transition-standard': effects.transition,
+    '--page-gradient': effects.pageGradient,
+    '--intro-backdrop-gradient': effects.introBackdropGradient,
+    '--intro-card-gradient': effects.introCardGradient,
+    '--button-fill-gradient': effects.buttonFillGradient,
+    '--hero-overlay-gradient': effects.heroOverlayGradient,
+    '--overlay-panel-gradient': effects.overlayPanelGradient,
+    '--overlay-close-gradient': effects.overlayCloseGradient,
+    '--rsvp-panel-gradient': effects.rsvpPanelGradient,
+    '--gift-panel-gradient': effects.giftPanelGradient,
+    '--fade-duration': animation.fadeDuration,
+    '--stagger-delay': animation.staggerDelay,
+    '--hero-fade-duration': animation.heroFadeDuration,
+    '--animation-card-line-transition': animation.cardLineTransition,
+    ...resolveDashboardPreviewTypographyVars(theme),
+  };
+
+  return Object.entries(vars)
+    .filter(([, value]) => value !== undefined && value !== null && value !== '')
+    .map(([key, value]) => `${key}:${String(value).replace(/</g, '\\3c ')};`)
+    .join('');
+}
+
+function parseDashboardPublicHeroNames(config) {
+  const displayNames = config?.couple?.names || 'Noiva & Noivo';
+  const parts = String(displayNames).split('&').map((part) => part.trim()).filter(Boolean);
+  return {
+    displayNames,
+    firstName: parts[0] || 'Noiva',
+    secondName: parts[1] || 'Noivo',
+  };
+}
+
+function buildDashboardInvitePreviewSrcdoc(config, theme, layoutKey) {
+  const baseHref = new URL('.', window.location.href).href;
+  const cssVars = buildDashboardPreviewCssVars(theme);
+  const names = parseDashboardPublicHeroNames(config);
+  const heroImage = String(config.media?.heroImage || DEFAULT_HERO_IMAGE_URL).trim() || DEFAULT_HERO_IMAGE_URL;
+  const heroAlt = config.texts?.heroPhotoAlt || `${names.displayNames} em retrato do casal`;
+  const heroLabel = config.texts?.heroLabel || '';
+  const heroDate = config.event?.heroDate || config.event?.displayDate || '';
+  const layoutHref = `assets/layouts/${layoutKey || 'classic'}/layout.css`;
+
+  return `<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <base href="${escapeHtml(baseHref)}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Great+Vibes&family=Jost:wght@200;300;400;500;600;700&family=DM+Mono:wght@300;400;500&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="${escapeHtml(layoutHref)}">
+  <style>
+    :root{${cssVars}}
+    html,body{margin:0;min-height:100%;overflow:hidden;background:var(--color-bg,var(--dark));}
+    .site-shell,.hero{height:100vh;min-height:100vh;}
+    .hero-content{opacity:1;transform:none;}
+    .hero-photo{opacity:1;}
+  </style>
+</head>
+<body>
+  <main class="site-shell">
+    <section class="hero" id="hero" aria-label="Convite principal">
+      <img class="hero-photo loaded" id="couplePhoto" src="${escapeHtml(heroImage)}" alt="${escapeHtml(heroAlt)}">
+      <div class="hero-overlay" aria-hidden="true"></div>
+      <div class="hero-content is-visible">
+        <p class="hero-label" id="heroLabel">${escapeHtml(heroLabel)}</p>
+        <h1 class="hero-names" id="heroNames">
+          <em id="heroName1">${escapeHtml(names.firstName)}</em>
+          <span class="hero-ampersand">&amp;</span>
+          <em id="heroName2">${escapeHtml(names.secondName)}</em>
+        </h1>
+        <p class="hero-date" id="heroDate">${escapeHtml(heroDate)}</p>
+      </div>
+    </section>
+  </main>
+</body>
+</html>`;
+}
+
+function applyDashboardInvitePreviewFrameMode(frame) {
+  const frameWindow = frame?.contentWindow;
+  const doc = frame?.contentDocument;
+  if (!frameWindow || !doc) return;
+
+  const hero = doc.getElementById('hero');
+  const photo = doc.getElementById('couplePhoto');
+  if (!hero || !photo) return;
+
+  const applyMode = () => {
+    hero.classList.remove('hero--full-photo', 'hero--cover-photo');
+    hero.style.removeProperty('--hero-photo-render-width');
+    hero.style.removeProperty('--hero-photo-text-scale');
+
+    if (!frameWindow.matchMedia('(min-width: 768px)').matches) {
+      return;
+    }
+
+    const naturalWidth = Number(photo.naturalWidth || 0);
+    const naturalHeight = Number(photo.naturalHeight || 0);
+    if (!naturalWidth || !naturalHeight) {
+      return;
+    }
+
+    const aspectRatio = naturalWidth / naturalHeight;
+    const shouldShowFullImage = aspectRatio < 1.35;
+    hero.classList.add(shouldShowFullImage ? 'hero--full-photo' : 'hero--cover-photo');
+
+    if (!shouldShowFullImage) {
+      return;
+    }
+
+    const heroWidth = Number(hero.clientWidth || 0);
+    const heroHeight = Number(hero.clientHeight || 0);
+    if (!heroWidth || !heroHeight) {
+      frameWindow.requestAnimationFrame(applyMode);
+      return;
+    }
+
+    const renderedImageWidth = Math.min(heroWidth, heroHeight * aspectRatio);
+    const textScale = Math.max(0.64, Math.min(renderedImageWidth / 760, 1));
+    hero.style.setProperty('--hero-photo-render-width', `${Math.round(renderedImageWidth)}px`);
+    hero.style.setProperty('--hero-photo-text-scale', textScale.toFixed(3));
+  };
+
+  photo.addEventListener('load', () => {
+    photo.classList.add('loaded');
+    frameWindow.requestAnimationFrame(applyMode);
+  });
+  photo.addEventListener('error', () => {
+    if (photo.getAttribute('src') !== DEFAULT_HERO_IMAGE_URL) {
+      photo.setAttribute('src', DEFAULT_HERO_IMAGE_URL);
+    }
+  });
+  frameWindow.addEventListener('resize', () => frameWindow.requestAnimationFrame(applyMode), { passive: true });
+  frameWindow.requestAnimationFrame(applyMode);
+}
+
 function refreshThemeHeroPreviewIfOpen() {
   const preview = document.getElementById('themeHeroPreview');
   if (!preview || preview.hidden) return;
@@ -5449,12 +5746,9 @@ async function renderThemeHeroPreview(options = {}) {
   const stage = document.getElementById('themeHeroPreviewStage');
   const status = document.getElementById('themeHeroPreviewStatus');
   const button = document.getElementById('btnThemeHeroPreview');
-  const photo = document.getElementById('themeHeroPreviewPhoto');
-  const label = document.getElementById('themeHeroPreviewLabel');
-  const names = document.getElementById('themeHeroPreviewNames');
-  const date = document.getElementById('themeHeroPreviewDate');
+  const frame = document.getElementById('themeInvitePreviewFrame');
 
-  if (!preview || !stage || !status || !photo || !label || !names || !date) {
+  if (!preview || !stage || !status || !frame) {
     return;
   }
 
@@ -5473,21 +5767,9 @@ async function renderThemeHeroPreview(options = {}) {
     const { theme, themeKey, themeName, layoutKey } = await loadDashboardPreviewTheme(config);
     if (requestId !== themeHeroPreviewRequestId) return;
 
-    applyDashboardHeroPreviewTheme(stage, theme);
     stage.dataset.layout = layoutKey;
-
-    const heroImage = String(config.media?.heroImage || DEFAULT_HERO_IMAGE_URL).trim();
-    photo.onerror = () => {
-      if (!photo.src.endsWith(DEFAULT_HERO_IMAGE_URL)) {
-        photo.src = DEFAULT_HERO_IMAGE_URL;
-      }
-    };
-    photo.src = heroImage || DEFAULT_HERO_IMAGE_URL;
-    photo.alt = config.texts?.heroPhotoAlt || 'Foto principal do casal na prévia';
-
-    label.textContent = config.texts?.heroLabel || 'Você está convidado';
-    renderDashboardPreviewNames(names, config.couple?.names || 'Nome & Nome');
-    date.textContent = formatDashboardHeroPreviewDate(config);
+    frame.onload = () => applyDashboardInvitePreviewFrameMode(frame);
+    frame.srcdoc = buildDashboardInvitePreviewSrcdoc(config, theme, layoutKey);
 
     const layoutLabel = DASHBOARD_PREVIEW_LAYOUT_LABELS[layoutKey] || layoutKey;
     const themeLabel = themeName || themeKey;
@@ -5498,7 +5780,7 @@ async function renderThemeHeroPreview(options = {}) {
   } finally {
     if (button && !options.refreshOnly) {
       button.disabled = false;
-      button.textContent = button.dataset.originalText || 'Prévia da hero';
+      button.textContent = button.dataset.originalText || 'Preview do convite';
     }
   }
 }
