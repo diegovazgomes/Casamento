@@ -1,9 +1,9 @@
 # Correções recentes
 
-- 2026-06-19: Corrigido status de salvamento preso no dashboard.
-  - Causa: `updateEditorSaveStatus(message)` colocava a barra global em `.is-saved`, mas nao tinha timeout para voltar ao estado normal apos a mensagem de sucesso.
-  - Mudanca aplicada: adicionado timer de reset do status global; depois de 2,5s, se nao houver novas alteracoes, a barra volta para "Configuracoes carregadas".
-  - Impacto percebido: apos salvar o evento, a confirmacao aparece e some naturalmente, evitando a sensacao de botao/status travado.
+- 2026-06-19: Corrigido preenchimento preso no botao de salvar do dashboard.
+  - Causa: apos o clique, o cursor permanecia sobre o botao e o hover mantinha o pseudo-elemento dourado preenchido, parecendo que o botao continuava carregando.
+  - Mudanca aplicada: o salvamento agora reseta visualmente apenas o botao clicado com `.btn-reset-fill`, enquanto a mensagem de "salvo" permanece na barra global.
+  - Impacto percebido: apos salvar o evento, o botao volta ao visual normal e a confirmacao de dados salvos continua visivel.
 
 - 2026-06-19: Ocultado temporariamente o exemplo Editorial da landing.
   - Causa: o layout Editorial ainda esta em teste visual e nao deve aparecer por enquanto na vitrine publica de exemplos.

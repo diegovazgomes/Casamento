@@ -477,7 +477,7 @@ function runDashboardAction(action, event, trigger) {
     clearMensagensFilters,
     clearMusicasFilters,
     reloadEditorTab,
-    saveEditorConfig,
+    saveEditorConfig: () => saveEditorConfig(false, trigger),
     uploadPixQrMedia,
     uploadHeroMedia,
     toggleSelectAllGalleryImages,
@@ -3530,8 +3530,6 @@ const EDITOR_SECTION_IDS = [
   'edSectionPages',
 ];
 
-let editorSaveStatusResetTimer = null;
-
 function setDefaultEditorSectionsOpenState() {
   EDITOR_SECTION_IDS.forEach((id) => {
     const section = document.getElementById(id);
@@ -3580,20 +3578,9 @@ function updateEditorSaveStatus(message) {
   const textEl   = document.getElementById('editorSaveStatusText');
   if (!statusEl || !textEl) return;
 
-  if (editorSaveStatusResetTimer) {
-    clearTimeout(editorSaveStatusResetTimer);
-    editorSaveStatusResetTimer = null;
-  }
-
   if (message) {
     textEl.textContent = message;
     statusEl.className = 'editor-save-status is-saved';
-    editorSaveStatusResetTimer = setTimeout(() => {
-      editorSaveStatusResetTimer = null;
-      if (!editorState.isDirty) {
-        updateEditorSaveStatus();
-      }
-    }, 1500);
     return;
   }
 
@@ -3604,6 +3591,20 @@ function updateEditorSaveStatus(message) {
     textEl.textContent = 'Configurações carregadas';
     statusEl.className = 'editor-save-status';
   }
+}
+
+function resetSaveButtonFill(button) {
+  if (!button) return;
+
+  button.classList.add('btn-reset-fill');
+  button.blur();
+
+  const clearReset = () => {
+    button.classList.remove('btn-reset-fill');
+  };
+
+  button.addEventListener('pointerleave', clearReset, { once: true });
+  button.addEventListener('pointerdown', clearReset, { once: true });
 }
 
 function setEditorStatusText(msg) {
@@ -6473,7 +6474,7 @@ function collectEditorValues() {
   return config;
 }
 
-async function saveEditorConfig(silent = false) {
+async function saveEditorConfig(silent = false, triggerButton = null) {
   if (postLoginUiSyncInProgress) {
     if (!silent) {
       updateEditorSaveStatus('Sincronizando dados da conta atual. Aguarde e tente salvar novamente.');
@@ -6522,6 +6523,7 @@ async function saveEditorConfig(silent = false) {
     applySiteConfig(savedConfig);
     if (!silent) {
       updateEditorSaveStatus('As informações do seu convite foram salvas ✓');
+      resetSaveButtonFill(triggerButton);
       showSectionFootersSaved();
     }
 
