@@ -1,5 +1,10 @@
 # Correções recentes
 
+- 2026-06-19: Corrigido status de salvamento preso no dashboard.
+  - Causa: `updateEditorSaveStatus(message)` colocava a barra global em `.is-saved`, mas nao tinha timeout para voltar ao estado normal apos a mensagem de sucesso.
+  - Mudanca aplicada: adicionado timer de reset do status global; depois de 2,5s, se nao houver novas alteracoes, a barra volta para "Configuracoes carregadas".
+  - Impacto percebido: apos salvar o evento, a confirmacao aparece e some naturalmente, evitando a sensacao de botao/status travado.
+
 - 2026-06-19: Ocultado temporariamente o exemplo Editorial da landing.
   - Causa: o layout Editorial ainda esta em teste visual e nao deve aparecer por enquanto na vitrine publica de exemplos.
   - Mudanca aplicada: removidos da landing o slide, o dot e o painel de info do exemplo Editorial; o titulo da secao passou de quatro para tres formas.

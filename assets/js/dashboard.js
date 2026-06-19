@@ -3530,6 +3530,8 @@ const EDITOR_SECTION_IDS = [
   'edSectionPages',
 ];
 
+let editorSaveStatusResetTimer = null;
+
 function setDefaultEditorSectionsOpenState() {
   EDITOR_SECTION_IDS.forEach((id) => {
     const section = document.getElementById(id);
@@ -3578,9 +3580,20 @@ function updateEditorSaveStatus(message) {
   const textEl   = document.getElementById('editorSaveStatusText');
   if (!statusEl || !textEl) return;
 
+  if (editorSaveStatusResetTimer) {
+    clearTimeout(editorSaveStatusResetTimer);
+    editorSaveStatusResetTimer = null;
+  }
+
   if (message) {
     textEl.textContent = message;
     statusEl.className = 'editor-save-status is-saved';
+    editorSaveStatusResetTimer = setTimeout(() => {
+      editorSaveStatusResetTimer = null;
+      if (!editorState.isDirty) {
+        updateEditorSaveStatus();
+      }
+    }, 1500);
     return;
   }
 
