@@ -1,5 +1,10 @@
 # Correções recentes
 
+- 2026-06-19: Melhorada clareza da etapa de link no wizard.
+  - Causa: a etapa de URL parecia obrigatoria e usava linguagem tecnica, apesar de poder ser pulada.
+  - Mudanca aplicada: textos foram ajustados para "Link do convite", o campo passou a indicar "opcional" e o botao mostra "Pular e continuar" quando o link esta em branco.
+  - Impacto percebido: usuarios entendem que podem seguir sem personalizar o link, preservando a validacao quando decidirem preencher.
+
 - 2026-06-19: Melhorado contraste da previa Gold Light no wizard.
   - Causa: o acento dourado claro da previa ficava com pouco contraste sobre o fundo claro do tema.
   - Mudanca aplicada: previews de temas claros usam um dourado de exibicao misturado com a cor de texto do tema para melhorar leitura.

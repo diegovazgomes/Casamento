@@ -6709,6 +6709,24 @@ function _updateWizardSlugExampleText() {
   exampleEl.textContent = `Seu link vai ficar assim: www.devazi.app/${_buildWizardAutoSlugExample()}`;
 }
 
+function _updateWizardNextButtonText() {
+  const nextBtn = document.getElementById('wizardBtnNext');
+  if (!nextBtn || _wizardStep === 5 || nextBtn.disabled) return;
+
+  if (_wizardStep === 4) {
+    nextBtn.textContent = 'Salvar e publicar';
+    return;
+  }
+
+  if (_wizardStep === 3) {
+    const slugInput = document.getElementById('wzSlug');
+    nextBtn.textContent = slugInput?.value.trim() ? 'Próximo' : 'Pular e continuar';
+    return;
+  }
+
+  nextBtn.textContent = 'Próximo';
+}
+
 function _setWizardSlugFieldAvailability() {
   const slugInput = document.getElementById('wzSlug');
 
@@ -6719,7 +6737,7 @@ function _setWizardSlugFieldAvailability() {
   slugInput.disabled = false;
   slugInput.classList.remove('field-auto');
 
-  _setWizardSlugStatus('idle', 'Você pode personalizar a URL ou deixar em branco para gerar automaticamente.');
+  _setWizardSlugStatus('idle', 'Opcional. Você pode personalizar o link ou deixar em branco para gerar automaticamente.');
 }
 
 function _populateWizardTimeOptions(defaultValue = '17:00') {
@@ -6762,9 +6780,10 @@ async function _validateWizardSlugAvailability({ immediate = false } = {}) {
   const normalizedInput = _normalizeWizardSlugInput(input.value);
   input.value = normalizedInput;
   _updateWizardSlugExampleText();
+  _updateWizardNextButtonText();
 
   if (!immediate && normalizedInput.endsWith('-')) {
-    _setWizardSlugStatus('idle', 'Continue digitando para validar a disponibilidade da URL.');
+    _setWizardSlugStatus('idle', 'Continue digitando para validar a disponibilidade do link.');
     return false;
   }
 
@@ -6776,12 +6795,12 @@ async function _validateWizardSlugAvailability({ immediate = false } = {}) {
   }
 
   if (!normalizedSlug) {
-    _setWizardSlugStatus('idle', 'Sem problema: se deixar em branco, criamos a URL automaticamente.');
+    _setWizardSlugStatus('idle', 'Sem problema: se deixar em branco, criamos o link automaticamente.');
     return true;
   }
 
   if (normalizedSlug.length < WIZARD_SLUG_MIN_LENGTH) {
-    _setWizardSlugStatus('invalid', `A URL precisa ter ao menos ${WIZARD_SLUG_MIN_LENGTH} caracteres.`);
+    _setWizardSlugStatus('invalid', `O link precisa ter ao menos ${WIZARD_SLUG_MIN_LENGTH} caracteres.`);
     return false;
   }
 
@@ -7067,7 +7086,7 @@ function _wizardGoToStep(step) {
   const backBtn = document.getElementById('wizardBtnBack');
   const nextBtn = document.getElementById('wizardBtnNext');
   if (backBtn) backBtn.style.display = step > 1 ? '' : 'none';
-  if (nextBtn) nextBtn.textContent   = step === 4 ? 'Salvar e publicar' : 'Próximo';
+  _updateWizardNextButtonText();
 
   if (step === 4) _updateWizardPreview();
 }
@@ -7159,11 +7178,12 @@ async function maybeShowWizard(config) {
     const initialSlug = _normalizeWizardSlug(state.eventSlug || config?.rsvp?.eventId || '');
     slugInput.value = initialSlug;
     if (initialSlug) {
-      _setWizardSlugStatus('idle', 'Verificando disponibilidade da URL...');
+      _setWizardSlugStatus('idle', 'Verificando disponibilidade do link...');
       _validateWizardSlugAvailability({ immediate: true });
     }
 
     slugInput.addEventListener('input', () => {
+      _updateWizardNextButtonText();
       _setWizardSlugStatus('loading', 'Verificando disponibilidade...');
       _validateWizardSlugAvailability();
     });
