@@ -188,10 +188,11 @@ input[type="date"].field-input{width:100%;min-width:0;box-sizing:border-box;-web
 .btn[data-dashboard-action="saveEditorConfig"]::before,
 .btn[data-dashboard-action="saveEditorConfig"]:hover::before{transform:scaleX(0)}
 .btn[data-dashboard-action="saveEditorConfig"]:hover{color:var(--text);border-color:var(--primary)}
-#wizardBtnNext:disabled::before,
-#wizardBtnNext:disabled:hover::before{transform:scaleX(0)}
-#wizardBtnNext:disabled,
-#wizardBtnNext:disabled:hover{color:var(--text);border-color:var(--primary);opacity:0.72}
+.wizard-overlay .btn::before,
+.wizard-overlay .btn:hover::before{transform:scaleX(0)}
+.wizard-overlay .btn:hover{color:var(--text);border-color:var(--primary)}
+.wizard-overlay .btn:disabled,
+.wizard-overlay .btn:disabled:hover{color:var(--text);border-color:var(--primary);opacity:0.72}
 .btn>*{position:relative;z-index:1}
 .btn-primary{border-color:var(--primary)}
 .btn-subtle{
@@ -369,25 +370,21 @@ input[type="date"].field-input{width:100%;min-width:0;box-sizing:border-box;-web
 }
 .nav-item--primary{
   position:relative;
+  overflow:hidden;
   border-left-color:var(--primary);
   background:var(--primary-glow);
   color:var(--text-soft);
 }
+.nav-item--primary::after{
+  content:'';
+  position:absolute;
+  inset:8px 10px 8px auto;
+  width:4px;
+  border-right:1px solid var(--primary);
+  opacity:0.75;
+}
 .nav-item--primary:hover{background:var(--primary-glow);color:var(--text)}
 .nav-item--primary.is-active{background:var(--primary-glow)}
-.nav-item__content{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;min-width:0}
-.nav-item__label{min-width:0}
-.nav-item__badge{
-  flex-shrink:0;
-  padding:3px 7px;
-  border:1px solid var(--primary);
-  color:var(--primary-soft);
-  font-size:8px;
-  line-height:1;
-  letter-spacing:0.12em;
-  text-transform:uppercase;
-  background:var(--primary-glow);
-}
 .nav-icon{
   width:16px;height:16px;flex-shrink:0;opacity:0.7;
   display:flex;align-items:center;justify-content:center;
@@ -2396,10 +2393,7 @@ textarea.field-input{font-family:var(--font-sans);resize:vertical;line-height:1.
         <span class="nav-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 1 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
         </span>
-        <span class="nav-item__content">
-          <span class="nav-item__label">Editar Evento</span>
-          <span class="nav-item__badge">Comece aqui</span>
-        </span>
+        <span>Editar Evento</span>
       </button>
       <button class="nav-item" data-tab="grupos" role="tab">
         <span class="nav-icon">
