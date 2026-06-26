@@ -2,8 +2,8 @@
 
 - 2026-06-26: Reforcado contraste dos temas Gold Light, Silver Light e Silver.
   - Causa: os acentos dourados/prateados claros tinham contraste baixo com fundos claros, especialmente quando `primarySoft` era usado como texto, icone ou destaque.
-  - Mudanca aplicada: ajustados os tokens `primary` e `primarySoft` dos temas claros, reforcadas bordas/superficies derivadas e ajustado o acento principal do tema Silver escuro para atingir contraste minimo mais consistente. O Gold Light foi refinado para um dourado medio, menos escuro, apos revisao visual.
-  - Impacto percebido: tags, divisores, botoes, icones e textos de destaque ficam mais legiveis nos fundos claros sem alterar conteudo do convite.
+  - Mudanca aplicada: reforcados os tons prateados e ajustado o Gold Light para preservar a paleta dourada clara original, adicionando `heroLabel` dedicado para melhorar apenas o texto pequeno da hero.
+  - Impacto percebido: o Prata Claro ganha legibilidade geral, enquanto o Gold Light preserva o dourado suave e melhora especificamente o label pequeno da hero.
 
 - 2026-06-19: Corrigidas inconsistencias no wizard, landing e editor Free.
   - Causa: a validacao do link podia exigir dois cliques, o plano Free nao permitia trocar entre Dourado e Dourado Claro depois da criacao, o CTA superior da landing rolava para outro CTA e paginas extras default podiam aparecer desmarcadas no editor.
