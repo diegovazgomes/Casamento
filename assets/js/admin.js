@@ -11,6 +11,9 @@ const adminApp = document.getElementById('adminApp');
 const authForm = document.getElementById('authForm');
 const authError = document.getElementById('authError');
 const statusText = document.getElementById('statusText');
+const refreshButton = document.getElementById('refreshButton');
+const dataError = document.getElementById('dataError');
+const dataErrorText = document.getElementById('dataErrorText');
 
 const ADMIN_VIEW_LABELS = {
   resumo: 'Painel admin',
@@ -25,6 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
   authForm?.addEventListener('submit', handleLogin);
   document.getElementById('logoutButton')?.addEventListener('click', handleLogout);
   document.getElementById('refreshButton')?.addEventListener('click', loadAdminData);
+  document.getElementById('retryButton')?.addEventListener('click', loadAdminData);
   setupAdminNavigation();
   initializeAdmin();
 });
@@ -173,6 +177,8 @@ async function fetchAdminAction(action) {
 
 async function loadAdminData() {
   setStatus('Carregando dados...');
+  setDataError('');
+  setLoading(true);
 
   try {
     const [overview, acquisition, productUsage] = await Promise.all([
@@ -193,8 +199,28 @@ async function loadAdminData() {
       setAuthError(error.message || 'Acesso administrativo não autorizado.');
       return;
     }
-    setStatus(error.message || 'Erro ao carregar dados.');
+    setStatus('Não foi possível atualizar os dados.');
+    setDataError(error.message || 'Erro ao carregar dados.');
+  } finally {
+    setLoading(false);
   }
+}
+
+function setLoading(isLoading) {
+  if (adminApp) {
+    adminApp.classList.toggle('is-loading', isLoading);
+    adminApp.setAttribute('aria-busy', String(isLoading));
+  }
+  if (refreshButton) {
+    refreshButton.disabled = isLoading;
+    refreshButton.textContent = isLoading ? 'Atualizando…' : 'Atualizar';
+  }
+}
+
+function setDataError(message) {
+  if (!dataError) return;
+  if (dataErrorText) dataErrorText.textContent = message || 'Não foi possível carregar os dados.';
+  dataError.hidden = !message;
 }
 
 function setupAdminNavigation() {
@@ -303,16 +329,16 @@ function renderOverview(data) {
   renderRows('latestAccountsBody', 'latestAccountsEmpty', data.latestAccounts, (account) => `
     <tr>
       <td><span class="strong">${escapeHtml(account.coupleName)}</span></td>
-      <td>${escapeHtml(account.email)}</td>
-      <td><span class="pill">${escapeHtml(account.plan)}</span></td>
+      <td>${renderEmail(account.email)}</td>
+      <td><span class="${pillClass(account.plan)}">${escapeHtml(account.plan)}</span></td>
       <td>${formatDate(account.createdAt)}</td>
     </tr>
   `);
 
   renderRows('latestPaymentsBody', 'latestPaymentsEmpty', data.latestPayments, (payment) => `
     <tr>
-      <td><span class="pill">${escapeHtml(payment.plan)}</span></td>
-      <td><span class="strong">${formatMoney(payment.amountTotal, payment.currency)}</span></td>
+      <td><span class="${pillClass(payment.plan)}">${escapeHtml(payment.plan)}</span></td>
+      <td class="num"><span class="strong">${formatMoney(payment.amountTotal, payment.currency)}</span></td>
       <td>${formatDate(payment.processedAt)}</td>
     </tr>
   `);
@@ -320,10 +346,10 @@ function renderOverview(data) {
   renderRows('latestEventsBody', 'latestEventsEmpty', data.latestEvents, (event) => `
     <tr>
       <td><span class="strong">${escapeHtml(event.couple_names || 'Sem nome')}</span></td>
-      <td>${escapeHtml(event.slug || '-')}</td>
+      <td>${renderSlug(event.slug)}</td>
       <td>${escapeHtml(event.active_theme || '-')}</td>
       <td>${escapeHtml(event.active_layout || '-')}</td>
-      <td><span class="pill">${event.is_active ? 'ativo' : 'inativo'}</span></td>
+      <td><span class="${pillClass(event.is_active ? 'ativo' : 'inativo')}">${event.is_active ? 'ativo' : 'inativo'}</span></td>
     </tr>
   `);
 }
@@ -361,8 +387,8 @@ function renderAcquisition(overview, acquisition) {
     funnelBody.innerHTML = funnelRows.map((row) => `
       <tr>
         <td>${escapeHtml(row.label)}</td>
-        <td><span class="strong">${formatNumber(row.count)}</span></td>
-        <td>${formatPercent(row.conversion)}</td>
+        <td class="num"><span class="strong">${formatNumber(row.count)}</span></td>
+        <td class="num">${formatPercent(row.conversion)}</td>
       </tr>
     `).join('');
   }
@@ -389,7 +415,7 @@ function renderProductUsage(data) {
     body.innerHTML = featureRows.map((row) => `
       <tr>
         <td>${escapeHtml(row.label)}</td>
-        <td><span class="strong">${formatNumber(row.value)}</span></td>
+        <td class="num"><span class="strong">${formatNumber(row.value)}</span></td>
       </tr>
     `).join('');
   }
@@ -402,7 +428,7 @@ function renderSimpleMetricRows(bodyId, rows, labelKey, valueKey) {
     ? rows.map((row) => `
       <tr>
         <td>${escapeHtml(row[labelKey])}</td>
-        <td><span class="strong">${formatNumber(row[valueKey])}</span></td>
+        <td class="num"><span class="strong">${formatNumber(row[valueKey])}</span></td>
       </tr>
     `).join('')
     : '<tr><td colspan="2">Nenhum dado encontrado.</td></tr>';
@@ -415,13 +441,18 @@ function renderBarRows(bodyId, rows) {
   const total = rows.reduce((sum, row) => sum + (Number(row.count) || 0), 0);
   body.innerHTML = rows.length
     ? rows.map((row) => {
-      const share = total > 0 ? (Number(row.count) / total) * 100 : 0;
+      const count = Number(row.count) || 0;
+      const share = total > 0 ? (count / total) * 100 : 0;
+      const width = share > 0 ? Math.max(2, share) : 0;
       return `
         <tr>
           <td>${escapeHtml(row.value)}</td>
-          <td><span class="strong">${formatNumber(row.count)}</span></td>
+          <td class="num"><span class="strong">${formatNumber(count)}</span></td>
           <td>
-            <div class="bar-track"><div class="bar-fill" style="width:${Math.max(4, share)}%"></div></div>
+            <div class="bar-wrap">
+              <div class="bar-track"><div class="bar-fill" style="width:${width}%"></div></div>
+              <span class="bar-pct">${Math.round(share)}%</span>
+            </div>
           </td>
         </tr>
       `;
@@ -510,6 +541,29 @@ function roundPercent(value) {
 
 function formatPercent(value) {
   return `${formatNumber(value)}%`;
+}
+
+function pillClass(value) {
+  const v = String(value || '').trim().toLowerCase();
+  if (!v) return 'pill';
+  if (v.includes('inativ')) return 'pill pill--inactive';
+  if (v === 'ativo' || v.startsWith('ativ')) return 'pill pill--active';
+  if (v.includes('premium')) return 'pill pill--premium';
+  if (v.includes('demo')) return 'pill pill--demo';
+  if (v.includes('free') || v.includes('gratu')) return 'pill pill--free';
+  return 'pill';
+}
+
+function renderEmail(email) {
+  const value = String(email || '').trim();
+  if (!value) return '-';
+  return `<a class="cell-link" href="mailto:${encodeURIComponent(value)}">${escapeHtml(value)}</a>`;
+}
+
+function renderSlug(slug) {
+  const value = String(slug || '').trim();
+  if (!value) return '-';
+  return `<a class="cell-link" href="/${encodeURIComponent(value)}" target="_blank" rel="noopener noreferrer">${escapeHtml(value)}</a>`;
 }
 
 function escapeHtml(value) {
