@@ -3,7 +3,7 @@
 - 2026-06-26: Reforcado contraste dos temas Gold Light, Silver Light e Silver.
   - Causa: os acentos dourados/prateados claros tinham contraste baixo com fundos claros, especialmente quando `primarySoft` era usado como texto, icone ou destaque.
   - Mudanca aplicada: reforcados os tons prateados e escurecida a familia dourada do Gold Light em cerca de 7%, sem criar novos tokens ou alterar estrutura.
-  - Impacto percebido: o Prata Claro ganha legibilidade geral, enquanto o Gold Light preserva o dourado suave com um pouco mais de leitura em detalhes claros.
+  - Impacto percebido: o Prata Claro ganha legibilidade geral, enquanto o Gold Light preserva o dourado suave com um pouco mais de leitura em detalhes claros
 
 - 2026-06-19: Corrigidas inconsistencias no wizard, landing e editor Free.
   - Causa: a validacao do link podia exigir dois cliques, o plano Free nao permitia trocar entre Dourado e Dourado Claro depois da criacao, o CTA superior da landing rolava para outro CTA e paginas extras default podiam aparecer desmarcadas no editor.
