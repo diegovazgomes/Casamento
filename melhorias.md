@@ -1,9 +1,9 @@
 # Correções recentes
 
-- 2026-06-28: Reforçada cobertura fullscreen da tela de carregamento.
-  - Causa: em navegadores mobile, especialmente com barras do Chrome recolhendo ou expandindo, a loading screen podia deixar uma faixa inferior do convite visível.
-  - Mudança aplicada: `html.ls-pending::before`, `.loading-screen` e `.loading-backdrop` passaram a usar dimensões robustas com `100vh` e `100dvh`, mantendo o z-index atual e sem alterar a lógica de carregamento.
-  - Impacto percebido: ao voltar de páginas extras para o convite principal, a tela de carregamento cobre a viewport inteira com menos risco de vazamento visual no rodapé.
+- 2026-06-28: Reforçada cobertura inicial e fullscreen da tela de carregamento.
+  - Causa: em algumas navegações, o fallback visual podia ser pintado antes do módulo inserir a loading screen; em mobile, mudanças da barra do Chrome também podiam expor uma faixa inferior.
+  - Mudança aplicada: o guard `ls-pending` passou a nascer no bootstrap síncrono do `<head>`, e `html.ls-pending::before`, `.loading-screen` e `.loading-backdrop` usam dimensões robustas com `100vh` e `100dvh`.
+  - Impacto percebido: ao voltar de páginas extras para o convite principal, o fallback fica coberto antes da tela de carregamento real aparecer e durante mudanças de viewport no mobile.
 
 - 2026-06-26: Reforcado contraste dos temas Gold Light, Silver Light e Silver.
   - Causa: os acentos dourados/prateados claros tinham contraste baixo com fundos claros, especialmente quando `primarySoft` era usado como texto, icone ou destaque.

@@ -1,5 +1,7 @@
 (function () {
     try {
+        document.documentElement.classList.add('ls-pending');
+
         const colors = JSON.parse(sessionStorage.getItem('ls-theme-colors') || 'null');
         if (colors && colors.bg && colors.text && colors.primary) {
             const root = document.documentElement;
@@ -14,7 +16,6 @@
             if (couple && couple.first && couple.second) {
                 window.__LS_COUPLE_DATA__ = couple;
             }
-            document.documentElement.classList.add('ls-pending');
         }
 
         const plan = window.__INVITATION_BOOTSTRAP__?.plan;
