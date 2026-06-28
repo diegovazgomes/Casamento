@@ -1,25 +1,15 @@
 {
-  "activeLayout": "classic",
+  "activeLayout": "editorial",
   "rsvp": {
     "eventId": "siannah-diego-2026",
     "supabaseEnabled": true
   },
-  "activeTheme": "assets/layouts/classic/themes/classic-gold.json",
-  "themeFiles": [
-    "assets/config/themes/classic-gold.json",
-    "assets/config/themes/classic-gold-light.json",
-    "assets/config/themes/classic-silver.json",
-    "assets/config/themes/classic-silver-light.json",
-    "assets/config/themes/classic-purple.json",
-    "assets/config/themes/classic-blue.json",
-    "assets/config/themes/classic-green-light.json",
-    "assets/layouts/classic/themes/classic-gold.json",
-    "assets/layouts/classic/themes/classic-gold-light.json",
-    "assets/layouts/classic/themes/classic-silver.json",
-    "assets/layouts/classic/themes/classic-silver-light.json",
-    "assets/layouts/classic/themes/classic-purple.json",
-    "assets/layouts/classic/themes/classic-blue.json"
-  ],
+  "analytics": {
+    "enabled": true,
+    "requireGuestToken": true,
+    "trackPageDuration": true
+  },
+  "activeTheme": "gold",
   "couple": {
     "names": "Noiva & Noivo",
     "subtitle": "Um momento pensado para viver ao lado de quem faz parte da nossa vida"
@@ -32,9 +22,22 @@
     "weekday": "Domingo",
     "time": "17:00",
     "timezone": "Horário de Brasília",
-    "locationName": "Mansão Ilha de Capri",
-    "locationCity": "São Bernardo do Campo",
-    "mapsLink": "https://www.google.com/maps/dir//Ilha+de+Capri+Buffet+Eventos,+Rodovia+Anchieta,+SP-150,+km+28+-+Vila+Balnearia,+S%C3%A3o+Bernardo+do+Campo+-+SP,+09822-250/@-23.6611535,-46.6029821,15z/data=!4m8!4m7!1m0!1m5!1m1!1s0x94ce41794f164f17:0x93eaef9188424c1b!2m2!1d-46.535788!2d-23.767335?entry=ttu&g_ep=EgoyMDI2MDQwMS4wIKXMDSoASAFQAw%3D%3D",
+    "ceremonyLocationName": "Igreja São José",
+    "ceremonyLocationCity": "São Bernardo do Campo",
+    "ceremonyMapsLink": "https://www.google.com/maps/dir//Par%C3%B3quia+S%C3%A3o+Jos%C3%A9,+S%C3%A3o+Bernardo+do+Campo,+SP/",
+    "ceremonyCoordinates": {
+      "lat": -23.851,
+      "lng": -46.575
+    },
+    "ceremonyAddress": "Rua da Cerimônia, 100, São Bernardo do Campo - SP",
+    "partyLocationName": "Mansão Ilha de Capri",
+    "partyLocationCity": "São Bernardo do Campo",
+    "partyMapsLink": "https://www.google.com/maps/dir//Ilha+de+Capri+Buffet+Eventos,+Rodovia+Anchieta,+SP-150,+km+28+-+Vila+Balnearia,+S%C3%A3o+Bernardo+do+Campo+-+SP,+09822-250/@-23.6611535,-46.6029821,15z/data=!4m8!4m7!1m0!1m5!1m1!1s0x94ce41794f164f17:0x93eaef9188424c1b!2m2!1d-46.535788!2d-23.767335?entry=ttu&g_ep=EgoyMDI2MDQwMS4wIKXMDSoASAFQAw%3D%3D",
+    "partyCoordinates": {
+      "lat": -23.8545,
+      "lng": -46.5797
+    },
+    "partyAddress": "Rodovia Anchieta, SP-150, km 28, São Bernardo do Campo - SP",
     "mapEnabled": true,
     "venueCoordinates": {
       "lat": -23.8545,
@@ -58,6 +61,8 @@
     "detailsIntro": "Uma celebração íntima, pensada para compartilhar esse momento com quem faz parte da nossa história.",
     "detailsDateLabel": "Data",
     "detailsTimeLabel": "Horário",
+    "detailsCeremonyLabel": "Cerimônia",
+    "detailsPartyLabel": "Festa",
     "detailsLocationLabel": "Local",
     "detailsOccasionLabel": "Ocasião",
     "detailsOccasionValue": "Cerimônia & Recepção",
@@ -86,15 +91,15 @@
     "giftPixDescription": "Se preferir, você pode nos presentear por Pix usando o QR Code ou o código abaixo.",
     "giftPixCopyLabel": "Pix copia e cola",
     "giftPixCopyButton": "Copiar código Pix",
-    "giftCardTag": "Pagamento por cartão",
-    "giftCardTitle": "Pagamento por cartão 💳",
+    "giftCardTag": "Presentear por cartão",
+    "giftCardTitle": "Presentear com cartão 💳",
     "giftCardBody": "Se preferir, você pode nos presentear através do Cartão de crédito (possibilidade de parcelamento).",
-    "giftCardPlaceholder": "Ir para link de pagamento",
+    "giftCardPlaceholder": "Ir para presentear com cartão",
     "backToHomeButton": "Voltar para o início",
     "backToExtrasButton": "Voltar para página principal",
     "giftOverlayCloseButton": "Fechar",
     "giftOverlayBackButton": "Voltar para confirmação",
-    "footerNote": "06 . 09 . 2026 | São Bernardo do Campo"
+    "footerNote": ""
   },
   "gift": {
     "pixKey": "c7806bc8-831c-4a41-8bd5-80862fe13584",
@@ -453,7 +458,7 @@
     }
   },
   "media": {
-    "heroImage": "assets/images/couple/casal.png",
+    "heroImage": "assets/images/Hero-standard.jpeg",
     "tracks": {
       "main": {
         "src": "assets/audio/main-theme.mp3",
@@ -606,12 +611,35 @@
       "enabled": true,
       "cardLabel": "Lista de Presentes",
       "cardHint": "Ver opções"
+    },
+    "traje": {
+      "enabled": true,
+      "cardLabel": "Traje & Paletas",
+      "cardHint": "Ver detalhes",
+      "content": {
+        "tag": "Traje & Paletas",
+        "title": "Dress Code",
+        "intro": "Queremos que você esteja confortável e elegante no nosso grande dia.",
+        "dresscode": "Esporte fino elegante",
+        "bridesmaidsPalette": [],
+        "groomsMenPalette": [],
+        "brideColor": { "hex": "", "name": "" },
+        "groomColor": { "hex": "", "name": "" },
+        "note": ""
+      }
     }
   },
   "whatsapp": {
     "destinationPhone": "5511949606377",
     "recipientName": "Noiva",
+    "inviteDeadline": "06 de agosto de 2026",
     "redirectDelayMs": 5000,
+    "inviteCopy": {
+      "useDefaultGroupNotice": true,
+      "useDefaultIndividualNotice": true,
+      "groupNoticeText": "Olá! Você foi convidado(a) para o casamento de {coupleNames} 🤍\n\nCompartilhe este convite com as demais pessoas do seu grupo.\n\nAntes de abrir o link, leia as informações abaixo:\n\nNo convite você vai encontrar:\n{deadlineLine}\n🎁 Lista de presentes\n📍 Detalhes do evento, traje e FAQ\n\n👉 {link}\n\nAguardamos você com muito carinho!",
+      "individualNoticeText": "Olá! Você foi convidado(a) para o casamento de {coupleNames} 🤍\n\nAntes de abrir o link, leia as informações abaixo:\n\nNo convite você vai encontrar:\n{deadlineLine}\n🎁 Lista de presentes\n📍 Detalhes do evento, traje e FAQ\n\n👉 {link}\n\nAguardamos você com muito carinho!"
+    },
     "messages": {
       "attending": "Olá, {recipientName}!\n\nAqui é {name}.\nMeu WhatsApp para contato é {phone}.\nEstou passando para confirmar minha presença no casamento.\n\nNos vemos em breve.",
       "notAttending": "Olá, {recipientName}!\n\nAqui é {name}.\nMeu WhatsApp para contato é {phone}.\nInfelizmente, não poderei estar presente no casamento.\n\nAgradeço muito pelo convite e desejo um dia lindo para vocês."

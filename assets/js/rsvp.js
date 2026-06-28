@@ -1,4 +1,7 @@
-import { saveRsvpConfirmation } from './rsvp-persistence.js';
+import { getLastSubmissionError, saveRsvpConfirmation } from './rsvp-persistence.js';
+
+const DEMO_SUBMISSIONS_BLOCKED_CODE = 'DEMO_PUBLIC_SUBMISSIONS_BLOCKED';
+const RSVP_LIMIT_REACHED_CODE = 'RSVP_LIMIT_REACHED';
 
 export function interpolateTemplate(template, values) {
     return String(template ?? '').replace(/\{(\w+)\}/g, (match, key) => values[key] ?? match);
@@ -227,6 +230,25 @@ export class RSVP {
             }).catch(() => false);
 
             if (!saved) {
+                const lastSubmissionError = getLastSubmissionError();
+                if (lastSubmissionError?.code === DEMO_SUBMISSIONS_BLOCKED_CODE) {
+                    this.renderError({
+                        title: 'Convite demonstrativo.',
+                        subtitle: lastSubmissionError.message || 'Este convite e demonstrativo. RSVP, mensagens e musicas estao desativados no exemplo.',
+                        note: ''
+                    });
+                    return;
+                }
+
+                if (lastSubmissionError?.code === RSVP_LIMIT_REACHED_CODE) {
+                    this.renderError({
+                        title: 'Confirmações encerradas.',
+                        subtitle: 'Este evento já atingiu o limite de confirmações disponíveis. Entre em contato com os noivos para mais informações.',
+                        note: ''
+                    });
+                    return;
+                }
+
                 console.warn('[rsvp] Persistência falhou. Mantendo formulário liberado para nova tentativa.');
                 this.renderError({
                     title: 'Não foi possível registrar sua confirmação agora.',

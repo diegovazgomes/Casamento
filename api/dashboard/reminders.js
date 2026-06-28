@@ -24,13 +24,13 @@ function getSupabaseClient() {
 export default function handler(req, res) {
   // CORS
   if (req.method === 'OPTIONS') {
-    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Origin', process.env.ALLOWED_ORIGIN || 'https://devazi.app');
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
     return res.status(200).end();
   }
 
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Origin', process.env.ALLOWED_ORIGIN || 'https://devazi.app');
   res.setHeader('Content-Type', 'application/json');
 
   if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
@@ -111,7 +111,7 @@ async function handleSendReminder(req, res) {
       }
     } else {
       // Se Twilio não está configurado, apenas logar como enviado
-      console.log('[reminders] Twilio not configured, logging reminder only');
+      console.warn('[reminders] Twilio not configured, logging reminder only');
       sendStatus = 'sent';
     }
 
@@ -189,7 +189,6 @@ async function sendViaWhatsApp(phone, message, accountSid, authToken, phoneFrom)
       throw new Error(data.message || 'Twilio API error');
     }
 
-    console.log('[reminders] Message sent:', data.sid);
     return 'sent';
   } catch (error) {
     console.error('[reminders] Twilio send error:', error);

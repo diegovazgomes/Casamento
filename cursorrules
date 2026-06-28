@@ -30,6 +30,8 @@ Antes de escrever qualquer linha de código, responda mentalmente:
 
 Se qualquer resposta for NÃO, ajuste antes de implementar.
 
+Se a mudança exigir tocar algo que não foi explicitamente solicitado, pare e pergunte ao usuário como ele quer proceder antes de alterar.
+
 ---
 
 ## 1. ESCALABILIDADE — SEMPRE
@@ -135,7 +137,7 @@ Este é um ponto crítico. Erros de espaçamento destroem a experiência premium
 
 3. Nunca deixar `console.log()` de debug no código final. Usar `console.warn()` para avisos reais.
 
-4. Sempre evitar quebrar código ou fazer alterações de algo que não tenha sido solicitado para aquela modificação
+4. Sempre evitar quebrar código ou fazer alterações de algo que não tenha sido solicitado para aquela modificação. Se houver chance de sair do escopo, parar e perguntar ao usuário como ele quer seguir antes de mudar.
 
 5. Sempre que implementar uma alteração, seja sucinto mas preciso com ao informar o que foi feito, por último sempre explane como essa modificalção pode ser percebida e como testá-la.
 

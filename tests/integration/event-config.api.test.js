@@ -58,6 +58,10 @@ describe('GET /api/event-config', () => {
   beforeEach(() => {
     vi.resetModules();
     createClientMock.mockReset();
+    delete process.env.UPSTASH_REDIS_REST_URL;
+    delete process.env.UPSTASH_REDIS_REST_TOKEN;
+    delete process.env.KV_REST_API_URL;
+    delete process.env.KV_REST_API_TOKEN;
     process.env.SUPABASE_URL = 'https://example.supabase.co';
     process.env.SUPABASE_SERVICE_ROLE_KEY = 'service-role-key';
   });
@@ -134,11 +138,11 @@ describe('GET /api/event-config', () => {
           content: {
             gallery: [
               {
-                src: 'https://cdn.example.com/event-1/gallery/1712400012345-foto-cerimonia.jpg',
+                src: 'https://cdn.example.com/ana-leo-2026/gallery/1712400012345-foto-cerimonia.jpg',
                 alt: 'Foto cerimonia',
               },
               {
-                src: 'https://cdn.example.com/event-1/gallery/1712400012350-foto-festa.png',
+                src: 'https://cdn.example.com/ana-leo-2026/gallery/1712400012350-foto-festa.png',
                 alt: 'Foto festa',
               },
             ],
@@ -207,6 +211,136 @@ describe('GET /api/event-config', () => {
 
     expect(res.statusCode).toBe(400);
     expect(res.body).toEqual({ error: 'slug is required' });
+  });
+
+  it('checks slug availability when mode=check-slug and slug is missing', async () => {
+    const { default: handler } = await import('../../api/event-config.js');
+    const res = createMockResponse();
+
+    await handler({ method: 'GET', query: { mode: 'check-slug' }, headers: {} }, res);
+
+    expect(res.statusCode).toBe(400);
+    expect(res.body).toMatchObject({
+      available: false,
+      reason: 'invalid_format',
+    });
+  });
+
+  it('checks slug availability when mode=check-slug and slug is reserved', async () => {
+    createClientMock.mockReturnValue({
+      from: vi.fn(),
+      storage: createStorageMock(),
+    });
+
+    const { default: handler } = await import('../../api/event-config.js');
+    const res = createMockResponse();
+
+    await handler({ method: 'GET', query: { mode: 'check-slug', slug: 'dashboard' }, headers: {} }, res);
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body).toEqual({
+      available: false,
+      reason: 'reserved',
+      slug: 'dashboard',
+    });
+  });
+
+  it('checks slug availability when mode=check-slug and slug is free', async () => {
+    const queryBuilder = createQueryBuilder({ data: null, error: null });
+    createClientMock.mockReturnValue({
+      from: vi.fn(() => queryBuilder),
+      storage: createStorageMock(),
+    });
+
+    const { default: handler } = await import('../../api/event-config.js');
+    const res = createMockResponse();
+
+    await handler({ method: 'GET', query: { mode: 'check-slug', slug: 'novo-casal-2026' }, headers: {} }, res);
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body).toEqual({
+      available: true,
+      reason: 'available',
+      slug: 'novo-casal-2026',
+    });
+  });
+
+  it('checks slug availability when mode=check-slug and slug is already taken', async () => {
+    const queryBuilder = createQueryBuilder({ data: { id: 'event-1', slug: 'ana-leo-2026' }, error: null });
+    createClientMock.mockReturnValue({
+      from: vi.fn(() => queryBuilder),
+      storage: createStorageMock(),
+    });
+
+    const { default: handler } = await import('../../api/event-config.js');
+    const res = createMockResponse();
+
+    await handler({ method: 'GET', query: { mode: 'check-slug', slug: 'ana-leo-2026' }, headers: {} }, res);
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body).toEqual({
+      available: false,
+      reason: 'taken',
+      slug: 'ana-leo-2026',
+    });
+  });
+
+  it('checks slug availability when mode=check-slug and current slug matches', async () => {
+    const queryBuilder = createQueryBuilder({ data: { id: 'event-1', slug: 'ana-leo-2026' }, error: null });
+    createClientMock.mockReturnValue({
+      from: vi.fn(() => queryBuilder),
+      storage: createStorageMock(),
+    });
+
+    const { default: handler } = await import('../../api/event-config.js');
+    const res = createMockResponse();
+
+    await handler({
+      method: 'GET',
+      query: { mode: 'check-slug', slug: 'ana-leo-2026', currentSlug: 'ana-leo-2026' },
+      headers: {},
+    }, res);
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body).toEqual({
+      available: true,
+      reason: 'available',
+      slug: 'ana-leo-2026',
+    });
+  });
+
+  it('checks slug availability when mode=check-slug and rate limit is exceeded', async () => {
+    const queryBuilder = createQueryBuilder({ data: null, error: null });
+    createClientMock.mockReturnValue({
+      from: vi.fn(() => queryBuilder),
+      storage: createStorageMock(),
+    });
+
+    const { default: handler } = await import('../../api/event-config.js');
+
+    for (let index = 0; index < 30; index += 1) {
+      const res = createMockResponse();
+      await handler({
+        method: 'GET',
+        query: { mode: 'check-slug', slug: `casal-${index + 1}` },
+        headers: { 'x-forwarded-for': '203.0.113.11' },
+      }, res);
+      expect(res.statusCode).toBe(200);
+    }
+
+    const blockedRes = createMockResponse();
+    await handler({
+      method: 'GET',
+      query: { mode: 'check-slug', slug: 'casal-31' },
+      headers: { 'x-forwarded-for': '203.0.113.11' },
+    }, blockedRes);
+
+    expect(blockedRes.statusCode).toBe(429);
+    expect(blockedRes.body).toMatchObject({
+      available: false,
+      reason: 'rate_limited',
+    });
+    expect(blockedRes.headers['Retry-After']).toBeTypeOf('string');
   });
 
   it('returns 404 when the slug does not exist', async () => {

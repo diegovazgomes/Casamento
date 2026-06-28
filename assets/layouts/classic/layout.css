@@ -55,7 +55,7 @@
 
 .hero-label {
     margin-bottom: var(--hero-label-gap);
-    color: var(--gold-light);
+    color: var(--hero-label-color, var(--gold-light));
     font-family: var(--typo-heroSubtitle-family);
     font-size: var(--typo-heroSubtitle-size);
     font-weight: var(--typo-heroSubtitle-weight);
@@ -128,6 +128,7 @@
     font-size: var(--scroll-hint-text-size);
     letter-spacing: 0.32em;
     text-transform: uppercase;
+    color: var(--color-text);
 }
 
 .scroll-hint:focus-visible {
@@ -290,9 +291,9 @@
 }
 
 .detail-card-gift {
-    grid-column: 1 / -1;
+    grid-column: auto;
     width: 100%;
-    justify-self: center;
+    justify-self: stretch;
 }
 
 .detail-icon {
@@ -1137,6 +1138,110 @@
     color: #f5b9b9;
 }
 
+/* ─── Traje & Paletas ───────────────────────────────────────────────────── */
+
+.extra-info-card {
+    width: min(100%, 760px);
+    margin: 0 auto var(--space-md);
+    padding: var(--card-padding);
+    border: 1px solid var(--color-border);
+    background: var(--color-surface);
+    border-radius: var(--radius-card);
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.extra-info-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(to right, transparent, var(--gold), transparent);
+}
+
+.extra-info-label {
+    margin-bottom: var(--space-sm);
+    color: var(--gold);
+    font-size: 9px;
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+}
+
+.extra-info-value {
+    color: var(--cream);
+    font-family: var(--font-serif);
+    font-size: clamp(18px, 3.5vw, 26px);
+    font-weight: 300;
+    line-height: 1.3;
+}
+
+.traje-color-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-sm);
+}
+
+.traje-swatch {
+    display: inline-block;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 1px solid var(--color-border);
+    flex-shrink: 0;
+}
+
+.traje-color-name {
+    color: var(--color-text-soft);
+    font-size: var(--section-body-size);
+    line-height: 1.4;
+}
+
+.traje-palette {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--space-md);
+}
+
+.traje-swatch-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-xs);
+}
+
+.traje-swatch-item .traje-swatch,
+.traje-color-item .traje-swatch {
+    min-width: 0;
+    height: auto;
+    aspect-ratio: 1 / 1;
+}
+
+.traje-swatch-item .traje-swatch {
+    width: 48px;
+}
+
+.traje-color-item .traje-swatch {
+    width: 58px;
+}
+
+.traje-color-item .traje-color-name {
+    font-size: 11px;
+}
+
+.traje-swatch-label {
+    color: var(--color-text-muted);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-align: center;
+    max-width: 72px;
+}
+
 /* ─── Hospedagem ─────────────────────────────────────────────────────────── */
 
 .hospedagem-section {
@@ -1153,7 +1258,8 @@
 
 .hospedagem-grid {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(280px, 420px));
+    justify-content: center;
     gap: var(--space-md);
     margin-bottom: var(--divider-margin-top);
 }
@@ -1218,6 +1324,153 @@
     border-color: var(--color-border-strong);
 }
 
+/* ─── Traje & Paletas ────────────────────────────────────────────────────── */
+
+.traje-section {
+    padding-inline: var(--section-padding-inline);
+    padding-block: 40px;
+}
+
+/* Remove a margem-top nativa do .divider entre seções traje,
+   pois as seções já têm padding-block simétrico de 40px.
+   Usa shorthand físico para preservar o centering "auto" inline do .divider base. */
+.traje-section + .divider {
+    margin: 0 auto;
+}
+
+.traje-group-title {
+    color: var(--gold);
+    font-size: 9px;
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    font-weight: 400;
+    margin-bottom: 24px;
+    font-family: var(--font-primary);
+}
+
+.traje-dresscode-value {
+    color: var(--cream);
+    font-family: var(--font-serif);
+    font-size: clamp(28px, 6vw, 42px);
+    font-weight: 300;
+    line-height: 1.15;
+    text-align: center;
+}
+
+.traje-palette {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 24px 20px;
+    justify-content: center;
+    width: 100%;
+}
+
+.traje-swatch {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    width: 102px;
+}
+
+.traje-swatch-circle {
+    width: 56px;
+    height: 56px;
+    aspect-ratio: 1 / 1;
+    border-radius: 50%;
+    border: 1px solid var(--color-border);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+    flex-shrink: 0;
+}
+
+.traje-swatch-label {
+    color: var(--color-text-soft);
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    text-align: center;
+    line-height: 1.6;
+    font-family: var(--font-primary);
+}
+
+.traje-solo-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+}
+
+.traje-solo-circle {
+    width: 88px;
+    height: 88px;
+    aspect-ratio: 1 / 1;
+    border-radius: 50%;
+    border: 1px solid var(--color-border);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+    flex-shrink: 0;
+}
+
+.traje-solo-label {
+    color: var(--color-text-soft);
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    text-align: center;
+    line-height: 1.6;
+    font-family: var(--font-primary);
+}
+
+.traje-note-eyebrow {
+    display: block;
+    text-align: center;
+    font-size: 9px;
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    color: var(--gold);
+    font-family: var(--font-primary);
+    margin-bottom: 24px;
+}
+
+.traje-note-card {
+    max-width: 560px;
+    margin-inline: auto;
+    padding: 40px 48px;
+    border-top: 1px solid var(--color-border);
+    border-bottom: 1px solid var(--color-border);
+    text-align: center;
+}
+
+.traje-note-body {
+    font-family: var(--font-serif);
+    font-size: var(--section-body-size);
+    font-weight: 300;
+    font-style: italic;
+    line-height: 1.9;
+    color: var(--cream);
+    margin: 0;
+}
+
+.traje-note-body::before,
+.traje-note-body::after {
+    display: block;
+    font-family: var(--font-serif);
+    font-size: 52px;
+    line-height: 0.85;
+    color: var(--gold);
+    opacity: 0.35;
+    font-style: normal;
+}
+
+.traje-note-body::before {
+    content: '\201C';
+    margin-bottom: 16px;
+}
+
+.traje-note-body::after {
+    content: '\201D';
+    margin-top: 16px;
+}
+
 /* ─── Galeria de Fotos ───────────────────────────────────────────────────── */
 
 .historia-gallery-section {
@@ -1235,7 +1488,7 @@
     border-radius: var(--radius-card);
     border: 1px solid var(--color-border);
     background: var(--color-surface);
-    aspect-ratio: 4 / 3;
+    aspect-ratio: 3 / 4;
     touch-action: pan-y;
 }
 
@@ -1387,6 +1640,31 @@
 /* ─── Responsive: layout-specific ───────────────────────────────────────── */
 
 @media (max-width: 640px) {
+    .traje-swatch-circle {
+        width: 48px;
+        height: 48px;
+        aspect-ratio: 1 / 1;
+    }
+
+    .traje-solo-circle {
+        width: 72px;
+        height: 72px;
+        aspect-ratio: 1 / 1;
+    }
+
+    .traje-note-card {
+        padding: 32px 24px;
+    }
+
+    .traje-palette {
+        gap: 20px 8px;
+    }
+
+    .traje-swatch {
+        width: 56px;
+        min-width: 56px;
+    }
+
     .gift-main {
         padding-top: max(28px, env(safe-area-inset-top));
     }
@@ -1544,8 +1822,49 @@
 }
 
 @media (min-width: 768px) {
+    .hero.hero--cover-photo .hero-photo {
+        object-fit: cover;
+        object-position: center top;
+    }
+
+    .hero.hero--full-photo {
+        align-items: flex-end;
+        padding-bottom: 72px;
+    }
+
+    .hero.hero--full-photo .hero-photo {
+        object-fit: contain;
+        object-position: center center;
+        background: var(--color-bg, #0e0d0b);
+    }
+
+    .hero.hero--full-photo .hero-overlay {
+        background: var(--hero-overlay-gradient);
+    }
+
+    .hero.hero--full-photo .hero-content {
+        width: min(92vw, var(--hero-photo-render-width, 760px));
+        padding-bottom: max(calc(var(--hero-content-padding-bottom) + 34px), calc(var(--scroll-hint-bottom) + var(--scroll-arrow-height) + 24px));
+    }
+
+    .hero.hero--full-photo .hero-label {
+        font-size: clamp(8px, calc(var(--hero-label-size) * var(--hero-photo-text-scale, 1)), 14px);
+    }
+
+    .hero.hero--full-photo .hero-names {
+        font-size: clamp(
+            calc(var(--hero-name-min) * var(--hero-photo-text-scale, 1)),
+            calc(var(--hero-name-fluid) * var(--hero-photo-text-scale, 1)),
+            calc(var(--hero-name-max) * var(--hero-photo-text-scale, 1))
+        );
+    }
+
+    .hero.hero--full-photo .hero-date {
+        font-size: clamp(9px, calc(var(--hero-date-size) * var(--hero-photo-text-scale, 1)), 15px);
+    }
+
     .detail-card-gift {
-        max-width: calc((100% - var(--details-grid-gap)) / 2);
+        max-width: none;
     }
 
     .detail-card-link:hover {
@@ -1579,7 +1898,7 @@
     }
 
     .gallery-track {
-        aspect-ratio: 1 / 1;
+        aspect-ratio: 3 / 4;
     }
 
     .gallery-nav {

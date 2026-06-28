@@ -1,3 +1,7 @@
+const AUDIO_START_VOLUME_FACTOR = 0.05;
+const AUDIO_FADE_IN_DURATION_MS = 6500;
+const AUDIO_FIRST_PLAY_AUDIBLE_DELAY_MS = 1800;
+
 export class AudioController extends EventTarget {
     constructor(trackConfig = {}) {
         super();
@@ -7,6 +11,9 @@ export class AudioController extends EventTarget {
         this.userPaused = false;
         this.lastError = null;
         this.fadeFrameId = null;
+        this.fadeResolve = null;
+        this.audioContext = null;
+        this.audioOutputNodes = new WeakMap();
         this.tracks = Object.fromEntries(
             Object.entries(trackConfig).map(([key, definition]) => [
                 key,
@@ -19,9 +26,11 @@ export class AudioController extends EventTarget {
     }
 
     createAudioElement(src) {
-        const audio = new Audio(src);
+        const audio = new Audio();
+        audio.crossOrigin = 'anonymous';
+        audio.src = src;
         audio.loop = true;
-        audio.preload = 'none';
+        audio.preload = 'metadata';
         audio.volume = 0;
 
         audio.addEventListener('error', () => {
@@ -65,6 +74,122 @@ export class AudioController extends EventTarget {
         return startTime;
     }
 
+    getTrackVolume(trackKey) {
+        const trackVolume = Number(this.tracks[trackKey]?.volume ?? 0.12);
+
+        if (!Number.isFinite(trackVolume)) {
+            return 0.12;
+        }
+
+        return Math.max(0, Math.min(trackVolume, 1));
+    }
+
+    getStartFadeVolume(targetVolume) {
+        if (targetVolume <= 0) {
+            return 0;
+        }
+
+        return Math.max(0, Math.min(targetVolume * AUDIO_START_VOLUME_FACTOR, targetVolume));
+    }
+
+    getAudioContext() {
+        if (this.audioContext) {
+            return this.audioContext;
+        }
+
+        const AudioContextConstructor = window.AudioContext || window.webkitAudioContext;
+
+        if (!AudioContextConstructor) {
+            return null;
+        }
+
+        try {
+            this.audioContext = new AudioContextConstructor();
+            return this.audioContext;
+        } catch {
+            return null;
+        }
+    }
+
+    ensureAudioOutput(audio, initialVolume = 0) {
+        if (!audio) {
+            return null;
+        }
+
+        const existing = this.audioOutputNodes.get(audio);
+
+        if (existing) {
+            return existing;
+        }
+
+        const context = this.getAudioContext();
+
+        if (!context) {
+            return null;
+        }
+
+        try {
+            const source = context.createMediaElementSource(audio);
+            const gain = context.createGain();
+            gain.gain.value = this.clampVolume(initialVolume);
+            source.connect(gain);
+            gain.connect(context.destination);
+            const output = { context, gain };
+            this.audioOutputNodes.set(audio, output);
+            audio.volume = 1;
+            return output;
+        } catch {
+            return null;
+        }
+    }
+
+    async resumeAudioContext() {
+        const context = this.audioContext;
+
+        if (!context || context.state !== 'suspended') {
+            return;
+        }
+
+        try {
+            await context.resume();
+        } catch {
+        }
+    }
+
+    clampVolume(volume) {
+        const normalizedVolume = Number(volume);
+
+        if (!Number.isFinite(normalizedVolume)) {
+            return 0;
+        }
+
+        return Math.max(0, Math.min(normalizedVolume, 1));
+    }
+
+    getOutputVolume(audio) {
+        const output = this.audioOutputNodes.get(audio);
+
+        if (output) {
+            return output.gain.gain.value;
+        }
+
+        return this.clampVolume(audio?.volume ?? 0);
+    }
+
+    setOutputVolume(audio, volume) {
+        const nextVolume = this.clampVolume(volume);
+        const output = this.audioOutputNodes.get(audio);
+
+        if (output) {
+            output.gain.gain.value = nextVolume;
+            return;
+        }
+
+        if (audio) {
+            audio.volume = nextVolume;
+        }
+    }
+
     hasMetadata(audio) {
         return audio.readyState >= HTMLMediaElement.HAVE_METADATA || Number.isFinite(audio.duration);
     }
@@ -79,14 +204,66 @@ export class AudioController extends EventTarget {
         return Math.min(normalizedTime, audio.duration);
     }
 
-    async ensureMetadataAndSeek(audio, time) {
-        const applySeek = () => {
+    trySeek(audio, time) {
+        try {
             audio.currentTime = this.clampTime(audio, time);
+            return true;
+        } catch {
+            return false;
+        }
+    }
+
+    async waitForSeekToSettle(audio, timeout = 1400) {
+        if (!audio?.seeking) {
+            return;
+        }
+
+        await new Promise((resolve) => {
+            let settled = false;
+
+            const finish = () => {
+                if (settled) {
+                    return;
+                }
+
+                settled = true;
+                window.clearTimeout(timeoutId);
+                audio.removeEventListener('seeked', finish);
+                audio.removeEventListener('error', finish);
+                resolve();
+            };
+
+            const timeoutId = window.setTimeout(finish, timeout);
+
+            audio.addEventListener('seeked', finish, { once: true });
+            audio.addEventListener('error', finish, { once: true });
+        });
+    }
+
+    async waitForFirstAudibleStart(startedAt, delay) {
+        const normalizedDelay = Math.max(Number(delay) || 0, 0);
+        const elapsed = performance.now() - startedAt;
+        const remaining = normalizedDelay - elapsed;
+
+        if (remaining <= 0) {
+            return;
+        }
+
+        await new Promise((resolve) => {
+            window.setTimeout(resolve, remaining);
+        });
+    }
+
+    async ensureMetadataAndSeek(audio, time, options = {}) {
+        const metadataTimeout = Number(options.metadataTimeout ?? 1200);
+        const applySeek = () => {
+            return this.trySeek(audio, time);
         };
 
         if (this.hasMetadata(audio)) {
-            applySeek();
-            return;
+            const applied = applySeek();
+            await this.waitForSeekToSettle(audio);
+            return applied;
         }
 
         await new Promise((resolve) => {
@@ -105,7 +282,7 @@ export class AudioController extends EventTarget {
                 resolve();
             };
 
-            const timeoutId = window.setTimeout(finish, 1200);
+            const timeoutId = window.setTimeout(finish, metadataTimeout);
 
             audio.addEventListener('loadedmetadata', finish, { once: true });
             audio.addEventListener('durationchange', finish, { once: true });
@@ -113,22 +290,22 @@ export class AudioController extends EventTarget {
             audio.load();
         });
 
-        try {
-            applySeek();
-        } catch {
+        const applied = applySeek();
+
+        if (!applied) {
             const retrySeek = () => {
                 audio.removeEventListener('loadedmetadata', retrySeek);
                 audio.removeEventListener('durationchange', retrySeek);
 
-                try {
-                    applySeek();
-                } catch {
-                }
+                applySeek();
             };
 
             audio.addEventListener('loadedmetadata', retrySeek, { once: true });
             audio.addEventListener('durationchange', retrySeek, { once: true });
         }
+
+        await this.waitForSeekToSettle(audio);
+        return applied;
     }
 
     async unlock() {
@@ -136,7 +313,9 @@ export class AudioController extends EventTarget {
         this.emitState();
     }
 
-    async startFromGesture(trackKey) {
+    async startFromGesture(trackKey, options = {}) {
+        const startedAt = performance.now();
+        const audibleDelayMs = Number(options.audibleDelayMs ?? AUDIO_FIRST_PLAY_AUDIBLE_DELAY_MS);
         const track = this.tracks[trackKey];
 
         this.readyForPlayback = true;
@@ -154,22 +333,12 @@ export class AudioController extends EventTarget {
 
         const audio = track.element;
         const targetTime = this.getTrackStartTime(trackKey);
-        const seekToStart = () => {
-            try {
-                audio.currentTime = this.clampTime(audio, targetTime);
-            } catch {
-            }
-        };
-
-        audio.volume = 0;
+        const targetVolume = this.getTrackVolume(trackKey);
+        this.ensureAudioOutput(audio, 0);
+        await this.resumeAudioContext();
+        this.setOutputVolume(audio, 0);
         audio.load();
-
-        if (this.hasMetadata(audio)) {
-            seekToStart();
-        } else {
-            audio.addEventListener('loadedmetadata', seekToStart, { once: true });
-            audio.addEventListener('durationchange', seekToStart, { once: true });
-        }
+        const seekPromise = this.ensureMetadataAndSeek(audio, targetTime, { metadataTimeout: 4000 });
 
         this.currentTrackKey = trackKey;
 
@@ -180,7 +349,10 @@ export class AudioController extends EventTarget {
                 await playPromise;
             }
 
-            await this.fadeVolume(audio, track.volume ?? 0.12, 420);
+            this.emitState();
+            await seekPromise;
+            await this.waitForFirstAudibleStart(startedAt, audibleDelayMs);
+            await this.fadeVolume(audio, targetVolume, AUDIO_FADE_IN_DURATION_MS);
             this.lastError = null;
             this.emitState();
             return true;
@@ -219,7 +391,11 @@ export class AudioController extends EventTarget {
         await this.fadeOutCurrent();
 
         const nextElement = track.element;
-        nextElement.volume = 0;
+        const targetVolume = this.getTrackVolume(trackKey);
+        const startVolume = this.getStartFadeVolume(targetVolume);
+        this.ensureAudioOutput(nextElement, startVolume);
+        await this.resumeAudioContext();
+        this.setOutputVolume(nextElement, startVolume);
         await this.ensureMetadataAndSeek(nextElement, this.getTrackStartTime(trackKey));
 
         const played = await this.safePlay(nextElement);
@@ -230,7 +406,8 @@ export class AudioController extends EventTarget {
         }
 
         this.currentTrackKey = trackKey;
-        await this.fadeVolume(nextElement, track.volume ?? 0.12, 420);
+        this.emitState();
+        await this.fadeVolume(nextElement, targetVolume, AUDIO_FADE_IN_DURATION_MS);
         this.emitState();
         return true;
     }
@@ -252,25 +429,40 @@ export class AudioController extends EventTarget {
             return;
         }
 
-        window.cancelAnimationFrame(this.fadeFrameId);
+        this.cancelFade();
 
         await new Promise((resolve) => {
+            this.fadeResolve = resolve;
             const startTime = performance.now();
-            const startVolume = audio.volume;
+            const startVolume = this.getOutputVolume(audio);
 
             const step = (now) => {
                 const progress = Math.min((now - startTime) / duration, 1);
-                audio.volume = startVolume + (targetVolume - startVolume) * progress;
+                this.setOutputVolume(audio, startVolume + (targetVolume - startVolume) * progress);
 
                 if (progress < 1) {
                     this.fadeFrameId = window.requestAnimationFrame(step);
                 } else {
+                    this.fadeFrameId = null;
+                    this.fadeResolve = null;
                     resolve();
                 }
             };
 
             this.fadeFrameId = window.requestAnimationFrame(step);
         });
+    }
+
+    cancelFade() {
+        if (this.fadeFrameId) {
+            window.cancelAnimationFrame(this.fadeFrameId);
+            this.fadeFrameId = null;
+        }
+
+        if (this.fadeResolve) {
+            this.fadeResolve();
+            this.fadeResolve = null;
+        }
     }
 
     async safePlay(audio) {
@@ -294,6 +486,20 @@ export class AudioController extends EventTarget {
         const currentElement = this.getCurrentElement();
 
         if (currentElement) {
+            this.cancelFade();
+            this.setOutputVolume(currentElement, 0);
+            currentElement.pause();
+        }
+
+        this.emitState();
+    }
+
+    pauseForSystem() {
+        const currentElement = this.getCurrentElement();
+
+        if (currentElement) {
+            this.cancelFade();
+            this.setOutputVolume(currentElement, 0);
             currentElement.pause();
         }
 
@@ -319,7 +525,11 @@ export class AudioController extends EventTarget {
             return false;
         }
 
-        currentElement.volume = 0;
+        const targetVolume = this.getTrackVolume(this.currentTrackKey);
+        const startVolume = this.getStartFadeVolume(targetVolume);
+        this.ensureAudioOutput(currentElement, startVolume);
+        await this.resumeAudioContext();
+        this.setOutputVolume(currentElement, startVolume);
         const played = await this.safePlay(currentElement);
 
         if (!played) {
@@ -327,7 +537,8 @@ export class AudioController extends EventTarget {
             return false;
         }
 
-        await this.fadeVolume(currentElement, this.tracks[this.currentTrackKey].volume ?? 0.12, 320);
+        this.emitState();
+        await this.fadeVolume(currentElement, targetVolume, AUDIO_FADE_IN_DURATION_MS);
         this.emitState();
         return true;
     }

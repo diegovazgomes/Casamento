@@ -165,18 +165,16 @@ create table guest_views (
   event_id text not null,
   token_id uuid references guest_tokens(id) on delete cascade,
   opened_at timestamp with time zone default now(),
-  user_agent text,
-  viewport_width int,
-  viewport_height int,
+  duration_seconds int,
   device_type varchar(20),
-  country_code varchar(2),
-  city text,
+  page_path text,
   created_at timestamp with time zone default now()
 );
 
 create index idx_views_token_id on guest_views(token_id);
 create index idx_views_event_id on guest_views(event_id);
 create index idx_views_opened_at on guest_views(opened_at desc);
+create index idx_views_page_path on guest_views(page_path);
 
 -- RLS: leitura apenas com service role (dashboard)
 alter table guest_views enable row level security;
@@ -188,6 +186,14 @@ create policy "Service role can read views"
 -- ============================================================
 -- Tabela de auditoria de lembretes enviados
 -- ============================================================
+
+-- Se guest_views ja existe em um projeto antigo, aplique:
+-- alter table guest_views
+--   add column if not exists duration_seconds int,
+--   add column if not exists device_type varchar(20),
+--   add column if not exists page_path text;
+--
+-- create index if not exists idx_views_page_path on guest_views(page_path);
 
 create table reminder_logs (
   id uuid default gen_random_uuid() primary key,

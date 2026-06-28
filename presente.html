@@ -123,8 +123,8 @@
 /* Card de presente */
 .gift-item {
   position: relative;
-  background: linear-gradient(165deg, var(--color-surface), var(--color-bg));
-  border: 1px solid var(--color-border-soft);
+  background: color-mix(in srgb, var(--color-text) 6%, var(--color-bg));
+  border: 1px solid color-mix(in srgb, var(--color-text) 12%, transparent);
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -153,7 +153,7 @@
   width: 100%;
   aspect-ratio: 4/3;
   overflow: hidden;
-  background: rgba(255,255,255,0.03);
+  background: color-mix(in srgb, var(--color-text) 6%, var(--color-bg));
   position: relative;
   flex-shrink: 0;
 }
@@ -170,19 +170,19 @@
   width: 100%; height: 100%;
   display: flex; align-items: center; justify-content: center;
   font-size: 40px; opacity: 0.3;
+  transform: translateY(8px);
 }
 
 /* Badge de categoria */
 .gift-item-badge {
   position: absolute; top: 12px; right: 12px;
-  background: rgba(10,8,6,0.75);
-  backdrop-filter: blur(8px);
-  border: 1px solid var(--color-border-soft);
+  background: var(--color-primary);
+  border: 1px solid color-mix(in srgb, var(--color-text) 12%, transparent);
   padding: 4px 10px;
   font-family: var(--font-sans);
   font-size: 8px; font-weight: 400;
   letter-spacing: 0.28em; text-transform: uppercase;
-  color: var(--color-text-dim);
+  color: var(--color-bg);
 }
 
 /* Corpo do card */
@@ -199,13 +199,13 @@
 }
 .gift-item-desc {
   font-size: 12px; font-weight: 300;
-  color: var(--color-text-dim);
+  color: color-mix(in srgb, var(--color-text) 60%, transparent);
   line-height: 1.65; letter-spacing: 0.02em;
 }
 .gift-item-price {
   font-family: var(--font-serif);
   font-size: 22px; font-weight: 400;
-  color: var(--color-primary-soft);
+  color: var(--color-primary);
   letter-spacing: 0.01em;
   margin-top: 4px;
 }
@@ -213,7 +213,7 @@
   font-family: var(--font-sans);
   font-size: 9px; font-weight: 300;
   letter-spacing: 0.18em; text-transform: uppercase;
-  color: var(--color-text-faint);
+  color: color-mix(in srgb, var(--color-text) 40%, transparent);
   margin-top: -4px;
 }
 
@@ -221,14 +221,14 @@
 .gift-item-btn {
   margin-top: auto;
   padding-top: 14px;
-  border-top: 1px solid var(--color-border-soft);
+  border-top: 1px solid color-mix(in srgb, var(--color-text) 12%, transparent);
   display: flex; align-items: center; justify-content: space-between;
   gap: 8px;
 }
 .gift-item-btn-label {
   font-size: 9px; font-weight: 400;
   letter-spacing: 0.24em; text-transform: uppercase;
-  color: var(--color-text-dim);
+  color: color-mix(in srgb, var(--color-text) 70%, transparent);
   transition: color 0.25s ease;
 }
 .gift-item:hover .gift-item-btn-label { color: var(--color-primary-soft); }
@@ -327,6 +327,7 @@
   cursor: pointer;
   transition: border-color 0.3s ease, background 0.3s ease;
   text-align: left; width: 100%;
+  text-decoration: none;
 }
 .gift-payment-opt:hover {
   border-color: var(--color-border);
@@ -357,6 +358,16 @@
   opacity: 1; transform: translateX(4px);
 }
 
+/* Opção de pagamento bloqueada (cartão desabilitado) */
+.gift-payment-opt.is-locked {
+  cursor: default;
+  opacity: 0.45;
+  pointer-events: none;
+}
+.gift-payment-opt.is-locked .gift-payment-opt-arrow {
+  display: none;
+}
+
 /* Pix inline no modal */
 .gift-pix-inline {
   display: none;
@@ -372,7 +383,7 @@
   width: 120px; height: 120px;
   margin: 0 auto 12px;
   border: 1px solid var(--color-border-soft);
-  background: rgba(255,255,255,0.03);
+  background: color-mix(in srgb, var(--color-text) 6%, var(--color-bg));
   display: flex; align-items: center; justify-content: center;
   font-size: 10px; color: var(--color-text-dim);
   letter-spacing: 0.12em;
@@ -422,8 +433,8 @@
 /* ══ PANEL: PIX DIRETO ══════════════════════════════════════════════════ */
 .gift-pix-panel { padding: 36px 0 24px; }
 .gift-pix-card {
-  background: linear-gradient(165deg, var(--color-surface), var(--color-bg));
-  border: 1px solid var(--color-border-soft);
+  background: color-mix(in srgb, var(--color-text) 6%, var(--color-bg));
+  border: 1px solid color-mix(in srgb, var(--color-text) 12%, transparent);
   padding: 32px;
   text-align: center;
   position: relative; overflow: hidden;
@@ -454,8 +465,8 @@
 /* ══ PANEL: CARTÃO ═══════════════════════════════════════════════════════ */
 .gift-card-panel-wrap { padding: 36px 0 24px; }
 .gift-card-box {
-  background: linear-gradient(165deg, var(--color-surface), var(--color-bg));
-  border: 1px solid var(--color-border-soft);
+  background: color-mix(in srgb, var(--color-text) 6%, var(--color-bg));
+  border: 1px solid color-mix(in srgb, var(--color-text) 12%, transparent);
   padding: 32px; text-align: center;
   position: relative; overflow: hidden;
 }
@@ -539,8 +550,10 @@
   .gift-grid-list { grid-template-columns: 1fr; }
 }
 </style>
+<script src="assets/js/loading-head-bootstrap.js"></script>
+<script type="module" src="assets/js/loading-init.js"></script>
 </head>
-<body class="gift-page">
+<body class="extra-page gift-page">
 
 <!-- Toast de feedback -->
 <div class="gift-toast" id="giftToast"></div>
@@ -571,7 +584,7 @@
         <a class="gift-payment-opt" id="giftOptLink" href="#" target="_blank" rel="noopener noreferrer" style="display:none">
           <span class="gift-payment-opt-icon">🛒</span>
           <span class="gift-payment-opt-text">
-            <span class="gift-payment-opt-label" id="giftOptLinkLabel">Ver na loja</span>
+            <span class="gift-payment-opt-label" id="giftOptLinkLabel">Presentear com cartão</span>
             <span class="gift-payment-opt-hint" id="giftOptLinkHint">Parcelável no cartão</span>
           </span>
           <span class="gift-payment-opt-arrow">→</span>
@@ -603,8 +616,7 @@
     <span class="section-tag reveal" id="giftTag">Presente</span>
     <h1 class="section-title reveal" id="giftOverlayTitle">Para nos presentear</h1>
     <p class="section-body reveal" id="giftIntroText">
-      Sua presença já é o nosso maior presente. Mas, se desejar nos presentear de outra forma,
-      deixamos abaixo algumas opções com carinho.
+      Sua presença já é o nosso maior presente. Mas, se desejar nos presentear de outra forma, deixamos abaixo algumas opções com carinho.
     </p>
 
     <!-- Tabs -->
@@ -612,6 +624,7 @@
       <button class="gift-tab is-active" data-panel="lista" role="tab">Lista de presentes</button>
       <button class="gift-tab" data-panel="pix" role="tab">Pix direto</button>
       <button class="gift-tab" data-panel="cartao" role="tab">Cartão</button>
+      <button class="gift-tab" data-panel="externo" id="tabExternal" role="tab" hidden>Lista externa</button>
     </div>
   </section>
 
@@ -673,11 +686,11 @@
     <div class="gift-tab-panel" id="panel-cartao" role="tabpanel">
       <div class="gift-card-panel-wrap">
         <div class="gift-card-box reveal" id="giftCardPanel">
-          <span class="gift-card-box-tag" id="giftCardTag">Cartão de crédito · Parcelável</span>
-          <h2 class="gift-card-box-title" id="giftCardTitle">Pagamento por cartão</h2>
+          <span class="gift-card-box-tag" id="giftCardTag">Presentear por cartão · Parcelável</span>
+          <h2 class="gift-card-box-title" id="giftCardTitle">Presentear com cartão</h2>
           <p class="gift-card-box-desc" id="giftCardBody">
             Presenteie pelo cartão de crédito com possibilidade de parcelamento.
-            Você será redirecionado para nossa página de pagamento seguro.
+            Você será redirecionado para um link seguro para nos presentear.
           </p>
           <a
             class="gift-card-link-btn"
@@ -686,7 +699,29 @@
             target="_blank"
             rel="noopener noreferrer"
           >
-            <span id="giftCardPlaceholder">Ir para pagamento por cartão →</span>
+            <span id="giftCardPlaceholder">Ir para presentear com cartão →</span>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── PANEL: LISTA EXTERNA ────────────────────────────────────────── -->
+    <div class="gift-tab-panel" id="panel-externo" role="tabpanel" hidden>
+      <div class="gift-card-panel-wrap">
+        <div class="gift-card-box reveal" id="giftExternalPanel">
+          <span class="gift-card-box-tag" id="giftExternalTag">Lista externa</span>
+          <h2 class="gift-card-box-title" id="giftExternalTitle">Lista de presentes</h2>
+          <p class="gift-card-box-desc" id="giftExternalBody">
+            Acesse nossa lista de presentes e escolha o que quiser nos presentear.
+          </p>
+          <a
+            class="gift-card-link-btn"
+            id="btnExternalList"
+            href="#"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <span id="giftExternalLabel">Ver lista completa →</span>
           </a>
         </div>
       </div>
@@ -705,340 +740,11 @@
 
 <footer>
   <div class="footer-names" id="mainFooterNames"></div>
-  <p class="footer-note" id="mainFooterNote">06 . 09 . 2026 | São Bernardo do Campo</p>
-</footer>
-
+  <p class="footer-note" id="mainFooterNote"></p>
 <script type="module" src="assets/js/script.js"></script>
 <script type="module" src="assets/js/presente.js"></script>
 
-<script>
-const DEFAULT_HONEYMOON_ITEMS = [
-  { id: 'taxas-embarque', name: 'Taxas de Embarque', desc: 'Ajuda com taxas e bagagens da viagem.', amount: 140.00, category: 'Lua de Mel', icon: '🧳' },
-  { id: 'traslado-aeroporto', name: 'Traslado Aeroporto-Hotel', desc: 'Transporte seguro na chegada e saída.', amount: 200.00, category: 'Lua de Mel', icon: '🚕' },
-  { id: 'jantar-romantico', name: 'Jantar Romântico', desc: 'Um jantar especial a dois na viagem.', amount: 299.00, category: 'Lua de Mel', icon: '🍽️' },
-  { id: 'passeio-barco', name: 'Passeio de Barco', desc: 'Experiência inesquecível em alto-mar.', amount: 317.00, category: 'Lua de Mel', icon: '⛵' },
-  { id: 'jantar-celebracao', name: 'Jantar de Celebração', desc: 'Noite especial para celebrar esse momento.', amount: 390.00, category: 'Lua de Mel', icon: '🥂' },
-  { id: 'spa-casal', name: 'Spa para o Casal', desc: 'Momento de relaxamento durante a lua de mel.', amount: 470.00, category: 'Lua de Mel', icon: '🧖' },
-  { id: 'hospedagem-1-noite', name: 'Hospedagem de 1 Noite', desc: 'Contribuição para uma noite no hotel.', amount: 560.00, category: 'Lua de Mel', icon: '🏨' },
-  { id: 'tour-privativo', name: 'Tour Privativo', desc: 'Um dia de passeio com guia local.', amount: 650.00, category: 'Lua de Mel', icon: '🗺️' },
-  { id: 'ensaio-fotografico', name: 'Ensaio Fotográfico', desc: 'Registro do nosso começo em viagem.', amount: 740.00, category: 'Lua de Mel', icon: '📸' },
-  { id: 'experiencia-premium', name: 'Experiência Premium', desc: 'Uma experiência única na viagem.', amount: 820.00, category: 'Lua de Mel', icon: '✨' },
-  { id: 'passagem-aerea-casal', name: 'Passagem Aérea do Casal', desc: 'Contribuição para nossas passagens de ida.', amount: 849.00, category: 'Lua de Mel', icon: '✈️' },
-  { id: 'cota-lua-de-mel-completa', name: 'Cota Lua de Mel Completa', desc: 'Contribuição para tornar essa viagem perfeita.', amount: 999.00, category: 'Lua de Mel', icon: '💛' },
-];
-
-const DEFAULT_HOUSEHOLD_ITEMS = [
-  { id: 'jogo-panelas', name: 'Jogo de Panelas', desc: 'Para preparar muitas receitas no novo lar.', amount: 220.00, category: 'Casa', icon: '🍳' },
-  { id: 'airfryer', name: 'Airfryer', desc: 'Praticidade para o dia a dia da casa.', amount: 380.00, category: 'Casa', icon: '🍟' },
-  { id: 'liquidificador', name: 'Liquidificador', desc: 'Essencial para sucos, vitaminas e receitas.', amount: 190.00, category: 'Casa', icon: '🥤' },
-  { id: 'cafeteira', name: 'Cafeteira', desc: 'Para começar o dia com energia e carinho.', amount: 260.00, category: 'Casa', icon: '☕' },
-  { id: 'jogo-cama', name: 'Jogo de Cama', desc: 'Conforto para noites ainda mais especiais.', amount: 210.00, category: 'Casa', icon: '🛏️' },
-  { id: 'jogo-toalhas', name: 'Jogo de Toalhas', desc: 'Um mimo útil para o enxoval.', amount: 130.00, category: 'Casa', icon: '🧺' },
-  { id: 'faqueiro', name: 'Faqueiro', desc: 'Para receber visitas com elegância.', amount: 170.00, category: 'Casa', icon: '🍴' },
-  { id: 'aparelho-jantar', name: 'Aparelho de Jantar', desc: 'Para celebrar refeições em família.', amount: 320.00, category: 'Casa', icon: '🍽️' },
-  { id: 'aspirador', name: 'Aspirador de Pó', desc: 'Mais praticidade na rotina da limpeza.', amount: 450.00, category: 'Casa', icon: '🧹' },
-  { id: 'microondas', name: 'Micro-ondas', desc: 'Agilidade para refeições e aquecimentos.', amount: 590.00, category: 'Casa', icon: '🔥' },
-  { id: 'rack-sala', name: 'Rack para Sala', desc: 'Um toque especial para o cantinho da sala.', amount: 720.00, category: 'Casa', icon: '🛋️' },
-  { id: 'geladeira', name: 'Cota Geladeira', desc: 'Contribuição para um item essencial da casa.', amount: 990.00, category: 'Casa', icon: '🧊' },
-];
-
-const DEFAULT_CATALOGS = {
-  honeymoon: {
-    title: 'Lista de Lua de Mel',
-    subtitle: 'Sugestoes para celebrar nossa primeira viagem como casados.',
-    items: DEFAULT_HONEYMOON_ITEMS,
-  },
-  home: {
-    title: 'Lista para Casa',
-    subtitle: 'Sugestoes para montar e deixar nosso novo lar ainda mais especial.',
-    items: DEFAULT_HOUSEHOLD_ITEMS,
-  },
-};
-
-let GIFT_ITEMS = DEFAULT_HONEYMOON_ITEMS;
-let ACTIVE_CATALOG_TITLE = 'Lista de Lua de Mel';
-let ACTIVE_CATALOG_SUBTITLE = '';
-
-function formatBRL(amount) {
-  const value = Number(amount);
-  if (!Number.isFinite(value)) {
-    return 'R$ 0,00';
-  }
-  return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-}
-
-function formatAmountForMercadoPagoParam(amount) {
-  const value = Number(amount);
-  if (!Number.isFinite(value)) {
-    return '0,00';
-  }
-  return value.toFixed(2).replace('.', ',');
-}
-
-function sanitizeCatalogItems(items = [], fallbackCategory = 'Lua de Mel') {
-  return items
-    .filter((item) => item && item.enabled !== false)
-    .map((item, index) => {
-      const amount = Number(item.amount ?? item.suggestedAmount ?? 0);
-      const normalizedAmount = Number.isFinite(amount) ? amount : 0;
-      return {
-        id: String(item.id ?? `item-${index + 1}`),
-        name: String(item.name ?? item.title ?? `Presente ${index + 1}`),
-        desc: String(item.desc ?? item.description ?? ''),
-        amount: normalizedAmount,
-        price: formatBRL(normalizedAmount),
-        category: String(item.category ?? fallbackCategory),
-        icon: String(item.icon ?? '💛')
-      };
-    });
-}
-
-function resolveActiveCatalog(giftConfig = {}) {
-  const catalogsRoot = giftConfig?.catalogs;
-  const lists = catalogsRoot?.lists;
-  const configuredActiveKey = giftConfig?.activeCatalogKey || catalogsRoot?.activeKey;
-
-  if (lists && typeof lists === 'object' && !Array.isArray(lists)) {
-    const entries = Object.entries(lists).filter(([, value]) => value && typeof value === 'object');
-
-    if (entries.length > 0) {
-      const byKey = configuredActiveKey && lists[configuredActiveKey] ? [configuredActiveKey, lists[configuredActiveKey]] : null;
-      const enabledEntry = entries.find(([, value]) => value.enabled !== false);
-      const selectedEntry = byKey || enabledEntry || entries[0];
-      const [catalogKey, catalog] = selectedEntry;
-      return { catalog, catalogKey };
-    }
-  }
-
-  if (giftConfig?.catalog && typeof giftConfig.catalog === 'object') {
-    return { catalog: giftConfig.catalog, catalogKey: configuredActiveKey || 'honeymoon' };
-  }
-
-  return { catalog: DEFAULT_CATALOGS.honeymoon, catalogKey: 'honeymoon' };
-}
-
-function buildMercadoPagoUrl(baseUrl, amount) {
-  const fallbackUrl = '#';
-  if (!baseUrl) return fallbackUrl;
-
-  try {
-    const url = new URL(baseUrl, window.location.href);
-    url.searchParams.set('amount', formatAmountForMercadoPagoParam(amount));
-    return url.toString();
-  } catch {
-    return fallbackUrl;
-  }
-}
-
-/* ── Renderiza os cards ──────────────────────────────────────────────── */
-function renderGiftList(pixKey, qrSrc, paymentBaseUrl) {
-  const grid = document.getElementById('giftGridList');
-  if (!grid) return;
-
-  grid.innerHTML = GIFT_ITEMS.map(item => `
-    <article
-      class="gift-item"
-      role="button"
-      tabindex="0"
-      aria-label="Presentear com ${item.name} — ${item.price || formatBRL(item.amount)}"
-      data-id="${item.id}"
-    >
-      <div class="gift-item-img-wrap">
-        <div class="gift-item-icon">${item.icon}</div>
-        <span class="gift-item-badge">${item.category}</span>
-      </div>
-      <div class="gift-item-body">
-        <div class="gift-item-name">${item.name}</div>
-        <div class="gift-item-desc">${item.desc}</div>
-        <div class="gift-item-price">${item.price || formatBRL(item.amount)}</div>
-        <div class="gift-item-price-hint">valor sugerido</div>
-        <div class="gift-item-btn">
-          <span class="gift-item-btn-label">Presentear</span>
-          <span class="gift-item-btn-arrow">→</span>
-        </div>
-      </div>
-    </article>
-  `).join('');
-
-  /* Eventos nos cards */
-  grid.querySelectorAll('.gift-item').forEach(card => {
-    const open = () => openModal(card.dataset.id, pixKey, qrSrc, paymentBaseUrl);
-    card.addEventListener('click', open);
-    card.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') open(); });
-  });
-}
-
-/* ── Modal ───────────────────────────────────────────────────────────── */
-let _pixKey = '';
-let _qrSrc  = '';
-
-function openModal(itemId, pixKey, qrSrc, paymentBaseUrl) {
-  const item = GIFT_ITEMS.find(i => i.id === itemId);
-  if (!item) return;
-
-  _pixKey = pixKey;
-  _qrSrc  = qrSrc;
-
-  document.getElementById('giftModalItemName').textContent  = item.name;
-  document.getElementById('giftModalItemPrice').textContent = `${item.price || formatBRL(item.amount)} (sugerido)`;
-  document.getElementById('giftModalPixKey').textContent    = pixKey || 'Chave Pix não configurada';
-  document.getElementById('giftModalQrImg').src = qrSrc || 'assets/images/icons/pix-placeholder.svg';
-
-  /* Link Mercado Pago com valor sugerido */
-  const linkBtn = document.getElementById('giftOptLink');
-  const paymentUrl = buildMercadoPagoUrl(paymentBaseUrl, item.amount);
-  if (paymentUrl !== '#') {
-    linkBtn.style.display = '';
-    linkBtn.href = paymentUrl;
-    document.getElementById('giftOptLinkLabel').textContent = 'Pagar no Mercado Pago';
-    document.getElementById('giftOptLinkHint').textContent  = `Valor sugerido: ${item.price || formatBRL(item.amount)}`;
-  } else {
-    linkBtn.style.display = 'none';
-  }
-
-  /* Fecha Pix inline se estava aberto */
-  document.getElementById('giftPixInline').classList.remove('is-open');
-  document.getElementById('giftOptPix').querySelector('.gift-payment-opt-arrow').textContent = '→';
-
-  document.getElementById('giftModalBackdrop').classList.add('is-open');
-  document.body.style.overflow = 'hidden';
-}
-
-function closeModal() {
-  document.getElementById('giftModalBackdrop').classList.remove('is-open');
-  document.body.style.overflow = '';
-}
-
-/* Toggle Pix inline */
-document.getElementById('giftOptPix').addEventListener('click', () => {
-  const pix = document.getElementById('giftPixInline');
-  const arrow = document.getElementById('giftOptPix').querySelector('.gift-payment-opt-arrow');
-  const isOpen = pix.classList.toggle('is-open');
-  arrow.textContent = isOpen ? '↓' : '→';
-});
-
-/* Copiar Pix no modal */
-document.getElementById('giftModalPixCopy').addEventListener('click', () => {
-  navigator.clipboard?.writeText(_pixKey)
-    .then(() => showToast('Chave Pix copiada ✓'))
-    .catch(() => showToast('Chave Pix copiada ✓'));
-});
-
-/* Fechar modal */
-document.getElementById('giftModalClose').addEventListener('click', closeModal);
-document.getElementById('giftModalBackdrop').addEventListener('click', e => {
-  if (e.target === document.getElementById('giftModalBackdrop')) closeModal();
-});
-
-/* ── Tabs ────────────────────────────────────────────────────────────── */
-document.querySelectorAll('.gift-tab').forEach(tab => {
-  tab.addEventListener('click', () => {
-    document.querySelectorAll('.gift-tab').forEach(t => t.classList.remove('is-active'));
-    document.querySelectorAll('.gift-tab-panel').forEach(p => p.classList.remove('is-active'));
-    tab.classList.add('is-active');
-    document.getElementById('panel-' + tab.dataset.panel)?.classList.add('is-active');
-  });
-});
-
-/* ── Toast ───────────────────────────────────────────────────────────── */
-function showToast(msg) {
-  const t = document.getElementById('giftToast');
-  t.textContent = msg;
-  t.classList.add('is-visible');
-  setTimeout(() => t.classList.remove('is-visible'), 2600);
-}
-
-/* ── Integração com app:ready do script.js ──────────────────────────── */
-window.addEventListener('app:ready', ({ detail: { config } }) => {
-  const pixKey = config?.gift?.pixKey || '';
-  const qrSrc  = config?.gift?.pixQrImage || 'assets/images/icons/pix-placeholder.svg';
-  const cardLink = config?.gift?.cardPaymentLink || '';
-  const cardEnabled = config?.gift?.cardPaymentEnabled !== false;
-  const { catalog: activeCatalog, catalogKey } = resolveActiveCatalog(config?.gift || {});
-  const categoryFallback = catalogKey === 'home' ? 'Casa' : 'Lua de Mel';
-  const normalizedCatalog = sanitizeCatalogItems(activeCatalog?.items, categoryFallback);
-
-  ACTIVE_CATALOG_TITLE = activeCatalog?.title || DEFAULT_CATALOGS[catalogKey]?.title || DEFAULT_CATALOGS.honeymoon.title;
-  ACTIVE_CATALOG_SUBTITLE = activeCatalog?.subtitle || DEFAULT_CATALOGS[catalogKey]?.subtitle || '';
-
-  if (normalizedCatalog.length) {
-    GIFT_ITEMS = normalizedCatalog;
-  } else {
-    GIFT_ITEMS = catalogKey === 'home' ? DEFAULT_HOUSEHOLD_ITEMS : DEFAULT_HONEYMOON_ITEMS;
-  }
-
-  /* Preenche textos */
-  const setText = (id, val) => { if (val && document.getElementById(id)) document.getElementById(id).textContent = val; };
-  const setSrc  = (id, val) => { if (val && document.getElementById(id)) document.getElementById(id).src = val; };
-
-  setText('giftOverlayTitle',   config?.texts?.giftTitle);
-  setText('giftIntroText',      config?.texts?.giftIntro);
-  setText('giftPixTitle',       config?.texts?.giftPixTitle);
-  setText('giftPixDescription', config?.texts?.giftPixDescription);
-  setText('giftPixCopyLabel',   config?.texts?.giftPixCopyLabel);
-  setText('giftCardTitle',      config?.texts?.giftCardTitle);
-  setText('giftCardBody',       config?.texts?.giftCardBody);
-  setText('giftCardPlaceholder', config?.texts?.giftCardPlaceholder);
-  setText('mainFooterNames',    config?.couple?.names);
-  setText('mainFooterNote',     config?.texts?.footerNote);
-  setText('pixCode',            pixKey);
-
-  const listSubtitleEl = document.getElementById('giftListSubtitle');
-  if (listSubtitleEl && ACTIVE_CATALOG_SUBTITLE) {
-    listSubtitleEl.textContent = ACTIVE_CATALOG_SUBTITLE;
-  }
-
-  setSrc('giftPixQr',  qrSrc);
-
-  /* Atualiza data-copy-value com chave real */
-  const copyBtn = document.getElementById('giftPixCopyButton');
-  if (copyBtn && pixKey) copyBtn.dataset.copyValue = pixKey;
-
-  /* Cartão */
-  const cardLinkEl = document.getElementById('giftCardLink');
-  if (cardLinkEl && cardLink) cardLinkEl.href = cardLink;
-  if (!cardEnabled) {
-    const cardTab = document.querySelector('[data-panel="cartao"]');
-    if (cardTab) cardTab.hidden = true;
-    const cardPanel = document.getElementById('panel-cartao');
-    if (cardPanel) cardPanel.hidden = true;
-  }
-
-  /* Pix — respeita gift.pixEnabled do dashboard */
-  const pixEnabled = config?.gift?.pixEnabled !== false && !!pixKey;
-  if (!pixEnabled) {
-    const pixTab = document.querySelector('[data-panel="pix"]');
-    if (pixTab) pixTab.hidden = true;
-    const pixPanel = document.getElementById('panel-pix');
-    if (pixPanel) pixPanel.hidden = true;
-  }
-
-  /* Catálogo — respeita gift.catalogEnabled do dashboard */
-  const catalogEnabled = config?.gift?.catalogEnabled !== false;
-  if (!catalogEnabled) {
-    const listaTab = document.querySelector('[data-panel="lista"]');
-    if (listaTab) listaTab.hidden = true;
-    const listaPanel = document.getElementById('panel-lista');
-    if (listaPanel) listaPanel.hidden = true;
-  }
-
-  /* Ativa o primeiro tab visível caso o padrão tenha sido ocultado */
-  const allTabs   = Array.from(document.querySelectorAll('.gift-tab:not([hidden])'));
-  const allPanels = Array.from(document.querySelectorAll('.gift-tab-panel:not([hidden])'));
-  document.querySelectorAll('.gift-tab').forEach(t => t.classList.remove('is-active'));
-  document.querySelectorAll('.gift-tab-panel').forEach(p => p.classList.remove('is-active'));
-  if (allTabs.length)   allTabs[0].classList.add('is-active');
-  if (allPanels.length) allPanels[0].classList.add('is-active');
-
-  /* Renderiza lista com chave Pix carregada */
-  if (catalogEnabled) renderGiftList(pixKey, qrSrc, cardLink);
-});
-
-/* Fallback — renderiza lista mesmo sem app:ready */
-setTimeout(() => {
-  const grid = document.getElementById('giftGridList');
-  if (grid && !grid.children.length) renderGiftList('', '', '');
-}, 3000);
-</script>
+<script type="module" src="assets/js/presente-page.js"></script>
+<a class="devazi-watermark" id="devaziWatermark" href="https://www.devazi.app" target="_blank" rel="noopener noreferrer" hidden>Criado com devazi.app</a>
 </body>
 </html>

@@ -15,6 +15,7 @@ import {
   removePath as rawRemovePath,
   setPath as rawSetPath,
 } from './utils.js';
+import { getThemeOverrideBucketKeys } from './config-source.js';
 
 // ── State ─────────────────────────────────────────────────────────────────────
 
@@ -26,17 +27,24 @@ const THEME_OVERRIDES_PREFIX = 'themeOverrides.';
 const THEME_OVERRIDES_BY_THEME_ROOT = 'themeOverridesByTheme';
 
 function getThemeOverrideKey(themePath) {
-  if (!themePath) return '';
-  const normalized = String(themePath).replace(/\\/g, '/');
-  const fileName = normalized.split('/').pop() || '';
-  return fileName.replace(/\.json$/i, '');
+  return getThemeOverrideBucketKeys(themePath)[0] || '';
+}
+
+function getThemeOverrideScopedPaths(path, themeValue = config?.activeTheme) {
+  if (!path?.startsWith(THEME_OVERRIDES_PREFIX)) {
+    return [path];
+  }
+
+  const suffix = path.slice(THEME_OVERRIDES_PREFIX.length);
+  const themeKeys = getThemeOverrideBucketKeys(themeValue);
+  if (themeKeys.length === 0) {
+    return [path];
+  }
+
+  return themeKeys.map((themeKey) => `${THEME_OVERRIDES_BY_THEME_ROOT}.${themeKey}.${suffix}`);
 }
 
 function resolveThemeOverrideScopedPath(path) {
-  if (!path?.startsWith(THEME_OVERRIDES_PREFIX)) {
-    return path;
-  }
-
   const themeKey = getThemeOverrideKey(config?.activeTheme);
   if (!themeKey) {
     return path;
@@ -46,8 +54,11 @@ function resolveThemeOverrideScopedPath(path) {
 }
 
 function getPath(root, path) {
-  const scopedPath = resolveThemeOverrideScopedPath(path);
-  if (scopedPath !== path) {
+  for (const scopedPath of getThemeOverrideScopedPaths(path)) {
+    if (scopedPath === path) {
+      continue;
+    }
+
     const scopedValue = rawGetPath(root, scopedPath);
     if (scopedValue !== undefined) {
       return scopedValue;
@@ -76,7 +87,29 @@ function ensureActiveThemeOverrideBucket(root) {
   }
 }
 
+function migrateLegacyThemeOverrideBuckets(root) {
+  const byTheme = rawGetPath(root, THEME_OVERRIDES_BY_THEME_ROOT);
+  if (!byTheme || typeof byTheme !== 'object' || Array.isArray(byTheme)) {
+    return;
+  }
+
+  const migrated = {};
+
+  Object.entries(byTheme).forEach(([themeKey, bucketValue]) => {
+    if (!bucketValue || typeof bucketValue !== 'object' || Array.isArray(bucketValue)) {
+      return;
+    }
+
+    const canonicalKey = getThemeOverrideBucketKeys(themeKey)[0] || themeKey;
+    const existing = migrated[canonicalKey] || {};
+    migrated[canonicalKey] = mergeDeep(existing, bucketValue);
+  });
+
+  rawSetPath(root, THEME_OVERRIDES_BY_THEME_ROOT, migrated);
+}
+
 function migrateLegacyThemeOverrides(root) {
+  migrateLegacyThemeOverrideBuckets(root);
   ensureActiveThemeOverrideBucket(root);
 
   const legacy = rawGetPath(root, 'themeOverrides');
@@ -367,7 +400,7 @@ function renderValidationBanner(results) {
     <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;">
       <strong style="color:${titleColor}">⚠ ${esc(title)}</strong>
       <button
-        onclick="document.getElementById('validation-banner')?.remove()"
+        id="validation-banner-close"
         style="background:none;border:none;cursor:pointer;color:#666;font-size:12px;padding:0;flex-shrink:0;"
         aria-label="Fechar aviso de validação">
         Fechar ×
@@ -376,6 +409,9 @@ function renderValidationBanner(results) {
     <ul style="margin-top:6px;padding-left:16px;color:#4b4b4b;">${itemsHtml}</ul>`;
 
   document.querySelector('.ed-tab-bar-wrap')?.insertAdjacentElement('afterend', banner);
+  document.getElementById('validation-banner-close')?.addEventListener('click', () => {
+    document.getElementById('validation-banner')?.remove();
+  });
 }
 
 function collectInvalidAccommodationLinks() {
@@ -1360,6 +1396,10 @@ function renderCasal() {
   `) + group('Local', `
     ${fieldInput({ label: 'Nome do local', path: 'event.locationName', placeholder: 'Mansão Ilha de Capri' })}
     ${fieldInput({ label: 'Cidade', path: 'event.locationCity', placeholder: 'São Bernardo do Campo' })}
+  `) + group('Audiência do convite', `
+    ${fieldInput({ label: 'Rastreamento de audiência habilitado (true/false)', path: 'analytics.enabled', placeholder: 'false', cast: 'boolean', hint: 'Quando true, o convite registra visualizações de página no backend.' })}
+    ${fieldInput({ label: 'Exigir token único do convidado (true/false)', path: 'analytics.requireGuestToken', placeholder: 'true', cast: 'boolean', hint: 'Quando true, só salva acessos vindos de links com ?g=token.' })}
+    ${fieldInput({ label: 'Medir tempo aproximado na página (true/false)', path: 'analytics.trackPageDuration', placeholder: 'true', cast: 'boolean', hint: 'Quando true, salva duração estimada ao sair da página.' })}
   `);
 }
 
@@ -1509,13 +1549,13 @@ function renderPresente() {
     ${fieldInput({ label: 'Imagem QR Code do Pix', path: 'gift.pixQrImage', placeholder: 'assets/images/icons/pix-placeholder.svg' })}
     ${fieldInput({ label: 'Label Pix (copia e cola)', path: 'texts.giftPixCopyLabel', placeholder: 'Pix copia e cola' })}
     ${fieldInput({ label: 'Texto botão copiar Pix', path: 'texts.giftPixCopyButton', placeholder: 'Copiar código Pix' })}
-  `) + group('Pagamento por cartão', `
+  `) + group('Presentear por cartão', `
     ${fieldInput({ label: 'Cartão habilitado (true/false)', path: 'gift.cardPaymentEnabled', placeholder: 'false', cast: 'boolean', hint: 'Quando false, o bloco de cartão fica oculto no site.' })}
     ${fieldInput({ label: 'Link de pagamento', path: 'gift.cardPaymentLink', placeholder: 'https://pagamento.exemplo.com/link-do-casal', inputType: 'url', hint: 'Aceita apenas URL válida (http/https).' })}
-    ${fieldInput({ label: 'Tag do bloco', path: 'texts.giftCardTag', placeholder: 'Pagamento por cartão' })}
-    ${fieldInput({ label: 'Título do bloco', path: 'texts.giftCardTitle', placeholder: 'Pagamento por cartão' })}
+    ${fieldInput({ label: 'Tag do bloco', path: 'texts.giftCardTag', placeholder: 'Presentear por cartão' })}
+    ${fieldInput({ label: 'Título do bloco', path: 'texts.giftCardTitle', placeholder: 'Presentear com cartão' })}
     ${fieldTextarea({ label: 'Descrição do bloco', path: 'texts.giftCardBody', placeholder: 'Escolha a melhor forma para nos presentear com carinho.' })}
-    ${fieldInput({ label: 'Texto do botão de cartão', path: 'texts.giftCardPlaceholder', placeholder: 'Pagar com cartão', hint: 'Esse texto vira o botão clicável quando o cartão estiver habilitado.' })}
+    ${fieldInput({ label: 'Texto do botão de cartão', path: 'texts.giftCardPlaceholder', placeholder: 'Presentear com cartão', hint: 'Esse texto vira o botão clicável quando o cartão estiver habilitado.' })}
   `);
 }
 
@@ -1575,12 +1615,15 @@ function renderMusica() {
 
 // ── Theme tab ─────────────────────────────────────────────────────────────────
 
-const DEFAULT_THEME_FILES = [
-  'assets/config/themes/classic-gold.json',
-  'assets/config/themes/classic-gold-light.json',
-  'assets/config/themes/classic-silver.json',
-  'assets/config/themes/classic-silver-light.json',
-  'assets/config/themes/classic-purple.json',
+// Paletas compartilhadas — disponíveis para todos os layouts
+const DEFAULT_PALETTE_FILES = [
+  'assets/themes/gold.json',
+  'assets/themes/gold-light.json',
+  'assets/themes/silver.json',
+  'assets/themes/silver-light.json',
+  'assets/themes/purple.json',
+  'assets/themes/blue.json',
+  'assets/themes/green-light.json',
 ];
 
 const LAYOUT_DEFINITIONS = [
@@ -1588,13 +1631,23 @@ const LAYOUT_DEFINITIONS = [
     key: 'classic',
     name: 'Classic',
     description: 'Hero centralizado, seções empilhadas, elegante e formal com tipografia mista.',
-    themePrefix: 'assets/layouts/classic/themes/',
   },
   {
     key: 'modern',
     name: 'Modern',
     description: 'Hero dividido com foto à direita, títulos à esquerda, minimalista e sans-serif.',
-    themePrefix: 'assets/layouts/modern/themes/',
+  },
+  // layout minimal oculto temporariamente
+  // { key: 'minimal', name: 'Minimal', description: 'Foto portrait ao lado do texto, fundo visível, sem overlay. Countdown sem cards, details como lista com régua.' },
+  {
+    key: 'minimal',
+    name: 'Minimal',
+    description: 'Foto portrait ao lado do texto, fundo visivel, sem overlay. Countdown sem cards, details como lista com regua.',
+  },
+  {
+    key: 'editorial',
+    name: 'Editorial',
+    description: 'Capa de revista premium, composicao assimetrica, serif elegante e detalhes em caixa alta.',
   },
 ];
 
@@ -1626,35 +1679,35 @@ const THEME_COLOR_SECTIONS = [
   },
 ];
 
-let themeCatalog = [];  // [{ path, meta, colors, fonts }]
+let themeCatalog = [];  // [{ key, path, name, description, allColors, colors }]
 
-function getThemeFiles() {
-  const allFiles = Array.isArray(config?.themeFiles) && config.themeFiles.length > 0
-    ? config.themeFiles
-    : DEFAULT_THEME_FILES;
+// Extrai a chave simples de um caminho de tema (ex: "gold" de "assets/themes/gold.json")
+function extractThemeKey(themePathOrKey) {
+  return getThemeOverrideBucketKeys(themePathOrKey)[0] || '';
+  // Se já é uma chave simples (sem "/" e sem ".json")
+  if (!themePathOrKey.includes('/')) return themePathOrKey.replace('.json', '');
+  // Extrai o filename sem extensão
+  const parts = themePathOrKey.split('/');
+  return parts[parts.length - 1].replace('.json', '');
+}
 
-  const activeLayout = config?.activeLayout;
-  if (activeLayout) {
-    const layoutDef = LAYOUT_DEFINITIONS.find(l => l.key === activeLayout);
-    if (layoutDef) {
-      const layoutThemes = allFiles.filter(f => f.startsWith(layoutDef.themePrefix));
-      if (layoutThemes.length > 0) return layoutThemes;
-    }
-  }
-
-  return allFiles;
+function getPaletteFiles() {
+  // Paletas são compartilhadas entre layouts — sempre usa a lista canônica
+  return DEFAULT_PALETTE_FILES;
 }
 
 async function loadThemeCatalog() {
   if (themeCatalog.length) return;
-  const themeFiles = getThemeFiles();
-  const results = await Promise.allSettled(themeFiles.map(async (path) => {
+  const paletteFiles = getPaletteFiles();
+  const results = await Promise.allSettled(paletteFiles.map(async (path) => {
     const res = await fetch(path);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
+    const key = extractThemeKey(path);
     return {
+      key,
       path,
-      name: data.meta?.name ?? path,
+      name: data.meta?.name ?? key,
       description: data.meta?.description ?? '',
       allColors: data.colors ?? {},
       colors: {
@@ -1664,11 +1717,6 @@ async function loadThemeCatalog() {
         text:       data.colors?.text       ?? '#faf7f2',
         surface:    data.colors?.surface    ?? '#222',
         border:     data.colors?.border     ?? 'rgba(201,168,76,0.2)',
-      },
-      fonts: {
-        accent:  data.typography?.fonts?.accent  ?? "'Great Vibes', cursive",
-        serif:   data.typography?.fonts?.serif   ?? "'Cormorant Garamond', serif",
-        primary: data.typography?.fonts?.primary ?? "'Jost', sans-serif",
       },
     };
   }));
@@ -1682,7 +1730,7 @@ function colorSwatch(color) {
 }
 
 function themeCardHtml(theme) {
-  const isActive = config.activeTheme === theme.path;
+  const isActive = extractThemeKey(config.activeTheme) === theme.key;
   const bg   = theme.colors.background;
   const fg   = theme.colors.text;
   const pri  = theme.colors.primary;
@@ -1714,7 +1762,7 @@ function themeCardHtml(theme) {
           ${colorSwatch(fg)}
           ${colorSwatch(bdr)}
         </div>
-        <button class="ed-theme-btn${isActive ? ' is-active' : ''}" data-select-theme="${esc(theme.path)}">
+        <button class="ed-theme-btn${isActive ? ' is-active' : ''}" data-select-theme="${esc(theme.key)}">
           ${isActive ? 'Tema atual' : 'Usar este tema'}
         </button>
       </div>
@@ -1749,7 +1797,8 @@ async function renderTema() {
   await loadThemeCatalog();
   const cards = themeCatalog.map(t => themeCardHtml(t)).join('');
 
-  const activeTheme = themeCatalog.find((theme) => theme.path === config.activeTheme) || themeCatalog[0] || { allColors: {} };
+  const activeThemeKey = extractThemeKey(config.activeTheme);
+  const activeTheme = themeCatalog.find((theme) => theme.key === activeThemeKey) || themeCatalog[0] || { allColors: {} };
 
   function getColorContext({ key, description, aliases = [] }) {
     const overrideValue = getPath(config, `themeOverrides.colors.${key}`);
@@ -1900,6 +1949,7 @@ function getActiveTabPreviewHtml() {
         <p class="ed-preview-text">${esc(getPath(config, 'couple.subtitle') || '')}</p>
         <p class="ed-preview-meta">${esc(getPath(config, 'event.displayDate') || '')} • ${esc(getPath(config, 'event.time') || '')}</p>
         <p class="ed-preview-meta">${esc(getPath(config, 'event.locationName') || '')} — ${esc(getPath(config, 'event.locationCity') || '')}</p>
+        <p class="ed-preview-meta">Audiência: ${getPath(config, 'analytics.enabled') === true ? 'habilitada' : 'desabilitada'}</p>
       `;
     case 'textos':
       return `
@@ -1963,7 +2013,7 @@ function getActiveTabPreviewHtml() {
     }
     case 'presente': {
       const cardEnabled = Boolean(getPath(config, 'gift.cardPaymentEnabled'));
-      const cardLabel = getPath(config, 'texts.giftCardPlaceholder') || 'Pagar com cartão';
+      const cardLabel = getPath(config, 'texts.giftCardPlaceholder') || 'Presentear com cartão';
       const cardLink = getPath(config, 'gift.cardPaymentLink') || '';
       return `
         <h3 class="ed-preview-title">${esc(getPath(config, 'texts.giftTitle') || 'Para nos presentear')}</h3>

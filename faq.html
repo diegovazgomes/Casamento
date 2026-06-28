@@ -8,10 +8,8 @@
     <title>Dúvidas Frequentes</title>
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="assets/css/animations.css">
-    <script type="module">
-        import { initLoadingScreen } from './assets/js/loading-screen.js';
-        initLoadingScreen();
-    </script>
+    <script src="assets/js/loading-head-bootstrap.js"></script>
+    <script type="module" src="assets/js/loading-init.js"></script>
 </head>
 <body class="extra-page faq-page">
 
@@ -39,7 +37,8 @@
 
     <footer>
         <div class="footer-names" id="mainFooterNames"></div>
-        <p class="footer-note" id="mainFooterNote">06 . 09 . 2026 | São Bernardo do Campo</p>
+        <p class="footer-note" id="mainFooterNote"></p>
+        <a class="devazi-watermark" id="devaziWatermark" href="https://www.devazi.app" target="_blank" rel="noopener noreferrer" hidden>Criado com devazi.app</a>
     </footer>
 
     <script type="module" src="assets/js/script.js"></script>

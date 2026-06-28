@@ -1,6 +1,8 @@
 import { initExtraPage } from './extra-page.js';
 import { setInputPlaceholder, setText } from './utils.js';
-import { saveGuestMessage } from './rsvp-persistence.js';
+import { getLastSubmissionError, saveGuestMessage } from './rsvp-persistence.js';
+
+const DEMO_SUBMISSIONS_BLOCKED_CODE = 'DEMO_PUBLIC_SUBMISSIONS_BLOCKED';
 
 function setFieldValidity(field, isInvalid) {
     if (!field) return;
@@ -17,7 +19,7 @@ function shouldPersistToDatabase(config, moduleName) {
 
     if (rsvpConfig.supabaseEnabled === false) {
         console.warn(
-            `[${moduleName}] config.rsvp.supabaseEnabled=false é legado e será ignorado. A persistência permanece habilitada; use config.rsvp.disablePersistence=true para desativar.`
+            `[${moduleName}] config.rsvp.supabaseEnabled=false Ã© legado e serÃ¡ ignorado. A persistÃªncia permanece habilitada; use config.rsvp.disablePersistence=true para desativar.`
         );
     }
 
@@ -70,12 +72,6 @@ function bindMessageForm(content, config) {
         }
 
         if (shouldPersistToDatabase(config, 'mensagem')) {
-            console.log('[mensagem] Enviando mensagem para persistência.', {
-                eventId: config?.rsvp?.eventId || 'wedding-event',
-                hasGuestName: Boolean(guestName),
-                messageLength: messageBody.length,
-            });
-
             const saved = await saveGuestMessage({
                 guestName,
                 message: messageBody,
@@ -83,18 +79,21 @@ function bindMessageForm(content, config) {
             }).catch(() => false);
 
             if (!saved) {
-                console.warn('[mensagem] Falha na persistência da mensagem.');
+                console.warn('[mensagem] Falha na persistÃªncia da mensagem.');
                 feedback.classList.add('is-error');
-                feedback.textContent = content?.errorMessage || 'Não foi possível enviar sua mensagem agora. Tente novamente.';
+                const lastSubmissionError = getLastSubmissionError();
+                if (lastSubmissionError?.code === DEMO_SUBMISSIONS_BLOCKED_CODE) {
+                    feedback.textContent = lastSubmissionError.message || 'Este convite e demonstrativo. RSVP, mensagens e musicas estao desativados no exemplo.';
+                } else {
+                    feedback.textContent = content?.errorMessage || 'NÃ£o foi possÃ­vel enviar sua mensagem agora. Tente novamente.';
+                }
                 if (submitButton) {
                     submitButton.disabled = false;
                 }
                 return;
             }
-
-            console.log('[mensagem] Mensagem persistida com sucesso.');
         } else {
-            console.warn('[mensagem] Persistência desativada (config.rsvp.disablePersistence=true). Mensagem não será salva no banco.');
+            console.warn('[mensagem] PersistÃªncia desativada (config.rsvp.disablePersistence=true). Mensagem nÃ£o serÃ¡ salva no banco.');
         }
 
         feedback.textContent = content?.successMessage || 'Mensagem enviada com carinho. Obrigado pelo seu recado.';

@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('../../assets/js/rsvp-persistence.js', () => ({
   saveRsvpConfirmation: vi.fn(),
+  getLastSubmissionError: vi.fn(() => null),
 }));
 
 function createRsvpDom() {

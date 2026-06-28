@@ -306,7 +306,7 @@ values (
     'map_enabled',    true,
 
     -- Imagem do casal (será atualizado com URL do Storage após upload)
-    'hero_image_url', 'assets/images/couple/casal.png',
+    'hero_image_url', 'assets/images/Hero-standard.jpeg',
 
     -- Áudio
     'audio', jsonb_build_object(
@@ -586,7 +586,7 @@ where id = 'event-media';
 -- ============================================================
 -- 1. Faça upload manual das fotos no Supabase Dashboard → Storage:
 --    - Criar pasta: {event_uuid}/hero/
---    - Upload: assets/images/couple/casal.png  →  {event_uuid}/hero/casal.png
+--    - Upload: assets/images/Hero-standard.jpeg  →  {event_uuid}/hero/Hero-standard.jpeg
 --    - Criar pasta: {event_uuid}/gallery/
 --    - Upload: assets/images/gallery/foto1.png, foto2.png, foto3.png
 --

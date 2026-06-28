@@ -5,51 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="description" content="">
     <meta name="theme-color" content="#1a1714">
+    <meta name="devazi-plan" content="premium">
     <title></title>
-    <script>
-        (function () {
-            var invitationStarted = false;
-            var navigationTarget = null;
-
-            try {
-                invitationStarted = window.sessionStorage.getItem('wedding-invitation-started') === 'true';
-            } catch (error) {
-                invitationStarted = false;
-            }
-
-            var guestToken = null;
-
-            try {
-                var searchParams = new URL(window.location.href).searchParams;
-                navigationTarget = searchParams.get('section');
-                guestToken = searchParams.get('g') || null;
-            } catch (error) {
-                navigationTarget = null;
-                guestToken = null;
-            }
-
-            if ('scrollRestoration' in window.history) {
-                window.history.scrollRestoration = 'manual';
-            }
-
-            window.__INVITATION_BOOTSTRAP__ = {
-                navigationTarget: navigationTarget,
-                guestToken: guestToken,
-                shouldSkipIntro: invitationStarted || Boolean(navigationTarget)
-            };
-
-            if (window.__INVITATION_BOOTSTRAP__.shouldSkipIntro) {
-                document.documentElement.classList.add('skip-intro');
-            }
-        })();
-    </script>
-    <script type="module">
-        // Inicializa loading screen e badge de debug (apenas com ?debug ou ?dev)
-        import { initLoadingScreen } from './assets/js/loading-screen.js';
-        import { initDebugBadge }    from './assets/js/debug-badge.js';
-        initLoadingScreen();
-        initDebugBadge();
-    </script>
+    <script src="assets/js/invitation-head-bootstrap.js"></script>
+    <script src="assets/js/loading-head-bootstrap.js"></script>
+    <script type="module" src="assets/js/loading-init-debug.js"></script>
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="assets/css/animations.css">
 </head>
@@ -65,12 +25,24 @@
     </div>
 
     <div class="site-shell" id="siteShell" hidden aria-hidden="true">
+
+    <nav class="site-nav" id="siteNav" aria-label="Navegação do convite">
+        <div class="site-nav__inner">
+            <span class="site-nav__brand" id="navBrand"></span>
+            <div class="site-nav__links">
+                <a href="#details" class="site-nav__link">Detalhes</a>
+                <a href="presente.html" id="siteNavGiftLink" class="site-nav__link">Presentes</a>
+                <a href="#rsvp" class="site-nav__link">RSVP</a>
+            </div>
+        </div>
+    </nav>
+
     <main>
         <section class="hero" id="hero" aria-label="Convite principal">
             <img
                 id="couplePhoto"
                 class="hero-photo"
-                src="assets/images/couple/casal.png"
+                src="assets/images/Hero-standard.jpeg"
                 alt=""
             >
             <div class="hero-overlay" aria-hidden="true"></div>
@@ -141,25 +113,49 @@
                     <span class="detail-sub" id="detailTimeSub"></span>
                 </article>
                 <a
-                    id="detailLocationLink"
+                    id="detailCeremonyLink"
                     class="detail-card detail-card-link"
                     href=""
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-label=""
                 >
-                    <span class="detail-icon" aria-hidden="true" id="detailLocationIcon">🏛️</span>
-                    <span class="detail-title" id="detailLocationTitle"></span>
-                    <div class="detail-value" id="detailLocationName"></div>
-                    <span class="detail-sub" id="detailLocationCity"></span>
-                    <span class="detail-link-hint" id="detailLocationHint"></span>
+                    <span class="detail-icon" aria-hidden="true" id="detailCeremonyIcon">⛪</span>
+                    <span class="detail-title" id="detailCeremonyTitle"></span>
+                    <div class="detail-value" id="detailCeremonyName"></div>
+                    <span class="detail-sub" id="detailCeremonyCity"></span>
+                    <span class="detail-link-hint" id="detailCeremonyHint"></span>
                 </a>
-                <article class="detail-card">
-                    <span class="detail-icon" aria-hidden="true" id="detailOccasionIcon">💍</span>
-                    <span class="detail-title" id="detailOccasionTitle"></span>
-                    <div class="detail-value" id="detailOccasionValue"></div>
-                    <span class="detail-sub" id="detailOccasionSub"></span>
-                </article>
+                <a
+                    id="detailPartyLink"
+                    class="detail-card detail-card-link"
+                    href=""
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label=""
+                >
+                    <span class="detail-icon" aria-hidden="true" id="detailPartyIcon">🎉</span>
+                    <span class="detail-title" id="detailPartyTitle"></span>
+                    <div class="detail-value" id="detailPartyName"></div>
+                    <span class="detail-sub" id="detailPartyCity"></span>
+                    <span class="detail-link-hint" id="detailPartyHint"></span>
+                </a>
+                <a
+                    class="detail-card detail-card-link detail-card-traje"
+                    href="traje.html"
+                    aria-label="Ver detalhes do traje e paletas"
+                >
+                    <span class="detail-icon" aria-hidden="true">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+                             stroke="currentColor" stroke-width="1.5"
+                             stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.57a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.57a2 2 0 0 0-1.34-2.23z"/>
+                        </svg>
+                    </span>
+                    <span class="detail-title">TRAJE &amp; PALETAS</span>
+                    <div class="detail-value" id="detailDresscodeValue"></div>
+                    <span class="detail-link-hint">Ver detalhes</span>
+                </a>
                 <a class="detail-card detail-card-link detail-card-gift" href="presente.html" aria-label="Abrir área de presentes">
                     <span class="detail-icon" aria-hidden="true" id="detailGiftIcon">🎁</span>
                     <span class="detail-title" id="detailGiftTitle">Presente</span>
@@ -217,7 +213,7 @@
                         <div class="rsvp-consent" id="rsvpConsentWrap">
                             <label class="rsvp-consent-label">
                                 <input type="checkbox" id="rsvp-marketing-consent" name="marketing_consent">
-                                <span>Quero receber novidades sobre convites digitais da plataforma que criou este convite</span>
+                                <span>Quero receber novidades da plataforma que criou este convite</span>
                             </label>
                         </div>
 
@@ -245,6 +241,13 @@
     <footer>
         <div class="footer-names" id="mainFooterNames"></div>
         <p class="footer-note" id="mainFooterNote"></p>
+        <p class="footer-privacy-note">
+            Usamos métricas básicas de acesso para funcionamento, segurança e melhoria da experiência. Seus dados não são usados para marketing sem sua autorização.
+            <a href="privacy.html">Privacidade</a>
+            <span aria-hidden="true">·</span>
+            <a href="terms.html">Termos</a>
+        </p>
+        <a class="devazi-watermark" id="devaziWatermark" href="https://www.devazi.app" target="_blank" rel="noopener noreferrer" hidden>Criado com devazi.app</a>
     </footer>
     </div>
 
@@ -254,5 +257,17 @@
     </button>
 
     <script type="module" src="assets/js/script.js"></script>
+
+    <!-- BARRA MOBILE FIXA — aparece após scroll, some ao chegar no RSVP -->
+    <div class="mobile-bar" id="mobileBar" aria-label="Ações rápidas" role="navigation">
+        <a href="presente.html" id="mobileBarGiftBtn" class="mobile-bar-btn mobile-bar-btn--secondary">
+            🎁 Ver lista de presentes
+        </a>
+        <a href="#rsvp" class="mobile-bar-btn mobile-bar-btn--primary">
+            ✓ Confirmar presença
+        </a>
+    </div>
+
+    <script src="assets/js/mobile-bar.js"></script>
 </body>
 </html>

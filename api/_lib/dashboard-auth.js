@@ -11,6 +11,23 @@ function getLookupValue(value) {
   return String(value || '').trim();
 }
 
+function isLikelyUuid(value) {
+  const normalized = String(value || '').trim();
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(normalized);
+}
+
+export function isDemoLockedEvent(event) {
+  return event?.is_demo_locked === true
+    || event?.config?.demo?.locked === true;
+}
+
+export function buildDemoReadOnlyError() {
+  return {
+    error: 'Este convite de demonstração é somente leitura.',
+    code: 'DEMO_READ_ONLY',
+  };
+}
+
 export function getDashboardEventLookup(req) {
   const query = req?.query || {};
   const body = req?.body || {};
@@ -76,6 +93,23 @@ export async function findOwnedEventRecord(supabase, userId, lookup, selectClaus
   return data;
 }
 
+export async function findLatestOwnedEventRecord(supabase, userId, selectClause) {
+  const { data, error } = await supabase
+    .from('events')
+    .select(selectClause)
+    .eq('user_id', userId)
+    .order('updated_at', { ascending: false })
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    throw error;
+  }
+
+  return data;
+}
+
 export async function requireOwnedEvent(req, options = {}) {
   const auth = await authenticateDashboardRequest(req);
 
@@ -84,8 +118,14 @@ export async function requireOwnedEvent(req, options = {}) {
   }
 
   const lookup = options.lookup || getDashboardEventLookup(req);
+  const allowFallbackOwnedEvent = options.allowFallbackOwnedEvent === true;
+  const hasLookup = Boolean(lookup.eventId || lookup.slug);
+  const selectClause = options.selectClause || 'id,slug,user_id,config';
+  let event = null;
 
-  if (!lookup.eventId && !lookup.slug) {
+  if (hasLookup) {
+    event = await findOwnedEventRecord(auth.supabase, auth.user.id, lookup, selectClause);
+  } else if (!allowFallbackOwnedEvent) {
     return {
       ok: false,
       status: 400,
@@ -95,8 +135,9 @@ export async function requireOwnedEvent(req, options = {}) {
     };
   }
 
-  const selectClause = options.selectClause || 'id,slug,user_id,config';
-  const event = await findOwnedEventRecord(auth.supabase, auth.user.id, lookup, selectClause);
+  if (!event && allowFallbackOwnedEvent) {
+    event = await findLatestOwnedEventRecord(auth.supabase, auth.user.id, selectClause);
+  }
 
   if (!event) {
     return {
@@ -114,7 +155,7 @@ export async function requireOwnedEvent(req, options = {}) {
     user: auth.user,
     token: auth.token,
     event,
-    lookup,
+    lookup: hasLookup ? lookup : { eventId: event.id, slug: event.slug || '' },
   };
 }
 
@@ -123,18 +164,62 @@ export async function findOwnedGuestToken(supabase, userId, tokenId, selectClaus
     return null;
   }
 
-  const { data, error } = await supabase
+  const { data: tokenData, error: tokenError } = await supabase
     .from('guest_tokens')
-    .select(`${selectClause},events!inner(id,user_id,slug)`)
+    .select(selectClause)
     .eq('id', tokenId)
-    .eq('events.user_id', userId)
     .maybeSingle();
 
-  if (error) {
-    throw error;
+  if (tokenError) {
+    throw tokenError;
   }
 
-  return data;
+  if (!tokenData) {
+    return null;
+  }
+
+  const tokenEventLookup = getLookupValue(tokenData.event_id);
+  if (!tokenEventLookup) {
+    return null;
+  }
+
+  let ownedEvent = null;
+
+  // Produção pode ter schemas legados onde guest_tokens.event_id guarda o slug.
+  const { data: eventBySlug, error: eventBySlugError } = await supabase
+    .from('events')
+    .select('id,user_id,slug,config')
+    .eq('slug', tokenEventLookup)
+    .maybeSingle();
+
+  if (eventBySlugError) {
+    throw eventBySlugError;
+  }
+
+  if (eventBySlug) {
+    ownedEvent = eventBySlug;
+  } else if (isLikelyUuid(tokenEventLookup)) {
+    const { data: eventById, error: eventByIdError } = await supabase
+      .from('events')
+      .select('id,user_id,slug,config')
+      .eq('id', tokenEventLookup)
+      .maybeSingle();
+
+    if (eventByIdError) {
+      throw eventByIdError;
+    }
+
+    ownedEvent = eventById || null;
+  }
+
+  if (!ownedEvent || ownedEvent.user_id !== userId) {
+    return null;
+  }
+
+  return {
+    ...tokenData,
+    events: ownedEvent,
+  };
 }
 
 export function buildEventUpdatePayload(body, fieldMap, existingConfig, mergeDeep) {
@@ -159,4 +244,22 @@ export function buildEventUpdatePayload(body, fieldMap, existingConfig, mergeDee
   }
 
   return { update };
+}
+
+/**
+ * Retorna o plano do usuário ('free' | 'basic' | 'premium').
+ * Usa service role — chamável de qualquer endpoint backend.
+ */
+export async function getUserPlan(supabase, userId) {
+  if (!supabase || !userId) return 'free';
+  try {
+    const { data } = await supabase
+      .from('profiles')
+      .select('plan')
+      .eq('id', userId)
+      .maybeSingle();
+    return String(data?.plan || 'free').toLowerCase();
+  } catch {
+    return 'free';
+  }
 }

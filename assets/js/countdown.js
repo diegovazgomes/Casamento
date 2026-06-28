@@ -67,9 +67,17 @@ export class Countdown {
         this.elements.minutes.textContent = '00';
         this.elements.seconds.textContent = '00';
 
+        const text = this.config.texts?.countdownFinished || 'O grande dia chegou.';
+        const existingMessage = this.container.querySelector('.countdown-finished');
+
+        if (existingMessage) {
+            existingMessage.textContent = text;
+            return;
+        }
+
         const message = document.createElement('p');
         message.className = 'countdown-finished';
-        message.textContent = this.config.texts?.countdownFinished || 'O grande dia chegou.';
+        message.textContent = text;
         this.container.appendChild(message);
     }
 
@@ -79,6 +87,11 @@ export class Countdown {
         }
 
         this.update();
+
+        if (this.intervalId || this.targetDate <= Date.now()) {
+            return;
+        }
+
         this.intervalId = window.setInterval(
             () => this.update(),
             Number(this.config.countdown?.updateInterval ?? 1000)

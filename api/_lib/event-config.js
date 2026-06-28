@@ -74,6 +74,59 @@ function buildEventDateTimeString(eventDate, eventTime, fallbackValue) {
   return `${normalizedDate}T${normalizedTime}:00`;
 }
 
+const MONTHS_SHORT = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+const MONTHS_FULL = ['janeiro', 'fevereiro', 'marco', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+const WEEKDAYS = ['Domingo', 'Segunda-feira', 'Terca-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sabado'];
+
+function buildEventDateDisplayParts(eventDate) {
+  const source = String(eventDate || '').trim();
+  if (!source) {
+    return null;
+  }
+
+  const dateOnly = source.includes('T') ? source.split('T')[0] : source;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateOnly)) {
+    return null;
+  }
+
+  const parsed = new Date(`${dateOnly}T12:00:00`);
+  if (Number.isNaN(parsed.getTime())) {
+    return null;
+  }
+
+  const day = String(parsed.getDate()).padStart(2, '0');
+  const monthIndex = parsed.getMonth();
+  const monthNumber = String(monthIndex + 1).padStart(2, '0');
+  const year = parsed.getFullYear();
+
+  return {
+    heroDate: `${day} . ${monthNumber} . ${year}`,
+    detailDate: `${day} ${MONTHS_SHORT[monthIndex]} ${year}`,
+    displayDate: `${day} de ${MONTHS_FULL[monthIndex]} de ${year}`,
+    weekday: WEEKDAYS[parsed.getDay()],
+  };
+}
+
+function normalizeEventDateFields(eventConfig = {}, eventDate, sourceEventConfig = {}) {
+  const nextEvent = isPlainObject(eventConfig) ? cloneValue(eventConfig) : {};
+  const sourceEvent = isPlainObject(sourceEventConfig) ? sourceEventConfig : {};
+  const derived = buildEventDateDisplayParts(eventDate);
+
+  if (!derived) {
+    return nextEvent;
+  }
+
+  ['heroDate', 'detailDate', 'displayDate', 'weekday'].forEach((key) => {
+    const current = String(nextEvent[key] || '').trim();
+    const sourceValue = String(sourceEvent[key] || '').trim();
+    if (!current || current === sourceValue) {
+      nextEvent[key] = derived[key];
+    }
+  });
+
+  return nextEvent;
+}
+
 function setIfDefined(target, key, value) {
   if (value !== undefined && value !== null && value !== '') {
     target[key] = value;
@@ -93,7 +146,7 @@ function firstDefined(...values) {
 function normalizeRsvpConfig(rsvpConfig = {}, eventSlug = '') {
   const nextRsvp = isPlainObject(rsvpConfig) ? cloneValue(rsvpConfig) : {};
 
-  const normalizedEventId = firstDefined(nextRsvp.eventId, nextRsvp.event_id, eventSlug);
+  const normalizedEventId = firstDefined(eventSlug, nextRsvp.eventId, nextRsvp.event_id);
   const normalizedSupabaseEnabled = firstDefined(nextRsvp.supabaseEnabled, nextRsvp.supabase_enabled);
 
   setIfDefined(nextRsvp, 'eventId', normalizedEventId);
@@ -143,6 +196,30 @@ function normalizeWhatsappConfig(whatsappConfig = {}) {
   return nextWhatsapp;
 }
 
+function normalizeAnalyticsConfig(analyticsConfig = {}) {
+  const nextAnalytics = isPlainObject(analyticsConfig) ? cloneValue(analyticsConfig) : {};
+
+  const normalizedEnabled = firstDefined(nextAnalytics.enabled, nextAnalytics.is_enabled);
+  const normalizedRequireGuestToken = firstDefined(nextAnalytics.requireGuestToken, nextAnalytics.require_guest_token);
+  const normalizedTrackPageDuration = firstDefined(nextAnalytics.trackPageDuration, nextAnalytics.track_page_duration);
+
+  nextAnalytics.enabled = normalizedEnabled === undefined ? true : Boolean(normalizedEnabled);
+  nextAnalytics.requireGuestToken = normalizedRequireGuestToken === undefined ? true : Boolean(normalizedRequireGuestToken);
+  nextAnalytics.trackPageDuration = normalizedTrackPageDuration === undefined ? true : Boolean(normalizedTrackPageDuration);
+
+  if ('is_enabled' in nextAnalytics) {
+    delete nextAnalytics.is_enabled;
+  }
+  if ('require_guest_token' in nextAnalytics) {
+    delete nextAnalytics.require_guest_token;
+  }
+  if ('track_page_duration' in nextAnalytics) {
+    delete nextAnalytics.track_page_duration;
+  }
+
+  return nextAnalytics;
+}
+
 function resolveCatalogKey(config, index) {
   const rawKey = config?.key || config?.id || config?.slug || config?.title || `catalog-${index + 1}`;
 
@@ -175,9 +252,22 @@ function mapGiftConfig(giftRecords, baseGiftConfig) {
       return;
     }
 
+    if (giftRecord?.type === 'external') {
+      gift.external = {
+        enabled: Boolean(giftRecord.enabled),
+        url:     config.url   || '',
+        label:   config.label || 'Ver lista completa',
+        store:   config.store || '',
+      };
+      return;
+    }
+
     if (giftRecord?.type === 'catalog') {
-      const catalogKey = resolveCatalogKey(config, index);
-      catalogLists[catalogKey] = mergeDeep(config, { enabled: Boolean(giftRecord.enabled) });
+      // Prefer the key stored in the row config; fall back to the active key already
+      // recorded in the base gift config (covers rows created before key support was added).
+      const enrichedConfig = config.key ? config : { ...config, key: gift.activeCatalogKey || gift.catalogs?.activeKey || config.key };
+      const catalogKey = resolveCatalogKey(enrichedConfig, index);
+      catalogLists[catalogKey] = mergeDeep(enrichedConfig, { enabled: Boolean(giftRecord.enabled) });
     }
   });
 
@@ -198,12 +288,24 @@ function mapGiftConfig(giftRecords, baseGiftConfig) {
     lists: catalogLists,
   });
   gift.activeCatalogKey = activeKey;
+
+  // Capture JSONB catalog items before the row-based merge overwrites them.
+  // Items in events.config (JSONB) are always authoritative — event_gifts catalog
+  // row items may be stale if step-4c sync was skipped or failed.
+  const jsonbCatalogItems = gift.catalog?.items;
+
   gift.catalog = mergeDeep(gift.catalog, catalogLists[activeKey]);
+
+  // Restore JSONB items when they exist, ignoring potentially-stale row items.
+  if (Array.isArray(jsonbCatalogItems) && jsonbCatalogItems.length > 0) {
+    gift.catalog.items = jsonbCatalogItems;
+  }
 
   return gift;
 }
 
 const GALLERY_IMAGE_EXTENSION_PATTERN = /\.(jpe?g|png|webp)$/i;
+const PIX_QR_IMAGE_EXTENSION_PATTERN = /\.(jpe?g|png|webp)$/i;
 
 function buildGalleryAltFromName(fileName, index) {
   const fallback = `Foto ${index + 1}`;
@@ -226,21 +328,40 @@ function buildGalleryAltFromName(fileName, index) {
   return normalized.charAt(0).toUpperCase() + normalized.slice(1);
 }
 
-export async function resolveEventGalleryFromStorage(supabase, eventId) {
+export async function resolveEventGalleryFromStorage(supabase, eventId, eventSlug = '') {
   const normalizedEventId = String(eventId || '').trim();
+  const normalizedEventSlug = String(eventSlug || '').trim();
+  const storageRoots = [normalizedEventSlug, normalizedEventId].filter((value, index, array) => value && array.indexOf(value) === index);
 
-  if (!supabase || !normalizedEventId) {
+  if (!supabase || storageRoots.length === 0) {
     return [];
   }
 
   const storage = supabase.storage.from('event-media');
-  const { data, error } = await storage.list(`${normalizedEventId}/gallery`, {
-    limit: 200,
-    sortBy: { column: 'name', order: 'asc' },
-  });
+  let data = [];
+  let resolvedRoot = '';
 
-  if (error) {
-    console.warn('[event-config] Failed to list gallery from Storage', error);
+  for (let index = 0; index < storageRoots.length; index += 1) {
+    const root = storageRoots[index];
+    const response = await storage.list(`${root}/gallery`, {
+      limit: 200,
+      sortBy: { column: 'name', order: 'asc' },
+    });
+
+    if (response.error) {
+      console.warn('[event-config] Failed to list gallery from Storage', response.error);
+      return [];
+    }
+
+    const entries = Array.isArray(response.data) ? response.data : [];
+    if (entries.length > 0) {
+      data = entries;
+      resolvedRoot = root;
+      break;
+    }
+  }
+
+  if (!resolvedRoot) {
     return [];
   }
 
@@ -252,7 +373,7 @@ export async function resolveEventGalleryFromStorage(supabase, eventId) {
 
   return imageEntries.map((entry, index) => {
     const fileName = String(entry.name || '').trim();
-    const path = `${normalizedEventId}/gallery/${fileName}`;
+    const path = `${resolvedRoot}/gallery/${fileName}`;
     const { data: publicUrlData } = storage.getPublicUrl(path);
 
     return {
@@ -290,8 +411,12 @@ export function buildEventConfigResponse(eventRecord) {
   const sourceConfig = isPlainObject(eventRecord?.config) ? cloneValue(eventRecord.config) : {};
   const nextConfig = mergeDeep(sourceConfig, {});
 
-  setIfDefined(nextConfig, 'activeTheme', eventRecord?.active_theme);
-  setIfDefined(nextConfig, 'activeLayout', eventRecord?.active_layout);
+  if (!String(nextConfig.activeTheme || '').trim()) {
+    setIfDefined(nextConfig, 'activeTheme', eventRecord?.active_theme);
+  }
+  if (!String(nextConfig.activeLayout || '').trim()) {
+    setIfDefined(nextConfig, 'activeLayout', eventRecord?.active_layout);
+  }
 
   nextConfig.couple = mergeDeep(nextConfig.couple, {});
   setIfDefined(nextConfig.couple, 'names', eventRecord?.couple_names);
@@ -299,20 +424,113 @@ export function buildEventConfigResponse(eventRecord) {
   setIfDefined(nextConfig.couple, 'groomName', eventRecord?.groom_name);
 
   nextConfig.event = mergeDeep(nextConfig.event, {});
+  const sourceEventConfig = cloneValue(nextConfig.event);
   setIfDefined(
     nextConfig.event,
     'date',
     buildEventDateTimeString(eventRecord?.event_date, eventRecord?.event_time, nextConfig.event?.date)
   );
   setIfDefined(nextConfig.event, 'time', normalizeTimeValue(eventRecord?.event_time) || nextConfig.event?.time);
-  setIfDefined(nextConfig.event, 'locationName', eventRecord?.venue_name);
-  setIfDefined(nextConfig.event, 'venueAddress', eventRecord?.venue_address);
-  setIfDefined(nextConfig.event, 'mapsLink', eventRecord?.venue_maps_link);
+
+  const ceremonyName = eventRecord?.ceremony_name;
+  const ceremonyAddress = eventRecord?.ceremony_address;
+  const ceremonyMapsLink = eventRecord?.ceremony_maps_link;
+  const ceremonyCoordinates = eventRecord?.ceremony_coordinates;
+
+  const partyName = eventRecord?.party_name || eventRecord?.venue_name;
+  const partyAddress = eventRecord?.party_address || eventRecord?.venue_address;
+  const partyMapsLink = eventRecord?.party_maps_link || eventRecord?.venue_maps_link;
+  const partyCoordinates = eventRecord?.party_coordinates || eventRecord?.venue_coordinates;
+
+  setIfDefined(nextConfig.event, 'ceremonyLocationName', ceremonyName);
+  setIfDefined(nextConfig.event, 'ceremonyAddress', ceremonyAddress);
+  setIfDefined(nextConfig.event, 'ceremonyMapsLink', ceremonyMapsLink);
+  setIfDefined(nextConfig.event, 'ceremonyCoordinates', ceremonyCoordinates);
+
+  setIfDefined(nextConfig.event, 'partyLocationName', partyName);
+  setIfDefined(nextConfig.event, 'partyAddress', partyAddress);
+  setIfDefined(nextConfig.event, 'partyMapsLink', partyMapsLink);
+  setIfDefined(nextConfig.event, 'partyCoordinates', partyCoordinates);
+
+  // Compat: mantém aliases legados apontando para o local da festa.
+  setIfDefined(nextConfig.event, 'locationName', partyName);
+  setIfDefined(nextConfig.event, 'venueAddress', partyAddress);
+  setIfDefined(nextConfig.event, 'mapsLink', partyMapsLink);
+  setIfDefined(nextConfig.event, 'venueCoordinates', partyCoordinates);
+
+  nextConfig.event = normalizeEventDateFields(nextConfig.event, nextConfig.event?.date, sourceEventConfig);
 
   nextConfig.rsvp = normalizeRsvpConfig(nextConfig.rsvp, eventRecord?.slug);
   nextConfig.whatsapp = normalizeWhatsappConfig(nextConfig.whatsapp);
+  nextConfig.analytics = normalizeAnalyticsConfig(nextConfig.analytics);
 
   nextConfig.gift = mapGiftConfig(eventRecord?.event_gifts, nextConfig.gift);
+
+  return nextConfig;
+}
+
+export async function resolveEventPixQrFromStorage(supabase, eventId, eventSlug = '') {
+  const normalizedEventId = String(eventId || '').trim();
+  const normalizedEventSlug = String(eventSlug || '').trim();
+  const storageRoots = [normalizedEventSlug, normalizedEventId].filter((value, index, array) => value && array.indexOf(value) === index);
+
+  if (!supabase || storageRoots.length === 0) {
+    return '';
+  }
+
+  const storage = supabase.storage.from('event-media');
+  let data = [];
+  let resolvedRoot = '';
+
+  for (let index = 0; index < storageRoots.length; index += 1) {
+    const root = storageRoots[index];
+    const response = await storage.list(`${root}/pix`, {
+      limit: 20,
+      sortBy: { column: 'name', order: 'asc' },
+    });
+
+    if (response.error) {
+      console.warn('[event-config] Failed to list pix QR from Storage', response.error);
+      return '';
+    }
+
+    const entries = Array.isArray(response.data) ? response.data : [];
+    if (entries.length > 0) {
+      data = entries;
+      resolvedRoot = root;
+      break;
+    }
+  }
+
+  if (!resolvedRoot) {
+    return '';
+  }
+
+  const imageEntry = (Array.isArray(data) ? data : [])
+    .find((entry) => {
+      const name = String(entry?.name || '').trim();
+      return Boolean(name) && PIX_QR_IMAGE_EXTENSION_PATTERN.test(name);
+    });
+
+  if (!imageEntry?.name) {
+    return '';
+  }
+
+  const fileName = String(imageEntry.name).trim();
+  const path = `${resolvedRoot}/pix/${fileName}`;
+  const { data: publicUrlData } = storage.getPublicUrl(path);
+
+  return publicUrlData?.publicUrl || '';
+}
+
+export function applyPixQrToGiftConfig(config, pixQrUrl) {
+  const nextConfig = isPlainObject(config) ? cloneValue(config) : {};
+
+  if (!nextConfig.gift) nextConfig.gift = {};
+
+  if (pixQrUrl) {
+    nextConfig.gift.pixQrImage = pixQrUrl;
+  }
 
   return nextConfig;
 }

@@ -93,14 +93,9 @@ describe('rsvp persistence', () => {
     });
   });
 
-  it('faz fallback para Supabase direto quando /api/submissions está indisponível', async () => {
+  it('retorna false quando /api/submissions estÃ¡ indisponÃ­vel', async () => {
     global.fetch
-      .mockResolvedValueOnce(createTextResponse('service unavailable', false, 503))
-      .mockResolvedValueOnce(createJsonResponse({
-        supabaseUrl: 'https://demo.supabase.co',
-        supabaseAnonKey: 'anon-key',
-      }))
-      .mockResolvedValueOnce(createTextResponse('', true, 201));
+      .mockResolvedValueOnce(createTextResponse('service unavailable', false, 503));
 
     const { saveGuestMessage } = await import('../../assets/js/rsvp-persistence.js');
     const saved = await saveGuestMessage({
@@ -109,15 +104,14 @@ describe('rsvp persistence', () => {
       eventId: 'evento-teste',
     });
 
-    expect(saved).toBe(true);
-    expect(global.fetch).toHaveBeenCalledTimes(3);
-    expect(global.fetch).toHaveBeenNthCalledWith(2, '/api/config');
-    expect(global.fetch).toHaveBeenNthCalledWith(3, 'https://demo.supabase.co/rest/v1/guest_submissions', expect.objectContaining({
+    expect(saved).toBe(false);
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+    expect(global.fetch).toHaveBeenNthCalledWith(1, '/api/submissions', expect.objectContaining({
       method: 'POST',
     }));
   });
 
-  it('retorna false quando /api/submissions falha com erro de validação', async () => {
+  it('retorna false quando /api/submissions falha com erro de validaÃ§Ã£o', async () => {
     global.fetch.mockResolvedValueOnce(createJsonResponse({
       code: 'VALIDATION_ERROR',
       message: 'Invalid payload',

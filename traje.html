@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="description" content="Dress code e paleta de cores do casamento.">
+    <meta name="theme-color" content="#1a1714">
+    <title>Traje & Paletas</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/animations.css">
+    <script src="assets/js/loading-head-bootstrap.js"></script>
+    <script type="module" src="assets/js/loading-init.js"></script>
+</head>
+<body class="extra-page traje-page">
+
+    <main class="extra-main">
+        <section class="content-section extra-intro">
+            <span class="section-tag reveal" id="trajeTag">Traje &amp; Paletas</span>
+            <h1 class="section-title reveal" id="trajeTitle">Dress Code</h1>
+            <p class="section-body reveal" id="trajeIntro"></p>
+        </section>
+
+        <div class="divider reveal" aria-hidden="true">
+            <div class="divider-line"></div>
+            <div class="divider-diamond"></div>
+            <div class="divider-line"></div>
+        </div>
+
+        <div class="extra-content">
+
+            <section class="extra-info-card reveal" id="trajeDresscodeCard" aria-labelledby="trajeDresscodeLabel">
+                <p class="extra-info-label" id="trajeDresscodeLabel">Dress Code</p>
+                <p class="extra-info-value" id="trajeDresscode"></p>
+            </section>
+
+            <section class="extra-info-card reveal" id="trajeBrideColorCard" hidden aria-labelledby="trajeBrideColorLabel">
+                <p class="extra-info-label" id="trajeBrideColorLabel">Cor da Noiva</p>
+                <div class="traje-color-item">
+                    <span class="traje-swatch" id="trajeBrideSwatch" aria-hidden="true"></span>
+                    <span class="traje-color-name" id="trajeBrideColorName"></span>
+                </div>
+            </section>
+
+            <section class="extra-info-card reveal" id="trajeGroomColorCard" hidden aria-labelledby="trajeGroomColorLabel">
+                <p class="extra-info-label" id="trajeGroomColorLabel">Cor do Noivo</p>
+                <div class="traje-color-item">
+                    <span class="traje-swatch" id="trajeGroomSwatch" aria-hidden="true"></span>
+                    <span class="traje-color-name" id="trajeGroomColorName"></span>
+                </div>
+            </section>
+
+            <section class="extra-info-card reveal" id="trajeBridesmaidsCard" hidden aria-labelledby="trajeBridesmaidsLabel">
+                <p class="extra-info-label" id="trajeBridesmaidsLabel">Paleta das Madrinhas</p>
+                <div class="traje-palette" id="trajeBridesmaidsPalette"></div>
+            </section>
+
+            <section class="extra-info-card reveal" id="trajeGroomsMenCard" hidden aria-labelledby="trajeGroomsMenLabel">
+                <p class="extra-info-label" id="trajeGroomsMenLabel">Paleta dos Padrinhos</p>
+                <div class="traje-palette" id="trajeGroomsMenPalette"></div>
+            </section>
+
+            <section class="extra-info-card reveal" id="trajeNoteCard" hidden aria-labelledby="trajeNoteLabel">
+                <p class="extra-info-label" id="trajeNoteLabel">Observação</p>
+                <p class="extra-info-value" id="trajeNote"></p>
+            </section>
+
+        </div>
+
+        <div class="gift-back-wrap">
+            <a class="gift-back-link" id="backToExtrasButton" href="index.html?section=extras" aria-label="Voltar para opções extras"></a>
+        </div>
+    </main>
+
+    <footer>
+        <div class="footer-names" id="mainFooterNames"></div>
+        <p class="footer-note" id="mainFooterNote"></p>
+    </footer>
+
+    <script type="module" src="assets/js/script.js"></script>
+    <script type="module" src="assets/js/traje.js"></script>
+</body>
+</html>

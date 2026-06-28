@@ -1,19 +1,51 @@
-import { setText } from './utils.js';
+import { setText, escapeHtml } from './utils.js';
 import { initExtraPage } from './extra-page.js';
 
-function renderCards(containerId, items) {
+function isSafeUrl(url) {
+    try {
+        const parsed = new URL(String(url || ''));
+        return parsed.protocol === 'https:' || parsed.protocol === 'http:';
+    } catch {
+        return false;
+    }
+}
+
+function normalizeExternalUrl(url) {
+    const raw = String(url || '').trim();
+    if (!raw) return '';
+
+    if (isSafeUrl(raw)) {
+        return raw;
+    }
+
+    const prefixed = `https://${raw.replace(/^\/+/, '')}`;
+    return isSafeUrl(prefixed) ? prefixed : '';
+}
+
+function renderCards(containerId, items, type) {
     const container = document.getElementById(containerId);
     if (!container || !Array.isArray(items)) return;
 
-    container.innerHTML = items.map((item) => {
-        const linkHtml = item.link
-            ? `<a class="hospedagem-card-link" href="${item.link}" target="_blank" rel="noopener noreferrer">${item.linkLabel ?? 'Ver mais'}</a>`
+    const defaultLinkLabel = type === 'hotels' ? 'Conferir no mapa' : 'Ver site';
+
+    const visibleItems = items.filter((item) => {
+        const name = String(item?.name || '').trim();
+        const description = String(item?.description || '').trim();
+        const link = String(item?.link || '').trim();
+        return Boolean(name || description || link);
+    });
+
+    container.innerHTML = visibleItems.map((item) => {
+        const normalizedLink = normalizeExternalUrl(item.link);
+        const linkLabel = String(item.linkLabel || '').trim() || defaultLinkLabel;
+        const linkHtml = normalizedLink
+            ? `<a class="hospedagem-card-link" href="${escapeHtml(normalizedLink)}" target="_blank" rel="noopener noreferrer">${escapeHtml(linkLabel)}</a>`
             : '';
 
         return `
             <article class="hospedagem-card">
-                <h3 class="hospedagem-card-name">${item.name ?? ''}</h3>
-                <p class="hospedagem-card-description">${item.description ?? ''}</p>
+                <h3 class="hospedagem-card-name">${escapeHtml(item.name)}</h3>
+                <p class="hospedagem-card-description">${escapeHtml(item.description)}</p>
                 ${linkHtml}
             </article>
         `;
@@ -26,7 +58,7 @@ initExtraPage({
     onReady: (content) => {
         setText('hospedagemHotelsTitle', content.hotelsTitle);
         setText('hospedagemRestaurantsTitle', content.restaurantsTitle);
-        renderCards('hospedagemHotels', content.hotels);
-        renderCards('hospedagemRestaurants', content.restaurants);
+        renderCards('hospedagemHotels', content.hotels, 'hotels');
+        renderCards('hospedagemRestaurants', content.restaurants, 'restaurants');
     },
 });

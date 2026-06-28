@@ -1,0 +1,215 @@
+{
+  "typography": {
+    "fonts": {
+      "primary": "'DM Mono', monospace",
+      "serif":   "'Cormorant Garamond', serif",
+      "accent":  "'Cormorant Garamond', serif"
+    },
+    "sizes": {
+      "base":             "17px",
+      "heroLabel":        "10px",
+      "heroDate":         "10px",
+      "heroNames":        { "min": "72px", "fluid": "14vw", "max": "200px" },
+      "scrollHint":       "9px",
+      "sectionTag":       "10px",
+      "sectionTitle":     { "min": "36px", "fluid": "5vw", "max": "60px" },
+      "sectionBody":      "17px",
+      "countdownNumber":  "52px",
+      "countdownLabel":   "9px",
+      "countdownFinished":"26px",
+      "detailIcon":       "0px",
+      "detailTitle":      "9px",
+      "detailValue":      "28px",
+      "detailSub":        "14px",
+      "rsvpTitle":        "0px",
+      "rsvpSubtitle":     "0px",
+      "rsvpInput":        "18px",
+      "rsvpChoice":       "10px",
+      "rsvpSubmit":       "10px",
+      "rsvpSuccessText":  "26px",
+      "rsvpSuccessSub":   "10px",
+      "footerNames":      "28px",
+      "footerNote":       "10px"
+    },
+    "roles": {
+      "heroTitle": {
+        "family":     "cormorant_garamond",
+        "size":       { "min": "72px", "fluid": "14vw", "max": "200px" },
+        "weight":     300,
+        "lineHeight": 0.92,
+        "style":      "italic"
+      },
+      "heroSubtitle": {
+        "family":     "dm_mono",
+        "size":       "10px",
+        "weight":     400,
+        "lineHeight": 1.4,
+        "style":      "normal"
+      },
+      "eyebrow": {
+        "family":        "dm_mono",
+        "size":          "10px",
+        "weight":        400,
+        "textTransform": "uppercase",
+        "letterSpacing": "0.32em",
+        "lineHeight":    1.2,
+        "style":         "normal"
+      },
+      "sectionTitle": {
+        "family":     "cormorant_garamond",
+        "size":       { "min": "36px", "fluid": "5vw", "max": "60px" },
+        "weight":     300,
+        "lineHeight": 1.05,
+        "style":      "italic"
+      },
+      "sectionSubtitle": {
+        "family":     "cormorant_garamond",
+        "size":       "17px",
+        "weight":     400,
+        "lineHeight": 1.6,
+        "style":      "italic"
+      },
+      "body": {
+        "family":     "cormorant_garamond",
+        "size":       "17px",
+        "weight":     400,
+        "lineHeight": 1.7,
+        "style":      "normal"
+      },
+      "formLabel": {
+        "family":     "dm_mono",
+        "size":       "9px",
+        "weight":     400,
+        "lineHeight": 1.4,
+        "style":      "normal"
+      },
+      "button": {
+        "family":        "dm_mono",
+        "size":          "10px",
+        "weight":        400,
+        "letterSpacing": "0.3em",
+        "lineHeight":    1.2,
+        "style":         "normal"
+      },
+      "countdownNumber": {
+        "family":     "cormorant_garamond",
+        "size":       "52px",
+        "weight":     300,
+        "lineHeight": 1,
+        "style":      "normal"
+      },
+      "footer": {
+        "family":     "cormorant_garamond",
+        "size":       "28px",
+        "weight":     300,
+        "lineHeight": 1.3,
+        "style":      "italic"
+      }
+    }
+  },
+
+  "spacing": {
+    "containerWidth":          "1400px",
+    "cardPadding":             "36px",
+    "sectionPaddingTop":       "88px",
+    "sectionPaddingInline":    "clamp(24px, 5vw, 64px)",
+    "detailsSectionPaddingTop":"88px",
+    "sectionTagGap":           "28px",
+    "sectionTitleGap":         "32px",
+    "heroLabelGap":            "0px",
+    "heroDateGap":             "28px",
+    "scrollHintBottom":        "28px",
+    "scrollHintGap":           "12px",
+    "dividerMarginTop":        "0px",
+    "countdownMarginTop":      "48px",
+    "countdownGap":            "0px",
+    "detailsMarginTop":        "48px",
+    "detailsGridGap":          "0px",
+    "detailCardPaddingBlock":  "32px",
+    "detailCardPaddingInline": "28px",
+    "rsvpShellPaddingBottom":  "88px",
+    "rsvpCardMarginTop":       "0px",
+    "rsvpCardPaddingBlock":    "0px",
+    "rsvpCardPaddingInline":   "0px",
+    "rsvpSubtitleGap":         "0px",
+    "rsvpFormGap":             "0px",
+    "rsvpChoiceGap":           "4px",
+    "rsvpSubmitMarginTop":     "32px",
+    "footerPaddingBottom":     "48px"
+  },
+
+  "layout": {
+    "heroHeight":              "100dvh",
+    "heroPadding":             "0",
+    "heroContentWidth":        "100%",
+    "heroContentPaddingBottom":"clamp(48px, 8vh, 80px)",
+    "heroFadeOffset":          "20px",
+    "contentMaxWidth":         "1400px"
+  },
+
+  "components": {
+    "dividerWidth":              "0px",
+    "dividerDiamond":            "0px",
+    "scrollArrowWidth":          "40px",
+    "scrollArrowHeight":         "1px",
+    "scrollArrowStemHeight":     "1px",
+    "scrollArrowHeadSize":       "0px",
+    "countdownCardPaddingTop":   "32px",
+    "countdownCardPaddingInline":"8px",
+    "countdownCardPaddingBottom":"32px",
+    "rsvpInputPaddingBlock":     "20px",
+    "rsvpInputPaddingInline":    "0px",
+    "rsvpChoiceMinHeight":       "44px",
+    "rsvpChoicePadding":         "10px 20px",
+    "rsvpSubmitPaddingBlock":    "0px",
+    "rsvpSubmitPaddingInline":   "0px",
+    "rsvpSuccessIcon":           "28px",
+    "cardLineHeight":            "0px",
+    "cardLineHeightExtras":      "0px",
+    "cardLineZIndex":            0
+  },
+
+  "radius": {
+    "card":   "0px",
+    "button": "0px"
+  },
+
+  "effects": {
+    "transition":         "all 0.35s cubic-bezier(0.16, 1, 0.3, 1)",
+    "cardLineTransition": "none"
+  },
+
+  "animation": {
+    "fadeDuration":       "1s",
+    "staggerDelay":       "0.15s",
+    "heroFadeDuration":   "1s",
+    "heroRevealDelayMs":  300,
+    "cardLineTransition": "none"
+  },
+
+  "countdown": {
+    "format":         "two-digits",
+    "updateInterval": 1000
+  },
+
+  "responsive": {
+    "mobile": {
+      "spacing": {
+        "sectionPaddingTop":        "40px",
+        "sectionPaddingInline":     "20px",
+        "detailsSectionPaddingTop": "72px",
+        "dividerMarginTop":         "0px"
+      },
+      "layout": {
+        "heroHeight":         "auto",
+        "heroPadding":        "0",
+        "heroContentWidth":   "100%",
+        "contentMaxWidth":    "100%"
+      },
+      "animation": {
+        "heroFadeDuration":   "1s",
+        "heroRevealDelayMs":  300
+      }
+    }
+  }
+}

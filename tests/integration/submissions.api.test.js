@@ -37,6 +37,10 @@ describe('POST /api/submissions', () => {
   beforeEach(() => {
     vi.resetModules();
     createClientMock.mockReset();
+    delete process.env.UPSTASH_REDIS_REST_URL;
+    delete process.env.UPSTASH_REDIS_REST_TOKEN;
+    delete process.env.KV_REST_API_URL;
+    delete process.env.KV_REST_API_TOKEN;
     process.env.SUPABASE_URL = 'https://example.supabase.co';
     process.env.SUPABASE_SERVICE_ROLE_KEY = 'service-role-key';
   });
@@ -219,5 +223,63 @@ describe('POST /api/submissions', () => {
     expect(res.body).toMatchObject({
       code: 'VALIDATION_ERROR',
     });
+  });
+
+  it('bloqueia submissões em convite demonstrativo', async () => {
+    const eventsBuilder = {
+      select: vi.fn(function select() {
+        return this;
+      }),
+      eq: vi.fn(function eq() {
+        return this;
+      }),
+      maybeSingle: vi.fn().mockResolvedValue({
+        data: {
+          id: 'event-demo-1',
+          slug: 'convite-demo',
+          config: {
+            demo: {
+              publicShowcase: true,
+            },
+          },
+        },
+        error: null,
+      }),
+    };
+
+    const insertMock = vi.fn().mockResolvedValue({ error: null });
+
+    createClientMock.mockReturnValue({
+      from: vi.fn((tableName) => {
+        if (tableName === 'events') {
+          return eventsBuilder;
+        }
+
+        return { insert: insertMock };
+      }),
+    });
+
+    const { default: handler } = await import('../../api/submissions.js');
+    const res = createMockResponse();
+
+    await handler({
+      method: 'POST',
+      body: {
+        table: 'guest_submissions',
+        payload: {
+          type: 'message',
+          guest_name: 'Ana',
+          event_id: 'convite-demo',
+          source: 'mensagem-page',
+          message: 'Parabens ao casal',
+        },
+      },
+    }, res);
+
+    expect(res.statusCode).toBe(403);
+    expect(res.body).toMatchObject({
+      code: 'DEMO_PUBLIC_SUBMISSIONS_BLOCKED',
+    });
+    expect(insertMock).not.toHaveBeenCalled();
   });
 });

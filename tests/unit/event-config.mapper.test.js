@@ -70,4 +70,56 @@ describe('buildEventConfigResponse', () => {
       },
     });
   });
+
+  it('derives textual date fields from event_date when missing in config', () => {
+    const result = buildEventConfigResponse({
+      slug: 'ana-leo-2026',
+      event_date: '2026-05-07',
+      event_time: '17:00:00',
+      config: {
+        event: {}
+      },
+      event_gifts: []
+    });
+
+    expect(result.event.date).toBe('2026-05-07T17:00:00');
+    expect(result.event.heroDate).toBe('07 . 05 . 2026');
+    expect(result.event.detailDate).toBe('07 Mai 2026');
+    expect(result.event.displayDate).toBe('07 de maio de 2026');
+    expect(result.event.weekday).toBe('Quinta-feira');
+  });
+
+  it('normalizes analytics defaults for dynamic event configs', () => {
+    const result = buildEventConfigResponse({
+      slug: 'ana-leo-2026',
+      config: {
+        rsvp: { supabaseEnabled: true },
+      },
+      event_gifts: [],
+    });
+
+    expect(result.analytics).toEqual({
+      enabled: true,
+      requireGuestToken: true,
+      trackPageDuration: true,
+    });
+  });
+
+  it('forces rsvp.eventId to the current event slug when config carries a stale copied value', () => {
+    const result = buildEventConfigResponse({
+      slug: 'siannah-diego-convida',
+      config: {
+        rsvp: {
+          eventId: 'thais-rafael-demonstracao',
+          supabaseEnabled: true,
+        },
+      },
+      event_gifts: [],
+    });
+
+    expect(result.rsvp).toEqual({
+      eventId: 'siannah-diego-convida',
+      supabaseEnabled: true,
+    });
+  });
 });

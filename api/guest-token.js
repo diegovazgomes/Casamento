@@ -4,11 +4,29 @@
 // e revalidar no momento do submit.
 // Credenciais do Supabase ficam server-side — nunca expostas ao browser.
 
+import { consumeRateLimit, getClientIp } from './_lib/rate-limit.js';
+
+const RATE_LIMIT_MAX = 20;
+const RATE_LIMIT_WINDOW_MS = 60_000;
+const RATE_LIMIT_SCOPE = 'guest-token';
+
 export default async function handler(req, res) {
     const { token } = req.query;
 
     if (!token || typeof token !== 'string' || token.length > 64) {
         return res.status(400).json({ error: 'token inválido' });
+    }
+
+    const rateLimit = await consumeRateLimit({
+        scope: RATE_LIMIT_SCOPE,
+        identifier: getClientIp(req),
+        max: RATE_LIMIT_MAX,
+        windowMs: RATE_LIMIT_WINDOW_MS,
+    });
+
+    if (!rateLimit.allowed) {
+        res.setHeader('Retry-After', String(rateLimit.retryAfterSec || 60));
+        return res.status(429).json({ error: 'muitas tentativas. tente novamente em um minuto.' });
     }
 
     const supabaseUrl = process.env.SUPABASE_URL;

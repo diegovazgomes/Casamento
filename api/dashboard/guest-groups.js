@@ -2,6 +2,12 @@
  * Endpoint: GET/POST/PATCH/DELETE /api/dashboard/guest-groups
  * CRUD de grupos de convidados (guest_tokens)
  *
+ * PATCH/DELETE esperam o id em query string:
+ *   /api/dashboard/guest-groups?id=<tokenId>
+ *
+ * Compatibilidade legada de path (/api/dashboard/guest-groups/:id)
+ * pode ser tratada por rewrite da plataforma.
+ *
  * Todos os endpoints requerem: Authorization: Bearer <token>
  */
 
@@ -9,6 +15,7 @@ import { createClient } from '@supabase/supabase-js';
 import {
   authenticateDashboardRequest,
   findOwnedGuestToken,
+  getUserPlan,
   requireOwnedEvent,
 } from '../_lib/dashboard-auth.js';
 
@@ -19,16 +26,24 @@ function getSupabaseClient() {
   return createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 }
 
+function resolveTokenId(req) {
+  const rawId = req?.query?.id ?? req?.query?.tokenId;
+  if (Array.isArray(rawId)) {
+    return String(rawId[0] || '').trim();
+  }
+  return String(rawId || '').trim();
+}
+
 export default function handler(req, res) {
   // CORS
   if (req.method === 'OPTIONS') {
-    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Origin', process.env.ALLOWED_ORIGIN || 'https://devazi.app');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
     return res.status(200).end();
   }
 
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Origin', process.env.ALLOWED_ORIGIN || 'https://devazi.app');
   res.setHeader('Content-Type', 'application/json');
 
   if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
@@ -88,6 +103,7 @@ async function handleGetGroups(req, res) {
           ...token,
           confirmationCount: confirmationCount || 0,
           slotsAvailable: token.max_confirmations - (confirmationCount || 0),
+          inviteLink: buildInviteLink(getOrigin(req), ownedEvent.event.slug, token.token),
         };
       })
     );
@@ -132,6 +148,14 @@ async function handleCreateGroup(req, res) {
 
     const supabase = ownedEvent.supabase;
 
+    const plan = await getUserPlan(supabase, ownedEvent.user.id);
+    if (plan !== 'premium') {
+      return res.status(403).json({
+        error: 'Grupos de convidados estão disponíveis apenas no plano Premium.',
+        upgrade_required: true,
+      });
+    }
+
     // Gerar token único
     const guestToken = generateGuestToken();
 
@@ -156,7 +180,7 @@ async function handleCreateGroup(req, res) {
         ...data,
         confirmationCount: 0,
         slotsAvailable: data.max_confirmations,
-        inviteLink: `${getOrigin(req)}/index.html?g=${data.token}`,
+        inviteLink: buildInviteLink(getOrigin(req), ownedEvent.event.slug, data.token),
       },
     });
   } catch (error) {
@@ -166,14 +190,14 @@ async function handleCreateGroup(req, res) {
 }
 
 /**
- * PATCH /api/dashboard/guest-groups/:tokenId
+ * PATCH /api/dashboard/guest-groups?id=:tokenId
  * Editar grupo (principalmente max_confirmations)
  *
  * Body:
  *   { "maxConfirmations": 3, "groupName": "...", "phone": "...", "notes": "..." }
  */
 async function handleUpdateGroup(req, res) {
-  const { id: tokenId } = req.query;
+  const tokenId = resolveTokenId(req);
   const { maxConfirmations, groupName, phone, notes } = req.body || {};
 
   if (!tokenId) {
@@ -227,6 +251,7 @@ async function handleUpdateGroup(req, res) {
         ...data,
         confirmationCount: confirmationCount || 0,
         slotsAvailable: data.max_confirmations - (confirmationCount || 0),
+        inviteLink: buildInviteLink(getOrigin(req), ownedToken.events?.slug, data.token),
       },
     });
   } catch (error) {
@@ -236,11 +261,11 @@ async function handleUpdateGroup(req, res) {
 }
 
 /**
- * DELETE /api/dashboard/guest-groups/:tokenId
+ * DELETE /api/dashboard/guest-groups?id=:tokenId
  * Deletar grupo (e cascadear para views/reminders)
  */
 async function handleDeleteGroup(req, res) {
-  const { id: tokenId } = req.query;
+  const tokenId = resolveTokenId(req);
 
   if (!tokenId) {
     return res.status(400).json({ error: 'tokenId required' });
@@ -299,4 +324,16 @@ function getOrigin(req) {
   const protocol = req.headers['x-forwarded-proto'] || 'https';
   const host = req.headers.host || 'localhost:3000';
   return `${protocol}://${host}`;
+}
+
+function buildInviteLink(origin, eventSlug, token) {
+  const normalizedOrigin = String(origin || '').replace(/\/$/, '');
+  const normalizedSlug = String(eventSlug || '').trim();
+  const encodedToken = encodeURIComponent(String(token || '').trim());
+
+  if (normalizedSlug) {
+    return `${normalizedOrigin}/${encodeURIComponent(normalizedSlug)}?g=${encodedToken}`;
+  }
+
+  return `${normalizedOrigin}/index.html?g=${encodedToken}`;
 }

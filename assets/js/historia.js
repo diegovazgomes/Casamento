@@ -1,6 +1,7 @@
 import { revealElements } from './utils.js';
 import { initGallery } from './gallery.js';
 import { initExtraPage } from './extra-page.js';
+import { escapeHtml } from './utils.js';
 
 function loadGallery(images) {
     const section = document.getElementById('historiaGallery');
@@ -19,9 +20,9 @@ function renderTimeline(chapters) {
 
     container.innerHTML = chapters.map((chapter, index) => `
         <article class="historia-chapter ${index % 2 === 0 ? 'historia-chapter--left' : 'historia-chapter--right'}">
-            <span class="historia-year">${chapter.year ?? ''}</span>
-            <h2 class="historia-chapter-title">${chapter.title ?? ''}</h2>
-            <p class="historia-chapter-text">${chapter.text ?? ''}</p>
+            <span class="historia-year">${escapeHtml(chapter.year)}</span>
+            <h2 class="historia-chapter-title">${escapeHtml(chapter.title)}</h2>
+            <p class="historia-chapter-text">${escapeHtml(chapter.text)}</p>
         </article>
     `).join('');
 }

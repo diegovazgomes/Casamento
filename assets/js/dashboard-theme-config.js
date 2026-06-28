@@ -1,4 +1,5 @@
 import { cloneDeep, mergeDeep } from './utils.js';
+import { getThemeOverrideBucketKeys, resolveThemePath } from './config-source.js';
 
 const SITE_CONFIG_URL = 'assets/config/site.json';
 const TYPOGRAPHY_CONFIG_URL = 'assets/config/typography.json';
@@ -101,19 +102,16 @@ function mergeThemeWithGlobalTypography(theme, typographyConfig) {
 }
 
 function getThemeOverrideKey(themePath) {
-  if (!themePath) return '';
-  const normalized = String(themePath).replace(/\\/g, '/');
-  const fileName = normalized.split('/').pop() || '';
-  return fileName.replace(/\.json$/i, '');
+  return getThemeOverrideBucketKeys(themePath)[0] || '';
 }
 
 function getThemeOverridesForActiveTheme(siteConfig, activeThemePath) {
   const byTheme = siteConfig?.themeOverridesByTheme;
-  const themeKey = getThemeOverrideKey(activeThemePath);
-  const scoped = themeKey ? byTheme?.[themeKey] : null;
-
-  if (scoped && typeof scoped === 'object') {
-    return scoped;
+  for (const themeKey of getThemeOverrideBucketKeys(activeThemePath)) {
+    const scoped = byTheme?.[themeKey];
+    if (scoped && typeof scoped === 'object') {
+      return scoped;
+    }
   }
 
   const legacy = siteConfig?.themeOverrides;
@@ -133,10 +131,14 @@ function applySiteThemeOverrides(theme, siteConfig, activeThemePath) {
   return mergeDeep(theme, overrides);
 }
 
-function resolveThemePath(activeTheme, layoutKey) {
-  if (!activeTheme) return null;
-  if (activeTheme.startsWith('assets/')) return activeTheme;
-  return `assets/layouts/${layoutKey}/themes/${activeTheme}.json`;
+async function loadLayoutDefaults(layoutKey, themeDefaults) {
+  const path = `assets/layouts/${layoutKey}/defaults.json`;
+  try {
+    const layoutDefaults = await fetchJson(path);
+    return mergeDeep(cloneDeep(themeDefaults), layoutDefaults);
+  } catch {
+    return cloneDeep(themeDefaults);
+  }
 }
 
 function resolveTheme(theme) {
@@ -151,9 +153,10 @@ export async function loadDashboardThemeConfig() {
   const { themeDefaults, siteDefaults } = await loadDefaults();
   const config = await loadConfig(siteDefaults);
   const layoutKey = config.activeLayout || ACTIVE_LAYOUT_KEY;
-  const themePath = resolveThemePath(config.activeTheme, layoutKey) || 'assets/layouts/classic/themes/classic-silver.json';
+  const themePath = resolveThemePath(config.activeTheme, layoutKey) || 'assets/themes/silver-light.json';
+  const layoutBase = await loadLayoutDefaults(layoutKey, themeDefaults);
   const [theme, typographyConfig] = await Promise.all([
-    loadTheme(themePath, themeDefaults),
+    loadTheme(themePath, layoutBase),
     loadTypographyConfig(),
   ]);
 

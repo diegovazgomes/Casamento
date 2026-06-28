@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 vi.mock('../../assets/js/rsvp-persistence.js', () => ({
   saveGuestMessage: vi.fn(),
   saveSongSuggestion: vi.fn(),
+  getLastSubmissionError: vi.fn(() => null),
 }));
 
 function flushAsync() {

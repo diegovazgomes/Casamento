@@ -1,0 +1,4 @@
+Contact: mailto:ddiego533@gmail.com
+Expires: 2027-05-18T00:00:00.000Z
+Preferred-Languages: pt-BR, en
+Canonical: https://devazi.app/.well-known/security.txt
