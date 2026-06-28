@@ -1,5 +1,10 @@
 # Correções recentes
 
+- 2026-06-28: Reforçada cobertura fullscreen da tela de carregamento.
+  - Causa: em navegadores mobile, especialmente com barras do Chrome recolhendo ou expandindo, a loading screen podia deixar uma faixa inferior do convite visível.
+  - Mudança aplicada: `html.ls-pending::before`, `.loading-screen` e `.loading-backdrop` passaram a usar dimensões robustas com `100vh` e `100dvh`, mantendo o z-index atual e sem alterar a lógica de carregamento.
+  - Impacto percebido: ao voltar de páginas extras para o convite principal, a tela de carregamento cobre a viewport inteira com menos risco de vazamento visual no rodapé.
+
 - 2026-06-26: Reforcado contraste dos temas Gold Light, Silver Light e Silver.
   - Causa: os acentos dourados/prateados claros tinham contraste baixo com fundos claros, especialmente quando `primarySoft` era usado como texto, icone ou destaque.
   - Mudanca aplicada: reforcados os tons prateados e escurecida a familia dourada do Gold Light em cerca de 7%, sem criar novos tokens ou alterar estrutura.
