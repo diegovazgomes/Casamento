@@ -1,5 +1,10 @@
 # Correções recentes
 
+- 2026-06-28: Ocultada aba Relatórios no dashboard.
+  - Causa: a aba não deve aparecer na navegação atual do painel.
+  - Mudança aplicada: o botão de navegação `Relatórios` passou a usar `hidden`, mantendo o painel e a lógica existentes sem acesso pela UI.
+  - Impacto percebido: a sidebar do dashboard fica sem a aba Relatórios, preservando as demais abas.
+
 - 2026-06-28: Reforçada cobertura inicial e fullscreen da tela de carregamento.
   - Causa: em algumas navegações, o fallback visual podia ser pintado antes do módulo inserir a loading screen; em mobile, mudanças da barra do Chrome também podiam expor uma faixa inferior.
   - Mudança aplicada: o guard `ls-pending` passou a nascer no bootstrap síncrono do `<head>`, e `html.ls-pending::before`, `.loading-screen` e `.loading-backdrop` usam dimensões robustas com `100vh` e `100dvh`.
